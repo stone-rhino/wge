@@ -1,15 +1,24 @@
 #pragma once
+
 #include <array>
 #include <list>
 #include <memory>
 #include <string>
 #include <unordered_set>
 
-#include "rule/rule_base.h"
+#include "../rule/rule_base.h"
 
-namespace SrSecurity {
+namespace SrSecurity::Parser {
+
+/**
+ * seclang parser
+ */
 class Parser {
 public:
+  /**
+   * load the rule set from a file
+   * @param file_path supports relative and absolute path
+   */
   void loadFromFile(const std::string& file_path);
 
 public:
@@ -24,4 +33,4 @@ private:
   std::array<std::list<Rule::RuleSharedPtr>, phase_total_> all_rules_;
   std::array<std::list<Rule::RuleSharedPtr>, phase_total_> valid_rules_;
 };
-} // namespace SrSecurity
+} // namespace SrSecurity::Parser

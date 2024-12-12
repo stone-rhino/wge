@@ -72,6 +72,8 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "span": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "complex": "cpp",
+        "expected": "cpp"
     }
 }

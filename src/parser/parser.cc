@@ -1,10 +1,28 @@
 #include "parser.h"
 
-#include "common/likely.h"
+#include <fstream>
 
-namespace SrSecurity {
+#include "antlr4_gen/SecLangLexer.h"
+#include "antlr4_gen/SecLangParser.h"
+#include "visitor.h"
+
+#include "../common/likely.h"
+
+namespace SrSecurity::Parser {
 
 void Parser::loadFromFile(const std::string& file_path) {
+  std::ifstream ifs(file_path);
+  antlr4::ANTLRInputStream input(ifs);
+  Antlr4Gen::SecLangLexer lexer(&input);
+  antlr4::CommonTokenStream tokens(&lexer);
+  Antlr4Gen::SecLangParser parser(&tokens);
+
+  parser.setBuildParseTree(true);
+  parser.removeErrorListeners();
+  auto tree = parser.configuration();
+  Visitor vistor;
+  vistor.visit(tree);
+
   std::unordered_set<uint64_t> remove_ids;
   std::unordered_set<std::string> remove_tags;
   fillValideRules(remove_ids, remove_tags);
@@ -30,4 +48,4 @@ void Parser::fillValideRules(const std::unordered_set<uint64_t>& remove_ids,
     }
   }
 }
-} // namespace SrSecurity
+} // namespace SrSecurity::Parser
