@@ -1,0 +1,3 @@
+[submodule "src/parser/seclang_parser"]
+	path = src/parser/seclang_parser
+	url = https://github.com/coreruleset/seclang_parser.git
