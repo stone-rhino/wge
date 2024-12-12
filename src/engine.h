@@ -2,8 +2,11 @@
 
 #include <memory>
 
-#include "parser.h"
 #include "transaction.h"
+
+namespace SrSecurity::Parser {
+class Parser;
+}
 
 namespace SrSecurity {
 class Engine {
@@ -18,6 +21,6 @@ public:
   TransactionSharedPtr makeTransaction() const;
 
 private:
-  Parser parser_;
+  std::unique_ptr<Parser::Parser> parser_;
 };
 } // namespace SrSecurity

@@ -11,11 +11,13 @@ IncludeCategories:
 - Regex: '.*<.*>'
   Priority: 1
 - Regex: '.*\".*(pb|validate)\.h\"'
+  Priority: 5
+- Regex: '.*\"\.\..*\"'
   Priority: 4
 - Regex: '.*\".*\"'
   Priority: 3
 - Regex: '.*'
-  Priority: 5
+  Priority: 6
 IncludeBlocks: Regroup
 ...
 

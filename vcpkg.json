@@ -1,5 +1,12 @@
 {
   "dependencies": [
-    "spdlog"
+    "spdlog",
+    "antlr4"
+  ],
+  "overrides": [
+    {
+      "name": "antlr4",
+      "version": "4.13.2"
+    }
   ]
 }
