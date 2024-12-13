@@ -1,7 +1,8 @@
 {
   "dependencies": [
+    "antlr4",
     "spdlog",
-    "antlr4"
+    "gtest"
   ],
   "overrides": [
     {

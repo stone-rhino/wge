@@ -74,6 +74,7 @@
         "span": "cpp",
         "stop_token": "cpp",
         "complex": "cpp",
-        "expected": "cpp"
+        "expected": "cpp",
+        "csignal": "cpp"
     }
 }
