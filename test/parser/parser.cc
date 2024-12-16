@@ -36,10 +36,48 @@ const std::vector<std::string> ParserTest::test_files_({
   "waf-conf/base/after.conf"});
 // clang-format on
 
-TEST_F(ParserTest, SecLangTest) {
+TEST_F(ParserTest, Empty) {
   using namespace SrSecurity::Parser;
+
+  const std::string directive = R"()";
+
   Parser parser;
-  for (const auto& file : test_files_) {
-    parser.loadFromFile(file);
+  std::string error = parser.load(directive);
+  if (!error.empty()) {
+    std::cout << error << std::endl;
   }
+
+  ASSERT_TRUE(error.empty());
+}
+
+TEST_F(ParserTest, Comment) {
+  using namespace SrSecurity::Parser;
+
+  const std::string directive = R"(# This is comment1
+  # This is comment2
+  # This is comment3)";
+
+  Parser parser;
+  std::string error = parser.load(directive);
+  if (!error.empty()) {
+    std::cout << error << std::endl;
+  }
+
+  ASSERT_TRUE(error.empty());
+}
+
+TEST_F(ParserTest, Include) {
+  using namespace SrSecurity::Parser;
+
+  const std::string directive = R"(# test include directive
+  Include "test/test_data/include_test.conf"
+  )";
+
+  Parser parser;
+  std::string error = parser.load(directive);
+  if (!error.empty()) {
+    std::cout << error << std::endl;
+  }
+
+  ASSERT_TRUE(error.empty());
 }

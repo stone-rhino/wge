@@ -12,12 +12,20 @@ Engine::Engine() : parser_(std::make_unique<Parser::Parser>()) {
   main_thread_id = std::this_thread::get_id();
 }
 
-void Engine::loadFromFile(const std::string& file_path) {
+std::string Engine::loadFromFile(const std::string& file_path) {
   // an efficient and rational design should not call this method in the worker thread.
   // this assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
-  parser_->loadFromFile(file_path);
+  return parser_->loadFromFile(file_path);
+}
+
+std::string Engine::load(const std::string& directive) {
+  // an efficient and rational design should not call this method in the worker thread.
+  // this assert check that this method can only be called in the main thread
+  ASSERT_IS_MAIN_THREAD();
+
+  return parser_->load(directive);
 }
 
 TransactionSharedPtr Engine::makeTransaction() const {

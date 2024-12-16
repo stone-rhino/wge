@@ -1,12 +1,17 @@
 #pragma once
 
-#include "antlr4_gen/SecLangParserBaseVisitor.h"
+#include "antlr4_gen/SecLangBaseVisitor.h"
+#include "parser.h"
 
 namespace SrSecurity::Parser {
-class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
+class Visitor : public Antlr4Gen::SecLangBaseVisitor {
 public:
-  std::any visitConfiguration(Antlr4Gen::SecLangParser::ConfigurationContext* ctx) override {
-    return visitChildren(ctx);
-  }
+  Visitor(Parser* parser) : parser_(parser) {}
+
+public:
+  std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
+
+private:
+  Parser* parser_;
 };
 } // namespace SrSecurity::Parser

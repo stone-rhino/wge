@@ -18,8 +18,16 @@ public:
   /**
    * load the rule set from a file
    * @param file_path supports relative and absolute path
+   * @result an error string is returned if fails, an empty string is returned otherwise
    */
-  void loadFromFile(const std::string& file_path);
+  std::string loadFromFile(const std::string& file_path);
+
+  /**
+   * load the rule set from a configuration directive
+   * @param directive configuration directive
+   * @result an error string is returned if fails, an empty string is returned otherwise
+   */
+  std::string load(const std::string& directive);
 
 public:
   const std::list<Rule::RuleSharedPtr>& getValidRules(size_t phase) const;

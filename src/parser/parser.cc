@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <format>
 #include <fstream>
 
 #include "antlr4_gen/SecLangLexer.h"
@@ -10,22 +11,81 @@
 
 namespace SrSecurity::Parser {
 
-void Parser::loadFromFile(const std::string& file_path) {
+class ErrorListener : public antlr4::BaseErrorListener {
+public:
+  void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
+                   size_t charPositionInLine, const std::string& msg,
+                   std::exception_ptr e) override {
+    error_msg = std::format("line {}:{} {}", line, charPositionInLine, msg);
+  }
+
+public:
+  std::string error_msg;
+};
+
+std::string Parser::loadFromFile(const std::string& file_path) {
+  // init
   std::ifstream ifs(file_path);
   antlr4::ANTLRInputStream input(ifs);
   Antlr4Gen::SecLangLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
   Antlr4Gen::SecLangParser parser(&tokens);
 
-  parser.setBuildParseTree(true);
+  // sets error listener
+  ErrorListener error_listener;
+  // parser.setBuildParseTree(true);
   parser.removeErrorListeners();
+  parser.addErrorListener(&error_listener);
+
+  // parse
   auto tree = parser.configuration();
-  Visitor vistor;
-  vistor.visit(tree);
+  if (!error_listener.error_msg.empty()) {
+    return error_listener.error_msg;
+  }
+
+  // visit
+  std::string error;
+  Visitor vistor(this);
+  try {
+    error = std::any_cast<std::string>(vistor.visit(tree));
+  } catch (const std::exception&) {
+  }
 
   std::unordered_set<uint64_t> remove_ids;
   std::unordered_set<std::string> remove_tags;
   fillValideRules(remove_ids, remove_tags);
+
+  return error;
+}
+
+std::string Parser::load(const std::string& directive) {
+  // init
+  antlr4::ANTLRInputStream input(directive);
+  Antlr4Gen::SecLangLexer lexer(&input);
+  antlr4::CommonTokenStream tokens(&lexer);
+  Antlr4Gen::SecLangParser parser(&tokens);
+
+  // sets error listener
+  ErrorListener error_listener;
+  // parser.setBuildParseTree(true);
+  parser.removeErrorListeners();
+  parser.addErrorListener(&error_listener);
+
+  // parse
+  auto tree = parser.configuration();
+  if (!error_listener.error_msg.empty()) {
+    return error_listener.error_msg;
+  }
+
+  // visit
+  std::string error;
+  Visitor vistor(this);
+  try {
+    error = std::any_cast<std::string>(vistor.visit(tree));
+  } catch (const std::exception&) {
+  }
+
+  return error;
 }
 
 const std::list<Rule::RuleSharedPtr>& Parser::getValidRules(size_t phase) const {

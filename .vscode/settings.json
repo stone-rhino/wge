@@ -76,5 +76,16 @@
         "complex": "cpp",
         "expected": "cpp",
         "csignal": "cpp"
+    },
+    "cmake.debugConfig": {
+        "cwd": "${workspaceFolder}",
+        "environment": [
+            {
+                "name": "LD_LIBRARY_PATH",
+                "value": "/usr/local/lib64:$LD_LIBRARY_PATH;"
+            }
+        ],
+        "args": [
+        ]
     }
 }

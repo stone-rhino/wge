@@ -1,2 +1,2 @@
 build
-src/parser/antlr4_gen
+src/parser/.antlr

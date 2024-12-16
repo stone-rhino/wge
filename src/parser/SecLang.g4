@@ -1,6 +1,6 @@
 grammar SecLang;
 
-configuration: COMMENT | include | engine_config;
+configuration: include | engine_config | EOF;
 
 include: Include QUOTE? FILE_PATH QUOTE?;
 engine_config: (
@@ -13,9 +13,8 @@ engine_config: (
 	) SWITCH;
 
 WS: [ \t\r\n]+ -> skip;
-COMMENT: ('#' .*? '\r'? '\n')+ -> skip;
+COMMENT: ('#' .*? '\r'? ('\n' | EOF))+ -> skip;
 QUOTE: '"';
-FILE_PATH: [a-zA-Z0-9/._~|\\:-]+;
 SWITCH: 'On' | 'Off' | 'DetectionOnly';
 
 Include: 'Include';
@@ -156,3 +155,4 @@ VAR_UNIQUE_ID: 'UNIQUE_ID';
 VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
 VAR_USERID: 'USERID';
 VAR_WEBAPPID: 'WEBAPPID';
+FILE_PATH: [a-zA-Z0-9/._~|\\:-]+;
