@@ -1,3 +1,0 @@
-[submodule "test/parser/waf-conf"]
-	path = test/parser/waf-conf
-	url = https://git.ouryun.cn/base/waf-conf.git
