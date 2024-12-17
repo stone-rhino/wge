@@ -11,16 +11,16 @@ public:
   uint64_t id() const { return id_; }
 
   bool hasTag(const std::string& tag) const {
-    // an efficient and rational design should not call this method in the worker thread.
-    // this assert check that this method can only be called in the main thread
+    // An efficient and rational design should not call this method in the worker thread.
+    // This assert check that this method can only be called in the main thread
     ASSERT_IS_MAIN_THREAD();
 
     return tags_.find(tag) != tags_.end();
   }
 
   bool hasTag(const std::unordered_set<std::string>& tags) const {
-    // an efficient and rational design should not call this method in the worker thread.
-    // this assert check that this method can only be called in the main thread
+    // An efficient and rational design should not call this method in the worker thread.
+    // This assert check that this method can only be called in the main thread
     ASSERT_IS_MAIN_THREAD();
 
     for (auto& tag : tags) {

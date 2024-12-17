@@ -1,21 +1,22 @@
 grammar SecLang;
 
-configuration: include | engine_config | EOF;
+configuration: (include | engine_config)* EOF;
 
 include: Include QUOTE? FILE_PATH QUOTE?;
-engine_config: (
-		SecRequestBodyAccess
-		| SecResponseBodyAccess
-		| SecRuleEngine
-		| SecTmpSaveUploadedFiles
-		| SecUploadKeepFiles
-		| SecXmlExternalEntity
-	) SWITCH;
+engine_config: (engine_config_directiv OPTION)
+	| (SecRuleEngine (OPTION | DERECTION_ONLY));
+engine_config_directiv:
+	SecRequestBodyAccess
+	| SecResponseBodyAccess
+	| SecTmpSaveUploadedFiles
+	| SecUploadKeepFiles
+	| SecXmlExternalEntity;
 
 WS: [ \t\r\n]+ -> skip;
 COMMENT: ('#' .*? '\r'? ('\n' | EOF))+ -> skip;
 QUOTE: '"';
-SWITCH: 'On' | 'Off' | 'DetectionOnly';
+OPTION: 'On' | 'Off';
+DERECTION_ONLY: 'DetectionOnly';
 
 Include: 'Include';
 SecAction: 'SecAction';

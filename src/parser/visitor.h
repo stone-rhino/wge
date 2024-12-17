@@ -10,6 +10,7 @@ public:
 
 public:
   std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
+  std::any visitEngine_config(Antlr4Gen::SecLangParser::Engine_configContext* ctx) override;
 
 private:
   Parser* parser_;
