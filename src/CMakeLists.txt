@@ -6,7 +6,6 @@ file(GLOB local_source
 add_subdirectory(action)
 add_subdirectory(common)
 add_subdirectory(parser)
-add_subdirectory(rule)
 add_subdirectory(variable)
 
 set(antlr4_obj

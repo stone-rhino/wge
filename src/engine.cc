@@ -28,8 +28,24 @@ std::string Engine::load(const std::string& directive) {
   return parser_->load(directive);
 }
 
-TransactionSharedPtr Engine::makeTransaction() const {
-  return std::shared_ptr<Transaction>(new Transaction(*this));
+void Engine::preEvaluateRules() {
+  // An efficient and rational design should not call this method in the worker thread.
+  // This assert check that this method can only be called in the main thread
+  ASSERT_IS_MAIN_THREAD();
+
+  initValidRules();
+
+  for (const auto& rules : valid_rules_) {
+    for (Rule* rule : rules) {
+      rule->preEvaluate();
+    }
+  }
 }
+
+TransactionPtr Engine::makeTransaction() const {
+  return std::unique_ptr<Transaction>(new Transaction(*this));
+}
+
+void Engine::initValidRules() {}
 
 } // namespace SrSecurity
