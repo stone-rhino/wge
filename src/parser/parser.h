@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "../rule/rule_base.h"
+#include "../rule.h"
 
 namespace SrSecurity::Parser {
 
@@ -28,9 +28,6 @@ public:
    * @result An error string is returned if fails, an empty string is returned otherwise
    */
   std::string load(const std::string& directive);
-
-public:
-  const std::list<Rule::RuleSharedPtr>& getValidRules(size_t phase) const;
 
 public:
   // Engine configuration
@@ -73,8 +70,5 @@ private:
 
 private:
   EngineConfig engine_config_;
-  constexpr static size_t phase_total_ = 5;
-  std::array<std::list<Rule::RuleSharedPtr>, phase_total_> all_rules_;
-  std::array<std::list<Rule::RuleSharedPtr>, phase_total_> valid_rules_;
 };
 } // namespace SrSecurity::Parser

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
+#include "rule.h"
 #include "transaction.h"
 
 namespace SrSecurity::Parser {
@@ -28,10 +30,28 @@ public:
    */
   std::string load(const std::string& directive);
 
+  /**
+   * This method initializes some important variables, such as hyperscan database and so on
+   * @note Must call once before call makeTransaction, and only once in the life of the
+   * instance.
+   */
+  void preEvaluateRules();
+
 public:
-  TransactionSharedPtr makeTransaction() const;
+  /**
+   * Make a transaction to evaluate rules.
+   * @return Pointer of transaction
+   * @note Must call preEvaluateRules once before call this
+   */
+  TransactionPtr makeTransaction() const;
+
+private:
+  void initValidRules();
 
 private:
   std::unique_ptr<Parser::Parser> parser_;
+  std::vector<std::unique_ptr<Rule>> rules_pool_;
+  constexpr static size_t phase_total_ = 5;
+  std::array<std::vector<Rule*>, phase_total_> valid_rules_;
 };
 } // namespace SrSecurity
