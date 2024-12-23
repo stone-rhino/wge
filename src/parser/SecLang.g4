@@ -1,6 +1,6 @@
 grammar SecLang;
 
-configuration: (include | engine_config )* EOF;
+configuration: (include | engine_config | rule_directiv)* EOF;
 
 include: Include QUOTE? FILE_PATH QUOTE?;
 
@@ -14,10 +14,14 @@ engine_config_directiv:
 	| SecUploadKeepFiles
 	| SecXmlExternalEntity;
 
-rule:
+rule_directiv:
 	SecRule variables QUOTE operator QUOTE (QUOTE actions QUOTE)?;
 
-variables:
+variables: variable ('|' variable)*;
+
+variable: NOT? VAR_COUNT? var_name (':' VAR_SUB_NAME)?;
+
+var_name:
 	VAR_ARGS
 	| VAR_ARGS_COMBINED_SIZE
 	| VAR_ARGS_GET
@@ -102,15 +106,16 @@ variables:
 	| VAR_USERID
 	| VAR_WEBAPPID;
 
-operator: ' ';
-
-actions: ' ';
+operator: 'operator';
+actions: 'actions';
 
 WS: [ \t\r\n]+ -> skip;
 COMMENT: ('#' .*? '\r'? ('\n' | EOF))+ -> skip;
 QUOTE: '"';
 OPTION: 'On' | 'Off';
 DERECTION_ONLY: 'DetectionOnly';
+NOT: '!';
+VAR_COUNT: '&';
 
 Include: 'Include';
 SecAction: 'SecAction';
@@ -251,3 +256,4 @@ VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
 VAR_USERID: 'USERID';
 VAR_WEBAPPID: 'WEBAPPID';
 FILE_PATH: [a-zA-Z0-9/._~|\\:-]+;
+VAR_SUB_NAME: ~[ |",\n]+;

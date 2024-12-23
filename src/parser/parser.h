@@ -63,12 +63,11 @@ public:
 public:
   EngineConfig& engineConfig() { return engine_config_; }
   const EngineConfig& engineConfig() const { return engine_config_; }
-
-private:
-  void fillValideRules(const std::unordered_set<uint64_t>& remove_ids,
-                       const std::unordered_set<std::string>& remove_tags);
+  std::vector<std::unique_ptr<Rule>>& rules() { return rules_; }
+  const std::vector<std::unique_ptr<Rule>>& rules() const { return rules_; }
 
 private:
   EngineConfig engine_config_;
+  std::vector<std::unique_ptr<Rule>> rules_;
 };
 } // namespace SrSecurity::Parser
