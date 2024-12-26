@@ -208,8 +208,11 @@ TEST_F(ParserTest, EngineConfig) {
 TEST_F(ParserTest, RuleDirective) {
   using namespace SrSecurity::Parser;
 
-  const std::string rule_directive = R"(SecRule ARGS "operator" "actions")";
+  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_GET:asdf "asdf" "id:1")";
   Parser parser;
   std::string error = parser.load(rule_directive);
+  if (!error.empty()) {
+    std::cout << error << std::endl;
+  }
   ASSERT_TRUE(error.empty());
 }

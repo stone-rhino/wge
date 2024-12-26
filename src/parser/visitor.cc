@@ -11,7 +11,7 @@ namespace SrSecurity::Parser {
 Antlr4Gen::SecLangLexer seclang_lexer(nullptr);
 
 std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
-  std::string file_path = ctx->FILE_PATH()->getText();
+  std::string file_path = ctx->STRING()->getText();
   return parser_->loadFromFile(file_path);
 }
 
@@ -60,7 +60,7 @@ std::any Visitor::visitRule_directiv(Antlr4Gen::SecLangParser::Rule_directivCont
 
 std::any Visitor::visitVariable(Antlr4Gen::SecLangParser::VariableContext* ctx) {
   std::string var_name = ctx->var_name()->getText();
-  auto aa =  seclang_lexer.getVocabulary().getSymbolicName(Antlr4Gen::SecLangLexer::VAR_ARGS);
+  // auto aa = seclang_lexer.getVocabulary().getSymbolicName(Antlr4Gen::SecLangLexer::VAR_ARGS);
   return "";
 }
 } // namespace SrSecurity::Parser

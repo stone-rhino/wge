@@ -1,10 +1,10 @@
 #pragma once
 
-#include "antlr4_gen/SecLangBaseVisitor.h"
+#include "antlr4_gen/SecLangParserBaseVisitor.h"
 #include "parser.h"
 
 namespace SrSecurity::Parser {
-class Visitor : public Antlr4Gen::SecLangBaseVisitor {
+class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
 public:
   Visitor(Parser* parser) : parser_(parser) {}
 
