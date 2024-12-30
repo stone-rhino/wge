@@ -8,7 +8,7 @@
 
 #include "../rule.h"
 
-namespace SrSecurity::Parser {
+namespace SrSecurity::Antlr4 {
 
 /**
  * SecLang parser
@@ -70,4 +70,4 @@ private:
   EngineConfig engine_config_;
   std::vector<std::unique_ptr<Rule>> rules_;
 };
-} // namespace SrSecurity::Parser
+} // namespace SrSecurity::Antlr4

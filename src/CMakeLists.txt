@@ -5,7 +5,7 @@ file(GLOB local_source
 
 add_subdirectory(action)
 add_subdirectory(common)
-add_subdirectory(parser)
+add_subdirectory(antlr4)
 add_subdirectory(variable)
 
 set(antlr4_obj
@@ -148,7 +148,7 @@ set(antlr4_obj
 )
 
 add_library(srsecurity 
-  $<TARGET_OBJECTS:parser>
+  $<TARGET_OBJECTS:antlr4>
   ${antlr4_obj}
   ${local_source}
 )
@@ -163,7 +163,7 @@ add_custom_command(
   OUTPUT ${antlr4_obj}
   COMMAND rm -rf antlr4obj && mkdir antlr4obj && cd antlr4obj && ar -x ${antlr4_lib}
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  DEPENDS parser
+  DEPENDS antlr4
 )
 
 # add_custom_target(genexdebug COMMAND ${CMAKE_COMMAND} -E echo "$<TARGET_OBJECTS:parser>")

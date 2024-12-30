@@ -3,7 +3,7 @@
 #include "antlr4_gen/SecLangParserBaseVisitor.h"
 #include "parser.h"
 
-namespace SrSecurity::Parser {
+namespace SrSecurity::Antlr4 {
 class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
 public:
   Visitor(Parser* parser) : parser_(parser) {}
@@ -17,4 +17,4 @@ public:
 private:
   Parser* parser_;
 };
-} // namespace SrSecurity::Parser
+} // namespace SrSecurity::Antlr4

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -14,6 +15,8 @@ namespace SrSecurity {
  * The rule class.
  */
 class Rule {
+  friend class ParserTest;
+
 public:
   /**
    * Evaluate the rule
@@ -52,8 +55,8 @@ public:
   void appendAction(std::unique_ptr<Action::ActionBase>&& action);
 
 private:
-  void initHyperscan();
-  void initPcre();
+  void initHyperscan() {}
+  void initPcre() {}
 
 private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_pool_;

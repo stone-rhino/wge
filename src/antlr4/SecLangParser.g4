@@ -25,9 +25,9 @@ rule_directiv:
 
 variables: variable (PIPE variable)*;
 
-variable: NOT? VAR_COUNT? var_name (COLON STRING)?;
+variable: NOT? VAR_COUNT? var_main_name (COLON STRING)?;
 
-var_name:
+var_main_name:
 	ARGS
 	| ARGS_COMBINED_SIZE
 	| ARGS_GET

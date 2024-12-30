@@ -9,7 +9,7 @@
 
 #include "../common/likely.h"
 
-namespace SrSecurity::Parser {
+namespace SrSecurity::Antlr4 {
 
 class ErrorListener : public antlr4::BaseErrorListener {
 public:
@@ -83,4 +83,4 @@ std::string Parser::load(const std::string& directive) {
 
   return error;
 }
-} // namespace SrSecurity::Parser
+} // namespace SrSecurity::Antlr4

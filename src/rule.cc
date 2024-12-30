@@ -61,9 +61,10 @@ bool Rule::hasTag(const std::unordered_set<std::string>& tags) const {
 }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
-  const std::string& name = var->name();
+  const std::string& name = var->fullName();
   auto iter = variables_map_.find(name);
-  if (iter != variables_map_.end()) {
+  if (iter == variables_map_.end()) {
+    var->preCompile();
     variables_pool_.emplace_back(std::move(var));
     variables_map_.insert({name, *variables_pool_.back()});
   }

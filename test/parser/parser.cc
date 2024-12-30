@@ -1,11 +1,23 @@
-#include "parser/parser.h"
+#include "antlr4/parser.h"
 
+#include <functional>
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+namespace SrSecurity {
 class ParserTest : public testing::Test {
+public:
+  const std::vector<std::unique_ptr<Variable::VariableBase>>& ruleVariablePool(Rule& rule) const {
+    return rule.variables_pool_;
+  }
+
+  const std::unordered_map<std::string, Variable::VariableBase&>&
+  ruleVariableMap(Rule& rule) const {
+    return rule.variables_map_;
+  }
+
 public:
   static const std::vector<std::string> test_files_;
 };
@@ -37,11 +49,9 @@ const std::vector<std::string> ParserTest::test_files_({
 // clang-format on
 
 TEST_F(ParserTest, Empty) {
-  using namespace SrSecurity::Parser;
-
   const std::string directive = R"()";
 
-  Parser parser;
+  Antlr4::Parser parser;
   std::string error = parser.load(directive);
   if (!error.empty()) {
     std::cout << error << std::endl;
@@ -51,13 +61,11 @@ TEST_F(ParserTest, Empty) {
 }
 
 TEST_F(ParserTest, Comment) {
-  using namespace SrSecurity::Parser;
-
   const std::string directive = R"(# This is comment1
   # This is comment2
   # This is comment3)";
 
-  Parser parser;
+  Antlr4::Parser parser;
   std::string error = parser.load(directive);
   if (!error.empty()) {
     std::cout << error << std::endl;
@@ -67,13 +75,11 @@ TEST_F(ParserTest, Comment) {
 }
 
 TEST_F(ParserTest, Include) {
-  using namespace SrSecurity::Parser;
-
   const std::string directive = R"(# Test include directive
   Include "test/test_data/include_test.conf"
   )";
 
-  Parser parser;
+  Antlr4::Parser parser;
   std::string error = parser.load(directive);
   if (!error.empty()) {
     std::cout << error << std::endl;
@@ -83,8 +89,6 @@ TEST_F(ParserTest, Include) {
 }
 
 TEST_F(ParserTest, EngineConfig) {
-  using namespace SrSecurity::Parser;
-
   {
     const std::string directive = R"(# Test engine config
   SecRequestBodyAccess On
@@ -95,17 +99,17 @@ TEST_F(ParserTest, EngineConfig) {
   SecXmlExternalEntity On
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(error.empty());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_response_body_access_, Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_rule_engine_, Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::On);
   }
 
   {
@@ -118,17 +122,17 @@ TEST_F(ParserTest, EngineConfig) {
   SecXmlExternalEntity Off
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(error.empty());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::Off);
   }
 
   {
@@ -141,17 +145,17 @@ TEST_F(ParserTest, EngineConfig) {
   SecXmlExternalEntity Off
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(error.empty());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, Parser::EngineConfig::Option::DetectionOnly);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::DetectionOnly);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::Off);
   }
 
   {
@@ -159,7 +163,7 @@ TEST_F(ParserTest, EngineConfig) {
   SecRequestBodyAccess DetectionOnly
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(!error.empty());
   }
@@ -169,7 +173,7 @@ TEST_F(ParserTest, EngineConfig) {
   SecResponseBodyAccess DetectionOnly
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(!error.empty());
   }
@@ -179,7 +183,7 @@ TEST_F(ParserTest, EngineConfig) {
   SecTmpSaveUploadedFiles DetectionOnly
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(!error.empty());
   }
@@ -189,7 +193,7 @@ TEST_F(ParserTest, EngineConfig) {
   SecUploadKeepFiles DetectionOnly
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(!error.empty());
   }
@@ -199,20 +203,40 @@ TEST_F(ParserTest, EngineConfig) {
   SecXmlExternalEntity DetectionOnly
   )";
 
-    Parser parser;
+    Antlr4::Parser parser;
     std::string error = parser.load(directive);
     ASSERT_TRUE(!error.empty());
   }
 }
 
 TEST_F(ParserTest, RuleDirective) {
-  using namespace SrSecurity::Parser;
-
-  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_GET:asdf "asdf" "id:1")";
-  Parser parser;
+  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_POST:hello "world" "id:1")";
+  Antlr4::Parser parser;
   std::string error = parser.load(rule_directive);
-  if (!error.empty()) {
-    std::cout << error << std::endl;
-  }
   ASSERT_TRUE(error.empty());
+
+  // variables pool
+  EXPECT_EQ(parser.rules().size(), 1);
+  auto& rule_var_pool = ruleVariablePool(*parser.rules().back());
+  ASSERT_EQ(rule_var_pool.size(), 2);
+  EXPECT_EQ(rule_var_pool[0]->fullName(), "ARGS_GET");
+  EXPECT_EQ(rule_var_pool[0]->mainName(), "ARGS_GET");
+  EXPECT_EQ(rule_var_pool[0]->subName(), "");
+  EXPECT_EQ(rule_var_pool[1]->fullName(), "ARGS_POST:hello");
+  EXPECT_EQ(rule_var_pool[1]->mainName(), "ARGS_POST");
+  EXPECT_EQ(rule_var_pool[1]->subName(), "hello");
+
+  // variables map
+  auto& rule_var_map = ruleVariableMap(*parser.rules().back());
+  {
+    auto iter = rule_var_map.find("ARGS_GET");
+    ASSERT_TRUE(iter != rule_var_map.end());
+    EXPECT_EQ(&iter->second, rule_var_pool[0].get());
+  }
+  {
+    auto iter = rule_var_map.find("ARGS_POST:hello");
+    ASSERT_TRUE(iter != rule_var_map.end());
+    EXPECT_EQ(&iter->second, rule_var_pool[1].get());
+  }
 }
+} // namespace SrSecurity

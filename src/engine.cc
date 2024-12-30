@@ -1,13 +1,13 @@
 #include "engine.h"
 
+#include "antlr4/parser.h"
 #include "common/assert.h"
 #include "common/likely.h"
-#include "parser/parser.h"
 
 std::thread::id main_thread_id;
 
 namespace SrSecurity {
-Engine::Engine() : parser_(std::make_unique<Parser::Parser>()) {
+Engine::Engine() : parser_(std::make_unique<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
   main_thread_id = std::this_thread::get_id();
 }
