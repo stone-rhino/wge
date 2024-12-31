@@ -9,13 +9,18 @@
 namespace SrSecurity {
 class ParserTest : public testing::Test {
 public:
-  const std::vector<std::unique_ptr<Variable::VariableBase>>& ruleVariablePool(Rule& rule) const {
+  const std::vector<std::unique_ptr<Variable::VariableBase>>&
+  getRuleVariablePool(Rule& rule) const {
     return rule.variables_pool_;
   }
 
   const std::unordered_map<std::string, Variable::VariableBase&>&
-  ruleVariableMap(Rule& rule) const {
+  getRuleVariableMap(Rule& rule) const {
     return rule.variables_map_;
+  }
+
+  const std::unique_ptr<Operator::OperatorBase>& getRuleOperator(Rule& rule) {
+    return rule.operator_;
   }
 
 public:
@@ -210,33 +215,39 @@ TEST_F(ParserTest, EngineConfig) {
 }
 
 TEST_F(ParserTest, RuleDirective) {
-  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_POST:hello "world" "id:1")";
+  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_POST:foo "bar" "id:1")";
   Antlr4::Parser parser;
   std::string error = parser.load(rule_directive);
   ASSERT_TRUE(error.empty());
 
   // variables pool
   EXPECT_EQ(parser.rules().size(), 1);
-  auto& rule_var_pool = ruleVariablePool(*parser.rules().back());
+  auto& rule_var_pool = getRuleVariablePool(*parser.rules().back());
   ASSERT_EQ(rule_var_pool.size(), 2);
   EXPECT_EQ(rule_var_pool[0]->fullName(), "ARGS_GET");
   EXPECT_EQ(rule_var_pool[0]->mainName(), "ARGS_GET");
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
-  EXPECT_EQ(rule_var_pool[1]->fullName(), "ARGS_POST:hello");
+  EXPECT_EQ(rule_var_pool[1]->fullName(), "ARGS_POST:foo");
   EXPECT_EQ(rule_var_pool[1]->mainName(), "ARGS_POST");
-  EXPECT_EQ(rule_var_pool[1]->subName(), "hello");
+  EXPECT_EQ(rule_var_pool[1]->subName(), "foo");
 
   // variables map
-  auto& rule_var_map = ruleVariableMap(*parser.rules().back());
+  auto& rule_var_map = getRuleVariableMap(*parser.rules().back());
   {
     auto iter = rule_var_map.find("ARGS_GET");
     ASSERT_TRUE(iter != rule_var_map.end());
     EXPECT_EQ(&iter->second, rule_var_pool[0].get());
   }
   {
-    auto iter = rule_var_map.find("ARGS_POST:hello");
+    auto iter = rule_var_map.find("ARGS_POST:foo");
     ASSERT_TRUE(iter != rule_var_map.end());
     EXPECT_EQ(&iter->second, rule_var_pool[1].get());
   }
+
+  // operator
+  auto& rule_operator = getRuleOperator(*parser.rules().back());
+  EXPECT_EQ(rule_operator->name(), "rx");
+  EXPECT_EQ(rule_operator->value(), "bar");
+  EXPECT_EQ(rule_operator->regexExpr(), "bar");
 }
 } // namespace SrSecurity

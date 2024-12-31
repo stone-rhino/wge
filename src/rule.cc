@@ -70,12 +70,15 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
   }
 }
 
-void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) { operator_ = std::move(op); }
+void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
+  operator_ = std::move(op);
+  operator_->preCompile();
+}
 
 void Rule::appendAction(std::unique_ptr<Action::ActionBase>&& action) {
   const std::string& name = action->name();
   auto iter = actions_map_.find(name);
-  if (iter != actions_map_.end()) {
+  if (iter == actions_map_.end()) {
     actions_pool_.emplace_back(std::move(action));
     actions_map_.insert({name, *actions_pool_.back()});
   }

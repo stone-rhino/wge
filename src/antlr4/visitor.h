@@ -13,6 +13,7 @@ public:
   std::any visitEngine_config(Antlr4Gen::SecLangParser::Engine_configContext* ctx) override;
   std::any visitRule_directiv(Antlr4Gen::SecLangParser::Rule_directivContext* ctx) override;
   std::any visitVariable(Antlr4Gen::SecLangParser::VariableContext* ctx) override;
+  std::any visitOperator(Antlr4Gen::SecLangParser::OperatorContext* ctx) override;
 
 private:
   Parser* parser_;
