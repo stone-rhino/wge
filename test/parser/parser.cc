@@ -215,7 +215,8 @@ TEST_F(ParserTest, EngineConfig) {
 }
 
 TEST_F(ParserTest, RuleDirective) {
-  const std::string rule_directive = R"(SecRule ARGS_GET|ARGS_POST:foo "bar" "id:1")";
+  const std::string rule_directive =
+      R"(SecRule ARGS_GET|ARGS_POST:foo "bar" "id:1,tag:foo,msg:bar")";
   Antlr4::Parser parser;
   std::string error = parser.load(rule_directive);
   ASSERT_TRUE(error.empty());
