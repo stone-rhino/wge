@@ -88,5 +88,8 @@
         "args": [
         ]
     },
-    "C_Cpp.intelliSenseCacheSize": 0
+    "C_Cpp.intelliSenseCacheSize": 0,
+    "files.exclude": {
+        "src/antlr4/.antlr": true
+    }
 }
