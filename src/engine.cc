@@ -34,12 +34,6 @@ void Engine::preEvaluateRules() {
   ASSERT_IS_MAIN_THREAD();
 
   initValidRules();
-
-  for (const auto& rules : valid_rules_) {
-    for (Rule* rule : rules) {
-      rule->preEvaluate();
-    }
-  }
 }
 
 TransactionPtr Engine::makeTransaction() const {

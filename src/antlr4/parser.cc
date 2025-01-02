@@ -11,6 +11,7 @@
 #include "../action/msg.h"
 #include "../action/tag.h"
 #include "../common/likely.h"
+#include "../common/try.h"
 #include "../operator/begins_with.h"
 #include "../operator/contains.h"
 #include "../operator/contains_word.h"
@@ -327,55 +328,48 @@ std::unordered_map<std::string, std::function<std::unique_ptr<Operator::Operator
                                  {"within", [](std::string&& operator_name,
                                                std::string&& operator_value) { return nullptr; }}};
 
-std::unordered_map<std::string,
-                   std::function<std::unique_ptr<Action::ActionBase>(std::string&&, std::string&&)>>
-    Parser::action_factory_ = {
-        {"accuracy", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"allow", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"auditlog", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"block", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"capture", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"chain", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"ctl", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"deny", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"drop", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"exec", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"expirevar", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"id",
-         [](std::string&& name, std::string&& value) {
-           return std::make_unique<Action::Id>(std::move(name), std::move(value));
-         }},
-        {"initcol", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"log", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"logdata", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"maturity", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"msg",
-         [](std::string&& name, std::string&& value) {
-           return std::make_unique<Action::Msg>(std::move(name), std::move(value));
-         }},
-        {"multiMatch", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"noauditlog", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"nolog", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"pass", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"phase", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"redirect", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"rev", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"severity", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"setuid", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"setrsc", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"setsid", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"setenv", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"setvar", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"skip", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"skipAfter", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"status", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"t", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"tag",
-         [](std::string&& name,
-            std::string&&
-                value) { return std::make_unique<Action::Tag>(std::move(name), std::move(value)); }},
-        {"ver", [](std::string&& name, std::string&& value) { return nullptr; }},
-        {"xmlns", [](std::string&& name, std::string&& value) { return nullptr; }}};
+std::unordered_map<std::string, std::function<void(Rule&, std::string&&)>> Parser::action_factory_ =
+    {{"accuracy", [](Rule& rule, std::string&& value) { rule.accuracy_ = std::move(value); }},
+     {"allow", [](Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::ALLOW; }},
+     {"auditlog", [](Rule& rule, std::string&& value) { rule.audit_log_ = true; }},
+     {"block", [](Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::BLOCK; }},
+     {"capture", [](Rule& rule, std::string&& value) { rule.capture_ = true; }},
+     {"chain", [](Rule& rule, std::string&& value) { rule.chain_ = true; }},
+     {"ctl", [](Rule& rule, std::string&& value) { rule.ctl_ = std::move(value); }},
+     {"deny", [](Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::DENY; }},
+     {"drop", [](Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::DENY; }},
+     {"exec", [](Rule& rule, std::string&& value) { rule.exec_ = std::move(value); }},
+     {"expirevar", [](Rule& rule, std::string&& value) { rule.expire_var_ = std::move(value); }},
+     {"id", [](Rule& rule, std::string&& value) { rule.id_ = ::atoll(value.c_str()); }},
+     {"initcol", [](Rule& rule, std::string&& value) { rule.init_col_ = std::move(value); }},
+     {"log", [](Rule& rule, std::string&& value) { rule.log_ = true; }},
+     {"logdata", [](Rule& rule, std::string&& value) { rule.log_data_ = std::move(value); }},
+     {"maturity", [](Rule& rule, std::string&& value) { rule.maturity_ = std::move(value); }},
+     {"msg", [](Rule& rule, std::string&& value) { rule.msg_ = std::move(value); }},
+     {"multiMatch", [](Rule& rule, std::string&& value) { rule.multi_match_ = true; }},
+     {"noauditlog", [](Rule& rule, std::string&& value) { rule.no_audit_log_ = true; }},
+     {"nolog", [](Rule& rule, std::string&& value) { rule.no_log_ = true; }},
+     {"pass", [](Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::PASS; }},
+     {"phase", [](Rule& rule, std::string&& value) { rule.phase_ = std::move(value); }},
+     {"redirect",
+      [](Rule& rule, std::string&& value) {
+        rule.disruptive_ = Rule::Disruptive::REDIRECT;
+        rule.redirect_ = std::move(value);
+      }},
+     {"rev", [](Rule& rule, std::string&& value) { rule.rev_ = std::move(value); }},
+     {"severity", [](Rule& rule, std::string&& value) { return; }},
+     {"setuid", [](Rule& rule, std::string&& value) { return; }},
+     {"setrsc", [](Rule& rule, std::string&& value) { return; }},
+     {"setsid", [](Rule& rule, std::string&& value) { return; }},
+     {"setenv", [](Rule& rule, std::string&& value) { return; }},
+     {"setvar", [](Rule& rule, std::string&& value) { return; }},
+     {"skip", [](Rule& rule, std::string&& value) { return; }},
+     {"skipAfter", [](Rule& rule, std::string&& value) { return; }},
+     {"status", [](Rule& rule, std::string&& value) { return; }},
+     {"t", [](Rule& rule, std::string&& value) { return; }},
+     {"tag", [](Rule& rule, std::string&& value) { rule.tag_.emplace(std::move(value)); }},
+     {"ver", [](Rule& rule, std::string&& value) { return; }},
+     {"xmlns", [](Rule& rule, std::string&& value) { return; }}};
 
 class ErrorListener : public antlr4::BaseErrorListener {
 public:
@@ -412,10 +406,7 @@ std::string Parser::loadFromFile(const std::string& file_path) {
   // visit
   std::string error;
   Visitor vistor(this);
-  try {
-    error = std::any_cast<std::string>(vistor.visit(tree));
-  } catch (const std::exception&) {
-  }
+  TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
   return error;
 }
@@ -442,10 +433,7 @@ std::string Parser::load(const std::string& directive) {
   // visit
   std::string error;
   Visitor vistor(this);
-  try {
-    error = std::any_cast<std::string>(vistor.visit(tree));
-  } catch (const std::exception&) {
-  }
+  TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
   return error;
 }

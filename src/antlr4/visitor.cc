@@ -13,14 +13,34 @@ std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
 }
 
 std::any Visitor::visitEngine_config(Antlr4Gen::SecLangParser::Engine_configContext* ctx) {
-  static const std::unordered_map<std::string, Parser::EngineConfig::Option&> enginge_config_map{
-      {"SecRequestBodyAccess", parser_->engineConfig().is_request_body_access_},
-      {"SecResponseBodyAccess", parser_->engineConfig().is_response_body_access_},
-      {"SecRuleEngine", parser_->engineConfig().is_rule_engine_},
-      {"SecTmpSaveUploadedFiles", parser_->engineConfig().is_tmp_save_uploaded_files_},
-      {"SecUploadKeepFiles", parser_->engineConfig().is_upload_keep_files_},
-      {"SecXmlExternalEntity", parser_->engineConfig().is_xml_external_entity_},
-  };
+  static const std::unordered_map<
+      std::string, std::function<Parser::EngineConfig::Option&(SrSecurity::Antlr4::Parser*)>>
+      enginge_config_map{
+          {"SecRequestBodyAccess",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_request_body_access_;
+           }},
+          {"SecResponseBodyAccess",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_response_body_access_;
+           }},
+          {"SecRuleEngine",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_rule_engine_;
+           }},
+          {"SecTmpSaveUploadedFiles",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_tmp_save_uploaded_files_;
+           }},
+          {"SecUploadKeepFiles",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_upload_keep_files_;
+           }},
+          {"SecXmlExternalEntity",
+           [](SrSecurity::Antlr4::Parser* parser) -> Parser::EngineConfig::Option& {
+             return parser->engineConfig().is_xml_external_entity_;
+           }},
+      };
 
   std::string directive;
   auto engine_config_directive = ctx->engine_config_directiv();
@@ -39,18 +59,18 @@ std::any Visitor::visitEngine_config(Antlr4Gen::SecLangParser::Engine_configCont
     auto option = ctx->OPTION();
     if (option) {
       if (option->getText() == "On") {
-        iter->second = Parser::EngineConfig::Option::On;
+        iter->second(parser_) = Parser::EngineConfig::Option::On;
       } else {
-        iter->second = Parser::EngineConfig::Option::Off;
+        iter->second(parser_) = Parser::EngineConfig::Option::Off;
       }
     } else {
-      iter->second = Parser::EngineConfig::Option::DetectionOnly;
+      iter->second(parser_) = Parser::EngineConfig::Option::DetectionOnly;
     }
   }
   return "";
 }
 
-std::any Visitor::visitRule_directiv(Antlr4Gen::SecLangParser::Rule_directivContext* ctx) {
+std::any Visitor::visitRule_define(Antlr4Gen::SecLangParser::Rule_defineContext* ctx) {
   parser_->rules().emplace_back(std::make_unique<Rule>());
   return visitChildren(ctx);
 }
@@ -112,16 +132,56 @@ std::any Visitor::visitAction(Antlr4Gen::SecLangParser::ActionContext* ctx) {
     if (ctx->action_value()) {
       action_value = ctx->action_value()->getText();
     }
-    auto action = iter->second(std::move(action_name), std::move(action_value));
-    if (action) {
-      parser_->rules().back()->appendAction(std::move(action));
-    } else {
-      should_visit_next_child_ = false;
-      return std::format("The action is not support now: {} line: {} offset: {}", action_name,
-                         ctx->getStart()->getLine(), ctx->getStart()->getStartIndex());
+    iter->second(*parser_->rules().back(), std::move(action_value));
+  }
+
+  return "";
+}
+
+std::any Visitor::visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_by_idContext* ctx) {
+  auto& rules = parser_->rules();
+
+  auto ids = ctx->INT();
+  for (auto id : ids) {
+    std::string id_str = id->getText();
+    uint64_t id_num = ::atoll(id_str.c_str());
+    std::erase_if(rules, [&](const std::unique_ptr<SrSecurity::Rule>& rule) {
+      if (rule->id() == id_num) {
+        return true;
+      }
+      return false;
+    });
+  }
+
+  auto id_ranges = ctx->INT_RANGE();
+  for (auto range : id_ranges) {
+    std::string id_range_str = range->getText();
+    auto pos = id_range_str.find('-');
+    if (pos != std::string::npos) {
+      uint64_t first = ::atoll(id_range_str.substr(0, pos).c_str());
+      uint64_t last = ::atoll(id_range_str.substr(pos + 1).c_str());
+      std::erase_if(rules, [&](const std::unique_ptr<SrSecurity::Rule>& rule) {
+        const uint64_t id = rule->id();
+        if (id >= first && id <= last) {
+          return true;
+        }
+        return false;
+      });
     }
   }
 
+  return "";
+}
+
+std::any
+Visitor::visitRule_remove_by_msg(Antlr4Gen::SecLangParser::Rule_remove_by_msgContext* ctx) {
+  auto& rules = parser_->rules();
+
+  return "";
+}
+
+std::any
+Visitor::visitRule_remove_by_tag(Antlr4Gen::SecLangParser::Rule_remove_by_tagContext* ctx) {
   return "";
 }
 

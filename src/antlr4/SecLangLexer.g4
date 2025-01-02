@@ -11,6 +11,8 @@ WS: [ \t\r\n]+ -> skip;
 COMMENT: ('#' .*? '\r'? ('\n' | EOF))+ -> skip;
 QUOTE: '"';
 NOT: '!';
+INT_RANGE: INT '-' INT;
+INT: [0-9]+;
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction';
@@ -51,14 +53,16 @@ SecResponseBodyAccess:
 	'SecResponseBodyAccess' -> pushMode(ModeEngineConfig);
 SecRuleEngine: 'SecRuleEngine' -> pushMode(ModeEngineConfig);
 SecRuleRemoveById: 'SecRuleRemoveById';
-SecRuleRemoveByMsg: 'SecRuleRemoveByMsg';
-SecRuleRemoveByTag: 'SecRuleRemoveByTag';
+SecRuleRemoveByMsg:
+	'SecRuleRemoveByMsg' -> pushMode(ModeRuleRemoveByMsg);
+SecRuleRemoveByTag:
+	'SecRuleRemoveByTag' -> pushMode(ModeRuleRemoveByTag);
 SecRuleScript: 'SecRuleScript';
-SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
 SecRuleUpdateActionById: 'SecRuleUpdateActionById';
 SecRuleUpdateTargetById: 'SecRuleUpdateTargetById';
 SecRuleUpdateTargetByMsg: 'SecRuleUpdateTargetByMsg';
 SecRuleUpdateTargetByTag: 'SecRuleUpdateTargetByTag';
+SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
 SecTmpDir: 'SecTmpDir';
 SecTmpSaveUploadedFiles:
 	'SecTmpSaveUploadedFiles' -> pushMode(ModeEngineConfig);
@@ -82,6 +86,13 @@ mode ModeEngineConfig;
 ModeEngineConfig_WS: ' ' -> skip;
 OPTION: ('On' | 'Off') -> popMode;
 DERECTION_ONLY: 'DetectionOnly' -> popMode;
+
+mode ModeRuleRemoveByMsg;
+ModeRuleRemoveByMsg_STRING:
+	('\\"' | ~["])+ -> type(STRING), popMode;
+
+mode ModeRuleRemoveByTag;
+ModeRuleRemoveByTag_STRING: ('\\"' | ~["])+ -> type(STRING), popMode;
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:

@@ -4,7 +4,13 @@ options {
 	tokenVocab = SecLangLexer;
 }
 
-configuration: (include | engine_config | rule_directiv)* EOF;
+configuration: (
+		include
+		| engine_config
+		| rule_define
+		| rule_remove
+		| rule_update
+	)* EOF;
 
 include: Include QUOTE? STRING QUOTE?;
 
@@ -18,7 +24,7 @@ engine_config_directiv:
 	| SecUploadKeepFiles
 	| SecXmlExternalEntity;
 
-rule_directiv:
+rule_define:
 	SecRule variables QUOTE operator QUOTE QUOTE action (
 		COMMA action
 	)* QUOTE;
@@ -197,3 +203,24 @@ action_name:
 	| Xmlns;
 
 action_value: STRING;
+
+rule_remove: rule_remove_by_id | rule_remove_by_msg | rule_remove_by_tag;
+
+rule_remove_by_id: SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;
+
+rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
+
+rule_remove_by_tag: SecRuleRemoveByTag QUOTE STRING QUOTE;
+
+rule_update: (SecRuleUpdateActionById action)
+	| (
+		rule_update_target_directiv (
+			(QUOTE STRING QUOTE)
+			| (STRING)
+		) variables
+	);
+
+rule_update_target_directiv:
+	SecRuleUpdateTargetById
+	| SecRuleUpdateTargetByMsg
+	| SecRuleUpdateTargetByTag;

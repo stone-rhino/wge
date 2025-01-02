@@ -63,8 +63,8 @@ public:
 public:
   EngineConfig& engineConfig() { return engine_config_; }
   const EngineConfig& engineConfig() const { return engine_config_; }
-  std::vector<std::unique_ptr<Rule>>& rules() { return rules_; }
-  const std::vector<std::unique_ptr<Rule>>& rules() const { return rules_; }
+  std::list<std::unique_ptr<Rule>>& rules() { return rules_; }
+  const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
 
 public:
   static const std::unordered_map<
@@ -81,15 +81,14 @@ public:
     return operator_factory_;
   }
 
-  static const std::unordered_map<
-      std::string, std::function<std::unique_ptr<Action::ActionBase>(std::string&&, std::string&&)>>
+  static const std::unordered_map<std::string, std::function<void(Rule&, std::string&&)>>
   getActionFactory() {
     return action_factory_;
   }
 
 private:
   EngineConfig engine_config_;
-  std::vector<std::unique_ptr<Rule>> rules_;
+  std::list<std::unique_ptr<Rule>> rules_;
 
 private:
   static std::unordered_map<std::string, std::function<std::unique_ptr<Variable::VariableBase>(
@@ -98,8 +97,6 @@ private:
   static std::unordered_map<std::string, std::function<std::unique_ptr<Operator::OperatorBase>(
                                              std::string&&, std::string&&)>>
       operator_factory_;
-  static std::unordered_map<
-      std::string, std::function<std::unique_ptr<Action::ActionBase>(std::string&&, std::string&&)>>
-      action_factory_;
+  static std::unordered_map<std::string, std::function<void(Rule&, std::string&&)>> action_factory_;
 };
 } // namespace SrSecurity::Antlr4

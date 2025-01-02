@@ -1,10 +1,10 @@
-#include "antlr4/parser.h"
-
 #include <functional>
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
+
+#include "antlr4/parser.h"
 
 namespace SrSecurity {
 class ParserTest : public testing::Test {
@@ -250,5 +250,59 @@ TEST_F(ParserTest, RuleDirective) {
   EXPECT_EQ(rule_operator->name(), "rx");
   EXPECT_EQ(rule_operator->value(), "bar");
   EXPECT_EQ(rule_operator->regexExpr(), "bar");
+}
+
+TEST_F(ParserTest, RuleRemoveById) {
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:2,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:3,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:4,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:5,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:6,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:7,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:8,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:9,tag:foo,msg:bar"
+  SecRule ARGS "bar" "id:10,tag:foo,msg:bar"
+  )";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+
+  auto& rules = parser.rules();
+  EXPECT_EQ(rules.size(), 10);
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveById 1)";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 9);
+    auto iter = std::find_if(rules.begin(), rules.end(),
+                             [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
+    EXPECT_EQ(iter, rules.end());
+  }
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveById 2 3)";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 7);
+    auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
+      return rule->id() == 2 || rule->id() == 3;
+    });
+    EXPECT_EQ(iter, rules.end());
+  }
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveById 4 5 6-8)";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 2);
+    auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
+      return rule->id() == 4 || rule->id() == 5 || rule->id() == 6 || rule->id() == 7 ||
+             rule->id() == 8;
+    });
+    EXPECT_EQ(iter, rules.end());
+  }
 }
 } // namespace SrSecurity

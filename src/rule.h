@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -11,11 +12,17 @@
 #include "variable/variable_base.h"
 
 namespace SrSecurity {
+
+namespace Antlr4 {
+class Parser;
+}
+
 /**
  * The rule class.
  */
 class Rule {
   friend class ParserTest;
+  friend class Antlr4::Parser;
 
 public:
   /**
@@ -24,53 +31,71 @@ public:
    */
   bool evaluate(const HttpExtractor& extractor) const;
 
-  /**
-   * Each rule must call this method once before call evaluate, and only once in the life of the
-   * instance.
-   * This method initializes some important variables, such as hyperscan database and so on
-   */
-  void preEvaluate();
+public:
+  enum class Severity { EMERGENCY = 0, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG };
+  enum class Disruptive { ALLOW, BLOCK, DENY, PASS, REDIRECT };
 
 public:
-  /**
-   * Get the rule id
-   * @return The value that defined in rule action. E.g: "id: 123456"
-   */
-  uint64_t id() const { return id_; }
-
-  /**
-   * Checks whether this rule contains the specifc tag
-   * @param tag Defined in rule action. E.g: "tag: xxx"
-   */
-  bool hasTag(const std::string& tag) const;
-
-  /**
-   * Checks whether this rule contains the specifc tag set
-   * @param tags Defined in rule action. E.g: "tag: xxx"
-   */
-  bool hasTag(const std::unordered_set<std::string>& tags) const;
-
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
-  void appendAction(std::unique_ptr<Action::ActionBase>&& action);
 
-private:
-  void initHyperscan() {}
-  void initPcre() {}
+public:
+  const std::string& accuracy() const { return accuracy_; }
+  uint64_t id() const { return id_; }
 
 private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_pool_;
   std::unique_ptr<Operator::OperatorBase> operator_;
-  std::vector<std::unique_ptr<Action::ActionBase>> actions_pool_;
 
   // Build the map to quick find
   std::unordered_map<std::string, Variable::VariableBase&> variables_map_;
-  std::unordered_map<std::string, Action::ActionBase&> actions_map_;
 
-  // Even if the values listed below can be found in the actions_map_, hold these values or
-  // reference to get their quickly
+  // Action Group: Meta-data
 private:
-  uint64_t id_{0};
-  int phase_{-1};
+  std::string accuracy_;
+  uint64_t id_;
+  std::string maturity_;
+  std::string msg_;
+  std::string phase_;
+  std::string rev_;
+  Severity severity_;
+  std::unordered_set<std::string> tag_;
+  std::string ver_;
+
+  // Action Group: Non-disruptive
+private:
+  bool audit_log_{false};
+  bool capture_{false};
+  std::string ctl_;
+  std::string exec_;
+  std::string expire_var_;
+  std::string init_col_;
+  bool log_{false};
+  std::string log_data_;
+  bool multi_match_{false};
+  bool no_audit_log_{false};
+  bool no_log_{false};
+  std::string set_uid_;
+  std::string set_rsc_;
+  std::string set_sid_;
+  std::string set_env_;
+  std::string set_var_;
+  std::unordered_set<std::string> t_;
+
+  // Action Group: Flow
+private:
+  bool chain_{false};
+  bool skip_{false};
+  std::string skip_after_;
+
+  // Action Group: Disruptive
+private:
+  Disruptive disruptive_;
+  std::string redirect_;
+
+  // Action Group: Data
+private:
+  std::string status_;
+  std::string xml_ns_;
 };
 } // namespace SrSecurity
