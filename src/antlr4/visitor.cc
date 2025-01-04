@@ -12,31 +12,42 @@ std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
   return parser_->loadFromFile(file_path);
 }
 
-std::any Visitor::visitEngine_config(Antlr4Gen::SecLangParser::Engine_configContext* ctx) {
-  std::string directive;
-  auto engine_config_directive = ctx->engine_config_directiv();
-  if (engine_config_directive) {
-    directive = engine_config_directive->getText();
-  } else {
-    auto sec_rule_engine = ctx->SecRuleEngine();
-    if (sec_rule_engine) {
-      directive = sec_rule_engine->getText();
-    }
-  }
-
-  antlr4::tree::TerminalNode* option = ctx->OPTION();
-  if (!option) {
-    option = ctx->DERECTION_ONLY();
-  }
-
-  if (option) {
-    parser_->setEngineConfig(directive, option->getText());
-  }
-
+std::any Visitor::visitSec_reqeust_body_access(
+    Antlr4Gen::SecLangParser::Sec_reqeust_body_accessContext* ctx) {
+  parser_->secRequestBodyAccess(optionStr2EnumValue(ctx->OPTION()->getText()));
   return "";
 }
 
-std::any Visitor::visitRule_define(Antlr4Gen::SecLangParser::Rule_defineContext* ctx) {
+std::any Visitor::visitSec_response_body_access(
+    Antlr4Gen::SecLangParser::Sec_response_body_accessContext* ctx) {
+  parser_->secResponseBodyAccess(optionStr2EnumValue(ctx->OPTION()->getText()));
+  return "";
+}
+
+std::any Visitor::visitSec_rule_engine(Antlr4Gen::SecLangParser::Sec_rule_engineContext* ctx) {
+  parser_->secRuleEngine(optionStr2EnumValue(ctx->OPTION()->getText()));
+  return "";
+}
+
+std::any Visitor::visitSec_tmp_save_uploaded_files(
+    Antlr4Gen::SecLangParser::Sec_tmp_save_uploaded_filesContext* ctx) {
+  parser_->secTmpSaveUploadedFiles(optionStr2EnumValue(ctx->OPTION()->getText()));
+  return "";
+}
+
+std::any
+Visitor::visitSec_upload_keep_files(Antlr4Gen::SecLangParser::Sec_upload_keep_filesContext* ctx) {
+  parser_->secUploadKeepFiles(optionStr2EnumValue(ctx->OPTION()->getText()));
+  return "";
+}
+
+std::any Visitor::visitSec_xml_external_entity(
+    Antlr4Gen::SecLangParser::Sec_xml_external_entityContext* ctx) {
+  parser_->secXmlExternalEntity(optionStr2EnumValue(ctx->OPTION()->getText()));
+  return "";
+}
+
+std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
   // Variables
   auto variables = ctx->variables()->variable();
   std::vector<Parser::VariableAttr> variable_attrs;
@@ -63,18 +74,19 @@ std::any Visitor::visitRule_define(Antlr4Gen::SecLangParser::Rule_defineContext*
     action_map.insert({action->action_name()->getText(), action->action_value()->getText()});
   }
 
-  parser_->addRule(std::move(variable_attrs), std::move(operator_name),
+  parser_->secRule(std::move(variable_attrs), std::move(operator_name),
                    op->operator_value()->getText(), std::move(action_map));
 
   return "";
 }
 
-std::any Visitor::visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_by_idContext* ctx) {
+std::any
+Visitor::visitSec_rule_remove_by_id(Antlr4Gen::SecLangParser::Sec_rule_remove_by_idContext* ctx) {
   auto ids = ctx->INT();
   for (auto id : ids) {
     std::string id_str = id->getText();
     uint64_t id_num = ::atoll(id_str.c_str());
-    parser_->removeRuleById(id_num);
+    parser_->secRuleRemoveById(id_num);
   }
 
   auto id_ranges = ctx->INT_RANGE();
@@ -85,7 +97,7 @@ std::any Visitor::visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_b
       uint64_t first = ::atoll(id_range_str.substr(0, pos).c_str());
       uint64_t last = ::atoll(id_range_str.substr(pos + 1).c_str());
       for (auto id = first; id <= last; ++id) {
-        parser_->removeRuleById(id);
+        parser_->secRuleRemoveById(id);
       }
     }
   }
@@ -94,15 +106,25 @@ std::any Visitor::visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_b
 }
 
 std::any
-Visitor::visitRule_remove_by_msg(Antlr4Gen::SecLangParser::Rule_remove_by_msgContext* ctx) {
-  parser_->removeRuleByMsg(ctx->STRING()->getText());
+Visitor::visitSec_rule_remove_by_msg(Antlr4Gen::SecLangParser::Sec_rule_remove_by_msgContext* ctx) {
+  parser_->secRuleRemoveByMsg(ctx->STRING()->getText());
   return "";
 }
 
 std::any
-Visitor::visitRule_remove_by_tag(Antlr4Gen::SecLangParser::Rule_remove_by_tagContext* ctx) {
-  parser_->removeRuleByTag(ctx->STRING()->getText());
+Visitor::visitSec_rule_remove_by_tag(Antlr4Gen::SecLangParser::Sec_rule_remove_by_tagContext* ctx) {
+  parser_->secRuleRemoveByTag(ctx->STRING()->getText());
   return "";
+}
+
+Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {
+  Parser::EngineConfig::Option option = Parser::EngineConfig::Option::Off;
+  if (option_str == "On") {
+    option = Parser::EngineConfig::Option::On;
+  } else if (option_str == "DetectionOnly") {
+    option = Parser::EngineConfig::Option::DetectionOnly;
+  }
+  return option;
 }
 
 } // namespace SrSecurity::Antlr4

@@ -4,7 +4,8 @@ tokens{
 	QUOTE,
 	COMMA,
 	NOT,
-	STRING
+	STRING,
+	OPTION
 }
 
 WS: [ \t\r\n]+ -> skip;
@@ -13,6 +14,7 @@ QUOTE: '"';
 NOT: '!';
 INT_RANGE: INT '-' INT;
 INT: [0-9]+;
+OPTION: ('On' | 'Off');
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction';
@@ -38,8 +40,7 @@ SecMarker: 'SecMarker';
 SecPcreMatchLimit: 'SecPcreMatchLimit';
 SecRemoteRules: 'SecRemoteRules';
 SecRemoteRulesFailAction: 'SecRemoteRulesFailAction';
-SecRequestBodyAccess:
-	'SecRequestBodyAccess' -> pushMode(ModeEngineConfig);
+SecRequestBodyAccess: 'SecRequestBodyAccess';
 SecRequestBodyInMemoryLimit: 'SecRequestBodyInMemoryLimit';
 SecRequestBodyJsonDepthLimit: 'SecRequestBodyJsonDepthLimit';
 SecRequestBodyLimit: 'SecRequestBodyLimit';
@@ -49,9 +50,8 @@ SecResponseBodyLimit: 'SecResponseBodyLimit';
 SecResponseBodyLimitAction: 'SecResponseBodyLimitAction';
 SecResponseBodyMimeType: 'SecResponseBodyMimeType';
 SecResponseBodyMimeTypesClear: 'SecResponseBodyMimeTypesClear';
-SecResponseBodyAccess:
-	'SecResponseBodyAccess' -> pushMode(ModeEngineConfig);
-SecRuleEngine: 'SecRuleEngine' -> pushMode(ModeEngineConfig);
+SecResponseBodyAccess: 'SecResponseBodyAccess';
+SecRuleEngine: 'SecRuleEngine' -> pushMode(ModeRuleEngine);
 SecRuleRemoveById: 'SecRuleRemoveById';
 SecRuleRemoveByMsg:
 	'SecRuleRemoveByMsg' -> pushMode(ModeRuleRemoveByMsg);
@@ -64,17 +64,14 @@ SecRuleUpdateTargetByMsg: 'SecRuleUpdateTargetByMsg';
 SecRuleUpdateTargetByTag: 'SecRuleUpdateTargetByTag';
 SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
 SecTmpDir: 'SecTmpDir';
-SecTmpSaveUploadedFiles:
-	'SecTmpSaveUploadedFiles' -> pushMode(ModeEngineConfig);
+SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
 SecUnicodeMapFile: 'SecUnicodeMapFile';
 SecUploadDir: 'SecUploadDir';
 SecUploadFileLimit: 'SecUploadFileLimit';
 SecUploadFileMode: 'SecUploadFileMode';
-SecUploadKeepFiles:
-	'SecUploadKeepFiles' -> pushMode(ModeEngineConfig);
+SecUploadKeepFiles: 'SecUploadKeepFiles';
 SecWebAppId: 'SecWebAppId';
-SecXmlExternalEntity:
-	'SecXmlExternalEntity' -> pushMode(ModeEngineConfig);
+SecXmlExternalEntity: 'SecXmlExternalEntity';
 
 mode ModeInclude;
 ModeInclude_WS: ' ' -> skip;
@@ -82,10 +79,9 @@ ModeInclude_QUOTE: '"' -> type(QUOTE);
 IncludeFilePath:
 	[a-zA-Z0-9/._~|\\:-]+ -> type(STRING), popMode;
 
-mode ModeEngineConfig;
+mode ModeRuleEngine;
 ModeEngineConfig_WS: ' ' -> skip;
-OPTION: ('On' | 'Off') -> popMode;
-DERECTION_ONLY: 'DetectionOnly' -> popMode;
+ModeRuleEngine_OPTION: ('On' | 'Off' | 'DetectionOnly') -> type(OPTION), popMode;
 
 mode ModeRuleRemoveByMsg;
 ModeRuleRemoveByMsg_WS: ' ' -> skip;

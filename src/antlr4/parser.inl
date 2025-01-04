@@ -1,46 +1,6 @@
 #include "parser.h"
 
 namespace SrSecurity::Antlr4 {
-
-std::unordered_map<std::string, std::function<void(Parser&, const std::string&)>>
-    Parser::engine_config_factory_ = {
-        {"SecRequestBodyAccess",
-         [](Parser& parser, const std::string& value) {
-           parser.engine_config_.is_request_body_access_ =
-               value == "On" ? EngineConfig::Option::On : EngineConfig::Option::Off;
-         }},
-        {"SecResponseBodyAccess",
-         [](Parser& parser, const std::string& value) {
-           parser.engine_config_.is_response_body_access_ =
-               value == "On" ? EngineConfig::Option::On : EngineConfig::Option::Off;
-         }},
-        {"SecRuleEngine",
-         [](Parser& parser, const std::string& value) {
-           if (value == "On") {
-             parser.engine_config_.is_rule_engine_ = EngineConfig::Option::On;
-           } else if (value == "Off") {
-             parser.engine_config_.is_rule_engine_ = EngineConfig::Option::Off;
-           } else {
-             parser.engine_config_.is_rule_engine_ = EngineConfig::Option::DetectionOnly;
-           }
-         }},
-        {"SecTmpSaveUploadedFiles",
-         [](Parser& parser, const std::string& value) {
-           parser.engine_config_.is_tmp_save_uploaded_files_ =
-               value == "On" ? EngineConfig::Option::On : EngineConfig::Option::Off;
-         }},
-        {"SecUploadKeepFiles",
-         [](Parser& parser, const std::string& value) {
-           parser.engine_config_.is_upload_keep_files_ =
-               value == "On" ? EngineConfig::Option::On : EngineConfig::Option::Off;
-         }},
-        {"SecXmlExternalEntity",
-         [](Parser& parser, const std::string& value) {
-           parser.engine_config_.is_xml_external_entity_ =
-               value == "On" ? EngineConfig::Option::On : EngineConfig::Option::Off;
-         }},
-};
-
 std::unordered_map<
     std::string, std::function<std::unique_ptr<Variable::VariableBase>(std::string&&, bool, bool)>>
     Parser::variable_factory_ = {

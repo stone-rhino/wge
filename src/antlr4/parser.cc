@@ -26,12 +26,24 @@
 
 namespace SrSecurity::Antlr4 {
 
-class ErrorListener : public antlr4::BaseErrorListener {
+class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
   void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
                    size_t charPositionInLine, const std::string& msg,
                    std::exception_ptr e) override {
-    error_msg = std::format("line {}:{} {}", line, charPositionInLine, msg);
+    error_msg = std::format("parser error. line {}:{} {}", line, charPositionInLine, msg);
+  }
+
+public:
+  std::string error_msg;
+};
+
+class LexerErrorListener : public antlr4::BaseErrorListener {
+public:
+  void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
+                   size_t charPositionInLine, const std::string& msg,
+                   std::exception_ptr e) override {
+    error_msg = std::format("lexer error. line {}:{} {}", line, charPositionInLine, msg);
   }
 
 public:
@@ -47,15 +59,21 @@ std::string Parser::loadFromFile(const std::string& file_path) {
   Antlr4Gen::SecLangParser parser(&tokens);
 
   // sets error listener
-  ErrorListener error_listener;
+  ParserErrorListener parser_error_listener;
+  LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
   parser.removeErrorListeners();
-  parser.addErrorListener(&error_listener);
+  parser.addErrorListener(&parser_error_listener);
+  lexer.removeErrorListeners();
+  lexer.addErrorListener(&lexer_error_listener);
 
   // parse
   auto tree = parser.configuration();
-  if (!error_listener.error_msg.empty()) {
-    return error_listener.error_msg;
+  if (!parser_error_listener.error_msg.empty()) {
+    return parser_error_listener.error_msg;
+  }
+  if (!lexer_error_listener.error_msg.empty()) {
+    return lexer_error_listener.error_msg;
   }
 
   // visit
@@ -74,15 +92,21 @@ std::string Parser::load(const std::string& directive) {
   Antlr4Gen::SecLangParser parser(&tokens);
 
   // sets error listener
-  ErrorListener error_listener;
+  ParserErrorListener parser_error_listener;
+  LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
   parser.removeErrorListeners();
-  parser.addErrorListener(&error_listener);
+  parser.addErrorListener(&parser_error_listener);
+  lexer.removeErrorListeners();
+  lexer.addErrorListener(&lexer_error_listener);
 
   // parse
   auto tree = parser.configuration();
-  if (!error_listener.error_msg.empty()) {
-    return error_listener.error_msg;
+  if (!parser_error_listener.error_msg.empty()) {
+    return parser_error_listener.error_msg;
+  }
+  if (!lexer_error_listener.error_msg.empty()) {
+    return lexer_error_listener.error_msg;
   }
 
   // visit
@@ -93,15 +117,29 @@ std::string Parser::load(const std::string& directive) {
   return error;
 }
 
-void Parser::setEngineConfig(const std::string& directive, const std::string& value) {
-  auto iter = engine_config_factory_.find(directive);
-  assert(iter != engine_config_factory_.end());
-  if (iter != engine_config_factory_.end()) {
-    iter->second(*this, value);
-  }
+void Parser::secRuleEngine(EngineConfig::Option option) { engine_config_.is_rule_engine_ = option; }
+
+void Parser::secRequestBodyAccess(EngineConfig::Option option) {
+  engine_config_.is_request_body_access_ = option;
 }
 
-void Parser::addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
+void Parser::secResponseBodyAccess(EngineConfig::Option option) {
+  engine_config_.is_response_body_access_ = option;
+}
+
+void Parser::secTmpSaveUploadedFiles(EngineConfig::Option option) {
+  engine_config_.is_tmp_save_uploaded_files_ = option;
+}
+
+void Parser::secUploadKeepFiles(EngineConfig::Option option) {
+  engine_config_.is_upload_keep_files_ = option;
+}
+
+void Parser::secXmlExternalEntity(EngineConfig::Option option) {
+  engine_config_.is_xml_external_entity_ = option;
+}
+
+void Parser::secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
                      std::string&& operator_value,
                      std::unordered_multimap<std::string, std::string>&& actions) {
   auto& rule = rules_.emplace_back(std::make_unique<Rule>());
@@ -132,7 +170,7 @@ void Parser::addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& o
   }
 }
 
-void Parser::removeRuleById(uint64_t id) {
+void Parser::secRuleRemoveById(uint64_t id) {
   auto iter = rules_index_id_.find(id);
   if (iter != rules_index_id_.end()) {
     rules_.erase(iter->second);
@@ -140,7 +178,7 @@ void Parser::removeRuleById(uint64_t id) {
   }
 }
 
-void Parser::removeRuleByMsg(const std::string& msg) {
+void Parser::secRuleRemoveByMsg(const std::string& msg) {
   auto range = rules_index_msg_.equal_range(msg);
   for (auto iter = range.first; iter != range.second; ++iter) {
     rules_.erase(iter->second);
@@ -148,7 +186,7 @@ void Parser::removeRuleByMsg(const std::string& msg) {
   rules_index_msg_.erase(msg);
 }
 
-void Parser::removeRuleByTag(const std::string& tag) {
+void Parser::secRuleRemoveByTag(const std::string& tag) {
   auto range = rules_index_tag_.equal_range(tag);
   for (auto iter = range.first; iter != range.second; ++iter) {
     rules_.erase(iter->second);

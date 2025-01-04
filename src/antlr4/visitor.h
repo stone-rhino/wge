@@ -11,14 +11,36 @@ public:
 public:
   std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
 
-  std::any visitEngine_config(Antlr4Gen::SecLangParser::Engine_configContext* ctx) override;
+  std::any visitSec_reqeust_body_access(
+      Antlr4Gen::SecLangParser::Sec_reqeust_body_accessContext* ctx) override;
 
-  std::any visitRule_define(Antlr4Gen::SecLangParser::Rule_defineContext* ctx) override;
-  std::any visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_by_idContext* ctx) override;
+  std::any visitSec_response_body_access(
+      Antlr4Gen::SecLangParser::Sec_response_body_accessContext* ctx) override;
+
+  std::any visitSec_rule_engine(Antlr4Gen::SecLangParser::Sec_rule_engineContext* ctx) override;
+
+  std::any visitSec_tmp_save_uploaded_files(
+      Antlr4Gen::SecLangParser::Sec_tmp_save_uploaded_filesContext* ctx) override;
+
   std::any
-  visitRule_remove_by_msg(Antlr4Gen::SecLangParser::Rule_remove_by_msgContext* ctx) override;
+  visitSec_upload_keep_files(Antlr4Gen::SecLangParser::Sec_upload_keep_filesContext* ctx) override;
+
+  std::any visitSec_xml_external_entity(
+      Antlr4Gen::SecLangParser::Sec_xml_external_entityContext* ctx) override;
+
+  std::any visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) override;
+
   std::any
-  visitRule_remove_by_tag(Antlr4Gen::SecLangParser::Rule_remove_by_tagContext* ctx) override;
+  visitSec_rule_remove_by_id(Antlr4Gen::SecLangParser::Sec_rule_remove_by_idContext* ctx) override;
+
+  std::any visitSec_rule_remove_by_msg(
+      Antlr4Gen::SecLangParser::Sec_rule_remove_by_msgContext* ctx) override;
+
+  std::any visitSec_rule_remove_by_tag(
+      Antlr4Gen::SecLangParser::Sec_rule_remove_by_tagContext* ctx) override;
+
+private:
+  static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
 
 private:
   Parser* parser_;

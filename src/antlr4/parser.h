@@ -68,14 +68,23 @@ public:
     bool is_counter_;
   };
 
+  // Modsecurity configuration directive
 public:
-  void setEngineConfig(const std::string& directive, const std::string& value);
-  void addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
+  // Engine configurations
+  void secRequestBodyAccess(EngineConfig::Option option);
+  void secResponseBodyAccess(EngineConfig::Option option);
+  void secRuleEngine(EngineConfig::Option option);
+  void secTmpSaveUploadedFiles(EngineConfig::Option option);
+  void secUploadKeepFiles(EngineConfig::Option option);
+  void secXmlExternalEntity(EngineConfig::Option option);
+
+  // Rule directives
+  void secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
                std::string&& operator_value,
                std::unordered_multimap<std::string, std::string>&& actions);
-  void removeRuleById(uint64_t id);
-  void removeRuleByMsg(const std::string& msg);
-  void removeRuleByTag(const std::string& tag);
+  void secRuleRemoveById(uint64_t id);
+  void secRuleRemoveByMsg(const std::string& msg);
+  void secRuleRemoveByTag(const std::string& tag);
 
 public:
   const EngineConfig& engineConfig() const { return engine_config_; }
