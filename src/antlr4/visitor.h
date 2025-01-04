@@ -39,6 +39,18 @@ public:
   std::any visitSec_rule_remove_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_remove_by_tagContext* ctx) override;
 
+  std::any visitSec_rule_update_action_by_id(
+      Antlr4Gen::SecLangParser::Sec_rule_update_action_by_idContext* ctx) override;
+
+  std::any visitSec_rule_update_target_by_id(
+      Antlr4Gen::SecLangParser::Sec_rule_update_target_by_idContext* ctx) override;
+
+  std::any visitSec_rule_update_target_by_msg(
+      Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) override;
+
+  std::any visitSec_rule_update_target_by_tag(
+      Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
+
 private:
   static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
 

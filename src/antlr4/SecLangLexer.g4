@@ -5,7 +5,8 @@ tokens{
 	COMMA,
 	NOT,
 	STRING,
-	OPTION
+	OPTION,
+	INT
 }
 
 WS: [ \t\r\n]+ -> skip;
@@ -58,7 +59,8 @@ SecRuleRemoveByMsg:
 SecRuleRemoveByTag:
 	'SecRuleRemoveByTag' -> pushMode(ModeRuleRemoveByTag);
 SecRuleScript: 'SecRuleScript';
-SecRuleUpdateActionById: 'SecRuleUpdateActionById';
+SecRuleUpdateActionById:
+	'SecRuleUpdateActionById' -> pushMode(ModeRuleUpdateActionById);
 SecRuleUpdateTargetById: 'SecRuleUpdateTargetById';
 SecRuleUpdateTargetByMsg: 'SecRuleUpdateTargetByMsg';
 SecRuleUpdateTargetByTag: 'SecRuleUpdateTargetByTag';
@@ -93,6 +95,11 @@ mode ModeRuleRemoveByTag;
 ModeRuleRemoveByTag_WS: ' ' -> skip;
 ModeRuleRemoveByTag_QUOTE: '"' -> type(QUOTE);
 ModeRuleRemoveByTag_STRING: ('\\"' | ~["])+ -> type(STRING), popMode;
+
+mode ModeRuleUpdateActionById;
+ModeRuleUpdateActionById_WS: ' ' -> skip;
+ModeRuleUpdateActionById_INT:
+	[0-9]+ -> type(INT), pushMode(ModeSecRuleAction);
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:

@@ -117,6 +117,36 @@ Visitor::visitSec_rule_remove_by_tag(Antlr4Gen::SecLangParser::Sec_rule_remove_b
   return "";
 }
 
+std::any Visitor::visitSec_rule_update_action_by_id(
+    Antlr4Gen::SecLangParser::Sec_rule_update_action_by_idContext* ctx) {
+  uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+
+  // Actions
+  auto actions = ctx->action();
+  std::unordered_multimap<std::string, std::string> action_map;
+  for (auto action : actions) {
+    action_map.insert({action->action_name()->getText(), action->action_value()->getText()});
+  }
+
+  parser_->secRuleUpdateActionById(id, std::move(action_map));
+  return "";
+}
+
+std::any Visitor::visitSec_rule_update_target_by_id(
+    Antlr4Gen::SecLangParser::Sec_rule_update_target_by_idContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitSec_rule_update_target_by_msg(
+    Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitSec_rule_update_target_by_tag(
+    Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
+  return "";
+}
+
 Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {
   Parser::EngineConfig::Option option = Parser::EngineConfig::Option::Off;
   if (option_str == "On") {

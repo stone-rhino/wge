@@ -85,6 +85,11 @@ public:
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
+  void secRuleUpdateActionById(uint64_t id,
+                               std::unordered_multimap<std::string, std::string>&& actions);
+  void secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs);
+  void secRuleUpdateTargetByMsg(const std::string& msg, std::vector<VariableAttr>&& variable_attrs);
+  void secRuleUpdateTargetByTag(const std::string& msg, std::vector<VariableAttr>&& variable_attrs);
 
 public:
   const EngineConfig& engineConfig() const { return engine_config_; }

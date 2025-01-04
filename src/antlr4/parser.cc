@@ -194,4 +194,20 @@ void Parser::secRuleRemoveByTag(const std::string& tag) {
   rules_index_tag_.erase(tag);
 }
 
+void Parser::secRuleUpdateActionById(uint64_t id,
+                                     std::unordered_multimap<std::string, std::string>&& actions) {
+  auto iter = rules_index_id_.find(id);
+  if (iter != rules_index_id_.end()) {
+    auto& rule = *iter->second;
+    if (actions.find("tag") != actions.end()) {
+      rule->tags_.clear();
+    }
+
+    for (auto& [name, value] : actions) {
+      auto iter = action_factory_.find(name);
+      iter->second(*this, *rule, std::move(value));
+    }
+  }
+}
+
 } // namespace SrSecurity::Antlr4

@@ -220,15 +220,14 @@ sec_rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
 
 sec_rule_remove_by_tag: SecRuleRemoveByTag QUOTE STRING QUOTE;
 
-sec_rule_update_action_by_id: SecRuleUpdateActionById action;
+sec_rule_update_action_by_id:
+	SecRuleUpdateActionById INT QUOTE action (COMMA action)* QUOTE;
 
 sec_rule_update_target_by_id:
-	SecRuleUpdateTargetById (INT | INT_RANGE) (INT | INT_RANGE)*;
+	SecRuleUpdateTargetById INT variables;
 
 sec_rule_update_target_by_msg:
-	SecRuleUpdateTargetByMsg (QUOTE STRING QUOTE)
-	| STRING;
+	SecRuleUpdateTargetByMsg ((QUOTE STRING QUOTE) | STRING) variables;
 
 sec_rule_update_target_by_tag:
-	SecRuleUpdateTargetByTag (QUOTE STRING QUOTE)
-	| STRING;
+	SecRuleUpdateTargetByTag ((QUOTE STRING QUOTE) | STRING) variables;

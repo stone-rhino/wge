@@ -341,7 +341,7 @@ std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::s
         {"nolog", [](Parser& parser, Rule& rule, std::string&& value) { rule.no_log_ = true; }},
         {"pass",
          [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::PASS; }},
-        {"phase", [](Parser& parser, Rule& rule, std::string&& value) { rule.phase_ = std::move(value); }},
+        {"phase", [](Parser& parser, Rule& rule, std::string&& value) { rule.phase_ = ::atoi(value.c_str()); }},
         {"redirect",
          [](Parser& parser, Rule& rule, std::string&& value) {
            rule.disruptive_ = Rule::Disruptive::REDIRECT;
@@ -359,7 +359,7 @@ std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::s
         {"status", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"t", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"tag", [](Parser& parser, Rule& rule, std::string&& value) { 
-          auto result = rule.tag_.emplace(std::move(value)); 
+          auto result = rule.tags_.emplace(std::move(value)); 
           parser.rules_index_tag_.insert({*result.first, std::prev(parser.rules_.end())});
           }},
         {"ver", [](Parser& parser, Rule& rule, std::string&& value) { return; }},

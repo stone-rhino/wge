@@ -402,4 +402,35 @@ TEST_F(ParserTest, RuleRemoveByTag) {
     EXPECT_EQ(iter, rules.end());
   }
 }
+
+TEST_F(ParserTest, RuleUpdateById) {
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:tag1,msg:msg1")";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+  EXPECT_EQ(parser.rules().back()->msg(), "msg1");
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateActionById 1 "msg:msg2")";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(parser.rules().back()->msg(), "msg2");
+  }
+
+  {
+    auto& tags = parser.rules().back()->tags();
+    EXPECT_NE(tags.find("tag1"), tags.end());
+    EXPECT_EQ(tags.find("tag2"), tags.end());
+    EXPECT_EQ(tags.find("tag3"), tags.end());
+
+    const std::string rule_update = R"(SecRuleUpdateActionById 1 "msg:msg3,tag:tag2,tag:tag3")";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(parser.rules().back()->msg(), "msg3");
+    EXPECT_EQ(tags.find("tag1"), tags.end());
+    EXPECT_NE(tags.find("tag2"), tags.end());
+    EXPECT_NE(tags.find("tag3"), tags.end());
+  }
+}
 } // namespace SrSecurity

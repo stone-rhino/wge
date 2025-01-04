@@ -42,6 +42,12 @@ public:
 public:
   const std::string& accuracy() const { return accuracy_; }
   uint64_t id() const { return id_; }
+  const std::string& maturity() const { return maturity_; }
+  const std::string& msg() const { return msg_; }
+  int phase() const { return phase_; }
+  const std::string& rev() const { return rev_; }
+  const Severity severity() const { return severity_; }
+  const std::unordered_set<std::string>& tags() const { return tags_; }
 
 private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_pool_;
@@ -56,10 +62,10 @@ private:
   uint64_t id_;
   std::string maturity_;
   std::string msg_;
-  std::string phase_;
+  int phase_;
   std::string rev_;
   Severity severity_;
-  std::unordered_set<std::string> tag_;
+  std::unordered_set<std::string> tags_;
   std::string ver_;
 
   // Action Group: Non-disruptive
