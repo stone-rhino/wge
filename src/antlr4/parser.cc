@@ -20,11 +20,11 @@
 #include "../variable/args_get.h"
 #include "../variable/args_post.h"
 
-namespace SrSecurity::Antlr4 {
-
 // I don't know why vscode intelli sense was too slow if lay out the contents of this file here, so
 // put them into the file.
 #include "parser.inl"
+
+namespace SrSecurity::Antlr4 {
 
 class ErrorListener : public antlr4::BaseErrorListener {
 public:
@@ -103,7 +103,7 @@ void Parser::setEngineConfig(const std::string& directive, const std::string& va
 
 void Parser::addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
                      std::string&& operator_value,
-                     std::unordered_map<std::string, std::string>&& actions) {
+                     std::unordered_multimap<std::string, std::string>&& actions) {
   auto& rule = rules_.emplace_back(std::make_unique<Rule>());
 
   // Append variable
@@ -140,7 +140,20 @@ void Parser::removeRuleById(uint64_t id) {
   }
 }
 
-void Parser::removeRuleByMsg(const std::string& msg) {}
-void Parser::removeRuleByTag(const std::string& tag) {}
+void Parser::removeRuleByMsg(const std::string& msg) {
+  auto range = rules_index_msg_.equal_range(msg);
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    rules_.erase(iter->second);
+  }
+  rules_index_msg_.erase(msg);
+}
+
+void Parser::removeRuleByTag(const std::string& tag) {
+  auto range = rules_index_tag_.equal_range(tag);
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    rules_.erase(iter->second);
+  }
+  rules_index_tag_.erase(tag);
+}
 
 } // namespace SrSecurity::Antlr4

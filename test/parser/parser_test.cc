@@ -253,16 +253,16 @@ TEST_F(ParserTest, RuleDirective) {
 }
 
 TEST_F(ParserTest, RuleRemoveById) {
-  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:2,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:3,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:4,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:5,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:6,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:7,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:8,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:9,tag:foo,msg:bar"
-  SecRule ARGS "bar" "id:10,tag:foo,msg:bar"
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:tag1,msg:msg1"
+  SecRule ARGS "bar" "id:2,tag:tag2,tag:tag3,msg:msg2"
+  SecRule ARGS "bar" "id:3,tag:tag2,tag:tag3,msg:msg3"
+  SecRule ARGS "bar" "id:4,tag:tag4,msg:msg4"
+  SecRule ARGS "bar" "id:5,tag:tag5,msg:msg5"
+  SecRule ARGS "bar" "id:6,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:7,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:8,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:9,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:10,tag:tag6,msg:msg6"
   )";
 
   Antlr4::Parser parser;
@@ -301,6 +301,103 @@ TEST_F(ParserTest, RuleRemoveById) {
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 4 || rule->id() == 5 || rule->id() == 6 || rule->id() == 7 ||
              rule->id() == 8;
+    });
+    EXPECT_EQ(iter, rules.end());
+  }
+}
+
+TEST_F(ParserTest, RuleRemoveByMsg) {
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:tag1,msg:msg1"
+  SecRule ARGS "bar" "id:2,tag:tag2,tag:tag3,msg:msg2"
+  SecRule ARGS "bar" "id:3,tag:tag2,tag:tag3,msg:msg3"
+  SecRule ARGS "bar" "id:4,tag:tag4,msg:msg4"
+  SecRule ARGS "bar" "id:5,tag:tag5,msg:msg5"
+  SecRule ARGS "bar" "id:6,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:7,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:8,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:9,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:10,tag:tag6,msg:msg6"
+  )";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+
+  auto& rules = parser.rules();
+  EXPECT_EQ(rules.size(), 10);
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveByMsg "msg1")";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 9);
+    auto iter = std::find_if(rules.begin(), rules.end(),
+                             [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
+    EXPECT_EQ(iter, rules.end());
+  }
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveByMsg "msg6")";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 4);
+    auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
+      return rule->id() == 6 || rule->id() == 7 || rule->id() == 8 || rule->id() == 9 ||
+             rule->id() == 10;
+    });
+    EXPECT_EQ(iter, rules.end());
+  }
+}
+
+TEST_F(ParserTest, RuleRemoveByTag) {
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:tag1,msg:msg1"
+  SecRule ARGS "bar" "id:2,tag:tag2,tag:tag3,msg:msg2"
+  SecRule ARGS "bar" "id:3,tag:tag2,tag:tag3,msg:msg3"
+  SecRule ARGS "bar" "id:4,tag:tag4,msg:msg4"
+  SecRule ARGS "bar" "id:5,tag:tag5,msg:msg5"
+  SecRule ARGS "bar" "id:6,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:7,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:8,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:9,tag:tag6,msg:msg6"
+  SecRule ARGS "bar" "id:10,tag:tag6,msg:msg6"
+  )";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+
+  auto& rules = parser.rules();
+  EXPECT_EQ(rules.size(), 10);
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveByTag "tag1")";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 9);
+    auto iter = std::find_if(rules.begin(), rules.end(),
+                             [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
+    EXPECT_EQ(iter, rules.end());
+  }
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveByTag "tag2")";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 7);
+    auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
+      return rule->id() == 2 || rule->id() == 3;
+    });
+    EXPECT_EQ(iter, rules.end());
+  }
+
+  {
+    const std::string rule_remove = R"(SecRuleRemoveByTag "tag6")";
+    error = parser.load(rule_remove);
+    ASSERT_TRUE(error.empty());
+    EXPECT_EQ(rules.size(), 2);
+    auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
+      return rule->id() == 6 || rule->id() == 7 || rule->id() == 8 || rule->id() == 9 ||
+             rule->id() == 10;
     });
     EXPECT_EQ(iter, rules.end());
   }

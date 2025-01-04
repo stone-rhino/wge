@@ -72,7 +72,7 @@ public:
   void setEngineConfig(const std::string& directive, const std::string& value);
   void addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
                std::string&& operator_value,
-               std::unordered_map<std::string, std::string>&& actions);
+               std::unordered_multimap<std::string, std::string>&& actions);
   void removeRuleById(uint64_t id);
   void removeRuleByMsg(const std::string& msg);
   void removeRuleByTag(const std::string& tag);
@@ -85,7 +85,8 @@ private:
   EngineConfig engine_config_;
   std::list<std::unique_ptr<Rule>> rules_;
   std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;
-  std::unordered_map<std::string_view, std::list<std::unique_ptr<Rule>>::iterator> rules_index_msg_;
+  std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
+      rules_index_msg_;
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
       rules_index_tag_;
 

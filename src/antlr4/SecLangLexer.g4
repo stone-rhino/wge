@@ -88,10 +88,14 @@ OPTION: ('On' | 'Off') -> popMode;
 DERECTION_ONLY: 'DetectionOnly' -> popMode;
 
 mode ModeRuleRemoveByMsg;
+ModeRuleRemoveByMsg_WS: ' ' -> skip;
+ModeRuleRemoveByMsg_QUOTE: '"' -> type(QUOTE);
 ModeRuleRemoveByMsg_STRING:
 	('\\"' | ~["])+ -> type(STRING), popMode;
 
 mode ModeRuleRemoveByTag;
+ModeRuleRemoveByTag_WS: ' ' -> skip;
+ModeRuleRemoveByTag_QUOTE: '"' -> type(QUOTE);
 ModeRuleRemoveByTag_STRING: ('\\"' | ~["])+ -> type(STRING), popMode;
 
 mode ModeSecRuleVariable;

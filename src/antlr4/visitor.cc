@@ -58,9 +58,9 @@ std::any Visitor::visitRule_define(Antlr4Gen::SecLangParser::Rule_defineContext*
 
   // Actions
   auto actions = ctx->action();
-  std::unordered_map<std::string, std::string> action_map;
+  std::unordered_multimap<std::string, std::string> action_map;
   for (auto action : actions) {
-    action_map[action->action_name()->getText()] = action->action_value()->getText();
+    action_map.insert({action->action_name()->getText(), action->action_value()->getText()});
   }
 
   parser_->addRule(std::move(variable_attrs), std::move(operator_name),
@@ -93,19 +93,15 @@ std::any Visitor::visitRule_remove_by_id(Antlr4Gen::SecLangParser::Rule_remove_b
   return "";
 }
 
-std::any visitRule_remove_by_msg(Antlr4Gen::SecLangParser::Rule_remove_by_msgContext* ctx) {
-  return "";
-}
-
 std::any
 Visitor::visitRule_remove_by_msg(Antlr4Gen::SecLangParser::Rule_remove_by_msgContext* ctx) {
-  auto& rules = parser_->rules();
-
+  parser_->removeRuleByMsg(ctx->STRING()->getText());
   return "";
 }
 
 std::any
 Visitor::visitRule_remove_by_tag(Antlr4Gen::SecLangParser::Rule_remove_by_tagContext* ctx) {
+  parser_->removeRuleByTag(ctx->STRING()->getText());
   return "";
 }
 

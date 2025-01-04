@@ -1,3 +1,7 @@
+#include "parser.h"
+
+namespace SrSecurity::Antlr4 {
+
 std::unordered_map<std::string, std::function<void(Parser&, const std::string&)>>
     Parser::engine_config_factory_ = {
         {"SecRequestBodyAccess",
@@ -360,16 +364,18 @@ std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::s
          [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::DENY; }},
         {"exec", [](Parser& parser, Rule& rule, std::string&& value) { rule.exec_ = std::move(value); }},
         {"expirevar", [](Parser& parser, Rule& rule, std::string&& value) { rule.expire_var_ = std::move(value); }},
-        {"id",
-         [](Parser& parser, Rule& rule, std::string&& value) {
+        {"id",[](Parser& parser, Rule& rule, std::string&& value) {
            rule.id_ = ::atoll(value.c_str());
            parser.rules_index_id_[rule.id_] = std::prev(parser.rules_.end());
-         }},
+          }},
         {"initcol", [](Parser& parser, Rule& rule, std::string&& value) { rule.init_col_ = std::move(value); }},
         {"log", [](Parser& parser, Rule& rule, std::string&& value) { rule.log_ = true; }},
         {"logdata", [](Parser& parser, Rule& rule, std::string&& value) { rule.log_data_ = std::move(value); }},
         {"maturity", [](Parser& parser, Rule& rule, std::string&& value) { rule.maturity_ = std::move(value); }},
-        {"msg", [](Parser& parser, Rule& rule, std::string&& value) { rule.msg_ = std::move(value); }},
+        {"msg", [](Parser& parser, Rule& rule, std::string&& value) { 
+          rule.msg_ = std::move(value);
+          parser.rules_index_msg_.insert({rule.msg_, std::prev(parser.rules_.end())});
+          }},
         {"multiMatch", [](Parser& parser, Rule& rule, std::string&& value) { rule.multi_match_ = true; }},
         {"noauditlog", [](Parser& parser, Rule& rule, std::string&& value) { rule.no_audit_log_ = true; }},
         {"nolog", [](Parser& parser, Rule& rule, std::string&& value) { rule.no_log_ = true; }},
@@ -392,6 +398,10 @@ std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::s
         {"skipAfter", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"status", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"t", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"tag", [](Parser& parser, Rule& rule, std::string&& value) { rule.tag_.emplace(std::move(value)); }},
+        {"tag", [](Parser& parser, Rule& rule, std::string&& value) { 
+          auto result = rule.tag_.emplace(std::move(value)); 
+          parser.rules_index_tag_.insert({*result.first, std::prev(parser.rules_.end())});
+          }},
         {"ver", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"xmlns", [](Parser& parser, Rule& rule, std::string&& value) { return; }}};
+} // namespace SrSecurity::Antlr4
