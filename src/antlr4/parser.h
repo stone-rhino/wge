@@ -4,7 +4,8 @@
 #include <list>
 #include <memory>
 #include <string>
-#include <unordered_set>
+#include <string_view>
+#include <unordered_map>
 
 #include "../rule.h"
 
@@ -60,43 +61,44 @@ public:
     Option is_xml_external_entity_{Option::Off};
   };
 
+  struct VariableAttr {
+    std::string full_name_;
+    std::string main_name_;
+    bool is_not_;
+    bool is_counter_;
+  };
+
 public:
-  EngineConfig& engineConfig() { return engine_config_; }
+  void setEngineConfig(const std::string& directive, const std::string& value);
+  void addRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
+               std::string&& operator_value,
+               std::unordered_map<std::string, std::string>&& actions);
+  void removeRuleById(uint64_t id);
+  void removeRuleByMsg(const std::string& msg);
+  void removeRuleByTag(const std::string& tag);
+
+public:
   const EngineConfig& engineConfig() const { return engine_config_; }
-  std::list<std::unique_ptr<Rule>>& rules() { return rules_; }
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
-
-public:
-  static const std::unordered_map<
-      std::string,
-      std::function<std::unique_ptr<Variable::VariableBase>(std::string&&, bool, bool)>>&
-  getVariableFactory() {
-    return variable_factory_;
-  }
-
-  static const std::unordered_map<
-      std::string,
-      std::function<std::unique_ptr<Operator::OperatorBase>(std::string&&, std::string&&)>>
-  getOperatorFactory() {
-    return operator_factory_;
-  }
-
-  static const std::unordered_map<std::string, std::function<void(Rule&, std::string&&)>>
-  getActionFactory() {
-    return action_factory_;
-  }
 
 private:
   EngineConfig engine_config_;
   std::list<std::unique_ptr<Rule>> rules_;
+  std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;
+  std::unordered_map<std::string_view, std::list<std::unique_ptr<Rule>>::iterator> rules_index_msg_;
+  std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
+      rules_index_tag_;
 
 private:
+  static std::unordered_map<std::string, std::function<void(Parser&, const std::string&)>>
+      engine_config_factory_;
   static std::unordered_map<std::string, std::function<std::unique_ptr<Variable::VariableBase>(
                                              std::string&&, bool, bool)>>
       variable_factory_;
   static std::unordered_map<std::string, std::function<std::unique_ptr<Operator::OperatorBase>(
                                              std::string&&, std::string&&)>>
       operator_factory_;
-  static std::unordered_map<std::string, std::function<void(Rule&, std::string&&)>> action_factory_;
+  static std::unordered_map<std::string, std::function<void(Parser&, Rule&, std::string&&)>>
+      action_factory_;
 };
 } // namespace SrSecurity::Antlr4
