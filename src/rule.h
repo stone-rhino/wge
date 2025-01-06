@@ -36,10 +36,6 @@ public:
   enum class Disruptive { ALLOW, BLOCK, DENY, PASS, REDIRECT };
 
 public:
-  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
-  void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
-
-public:
   const std::string& accuracy() const { return accuracy_; }
   uint64_t id() const { return id_; }
   const std::string& maturity() const { return maturity_; }
@@ -50,11 +46,16 @@ public:
   const std::unordered_set<std::string>& tags() const { return tags_; }
 
 private:
+  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
+  void removeVariable(const std::string& full_name);
+  void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
+
+private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_pool_;
   std::unique_ptr<Operator::OperatorBase> operator_;
 
   // Build the map to quick find
-  std::unordered_map<std::string, Variable::VariableBase&> variables_map_;
+  std::unordered_map<std::string, Variable::VariableBase&> variables_index_;
 
   // Action Group: Meta-data
 private:

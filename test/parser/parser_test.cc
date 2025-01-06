@@ -15,8 +15,8 @@ public:
   }
 
   const std::unordered_map<std::string, Variable::VariableBase&>&
-  getRuleVariableMap(Rule& rule) const {
-    return rule.variables_map_;
+  getRuleVariableIndex(Rule& rule) const {
+    return rule.variables_index_;
   }
 
   const std::unique_ptr<Operator::OperatorBase>& getRuleOperator(Rule& rule) {
@@ -216,7 +216,7 @@ TEST_F(ParserTest, EngineConfig) {
 
 TEST_F(ParserTest, RuleDirective) {
   const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo "bar" "id:1,tag:foo,msg:bar")";
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:1,tag:foo,msg:bar")";
   Antlr4::Parser parser;
   std::string error = parser.load(rule_directive);
   ASSERT_TRUE(error.empty());
@@ -224,24 +224,41 @@ TEST_F(ParserTest, RuleDirective) {
   // variables pool
   EXPECT_EQ(parser.rules().size(), 1);
   auto& rule_var_pool = getRuleVariablePool(*parser.rules().back());
-  ASSERT_EQ(rule_var_pool.size(), 2);
+  ASSERT_EQ(rule_var_pool.size(), 4);
   EXPECT_EQ(rule_var_pool[0]->fullName(), "ARGS_GET");
   EXPECT_EQ(rule_var_pool[0]->mainName(), "ARGS_GET");
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
+  EXPECT_FALSE(rule_var_pool[0]->isCounter());
+  EXPECT_FALSE(rule_var_pool[0]->isNot());
+
   EXPECT_EQ(rule_var_pool[1]->fullName(), "ARGS_POST:foo");
   EXPECT_EQ(rule_var_pool[1]->mainName(), "ARGS_POST");
   EXPECT_EQ(rule_var_pool[1]->subName(), "foo");
+  EXPECT_FALSE(rule_var_pool[1]->isCounter());
+  EXPECT_FALSE(rule_var_pool[1]->isNot());
+
+  EXPECT_EQ(rule_var_pool[2]->fullName(), "ARGS_GET:foo");
+  EXPECT_EQ(rule_var_pool[2]->mainName(), "ARGS_GET");
+  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
+  EXPECT_FALSE(rule_var_pool[2]->isCounter());
+  EXPECT_TRUE(rule_var_pool[2]->isNot());
+
+  EXPECT_EQ(rule_var_pool[3]->fullName(), "ARGS");
+  EXPECT_EQ(rule_var_pool[3]->mainName(), "ARGS");
+  EXPECT_EQ(rule_var_pool[3]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[3]->isCounter());
+  EXPECT_FALSE(rule_var_pool[3]->isNot());
 
   // variables map
-  auto& rule_var_map = getRuleVariableMap(*parser.rules().back());
+  auto& rule_var_index = getRuleVariableIndex(*parser.rules().back());
   {
-    auto iter = rule_var_map.find("ARGS_GET");
-    ASSERT_TRUE(iter != rule_var_map.end());
+    auto iter = rule_var_index.find("ARGS_GET");
+    ASSERT_TRUE(iter != rule_var_index.end());
     EXPECT_EQ(&iter->second, rule_var_pool[0].get());
   }
   {
-    auto iter = rule_var_map.find("ARGS_POST:foo");
-    ASSERT_TRUE(iter != rule_var_map.end());
+    auto iter = rule_var_index.find("ARGS_POST:foo");
+    ASSERT_TRUE(iter != rule_var_index.end());
     EXPECT_EQ(&iter->second, rule_var_pool[1].get());
   }
 
@@ -403,7 +420,7 @@ TEST_F(ParserTest, RuleRemoveByTag) {
   }
 }
 
-TEST_F(ParserTest, RuleUpdateById) {
+TEST_F(ParserTest, RuleUpdateActionById) {
   const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:tag1,msg:msg1")";
 
   Antlr4::Parser parser;
@@ -431,6 +448,37 @@ TEST_F(ParserTest, RuleUpdateById) {
     EXPECT_EQ(tags.find("tag1"), tags.end());
     EXPECT_NE(tags.find("tag2"), tags.end());
     EXPECT_NE(tags.find("tag3"), tags.end());
+  }
+}
+
+TEST_F(ParserTest, RuleUpdateTargetById) {
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:tag1,msg:msg1")";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+  auto& variable_index = getRuleVariableIndex(*parser.rules().back());
+  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
+  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetById 1 ARGS:ccc)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+  }
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetById 1 !ARGS:aaa|!ARGS:bbb)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
+    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
   }
 }
 } // namespace SrSecurity

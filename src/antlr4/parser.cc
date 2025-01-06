@@ -210,4 +210,27 @@ void Parser::secRuleUpdateActionById(uint64_t id,
   }
 }
 
+void Parser::secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs) {
+  auto iter = rules_index_id_.find(id);
+  if (iter != rules_index_id_.end()) {
+    auto& rule = *iter->second;
+
+    // Append variable
+    for (auto& attr : variable_attrs) {
+      auto iter = variable_factory_.find(attr.main_name_);
+      if (iter != variable_factory_.end()) {
+        rule->removeVariable(attr.full_name_);
+        rule->appendVariable(
+            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+      }
+    }
+  }
+}
+
+void Parser::secRuleUpdateTargetByMsg(const std::string& msg,
+                                      std::vector<VariableAttr>&& variable_attrs) {}
+
+void Parser::secRuleUpdateTargetByTag(const std::string& msg,
+                                      std::vector<VariableAttr>&& variable_attrs) {}
+
 } // namespace SrSecurity::Antlr4

@@ -53,8 +53,11 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
   std::vector<Parser::VariableAttr> variable_attrs;
   for (auto var : variables) {
     Parser::VariableAttr attr;
-    attr.full_name_ = var->getText();
-    attr.main_name_ = var->var_main_name()->getText();
+    attr.full_name_ = var->VAR_MAIN_NAME()->getText();
+    if (var->STRING()) {
+      attr.full_name_ += ":" + var->STRING()->getText();
+    }
+    attr.main_name_ = var->VAR_MAIN_NAME()->getText();
     attr.is_not_ = var->NOT() != nullptr;
     attr.is_counter_ = var->VAR_COUNT() != nullptr;
     variable_attrs.emplace_back(std::move(attr));
@@ -63,15 +66,15 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
   // Operator name is default to rx
   auto op = ctx->operator_();
   std::string operator_name = "rx";
-  if (op->operator_name()) {
-    operator_name = op->operator_name()->getText();
+  if (op->OPERATOR_NAME()) {
+    operator_name = op->OPERATOR_NAME()->getText();
   }
 
   // Actions
   auto actions = ctx->action();
   std::unordered_multimap<std::string, std::string> action_map;
   for (auto action : actions) {
-    action_map.insert({action->action_name()->getText(), action->action_value()->getText()});
+    action_map.insert({action->ACTION_NAME()->getText(), action->action_value()->getText()});
   }
 
   parser_->secRule(std::move(variable_attrs), std::move(operator_name),
@@ -125,7 +128,7 @@ std::any Visitor::visitSec_rule_update_action_by_id(
   auto actions = ctx->action();
   std::unordered_multimap<std::string, std::string> action_map;
   for (auto action : actions) {
-    action_map.insert({action->action_name()->getText(), action->action_value()->getText()});
+    action_map.insert({action->ACTION_NAME()->getText(), action->action_value()->getText()});
   }
 
   parser_->secRuleUpdateActionById(id, std::move(action_map));
@@ -134,6 +137,24 @@ std::any Visitor::visitSec_rule_update_action_by_id(
 
 std::any Visitor::visitSec_rule_update_target_by_id(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_idContext* ctx) {
+  uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+
+  // Variables
+  auto variables = ctx->variables()->variable();
+  std::vector<Parser::VariableAttr> variable_attrs;
+  for (auto var : variables) {
+    Parser::VariableAttr attr;
+    attr.full_name_ = var->VAR_MAIN_NAME()->getText();
+    if (var->STRING()) {
+      attr.full_name_ += ":" + var->STRING()->getText();
+    }
+    attr.main_name_ = var->VAR_MAIN_NAME()->getText();
+    attr.is_not_ = var->NOT() != nullptr;
+    attr.is_counter_ = var->VAR_COUNT() != nullptr;
+    variable_attrs.emplace_back(std::move(attr));
+  }
+
+  parser_->secRuleUpdateTargetById(id, std::move(variable_attrs));
   return "";
 }
 
