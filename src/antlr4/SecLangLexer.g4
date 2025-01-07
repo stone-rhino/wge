@@ -40,7 +40,8 @@ SecAuditLogRelevantStatus:
 SecAuditLogStorageDir:
 	'SecAuditLogStorageDir' -> pushMode(ModeAuditLog);
 SecAuditLogType: 'SecAuditLogType' -> pushMode(ModeAuditLog);
-SecComponentSignature: 'SecComponentSignature';
+SecComponentSignature:
+	'SecComponentSignature' -> pushMode(ModeAuditLog);
 SecDebugLog: 'SecDebugLog';
 SecDebugLogLevel: 'SecDebugLogLevel';
 SecDefaultAction: 'SecDefaultAction';
@@ -173,39 +174,46 @@ VAR_MAIN_NAME:
 	| 'WEBAPPID';
 
 mode ModeInclude;
-ModeInclude_WS: ' ' -> skip;
+ModeInclude_WS: WS -> skip;
 ModeInclude_QUOTE: '"' -> type(QUOTE);
-IncludeFilePath:
+ModeInclude_FilePath:
 	[a-zA-Z0-9/._~|\\:-]+ -> type(STRING), popMode;
 
 mode ModeAuditLog;
-AUDIT_ENGINE: ('On' | 'Off' | 'RelevantOnly');
-AUDIT_FORMAT: ('Json' | 'Native');
-AUDIT_PARTS: [ABCDEFGHIJKZ]+;
-AUDIT_TYPE: ('Serial' | 'Concurrent' | 'HTTPS ');
+ModeAuditLog_WS: WS -> skip;
+ModeAuditLog_QUOTE: QUOTE -> type(QUOTE);
+AUDIT_ENGINE: ('On' | 'Off' | 'RelevantOnly') -> popMode;
+AUDIT_FORMAT: ('JSON' | 'Native') -> popMode;
+AUDIT_PARTS: [ABCDEFGHIJKZ]+ -> popMode;
+AUDIT_TYPE: ('Serial' | 'Concurrent' | 'HTTPS') -> popMode;
+OCTAL: '0' [0-9]+ -> popMode;
+ModeAuditLog_STRING: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
 
 mode ModeRuleEngine;
-ModeEngineConfig_WS: ' ' -> skip;
+ModeEngineConfig_WS: WS -> skip;
 ModeRuleEngine_OPTION: ('On' | 'Off' | 'DetectionOnly') -> type(OPTION), popMode;
 
 mode ModeRuleRemoveByMsg;
-ModeRuleRemoveByMsg_WS: ' ' -> skip;
+ModeRuleRemoveByMsg_WS: WS -> skip;
 ModeRuleRemoveByMsg_QUOTE: '"' -> type(QUOTE);
 ModeRuleRemoveByMsg_STRING:
-	('\\"' | ~["])+ -> type(STRING), popMode;
+	(('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
 
 mode ModeRuleRemoveByTag;
-ModeRuleRemoveByTag_WS: ' ' -> skip;
+ModeRuleRemoveByTag_WS: WS -> skip;
 ModeRuleRemoveByTag_QUOTE: '"' -> type(QUOTE);
-ModeRuleRemoveByTag_STRING: ('\\"' | ~["])+ -> type(STRING), popMode;
+ModeRuleRemoveByTag_STRING: (('\\"') | ~([" ])) (
+		('\\"')
+		| ~('"')
+	)* -> type(STRING), popMode;
 
 mode ModeRuleUpdateActionById;
-ModeRuleUpdateActionById_WS: ' ' -> skip;
+ModeRuleUpdateActionById_WS: WS -> skip;
 ModeRuleUpdateActionById_INT:
 	[0-9]+ -> type(INT), pushMode(ModeSecRuleAction);
 
 mode ModeRuleUpdateTarget;
-ModeRuleUpdateTarget_WS: ' ' -> skip;
+ModeRuleUpdateTarget_WS: WS -> skip;
 ModeRuleUpdateTarget_QUOTE: '"' -> type(QUOTE);
 ModeRuleUpdateTarget_PIPE: '|' -> type(PIPE);
 ModeRuleUpdateTarget_COLON: ':' -> type(COLON);
@@ -218,12 +226,12 @@ ModeRuleUpdateTargetById_VAR_SUB_NAME:
 	~[ :!&|",\n]+ -> type(STRING);
 
 mode ModeRuleUpdateTargetByMsg;
-ModeRuleUpdateTargetByMsg_WS: ' ' -> skip;
+ModeRuleUpdateTargetByMsg_WS: WS -> skip;
 ModeRuleUpdateTargetByMsg_QUOTE:
 	'"' -> type(QUOTE), pushMode(ModeSecRuleVariable);
 
 mode ModeRuleUpdateTargetByTag;
-ModeRuleUpdateTargetByTag_WS: ' ' -> skip;
+ModeRuleUpdateTargetByTag_WS: WS -> skip;
 ModeRuleUpdateTargetByTag_QUOTE:
 	'"' -> type(QUOTE), pushMode(ModeSecRuleVariable);
 
@@ -286,10 +294,12 @@ OPERATOR_NAME:
 	| 'within';
 ModeSecRuleOperator_WS:
 	[ \t]+ -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
-OPERATOR_VALUE: ('\\"' | ~["])+ -> type(STRING), popMode, pushMode(ModeSecRuleAction);
+OPERATOR_VALUE: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode, pushMode(
+		ModeSecRuleAction);
 
 mode ModeSecRuleOperatorValue;
-OPERATOR_VALUE2: ('\\"' | ~["])+ -> type(STRING), popMode, pushMode(ModeSecRuleAction);
+OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode, pushMode(
+		ModeSecRuleAction);
 
 mode ModeSecRuleAction;
 ModeSecRuleAction_WS: [ \t]+ -> skip;

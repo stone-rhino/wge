@@ -264,41 +264,80 @@ void Parser::secRuleUpdateTargetByTag(const std::string& tag,
 }
 
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  audit_log_config_.audit_engine_ = option;
 }
 
-void Parser::secAuditLog(std::string&& path) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
-}
+void Parser::secAuditLog(std::string&& path) { audit_log_config_.log_path_ = std::move(path); }
 
-void Parser::secAuditLog2(std::string&& path) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
-}
+void Parser::secAuditLog2(std::string&& path) { audit_log_config_.log_path2_ = std::move(path); }
 
-void Parser::secAuditLogDirMode(int mode) { throw std::format("{} not implemeted!", __FUNCTION__); }
+void Parser::secAuditLogDirMode(int mode) { audit_log_config_.dir_mode_ = mode; }
 
 void Parser::secAuditLogFormat(AuditLogConfig::AuditFormat format) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  audit_log_config_.format_ = format;
 }
 
-void Parser::secAuditLogFileMode(int mode) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
-}
+void Parser::secAuditLogFileMode(int mode) { audit_log_config_.file_mode_ = mode; }
 
 void Parser::secAuditLogParts(const std::string& parts) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  for (auto ch : parts) {
+    switch (ch) {
+    case 'A':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::A)] = true;
+      break;
+    case 'B':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::B)] = true;
+      break;
+    case 'C':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::C)] = true;
+      break;
+    case 'D':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::D)] = true;
+      break;
+    case 'E':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::E)] = true;
+      break;
+    case 'F':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::F)] = true;
+      break;
+    case 'G':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::G)] = true;
+      break;
+    case 'H':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::H)] = true;
+      break;
+    case 'I':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::I)] = true;
+      break;
+    case 'J':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::J)] = true;
+      break;
+    case 'K':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::K)] = true;
+      break;
+    case 'Z':
+      audit_log_config_.log_parts_[static_cast<int>(AuditLogConfig::AuditLogPart::Z)] = true;
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 void Parser::secAuditLogRelevantStatus(std::string&& pattern) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  audit_log_config_.relevant_status_regex_ = std::move(pattern);
 }
 
 void Parser::secAuditLogStorageDir(std::string&& dir) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  audit_log_config_.storage_dir_ = std::move(dir);
 }
 
 void Parser::secAuditLogType(AuditLogConfig::AuditLogType type) {
-  throw std::format("{} not implemeted!", __FUNCTION__);
+  audit_log_config_.audit_log_type_ = type;
+}
+
+void Parser::secComponentSignature(std::string&& signature) {
+  audit_log_config_.component_signature_ = std::move(signature);
 }
 
 } // namespace SrSecurity::Antlr4
