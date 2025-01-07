@@ -11,6 +11,8 @@ public:
 public:
   std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
 
+  // Engine configurations
+public:
   std::any visitSec_reqeust_body_access(
       Antlr4Gen::SecLangParser::Sec_reqeust_body_accessContext* ctx) override;
 
@@ -28,6 +30,8 @@ public:
   std::any visitSec_xml_external_entity(
       Antlr4Gen::SecLangParser::Sec_xml_external_entityContext* ctx) override;
 
+  // Rule directives
+public:
   std::any visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) override;
 
   std::any
@@ -50,6 +54,26 @@ public:
 
   std::any visitSec_rule_update_target_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
+
+  // Audit log configurations
+public:
+  std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;
+  std::any visitSec_audit_log(Antlr4Gen::SecLangParser::Sec_audit_logContext* ctx) override;
+  std::any visitSec_audit_log2(Antlr4Gen::SecLangParser::Sec_audit_log2Context* ctx) override;
+  std::any visitSec_audit_log_dir_mode(
+      Antlr4Gen::SecLangParser::Sec_audit_log_dir_modeContext* ctx) override;
+  std::any
+  visitSec_audit_log_format(Antlr4Gen::SecLangParser::Sec_audit_log_formatContext* ctx) override;
+  std::any visitSec_audit_log_file_mode(
+      Antlr4Gen::SecLangParser::Sec_audit_log_file_modeContext* ctx) override;
+  std::any
+  visitSec_audit_log_parts(Antlr4Gen::SecLangParser::Sec_audit_log_partsContext* ctx) override;
+  std::any visitSec_audit_log_relevant_status(
+      Antlr4Gen::SecLangParser::Sec_audit_log_relevant_statusContext* ctx) override;
+  std::any visitSec_audit_log_storage_dir(
+      Antlr4Gen::SecLangParser::Sec_audit_log_storage_dirContext* ctx) override;
+  std::any
+  visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) override;
 
 private:
   static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);

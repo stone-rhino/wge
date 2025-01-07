@@ -147,6 +147,53 @@ std::any Visitor::visitSec_rule_update_target_by_tag(
   return "";
 }
 
+std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any Visitor::visitSec_audit_log(Antlr4Gen::SecLangParser::Sec_audit_logContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any Visitor::visitSec_audit_log2(Antlr4Gen::SecLangParser::Sec_audit_log2Context* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any
+Visitor::visitSec_audit_log_dir_mode(Antlr4Gen::SecLangParser::Sec_audit_log_dir_modeContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any
+Visitor::visitSec_audit_log_format(Antlr4Gen::SecLangParser::Sec_audit_log_formatContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any Visitor::visitSec_audit_log_file_mode(
+    Antlr4Gen::SecLangParser::Sec_audit_log_file_modeContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any
+Visitor::visitSec_audit_log_parts(Antlr4Gen::SecLangParser::Sec_audit_log_partsContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any Visitor::visitSec_audit_log_relevant_status(
+    Antlr4Gen::SecLangParser::Sec_audit_log_relevant_statusContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any Visitor::visitSec_audit_log_storage_dir(
+    Antlr4Gen::SecLangParser::Sec_audit_log_storage_dirContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
+std::any
+Visitor::visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) {
+  return std::format("{} not implemented!", __FUNCTION__);
+}
+
 Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {
   Parser::EngineConfig::Option option = Parser::EngineConfig::Option::Off;
   if (option_str == "On") {
@@ -156,5 +203,4 @@ Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& opt
   }
   return option;
 }
-
 } // namespace SrSecurity::Antlr4

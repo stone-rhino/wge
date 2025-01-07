@@ -25,16 +25,21 @@ Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction';
 SecArgumentSeparator: 'SecArgumentSeparator';
 SecArgumentsLimit: 'SecArgumentsLimit';
-SecAuditEngine: 'SecAuditEngine';
-SecAuditLog: 'SecAuditLog';
-SecAuditLog2: 'SecAuditLog2';
-SecAuditLogDirMode: 'SecAuditLogDirMode';
-SecAuditLogFormat: 'SecAuditLogFormat';
-SecAuditLogFileMode: 'SecAuditLogFileMode';
-SecAuditLogParts: 'SecAuditLogParts';
-SecAuditLogRelevantStatus: 'SecAuditLogRelevantStatus';
-SecAuditLogStorageDir: 'SecAuditLogStorageDir';
-SecAuditLogType: 'SecAuditLogType';
+SecAuditEngine: 'SecAuditEngine' -> pushMode(ModeAuditLog);
+SecAuditLog: 'SecAuditLog' -> pushMode(ModeAuditLog);
+SecAuditLog2: 'SecAuditLog2' -> pushMode(ModeAuditLog);
+SecAuditLogDirMode:
+	'SecAuditLogDirMode' -> pushMode(ModeAuditLog);
+SecAuditLogFormat:
+	'SecAuditLogFormat' -> pushMode(ModeAuditLog);
+SecAuditLogFileMode:
+	'SecAuditLogFileMode' -> pushMode(ModeAuditLog);
+SecAuditLogParts: 'SecAuditLogParts' -> pushMode(ModeAuditLog);
+SecAuditLogRelevantStatus:
+	'SecAuditLogRelevantStatus' -> pushMode(ModeAuditLog);
+SecAuditLogStorageDir:
+	'SecAuditLogStorageDir' -> pushMode(ModeAuditLog);
+SecAuditLogType: 'SecAuditLogType' -> pushMode(ModeAuditLog);
 SecComponentSignature: 'SecComponentSignature';
 SecDebugLog: 'SecDebugLog';
 SecDebugLogLevel: 'SecDebugLogLevel';
@@ -172,6 +177,12 @@ ModeInclude_WS: ' ' -> skip;
 ModeInclude_QUOTE: '"' -> type(QUOTE);
 IncludeFilePath:
 	[a-zA-Z0-9/._~|\\:-]+ -> type(STRING), popMode;
+
+mode ModeAuditLog;
+AUDIT_ENGINE: ('On' | 'Off' | 'RelevantOnly');
+AUDIT_FORMAT: ('Json' | 'Native');
+AUDIT_PARTS: [ABCDEFGHIJKZ]+;
+AUDIT_TYPE: ('Serial' | 'Concurrent' | 'HTTPS ');
 
 mode ModeRuleEngine;
 ModeEngineConfig_WS: ' ' -> skip;

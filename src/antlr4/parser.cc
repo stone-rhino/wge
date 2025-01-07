@@ -263,4 +263,42 @@ void Parser::secRuleUpdateTargetByTag(const std::string& tag,
   }
 }
 
+void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLog(std::string&& path) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLog2(std::string&& path) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogDirMode(int mode) { throw std::format("{} not implemeted!", __FUNCTION__); }
+
+void Parser::secAuditLogFormat(AuditLogConfig::AuditFormat format) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogFileMode(int mode) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogParts(const std::string& parts) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogRelevantStatus(std::string&& pattern) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogStorageDir(std::string&& dir) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
+void Parser::secAuditLogType(AuditLogConfig::AuditLogType type) {
+  throw std::format("{} not implemeted!", __FUNCTION__);
+}
+
 } // namespace SrSecurity::Antlr4
