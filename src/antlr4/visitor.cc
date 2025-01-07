@@ -49,19 +49,7 @@ std::any Visitor::visitSec_xml_external_entity(
 
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
   // Variables
-  auto variables = ctx->variables()->variable();
-  std::vector<Parser::VariableAttr> variable_attrs;
-  for (auto var : variables) {
-    Parser::VariableAttr attr;
-    attr.full_name_ = var->VAR_MAIN_NAME()->getText();
-    if (var->STRING()) {
-      attr.full_name_ += ":" + var->STRING()->getText();
-    }
-    attr.main_name_ = var->VAR_MAIN_NAME()->getText();
-    attr.is_not_ = var->NOT() != nullptr;
-    attr.is_counter_ = var->VAR_COUNT() != nullptr;
-    variable_attrs.emplace_back(std::move(attr));
-  }
+  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
 
   // Operator name is default to rx
   auto op = ctx->operator_();
@@ -138,33 +126,24 @@ std::any Visitor::visitSec_rule_update_action_by_id(
 std::any Visitor::visitSec_rule_update_target_by_id(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_idContext* ctx) {
   uint64_t id = ::atoll(ctx->INT()->getText().c_str());
-
-  // Variables
-  auto variables = ctx->variables()->variable();
-  std::vector<Parser::VariableAttr> variable_attrs;
-  for (auto var : variables) {
-    Parser::VariableAttr attr;
-    attr.full_name_ = var->VAR_MAIN_NAME()->getText();
-    if (var->STRING()) {
-      attr.full_name_ += ":" + var->STRING()->getText();
-    }
-    attr.main_name_ = var->VAR_MAIN_NAME()->getText();
-    attr.is_not_ = var->NOT() != nullptr;
-    attr.is_counter_ = var->VAR_COUNT() != nullptr;
-    variable_attrs.emplace_back(std::move(attr));
-  }
-
+  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
   parser_->secRuleUpdateTargetById(id, std::move(variable_attrs));
   return "";
 }
 
 std::any Visitor::visitSec_rule_update_target_by_msg(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
+  std::string msg = ctx->STRING()->getText();
+  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
+  parser_->secRuleUpdateTargetByMsg(msg, std::move(variable_attrs));
   return "";
 }
 
 std::any Visitor::visitSec_rule_update_target_by_tag(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
+  std::string tag = ctx->STRING()->getText();
+  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
+  parser_->secRuleUpdateTargetByTag(tag, std::move(variable_attrs));
   return "";
 }
 

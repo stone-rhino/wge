@@ -54,8 +54,8 @@ private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_pool_;
   std::unique_ptr<Operator::OperatorBase> operator_;
 
-  // Build the map to quick find
-  std::unordered_map<std::string, Variable::VariableBase&> variables_index_;
+  // Build the index to quick find
+  std::unordered_map<std::string_view, Variable::VariableBase&> variables_index_by_full_name_;
 
   // Action Group: Meta-data
 private:

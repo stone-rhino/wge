@@ -20,8 +20,8 @@
 #include "../variable/args_get.h"
 #include "../variable/args_post.h"
 
-// I don't know why vscode intelli sense was too slow if lay out the contents of this file here, so
-// put them into the file.
+// I don't know why vscode intelli sense was too slowly when wrote the code at here, so put them
+// into the file.
 #include "parser.inl"
 
 namespace SrSecurity::Antlr4 {
@@ -228,9 +228,39 @@ void Parser::secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& va
 }
 
 void Parser::secRuleUpdateTargetByMsg(const std::string& msg,
-                                      std::vector<VariableAttr>&& variable_attrs) {}
+                                      std::vector<VariableAttr>&& variable_attrs) {
+  auto range = rules_index_msg_.equal_range(msg);
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    auto& rule = *iter->second;
 
-void Parser::secRuleUpdateTargetByTag(const std::string& msg,
-                                      std::vector<VariableAttr>&& variable_attrs) {}
+    // Append variable
+    for (auto& attr : variable_attrs) {
+      auto iter = variable_factory_.find(attr.main_name_);
+      if (iter != variable_factory_.end()) {
+        rule->removeVariable(attr.full_name_);
+        rule->appendVariable(
+            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+      }
+    }
+  }
+}
+
+void Parser::secRuleUpdateTargetByTag(const std::string& tag,
+                                      std::vector<VariableAttr>&& variable_attrs) {
+  auto range = rules_index_tag_.equal_range(tag);
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    auto& rule = *iter->second;
+
+    // Append variable
+    for (auto& attr : variable_attrs) {
+      auto iter = variable_factory_.find(attr.main_name_);
+      if (iter != variable_factory_.end()) {
+        rule->removeVariable(attr.full_name_);
+        rule->appendVariable(
+            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+      }
+    }
+  }
+}
 
 } // namespace SrSecurity::Antlr4

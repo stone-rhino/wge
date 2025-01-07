@@ -14,9 +14,9 @@ public:
     return rule.variables_pool_;
   }
 
-  const std::unordered_map<std::string, Variable::VariableBase&>&
+  const std::unordered_map<std::string_view, Variable::VariableBase&>&
   getRuleVariableIndex(Rule& rule) const {
-    return rule.variables_index_;
+    return rule.variables_index_by_full_name_;
   }
 
   const std::unique_ptr<Operator::OperatorBase>& getRuleOperator(Rule& rule) {
@@ -472,6 +472,68 @@ TEST_F(ParserTest, RuleUpdateTargetById) {
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetById 1 !ARGS:aaa|!ARGS:bbb)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
+    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
+  }
+}
+
+TEST_F(ParserTest, RuleUpdateTargetByMsg) {
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:tag1,msg:msg1")";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+  auto& variable_index = getRuleVariableIndex(*parser.rules().back());
+  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
+  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" ARGS:ccc)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+  }
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" !ARGS:aaa|!ARGS:bbb)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
+    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
+  }
+}
+
+TEST_F(ParserTest, RuleUpdateTargetByTag) {
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:tag1,msg:msg1")";
+
+  Antlr4::Parser parser;
+  std::string error = parser.load(rule_directive);
+  ASSERT_TRUE(error.empty());
+  auto& variable_index = getRuleVariableIndex(*parser.rules().back());
+  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
+  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
+  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
+  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" ARGS:ccc)";
+    error = parser.load(rule_update);
+    ASSERT_TRUE(error.empty());
+    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+  }
+
+  {
+    const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" !ARGS:aaa|!ARGS:bbb)";
     error = parser.load(rule_update);
     ASSERT_TRUE(error.empty());
     EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());

@@ -53,6 +53,22 @@ public:
 
 private:
   static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
+  template <class T> std::vector<Parser::VariableAttr> getVariableAttr(T* ctx) {
+    auto variables = ctx->variables()->variable();
+    std::vector<Parser::VariableAttr> variable_attrs;
+    for (auto var : variables) {
+      Parser::VariableAttr attr;
+      attr.full_name_ = var->VAR_MAIN_NAME()->getText();
+      if (var->STRING()) {
+        attr.full_name_ += ":" + var->STRING()->getText();
+      }
+      attr.main_name_ = var->VAR_MAIN_NAME()->getText();
+      attr.is_not_ = var->NOT() != nullptr;
+      attr.is_counter_ = var->VAR_COUNT() != nullptr;
+      variable_attrs.emplace_back(std::move(attr));
+    }
+    return variable_attrs;
+  }
 
 private:
   Parser* parser_;

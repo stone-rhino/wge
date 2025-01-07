@@ -67,8 +67,10 @@ SecRuleUpdateActionById:
 	'SecRuleUpdateActionById' -> pushMode(ModeRuleUpdateActionById);
 SecRuleUpdateTargetById:
 	'SecRuleUpdateTargetById' -> pushMode(ModeRuleUpdateTarget);
-SecRuleUpdateTargetByMsg: 'SecRuleUpdateTargetByMsg';
-SecRuleUpdateTargetByTag: 'SecRuleUpdateTargetByTag';
+SecRuleUpdateTargetByMsg:
+	'SecRuleUpdateTargetByMsg' -> pushMode(ModeRuleUpdateTarget);
+SecRuleUpdateTargetByTag:
+	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTarget);
 SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
 SecTmpDir: 'SecTmpDir';
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
@@ -193,6 +195,7 @@ ModeRuleUpdateActionById_INT:
 
 mode ModeRuleUpdateTarget;
 ModeRuleUpdateTarget_WS: ' ' -> skip;
+ModeRuleUpdateTarget_QUOTE: '"' -> type(QUOTE);
 ModeRuleUpdateTarget_PIPE: '|' -> type(PIPE);
 ModeRuleUpdateTarget_COLON: ':' -> type(COLON);
 ModeRuleUpdateTarget_VAR_COUNT: '&' -> type(VAR_COUNT);
