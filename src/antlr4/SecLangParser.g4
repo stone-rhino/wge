@@ -84,15 +84,20 @@ audit_log_config:
 	| sec_audit_log_parts
 	| sec_audit_log_relevant_status
 	| sec_audit_log_storage_dir
-	| sec_audit_log_type;
+	| sec_audit_log_type
+	| sec_component_signature;
 
 sec_audit_engine: SecAuditEngine AUDIT_ENGINE;
-sec_audit_log: SecAuditLog STRING;
-sec_audit_log2: SecAuditLog2 STRING;
-sec_audit_log_dir_mode: SecAuditLogDirMode INT;
+sec_audit_log: SecAuditLog ((QUOTE STRING QUOTE) | STRING);
+sec_audit_log2: SecAuditLog2 ((QUOTE STRING QUOTE) | STRING);
+sec_audit_log_dir_mode: SecAuditLogDirMode OCTAL;
 sec_audit_log_format: SecAuditLogFormat AUDIT_FORMAT;
-sec_audit_log_file_mode: SecAuditLogFileMode INT;
+sec_audit_log_file_mode: SecAuditLogFileMode OCTAL;
 sec_audit_log_parts: SecAuditLogParts AUDIT_PARTS;
-sec_audit_log_relevant_status: SecAuditLogRelevantStatus STRING;
-sec_audit_log_storage_dir: SecAuditLogStorageDir STRING;
+sec_audit_log_relevant_status:
+	SecAuditLogRelevantStatus ((QUOTE STRING QUOTE) | STRING);
+sec_audit_log_storage_dir:
+	SecAuditLogStorageDir ((QUOTE STRING QUOTE) | STRING);
 sec_audit_log_type: SecAuditLogType AUDIT_TYPE;
+sec_component_signature:
+	SecComponentSignature ((QUOTE STRING QUOTE) | STRING);

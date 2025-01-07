@@ -148,50 +148,99 @@ std::any Visitor::visitSec_rule_update_target_by_tag(
 }
 
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  using Option = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditEngine;
+  Option option = Option::Off;
+
+  std::string option_str = ctx->AUDIT_ENGINE()->getText();
+  if (option_str == "On") {
+    option = Option::On;
+  } else if (option_str == "RelevantOnly") {
+    option = Option::RelevantOnly;
+  }
+  parser_->secAuditEngine(option);
+  return "";
 }
 
 std::any Visitor::visitSec_audit_log(Antlr4Gen::SecLangParser::Sec_audit_logContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  std::string path = ctx->STRING()->getText();
+  parser_->secAuditLog(std::move(path));
+  return "";
 }
 
 std::any Visitor::visitSec_audit_log2(Antlr4Gen::SecLangParser::Sec_audit_log2Context* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  std::string path = ctx->STRING()->getText();
+  parser_->secAuditLog2(std::move(path));
+  return "";
 }
 
 std::any
 Visitor::visitSec_audit_log_dir_mode(Antlr4Gen::SecLangParser::Sec_audit_log_dir_modeContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  int mode = ::strtol(ctx->OCTAL()->getText().c_str(), nullptr, 8);
+  parser_->secAuditLogDirMode(mode);
+  return "";
 }
 
 std::any
 Visitor::visitSec_audit_log_format(Antlr4Gen::SecLangParser::Sec_audit_log_formatContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  using Format = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditFormat;
+  Format format = Format::Native;
+
+  std::string format_str = ctx->AUDIT_FORMAT()->getText().c_str();
+  if (format_str == "JSON") {
+    format = Format::Json;
+  }
+  parser_->secAuditLogFormat(format);
+  return "";
 }
 
 std::any Visitor::visitSec_audit_log_file_mode(
     Antlr4Gen::SecLangParser::Sec_audit_log_file_modeContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  int mode = ::strtol(ctx->OCTAL()->getText().c_str(), nullptr, 8);
+  parser_->secAuditLogFileMode(mode);
+  return "";
 }
 
 std::any
 Visitor::visitSec_audit_log_parts(Antlr4Gen::SecLangParser::Sec_audit_log_partsContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  std::string parts = ctx->AUDIT_PARTS()->getText();
+  parser_->secAuditLogParts(parts);
+  return "";
 }
 
 std::any Visitor::visitSec_audit_log_relevant_status(
     Antlr4Gen::SecLangParser::Sec_audit_log_relevant_statusContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  std::string pattern = ctx->STRING()->getText();
+  parser_->secAuditLogRelevantStatus(std::move(pattern));
+  return "";
 }
 
 std::any Visitor::visitSec_audit_log_storage_dir(
     Antlr4Gen::SecLangParser::Sec_audit_log_storage_dirContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  std::string dir = ctx->STRING()->getText();
+  parser_->secAuditLogStorageDir(std::move(dir));
+  return "";
 }
 
 std::any
 Visitor::visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) {
-  return std::format("{} not implemented!", __FUNCTION__);
+  using Type = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditLogType;
+  Type type = Type::Serial;
+
+  std::string type_str = ctx->AUDIT_TYPE()->getText();
+  if (type_str == "Concurrent") {
+    type = Type::Concurrent;
+  } else if (type_str == "HTTPS") {
+    type = Type::Https;
+  }
+  parser_->secAuditLogType(type);
+  return "";
+}
+
+std::any Visitor::visitSec_component_signature(
+    Antlr4Gen::SecLangParser::Sec_component_signatureContext* ctx) {
+  std::string signature = ctx->STRING()->getText();
+  parser_->secComponentSignature(std::move(signature));
+  return "";
 }
 
 Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {

@@ -74,6 +74,8 @@ public:
       Antlr4Gen::SecLangParser::Sec_audit_log_storage_dirContext* ctx) override;
   std::any
   visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) override;
+  std::any visitSec_component_signature(
+      Antlr4Gen::SecLangParser::Sec_component_signatureContext* ctx) override;
 
 private:
   static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);

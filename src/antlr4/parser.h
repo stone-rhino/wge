@@ -151,6 +151,10 @@ public:
     // Configures which response status code is to be considered relevant for the purpose of audit
     // logging.
     std::string relevant_status_regex_;
+
+    // SecComponentSignature
+    // Appends component signature to the ModSecurity signature.
+    std::string component_signature_;
   };
 
   struct VariableAttr {
@@ -194,6 +198,7 @@ public:
   void secAuditLogRelevantStatus(std::string&& pattern);
   void secAuditLogStorageDir(std::string&& dir);
   void secAuditLogType(AuditLogConfig::AuditLogType type);
+  void secComponentSignature(std::string&& signature);
 
 public:
   const EngineConfig& engineConfig() const { return engine_config_; }
