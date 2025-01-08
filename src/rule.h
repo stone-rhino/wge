@@ -17,11 +17,15 @@ namespace Antlr4 {
 class Parser;
 }
 
+namespace Parser {
+class RuleTest;
+}
+
 /**
  * The rule class.
  */
 class Rule {
-  friend class ParserTest;
+  friend class Parser::RuleTest;
   friend class Antlr4::Parser;
 
 public:

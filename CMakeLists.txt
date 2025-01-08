@@ -5,4 +5,4 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
 
 add_subdirectory(src)
 add_subdirectory(test)
-add_dependencies(parser_test srsecurity)
+add_dependencies(test srsecurity)
