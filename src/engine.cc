@@ -7,7 +7,7 @@
 std::thread::id main_thread_id;
 
 namespace SrSecurity {
-Engine::Engine() : parser_(std::make_unique<Antlr4::Parser>()) {
+Engine::Engine() : parser_(std::make_shared<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
   main_thread_id = std::this_thread::get_id();
 }

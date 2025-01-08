@@ -7,9 +7,6 @@
 #include "antlr4_gen/SecLangParser.h"
 #include "visitor.h"
 
-#include "../action/id.h"
-#include "../action/msg.h"
-#include "../action/tag.h"
 #include "../common/likely.h"
 #include "../common/try.h"
 #include "../operator/begins_with.h"

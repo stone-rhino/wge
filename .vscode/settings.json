@@ -75,7 +75,8 @@
         "stop_token": "cpp",
         "complex": "cpp",
         "expected": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "regex": "cpp"
     },
     "cmake.debugConfig": {
         "cwd": "${workspaceFolder}",

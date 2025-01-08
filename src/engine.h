@@ -49,7 +49,7 @@ private:
   void initValidRules();
 
 private:
-  std::unique_ptr<Antlr4::Parser> parser_;
+  std::shared_ptr<Antlr4::Parser> parser_;
   std::vector<std::unique_ptr<Rule>> rules_pool_;
   constexpr static size_t phase_total_ = 5;
   std::array<std::vector<Rule*>, phase_total_> valid_rules_;
