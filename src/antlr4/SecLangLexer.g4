@@ -306,6 +306,7 @@ ModeSecRuleAction_WS: [ \t]+ -> skip;
 ModeSecRuleAction_QUOTE: '"' -> type(QUOTE);
 ModeSecRuleAction_COLON: ':' -> type(COLON);
 ModeSecRuleAction_COMMA: ',' -> type(COMMA);
+SINGLE_QUOTE: '\'';
 ModeSecRuleAction_EOF: ('\r'? ('\n' | EOF)) -> skip, popMode;
 ACTION_NAME:
 	'accuracy'

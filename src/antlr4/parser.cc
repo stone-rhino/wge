@@ -20,7 +20,7 @@
 #include "../variable/args_get.h"
 #include "../variable/args_post.h"
 
-// I don't know why vscode intelli sense was too slowly when wrote the code at here, so put them
+// I don't know why vscode intelli sense was too slowly when placed the code at here, so put them
 // into the file.
 #include "parser.inl"
 

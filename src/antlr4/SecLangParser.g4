@@ -53,7 +53,7 @@ operator_value: STRING;
 
 action: ACTION_NAME (COLON action_value)?;
 
-action_value: STRING;
+action_value: (SINGLE_QUOTE STRING SINGLE_QUOTE) | STRING;
 
 sec_rule_remove_by_id:
 	SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;

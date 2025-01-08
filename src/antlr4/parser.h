@@ -226,5 +226,6 @@ private:
       operator_factory_;
   static std::unordered_map<std::string, std::function<void(Parser&, Rule&, std::string&&)>>
       action_factory_;
+  static std::unordered_map<std::string, Rule::Severity> serverity_factory_;
 };
 } // namespace SrSecurity::Antlr4
