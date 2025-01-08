@@ -1,6 +1,7 @@
 #include "transaction.h"
 
 #include "common/likely.h"
+#include "common/try.h"
 
 namespace SrSecurity {
 Transaction::Transaction(const Engine& engin) : engin_(engin) {}
@@ -27,6 +28,34 @@ void Transaction::processResponseHeader(HeaderExtractor header_extractor, Result
 
 void Transaction::processResponseBody(BodyExtractor body_extractor, Result& result) {
   extractor_.response_body_extractor_ = std::move(body_extractor);
+}
+
+void Transaction::createVariable(std::string&& name, int value) {
+  auto iter = tx_.find(name);
+  if (iter == tx_.end()) {
+    tx_.emplace(std::move(name), value);
+  }
+}
+
+void Transaction::createVariable(std::string&& name, std::string&& value) {
+  auto iter = tx_.find(name);
+  if (iter == tx_.end()) {
+    tx_.emplace(std::move(name), value);
+  }
+}
+
+void Transaction::removeVariable(const std::string& name) { tx_.erase(name); }
+
+void Transaction::increaseVariable(const std::string& name, int value) {
+  auto iter = tx_.find(name);
+  if (iter != tx_.end()) {
+    try {
+      int v = std::any_cast<int>(iter->second);
+      v += value;
+      iter->second = v;
+    } catch (const std::bad_any_cast&) {
+    }
+  }
 }
 
 } // namespace SrSecurity

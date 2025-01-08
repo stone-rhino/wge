@@ -358,7 +358,7 @@ std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::s
         {"setrsc", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"setsid", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
         {"setenv", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"setvar", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
+        {"setvar", [](Parser& parser, Rule& rule, std::string&& value) { rule.set_var_ = std::make_unique<Action::SetVar>(std::move(value)); }},
         {"skip", [](Parser& parser, Rule& rule, std::string&& value) { rule.skip_ = ::atoi(value.c_str()); }},
         {"skipAfter", [](Parser& parser, Rule& rule, std::string&& value) { rule.skip_after_ = std::move(value); }},
         {"status", [](Parser& parser, Rule& rule, std::string&& value) { rule.status_ = std::move(value); }},

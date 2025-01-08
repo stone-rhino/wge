@@ -148,6 +148,7 @@ set(antlr4_obj
 )
 
 add_library(srsecurity 
+  $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
   ${antlr4_obj}
   ${local_source}

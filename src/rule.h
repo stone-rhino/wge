@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "action/action_base.h"
+#include "action/set_var.h"
 #include "http_extractor.h"
 #include "operator/operator_base.h"
 #include "variable/variable_base.h"
@@ -135,7 +135,8 @@ private:
   std::string set_rsc_;
   std::string set_sid_;
   std::string set_env_;
-  std::string set_var_;
+  // std::string set_var_;
+  std::unique_ptr<Action::SetVar> set_var_;
   std::unordered_set<std::string> t_;
 
   // Action Group: Flow

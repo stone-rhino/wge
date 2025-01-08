@@ -1,13 +1,15 @@
 #pragma once
 
+#include <any>
 #include <memory>
 #include <string_view>
+#include <unordered_map>
 
 #include "http_extractor.h"
 
 namespace SrSecurity {
 class Engine;
-class Transaction {
+class Transaction final {
   friend class Engine;
 
 protected:
@@ -29,9 +31,30 @@ public:
   void processResponseHeader(HeaderExtractor header_extractor, Result& result);
   void processResponseBody(BodyExtractor body_extractor, Result& result);
 
+public:
+  void createVariable(std::string&& name, int value = 1);
+  void createVariable(std::string&& name, std::string&& value);
+  void removeVariable(const std::string& name);
+  void increaseVariable(const std::string& name, int value = 1);
+  template <class T> const T& getVariable(const std::string& name, const T& default_value) const {
+    auto iter = tx_.find(name);
+    if (iter == tx_.end()) {
+      return default_value;
+    }
+
+    const T* value = nullptr;
+    try {
+      value = &(std::any_cast<const T&>(iter->second));
+    } catch (const std::bad_any_cast&) {
+    }
+
+    return value ? *value : default_value;
+  }
+
 private:
   HttpExtractor extractor_;
   const Engine& engin_;
+  std::unordered_map<std::string, std::any> tx_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
