@@ -33,7 +33,7 @@ void Transaction::processResponseBody(BodyExtractor body_extractor, Result& resu
 void Transaction::createVariable(std::string&& name, int value) {
   auto iter = tx_.find(name);
   if (iter == tx_.end()) {
-    tx_.emplace(std::move(name), value);
+    tx_.emplace(std::move(name), std::to_string(value));
   }
 }
 
@@ -49,13 +49,37 @@ void Transaction::removeVariable(const std::string& name) { tx_.erase(name); }
 void Transaction::increaseVariable(const std::string& name, int value) {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
-    try {
-      int v = std::any_cast<int>(iter->second);
-      v += value;
-      iter->second = v;
-    } catch (const std::bad_any_cast&) {
-    }
+    int v = ::atol(iter->second.c_str());
+    v += value;
+    iter->second = std::to_string(v);
   }
+}
+
+const std::string* Transaction::getVariable(const std::string& name) const {
+  auto iter = tx_.find(name);
+  if (iter != tx_.end()) {
+    return &iter->second;
+  }
+
+  return nullptr;
+}
+
+std::string* Transaction::getVariable(const std::string& name) {
+  auto iter = tx_.find(name);
+  if (iter != tx_.end()) {
+    return &iter->second;
+  }
+
+  return nullptr;
+}
+
+int Transaction::getVariableInt(const std::string& name) const {
+  const std::string* val = getVariable(name);
+  if (val) {
+    return ::atol(val->c_str());
+  }
+
+  return 0;
 }
 
 } // namespace SrSecurity

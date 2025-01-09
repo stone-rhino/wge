@@ -4,8 +4,9 @@ file(GLOB local_source
 )
 
 add_subdirectory(action)
-add_subdirectory(common)
 add_subdirectory(antlr4)
+add_subdirectory(common)
+add_subdirectory(macro)
 add_subdirectory(variable)
 
 set(antlr4_obj
@@ -150,6 +151,7 @@ set(antlr4_obj
 add_library(srsecurity 
   $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
+  $<TARGET_OBJECTS:macro>
   ${antlr4_obj}
   ${local_source}
 )

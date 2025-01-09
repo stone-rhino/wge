@@ -1,6 +1,5 @@
 #pragma once
 
-#include <any>
 #include <memory>
 #include <string_view>
 #include <unordered_map>
@@ -36,25 +35,14 @@ public:
   void createVariable(std::string&& name, std::string&& value);
   void removeVariable(const std::string& name);
   void increaseVariable(const std::string& name, int value = 1);
-  template <class T> const T& getVariable(const std::string& name, const T& default_value) const {
-    auto iter = tx_.find(name);
-    if (iter == tx_.end()) {
-      return default_value;
-    }
-
-    const T* value = nullptr;
-    try {
-      value = &(std::any_cast<const T&>(iter->second));
-    } catch (const std::bad_any_cast&) {
-    }
-
-    return value ? *value : default_value;
-  }
+  const std::string* getVariable(const std::string& name) const;
+  std::string* getVariable(const std::string& name);
+  int getVariableInt(const std::string& name) const;
 
 private:
   HttpExtractor extractor_;
   const Engine& engin_;
-  std::unordered_map<std::string, std::any> tx_;
+  std::unordered_map<std::string, std::string> tx_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
