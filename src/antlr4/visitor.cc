@@ -5,6 +5,10 @@
 
 #include <assert.h>
 
+#include "../action/set_var.h"
+#include "../common/try.h"
+#include "../macro/tx.h"
+
 namespace SrSecurity::Antlr4 {
 
 std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
@@ -58,15 +62,18 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
     operator_name = op->OPERATOR_NAME()->getText();
   }
 
-  // Actions
-  auto actions = ctx->action();
-  std::unordered_multimap<std::string, std::string> action_map;
-  for (auto action : actions) {
-    action_map.insert({action->ACTION_NAME()->getText(), action->action_value()->getText()});
-  }
+  // Add rule whitout actions first, then sets actions of the rule by visit actions
+  action_map_.clear();
+  current_rule_iter_ = parser_->secRule(std::move(variable_attrs), std::move(operator_name),
+                                        op->operator_value()->getText(), std::move(action_map_));
 
-  parser_->secRule(std::move(variable_attrs), std::move(operator_name),
-                   op->operator_value()->getText(), std::move(action_map));
+  // Visit actions
+  std::string error;
+  TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+  if (!error.empty()) {
+    parser_->removeBackRule();
+    return error;
+  }
 
   return "";
 }
@@ -111,15 +118,26 @@ Visitor::visitSec_rule_remove_by_tag(Antlr4Gen::SecLangParser::Sec_rule_remove_b
 std::any Visitor::visitSec_rule_update_action_by_id(
     Antlr4Gen::SecLangParser::Sec_rule_update_action_by_idContext* ctx) {
   uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+  current_rule_iter_ = parser_->findRuleById(id);
+  if (current_rule_iter_ != parser_->rules().end()) {
+    // Clear all old tags first if the new actions has tag
+    auto actions = ctx->action();
+    for (auto action : actions) {
+      if (action->action_meta_data() && action->action_meta_data()->action_meta_data_tag()) {
+        (*current_rule_iter_)->tags().clear();
+        parser_->clearRuleTagIndex(current_rule_iter_);
+        break;
+      }
+    }
 
-  // Actions
-  auto actions = ctx->action();
-  std::unordered_multimap<std::string, std::string> action_map;
-  for (auto action : actions) {
-    action_map.insert({action->ACTION_NAME()->getText(), action->action_value()->getText()});
+    // Visit actions
+    std::string error;
+    TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+    if (!error.empty()) {
+      return error;
+    }
   }
 
-  parser_->secRuleUpdateActionById(id, std::move(action_map));
   return "";
 }
 
@@ -144,6 +162,196 @@ std::any Visitor::visitSec_rule_update_target_by_tag(
   std::string tag = ctx->STRING()->getText();
   std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
   parser_->secRuleUpdateTargetByTag(tag, std::move(variable_attrs));
+  return "";
+}
+
+std::any
+Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) {
+  uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+  (*current_rule_iter_)->id(id);
+  parser_->setRuleIdIndex(current_rule_iter_);
+  return "";
+};
+
+std::any
+Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_phaseContext* ctx) {
+  (*current_rule_iter_)->phase(::atoll(ctx->INT()->getText().c_str()));
+  return "";
+};
+
+std::any Visitor::visitAction_meta_data_severity(
+    Antlr4Gen::SecLangParser::Action_meta_data_severityContext* ctx) {
+  std::string value = ctx->SeverityEnum()->getText();
+  (*current_rule_iter_)->severity(parser_->transferServerity(value));
+  return "";
+};
+
+std::any
+Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
+  (*current_rule_iter_)->msg(ctx->STRING()->getText());
+  parser_->setRuleMsgIndex(current_rule_iter_);
+  return "";
+};
+
+std::any
+Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
+  auto& tags = (*current_rule_iter_)->tags();
+  auto result = tags.emplace(ctx->STRING()->getText());
+  if (result.second) {
+    parser_->setRuleTagIndex(current_rule_iter_, *result.first);
+  }
+
+  return "";
+};
+
+std::any
+Visitor::visitAction_meta_data_ver(Antlr4Gen::SecLangParser::Action_meta_data_verContext* ctx) {
+  (*current_rule_iter_)->ver(ctx->STRING()->getText());
+  return "";
+};
+
+std::any
+Visitor::visitAction_meta_data_rev(Antlr4Gen::SecLangParser::Action_meta_data_revContext* ctx) {
+  (*current_rule_iter_)->rev(ctx->STRING()->getText());
+  return "";
+};
+
+std::any Visitor::visitAction_meta_data_accuracy(
+    Antlr4Gen::SecLangParser::Action_meta_data_accuracyContext* ctx) {
+  (*current_rule_iter_)->accuracy(::atoll(ctx->LEVEL()->getText().c_str()));
+  return "";
+};
+
+std::any Visitor::visitAction_meta_data_maturity(
+    Antlr4Gen::SecLangParser::Action_meta_data_maturityContext* ctx) {
+  (*current_rule_iter_)->maturity(::atoll(ctx->LEVEL()->getText().c_str()));
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_create(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), "",
+                                                        Action::SetVar::EvaluateType::Create));
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_create_init(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::CreateAndInit));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(
+        std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText(),
+                                         Action::SetVar::EvaluateType::CreateAndInit));
+  }
+
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_remove(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_removeContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), "",
+                                                        Action::SetVar::EvaluateType::Remove));
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_increase(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Increase));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(),
+                                                          ctx->VAR_VALUE()->getText(),
+                                                          Action::SetVar::EvaluateType::Increase));
+  }
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_decrease(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Decrease));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(),
+                                                          ctx->VAR_VALUE()->getText(),
+                                                          Action::SetVar::EvaluateType::Decrease));
+  }
+  return "";
+};
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_tx(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_txContext* ctx) {
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::Tx>(ctx->VAR_NAME()->getText());
+  return macro;
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_remote_addr(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_remote_addrContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_user_id(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_user_idContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_highest_severity(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_highest_severityContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_varContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var_name(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_var_nameContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_strict_error(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
+        ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_rule(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) {
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_session(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) {
   return "";
 }
 

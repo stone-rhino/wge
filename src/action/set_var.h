@@ -1,9 +1,11 @@
 #pragma once
 
-#include <regex>
+#include <memory>
 #include <string>
 
 #include "action_base.h"
+
+#include "../macro/macro_base.h"
 
 namespace SrSecurity {
 namespace Action {
@@ -19,13 +21,20 @@ namespace Action {
  */
 class SetVar : public ActionBase {
 public:
-  SetVar(std::string&& value) : ActionBase(std::move(value)) {}
+  enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  void evaluate(Transaction* t) override;
+  SetVar(std::string&& name, std::string&& value, EvaluateType type);
+  SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
+
+public:
+  void evaluate(Transaction& t) override;
 
 private:
-  static const std::regex pattern_;
+  std::string name_;
+  std::string value_;
+  EvaluateType type_;
+  std::shared_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
 } // namespace SrSecurity

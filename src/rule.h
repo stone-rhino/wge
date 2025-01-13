@@ -6,16 +6,12 @@
 #include <unordered_set>
 #include <vector>
 
-#include "action/set_var.h"
+#include "action/action_base.h"
 #include "http_extractor.h"
 #include "operator/operator_base.h"
 #include "variable/variable_base.h"
 
 namespace SrSecurity {
-
-namespace Antlr4 {
-class Parser;
-}
 
 namespace Parser {
 class RuleTest;
@@ -26,7 +22,6 @@ class RuleTest;
  */
 class Rule {
   friend class Parser::RuleTest;
-  friend class Antlr4::Parser;
 
 public:
   /**
@@ -53,18 +48,33 @@ public:
     REDIRECT
   };
 
+  // Action Group: Meta-data
 public:
   uint64_t id() const { return id_; }
+  void id(uint64_t value) { id_ = value; }
   int phase() const { return phase_; }
+  void phase(int value) { phase_ = value; }
   const Severity severity() const { return severity_; }
+  void severity(Severity value) { severity_ = value; }
   const std::string& msg() const { return msg_; }
+  void msg(std::string&& value) { msg_ = std::move(value); }
   const std::unordered_set<std::string>& tags() const { return tags_; }
+  std::unordered_set<std::string>& tags() { return tags_; }
   const std::string& ver() const { return ver_; }
+  void ver(std::string&& value) { ver_ = std::move(value); }
   const std::string& rev() const { return rev_; }
+  void rev(std::string&& value) { rev_ = std::move(value); }
   int accuracy() const { return accuracy_; }
+  void accuracy(int value) { accuracy_ = value; }
   int maturity() const { return maturity_; }
+  void maturity(int value) { maturity_ = value; }
 
-private:
+  // Action Group: Non-disruptive
+public:
+  const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
+  std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
+
+public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   void removeVariable(const std::string& full_name);
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
@@ -139,9 +149,9 @@ private:
   std::string set_rsc_;
   std::string set_sid_;
   std::string set_env_;
-  // std::string set_var_;
-  std::unique_ptr<Action::SetVar> set_var_;
+  // std::vector<std::unique_ptr<Action::SetVar>> set_vars_;
   std::unordered_set<std::string> t_;
+  std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
   // Action Group: Flow
 private:

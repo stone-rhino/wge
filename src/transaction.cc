@@ -34,6 +34,8 @@ void Transaction::createVariable(std::string&& name, int value) {
   auto iter = tx_.find(name);
   if (iter == tx_.end()) {
     tx_.emplace(std::move(name), std::to_string(value));
+  } else {
+    iter->second = std::to_string(value);
   }
 }
 

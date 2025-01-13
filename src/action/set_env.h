@@ -8,10 +8,10 @@ namespace Action {
 // server.
 class SetEnv : public ActionBase {
 public:
-  SetEnv(std::string&& value) : ActionBase(std::move(value)) {}
+  SetEnv() {}
 
 public:
-  void evaluate(Transaction* t) override;
+  void evaluate(Transaction& t) override;
 };
 } // namespace Action
 } // namespace SrSecurity

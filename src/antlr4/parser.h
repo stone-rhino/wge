@@ -175,14 +175,13 @@ public:
   void secXmlExternalEntity(EngineConfig::Option option);
 
   // Rule directives
-  void secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
-               std::string&& operator_value,
-               std::unordered_multimap<std::string, std::string>&& actions);
+  std::list<std::unique_ptr<Rule>>::iterator
+  secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
+          std::string&& operator_value,
+          std::unordered_multimap<std::string, std::string>&& actions);
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
-  void secRuleUpdateActionById(uint64_t id,
-                               std::unordered_multimap<std::string, std::string>&& actions);
   void secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs);
   void secRuleUpdateTargetByMsg(const std::string& msg, std::vector<VariableAttr>&& variable_attrs);
   void secRuleUpdateTargetByTag(const std::string& tag, std::vector<VariableAttr>&& variable_attrs);
@@ -204,6 +203,16 @@ public:
   const EngineConfig& engineConfig() const { return engine_config_; }
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
+  void removeBackRule();
+  void setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
+  void clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
+  void setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
+  void clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
+  void setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter,
+                       const std::string_view& tag);
+  void clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
+  std::list<std::unique_ptr<Rule>>::iterator findRuleById(uint64_t id);
+  Rule::Severity transferServerity(const std::string& value);
 
 private:
   EngineConfig engine_config_;
@@ -224,8 +233,6 @@ private:
   static std::unordered_map<std::string, std::function<std::unique_ptr<Operator::OperatorBase>(
                                              std::string&&, std::string&&)>>
       operator_factory_;
-  static std::unordered_map<std::string, std::function<void(Parser&, Rule&, std::string&&)>>
-      action_factory_;
   static std::unordered_map<std::string, Rule::Severity> serverity_factory_;
 };
 } // namespace SrSecurity::Antlr4

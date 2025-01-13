@@ -16,26 +16,10 @@ namespace Macro {
  */
 class MacroBase {
 public:
-  MacroBase(const std::string& value) { parseMacroName(value); }
+  MacroBase() {}
 
 public:
-  virtual std::string* evaluate(Transaction* t) = 0;
-
-public:
-  static bool isMacro(const std::string& value) {
-    return value.starts_with("%{") && value.ends_with("}");
-  }
-
-private:
-  void parseMacroName(const std::string& value) {
-    if (isMacro(value)) {
-      macro_name_ = value.substr(2);
-      macro_name_.erase(std::prev(macro_name_.end()));
-    }
-  }
-
-protected:
-  std::string macro_name_;
+  virtual std::string* evaluate(Transaction& t) = 0;
 };
 } // namespace Macro
 } // namespace SrSecurity

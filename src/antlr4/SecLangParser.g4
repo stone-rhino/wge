@@ -51,9 +51,88 @@ operator: (AT OPERATOR_NAME)? operator_value;
 
 operator_value: STRING;
 
-action: ACTION_NAME (COLON action_value)?;
+action: action_meta_data | action_non_disruptive;
 
-action_value: (SINGLE_QUOTE STRING SINGLE_QUOTE) | STRING;
+action_meta_data:
+	action_meta_data_id
+	| action_meta_data_phase
+	| action_meta_data_severity
+	| action_meta_data_msg
+	| action_meta_data_tag
+	| action_meta_data_ver
+	| action_meta_data_rev
+	| action_meta_data_accuracy
+	| action_meta_data_maturity;
+action_meta_data_id: Id COLON INT;
+action_meta_data_phase: Phase COLON INT;
+action_meta_data_severity: Severity COLON SeverityEnum;
+action_meta_data_msg:
+	Msg COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
+action_meta_data_tag:
+	Tag COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
+action_meta_data_ver:
+	Ver COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
+action_meta_data_rev:
+	Rev COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
+action_meta_data_accuracy: Accuracy COLON LEVEL;
+action_meta_data_maturity: Maturity COLON LEVEL;
+
+action_non_disruptive: action_non_disruptive_setvar;
+action_non_disruptive_setvar:
+	action_non_disruptive_setvar_create
+	| action_non_disruptive_setvar_create_init
+	| action_non_disruptive_setvar_remove
+	| action_non_disruptive_setvar_increase
+	| action_non_disruptive_setvar_decrease;
+action_non_disruptive_setvar_create:
+	Setvar COLON TX DOT VAR_NAME;
+action_non_disruptive_setvar_create_init:
+	Setvar COLON TX DOT VAR_NAME ASSIGN (
+		VAR_VALUE
+		| (
+			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+		)
+	);
+action_non_disruptive_setvar_remove:
+	Setvar COLON NOT TX DOT VAR_NAME;
+action_non_disruptive_setvar_increase:
+	Setvar COLON TX DOT VAR_NAME ASSIGN PLUS (
+		VAR_VALUE
+		| (
+			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+		)
+	);
+action_non_disruptive_setvar_decrease:
+	Setvar COLON TX DOT VAR_NAME ASSIGN MINUS (
+		VAR_VALUE
+		| (
+			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+		)
+	);
+
+action_non_disruptive_setvar_macro:
+	action_non_disruptive_setvar_macro_tx
+	| action_non_disruptive_setvar_macro_remote_addr
+	| action_non_disruptive_setvar_macro_user_id
+	| action_non_disruptive_setvar_macro_highest_severity
+	| action_non_disruptive_setvar_macro_matched_var
+	| action_non_disruptive_setvar_macro_matched_var_name
+	| action_non_disruptive_setvar_macro_multipart_strict_error
+	| action_non_disruptive_setvar_macro_rule
+	| action_non_disruptive_setvar_macro_session;
+
+action_non_disruptive_setvar_macro_tx: TX DOT VAR_NAME;
+action_non_disruptive_setvar_macro_remote_addr: REMOTE_ADDR;
+action_non_disruptive_setvar_macro_user_id: USERID;
+action_non_disruptive_setvar_macro_highest_severity:
+	HIGHEST_SEVERITY;
+action_non_disruptive_setvar_macro_matched_var: MATCHED_VAR;
+action_non_disruptive_setvar_macro_matched_var_name:
+	MATCHED_VAR_NAME;
+action_non_disruptive_setvar_macro_multipart_strict_error:
+	MULTIPART_STRICT_ERROR;
+action_non_disruptive_setvar_macro_rule: RULE DOT VAR_NAME;
+action_non_disruptive_setvar_macro_session: SESSION;
 
 sec_rule_remove_by_id:
 	SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;

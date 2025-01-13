@@ -307,43 +307,84 @@ ModeSecRuleAction_QUOTE: '"' -> type(QUOTE);
 ModeSecRuleAction_COLON: ':' -> type(COLON);
 ModeSecRuleAction_COMMA: ',' -> type(COMMA);
 SINGLE_QUOTE: '\'';
+ModeSecRuleAction_INT: INT -> type(INT);
+LEVEL: [1-9];
 ModeSecRuleAction_EOF: ('\r'? ('\n' | EOF)) -> skip, popMode;
-ACTION_NAME:
-	'accuracy'
-	| 'allow'
-	| 'auditlog'
-	| 'block'
-	| 'capture'
-	| 'chain'
-	| 'ctl'
-	| 'deny'
-	| 'drop'
-	| 'exec'
-	| 'expirevar'
-	| 'id'
-	| 'initcol'
-	| 'log'
-	| 'logdata'
-	| 'maturity'
-	| 'msg'
-	| 'multiMatch'
-	| 'noauditlog'
-	| 'nolog'
-	| 'pass'
-	| 'phase'
-	| 'redirect'
-	| 'rev'
-	| 'severity'
-	| 'setuid'
-	| 'setrsc'
-	| 'setsid'
-	| 'setenv'
-	| 'setvar'
-	| 'skip'
-	| 'skipAfter'
-	| 'status'
-	| 't'
-	| 'tag'
-	| 'ver'
-	| 'xmlns';
-ACTION_VALUE: ~[ :",\n]+ -> type(STRING);
+Accuracy: 'accuracy';
+Allow: 'allow';
+Auditlog: 'auditlog';
+Block: 'block';
+Capture: 'capture';
+Chain: 'chain';
+Ctl: 'ctl';
+Deny: 'deny';
+Drop: 'drop';
+Exec: 'exec';
+Expirevar: 'expirevar';
+Id: 'id';
+Initcol: 'initcol';
+Log: 'log';
+Logdata: 'logdata';
+Maturity: 'maturity';
+Msg: 'msg';
+MultiMatch: 'multiMatch';
+Noauditlog: 'noauditlog';
+Nolog: 'nolog';
+Pass: 'pass';
+Phase: 'phase';
+Redirect: 'redirect';
+Rev: 'rev';
+Severity: 'severity';
+SeverityEnum:
+	'EMERGENCY'
+	| 'ALERT'
+	| 'CRITICAL'
+	| 'ERROR'
+	| 'WARNING'
+	| 'NOTICE'
+	| 'INFO'
+	| 'DEBUG';
+Setuid: 'setuid';
+Setrsc: 'setrsc';
+Setsid: 'setsid';
+Setenv: 'setenv';
+Setvar: 'setvar' -> pushMode(ModeSecRuleActionSetVar);
+Skip: 'skip';
+SkipAfter: 'skipAfter';
+Status: 'status';
+T: 't';
+Tag: 'tag';
+Ver: 'ver';
+Xmlns: 'xmlns';
+ACTION_VALUE: ~[ :",'\n]+ -> type(STRING);
+
+mode ModeSecRuleActionSetVar;
+ModeSecRuleActionSetVar_WS: [ \t]+ -> skip;
+ModeSecRuleActionSetVar_QUOTE: '"' -> type(QUOTE), popMode;
+ModeSecRuleActionSetVar_COMMA: ',' -> type(COMMA), popMode;
+ModeSecRuleActionSetVar_COLON: ':' -> type(COLON);
+TX: ('t' | 'T') ('x' | 'X');
+DOT: '.' -> pushMode(ModeSecRuleActionSetVarValue);
+REMOTE_ADDR: ('REMOTE_ADDR' | 'remote_addr');
+USERID: ('USERID' | 'userid');
+HIGHEST_SEVERITY: ('HIGHEST_SEVERITY' | 'highest_severity');
+MATCHED_VAR: ('MATCHED_VAR' | 'matched_var');
+MATCHED_VAR_NAME: ('MATCHED_VAR_NAME' | 'matched_var_name');
+MULTIPART_STRICT_ERROR: (
+		'MULTIPART_STRICT_ERROR'
+		| 'multipart_strict_error'
+	);
+RULE: ('r' | 'R') ('u' | 'U') ('l' | 'L') ('e' | 'E') '.' -> popMode, pushMode(
+		ModeSecRuleActionSetVarValue);
+SESSION: ('SESSION' | 'session');
+ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
+ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
+LEFT_BRACKET: '{';
+RIGHT_BRACKET: '}';
+
+mode ModeSecRuleActionSetVarValue;
+PLUS: '+';
+MINUS: '-';
+PER_CENT: '%' -> popMode;
+VAR_NAME: [a-zA-Z_] [0-9a-zA-Z_]* -> popMode;
+VAR_VALUE: ~[ +\-:",%{}=\n]+ -> popMode;

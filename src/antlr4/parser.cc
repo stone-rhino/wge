@@ -136,9 +136,10 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
   engine_config_.is_xml_external_entity_ = option;
 }
 
-void Parser::secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
-                     std::string&& operator_value,
-                     std::unordered_multimap<std::string, std::string>&& actions) {
+std::list<std::unique_ptr<Rule>>::iterator
+Parser::secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
+                std::string&& operator_value,
+                std::unordered_multimap<std::string, std::string>&& actions) {
   auto& rule = rules_.emplace_back(std::make_unique<Rule>());
 
   // Append variable
@@ -158,13 +159,7 @@ void Parser::secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& o
     }
   }
 
-  // Sets action
-  for (auto& [name, value] : actions) {
-    auto iter = action_factory_.find(name);
-    if (iter != action_factory_.end()) {
-      iter->second(*this, *rule, std::move(value));
-    }
-  }
+  return std::prev(rules_.end());
 }
 
 void Parser::secRuleRemoveById(uint64_t id) {
@@ -189,22 +184,6 @@ void Parser::secRuleRemoveByTag(const std::string& tag) {
     rules_.erase(iter->second);
   }
   rules_index_tag_.erase(tag);
-}
-
-void Parser::secRuleUpdateActionById(uint64_t id,
-                                     std::unordered_multimap<std::string, std::string>&& actions) {
-  auto iter = rules_index_id_.find(id);
-  if (iter != rules_index_id_.end()) {
-    auto& rule = *iter->second;
-    if (actions.find("tag") != actions.end()) {
-      rule->tags_.clear();
-    }
-
-    for (auto& [name, value] : actions) {
-      auto iter = action_factory_.find(name);
-      iter->second(*this, *rule, std::move(value));
-    }
-  }
 }
 
 void Parser::secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs) {
@@ -337,4 +316,79 @@ void Parser::secComponentSignature(std::string&& signature) {
   audit_log_config_.component_signature_ = std::move(signature);
 }
 
+void Parser::removeBackRule() {
+  // remove index
+  auto iter = std::prev(rules_.end());
+  clearRuleIdIndex(iter);
+  clearRuleMsgIndex(iter);
+  clearRuleTagIndex(iter);
+
+  // remove rule
+  rules_.erase(std::prev(rules_.end()));
+}
+
+void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
+  rules_index_id_[(*iter)->id()] = iter;
+}
+
+void Parser::clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
+  // remove id index
+  std::erase_if(rules_index_id_,
+                [&](const std::pair<uint64_t, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
+                  if (pair.second == iter) {
+                    return true;
+                  }
+                  return false;
+                });
+}
+
+void Parser::setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
+  rules_index_msg_.insert({(*iter)->msg(), iter});
+}
+
+void Parser::clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
+  // remove msg index
+  std::erase_if(
+      rules_index_msg_,
+      [&](const std::pair<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
+        if (pair.second == iter) {
+          return true;
+        }
+        return false;
+      });
+}
+
+void Parser::setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter,
+                             const std::string_view& tag) {
+  rules_index_tag_.insert({tag, iter});
+}
+
+void Parser::clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
+  // remove tag index
+  std::erase_if(
+      rules_index_tag_,
+      [&](const std::pair<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
+        if (pair.second == iter) {
+          return true;
+        }
+        return false;
+      });
+}
+
+std::list<std::unique_ptr<Rule>>::iterator Parser::findRuleById(uint64_t id) {
+  auto iter = rules_index_id_.find(id);
+  if (iter != rules_index_id_.end()) {
+    return iter->second;
+  }
+
+  return rules_.end();
+}
+
+Rule::Severity Parser::transferServerity(const std::string& value) {
+  auto iter = serverity_factory_.find(value);
+  if (iter != serverity_factory_.end()) {
+    return iter->second;
+  }
+  return Rule::Severity::DEBUG;
+}
 } // namespace SrSecurity::Antlr4

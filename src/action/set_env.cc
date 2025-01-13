@@ -2,6 +2,6 @@
 
 namespace SrSecurity {
 namespace Action {
-void SetEnv::evaluate(Transaction* t) {}
+void SetEnv::evaluate(Transaction& t) {}
 } // namespace Action
 } // namespace SrSecurity

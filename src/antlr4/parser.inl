@@ -307,69 +307,6 @@ std::unordered_map<std::string, std::function<std::unique_ptr<Operator::Operator
                                  {"within", [](std::string&& operator_name,
                                                std::string&& operator_value) { return nullptr; }}};
 
-std::unordered_map<std::string, std::function<void(Parser& parser, Rule&, std::string&&)>>
-    Parser::action_factory_ = {
-        {"accuracy", [](Parser& parser, Rule& rule, std::string&& value) { rule.accuracy_ = ::atol(value.c_str()); }},
-        {"allow",
-         [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::ALLOW; }},
-        {"auditlog", [](Parser& parser, Rule& rule, std::string&& value) { rule.audit_log_ = true; }},
-        {"block",
-         [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::BLOCK; }},
-        {"capture", [](Parser& parser, Rule& rule, std::string&& value) { rule.capture_ = true; }},
-        {"chain", [](Parser& parser, Rule& rule, std::string&& value) { rule.chain_ = true; }},
-        {"ctl", [](Parser& parser, Rule& rule, std::string&& value) { rule.ctl_ = std::move(value); }},
-        {"deny",
-         [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::DENY; }},
-        {"drop",
-         [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::DROP; }},
-        {"exec", [](Parser& parser, Rule& rule, std::string&& value) { rule.exec_ = std::move(value); }},
-        {"expirevar", [](Parser& parser, Rule& rule, std::string&& value) { rule.expire_var_ = std::move(value); }},
-        {"id",[](Parser& parser, Rule& rule, std::string&& value) {
-           rule.id_ = ::atoll(value.c_str());
-           parser.rules_index_id_[rule.id_] = std::prev(parser.rules_.end());
-          }},
-        {"initcol", [](Parser& parser, Rule& rule, std::string&& value) { rule.init_col_ = std::move(value); }},
-        {"log", [](Parser& parser, Rule& rule, std::string&& value) { rule.log_ = true; }},
-        {"logdata", [](Parser& parser, Rule& rule, std::string&& value) { rule.log_data_ = std::move(value); }},
-        {"maturity", [](Parser& parser, Rule& rule, std::string&& value) { rule.maturity_ = ::atol(value.c_str()); }},
-        {"msg", [](Parser& parser, Rule& rule, std::string&& value) { 
-          rule.msg_ = std::move(value);
-          parser.rules_index_msg_.insert({rule.msg_, std::prev(parser.rules_.end())});
-          }},
-        {"multiMatch", [](Parser& parser, Rule& rule, std::string&& value) { rule.multi_match_ = true; }},
-        {"noauditlog", [](Parser& parser, Rule& rule, std::string&& value) { rule.no_audit_log_ = true; }},
-        {"nolog", [](Parser& parser, Rule& rule, std::string&& value) { rule.no_log_ = true; }},
-        {"pass",
-         [](Parser& parser, Rule& rule, std::string&& value) { rule.disruptive_ = Rule::Disruptive::PASS; }},
-        {"phase", [](Parser& parser, Rule& rule, std::string&& value) { rule.phase_ = ::atoi(value.c_str()); }},
-        {"redirect",
-         [](Parser& parser, Rule& rule, std::string&& value) {
-           rule.disruptive_ = Rule::Disruptive::REDIRECT;
-           rule.redirect_ = std::move(value);
-         }},
-        {"rev", [](Parser& parser, Rule& rule, std::string&& value) { rule.rev_ = std::move(value); }},
-        {"severity", [](Parser& parser, Rule& rule, std::string&& value) {
-          auto iter = Parser::serverity_factory_.find(value);
-          if(iter != Parser::serverity_factory_.end()){
-            rule.severity_ = iter->second;
-          }
-         }},
-        {"setuid", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"setrsc", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"setsid", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"setenv", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"setvar", [](Parser& parser, Rule& rule, std::string&& value) { rule.set_var_ = std::make_unique<Action::SetVar>(std::move(value)); }},
-        {"skip", [](Parser& parser, Rule& rule, std::string&& value) { rule.skip_ = ::atoi(value.c_str()); }},
-        {"skipAfter", [](Parser& parser, Rule& rule, std::string&& value) { rule.skip_after_ = std::move(value); }},
-        {"status", [](Parser& parser, Rule& rule, std::string&& value) { rule.status_ = std::move(value); }},
-        {"t", [](Parser& parser, Rule& rule, std::string&& value) { return; }},
-        {"tag", [](Parser& parser, Rule& rule, std::string&& value) { 
-          auto result = rule.tags_.emplace(std::move(value)); 
-          parser.rules_index_tag_.insert({*result.first, std::prev(parser.rules_.end())});
-          }},
-        {"ver", [](Parser& parser, Rule& rule, std::string&& value) { rule.ver_ = std::move(value); }},
-        {"xmlns", [](Parser& parser, Rule& rule, std::string&& value) { rule.xml_ns_ = std::move(value); }}};
-
 std::unordered_map<std::string, Rule::Severity> Parser::serverity_factory_ = {
     {"EMERGENCY", Rule::Severity::EMERGENCY}, {"ALERT", Rule::Severity::ALERT},
     {"CRITICAL", Rule::Severity::CRITICAL},   {"ERROR", Rule::Severity::ERROR},

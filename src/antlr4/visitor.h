@@ -55,6 +55,63 @@ public:
   std::any visitSec_rule_update_target_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
 
+  // Action Group: Meta-data
+  std::any
+  visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) override;
+  std::any visitAction_meta_data_phase(
+      Antlr4Gen::SecLangParser::Action_meta_data_phaseContext* ctx) override;
+  std::any visitAction_meta_data_severity(
+      Antlr4Gen::SecLangParser::Action_meta_data_severityContext* ctx) override;
+  std::any
+  visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) override;
+  std::any
+  visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) override;
+  std::any
+  visitAction_meta_data_ver(Antlr4Gen::SecLangParser::Action_meta_data_verContext* ctx) override;
+  std::any
+  visitAction_meta_data_rev(Antlr4Gen::SecLangParser::Action_meta_data_revContext* ctx) override;
+  std::any visitAction_meta_data_accuracy(
+      Antlr4Gen::SecLangParser::Action_meta_data_accuracyContext* ctx) override;
+  std::any visitAction_meta_data_maturity(
+      Antlr4Gen::SecLangParser::Action_meta_data_maturityContext* ctx) override;
+
+  // Action Group: Non-disruptive
+  // setvar
+  std::any visitAction_non_disruptive_setvar_create(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_create_init(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_remove(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_removeContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_increase(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_decrease(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) override;
+  // setvar macro expansion
+  std::any visitAction_non_disruptive_setvar_macro_tx(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_txContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_remote_addr(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_remote_addrContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_user_id(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_user_idContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_highest_severity(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_highest_severityContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_matched_var(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_varContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_matched_var_name(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_var_nameContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_strict_error(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_rule(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_session(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) override;
+
   // Audit log configurations
 public:
   std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;
@@ -98,5 +155,7 @@ private:
 
 private:
   Parser* parser_;
+  std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
+  std::unordered_multimap<std::string, std::string> action_map_;
 };
 } // namespace SrSecurity::Antlr4
