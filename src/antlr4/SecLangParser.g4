@@ -37,6 +37,18 @@ rule_directive:
 	| sec_rule_update_target_by_id
 	| sec_rule_update_target_by_msg
 	| sec_rule_update_target_by_tag;
+sec_rule_remove_by_id:
+	SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;
+sec_rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
+sec_rule_remove_by_tag: SecRuleRemoveByTag QUOTE STRING QUOTE;
+sec_rule_update_action_by_id:
+	SecRuleUpdateActionById INT QUOTE action (COMMA action)* QUOTE;
+sec_rule_update_target_by_id:
+	SecRuleUpdateTargetById INT variables;
+sec_rule_update_target_by_msg:
+	SecRuleUpdateTargetByMsg ((QUOTE STRING QUOTE) | STRING) variables;
+sec_rule_update_target_by_tag:
+	SecRuleUpdateTargetByTag ((QUOTE STRING QUOTE) | STRING) variables;
 
 sec_rule:
 	SecRule variables QUOTE operator QUOTE QUOTE action (
@@ -77,7 +89,9 @@ action_meta_data_rev:
 action_meta_data_accuracy: Accuracy COLON LEVEL;
 action_meta_data_maturity: Maturity COLON LEVEL;
 
-action_non_disruptive: action_non_disruptive_setvar;
+action_non_disruptive:
+	action_non_disruptive_setvar
+	| action_non_disruptive_setenv;
 action_non_disruptive_setvar:
 	action_non_disruptive_setvar_create
 	| action_non_disruptive_setvar_create_init
@@ -120,7 +134,6 @@ action_non_disruptive_setvar_macro:
 	| action_non_disruptive_setvar_macro_multipart_strict_error
 	| action_non_disruptive_setvar_macro_rule
 	| action_non_disruptive_setvar_macro_session;
-
 action_non_disruptive_setvar_macro_tx: TX DOT VAR_NAME;
 action_non_disruptive_setvar_macro_remote_addr: REMOTE_ADDR;
 action_non_disruptive_setvar_macro_user_id: USERID;
@@ -134,24 +147,13 @@ action_non_disruptive_setvar_macro_multipart_strict_error:
 action_non_disruptive_setvar_macro_rule: RULE DOT VAR_NAME;
 action_non_disruptive_setvar_macro_session: SESSION;
 
-sec_rule_remove_by_id:
-	SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;
-
-sec_rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
-
-sec_rule_remove_by_tag: SecRuleRemoveByTag QUOTE STRING QUOTE;
-
-sec_rule_update_action_by_id:
-	SecRuleUpdateActionById INT QUOTE action (COMMA action)* QUOTE;
-
-sec_rule_update_target_by_id:
-	SecRuleUpdateTargetById INT variables;
-
-sec_rule_update_target_by_msg:
-	SecRuleUpdateTargetByMsg ((QUOTE STRING QUOTE) | STRING) variables;
-
-sec_rule_update_target_by_tag:
-	SecRuleUpdateTargetByTag ((QUOTE STRING QUOTE) | STRING) variables;
+action_non_disruptive_setenv:
+	Setenv COLON VAR_NAME ASSIGN (
+		VAR_VALUE
+		| (
+			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+		)
+	);
 
 audit_log_config:
 	sec_audit_engine
@@ -165,7 +167,6 @@ audit_log_config:
 	| sec_audit_log_storage_dir
 	| sec_audit_log_type
 	| sec_component_signature;
-
 sec_audit_engine: SecAuditEngine AUDIT_ENGINE;
 sec_audit_log: SecAuditLog ((QUOTE STRING QUOTE) | STRING);
 sec_audit_log2: SecAuditLog2 ((QUOTE STRING QUOTE) | STRING);

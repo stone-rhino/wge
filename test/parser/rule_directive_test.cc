@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <stdlib.h>
 
 #include "antlr4/parser.h"
 #include "engine.h"
@@ -484,6 +485,21 @@ TEST_F(RuleTest, ActionSetVar) {
     actions.back()->evaluate(*t);
     int new_score = t->getVariableInt("score");
     EXPECT_EQ(old_score, new_score + old_score);
+  }
+}
+
+TEST_F(RuleTest, ActionSetEnv) {
+  auto t = engine_.makeTransaction();
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:var1=hello,msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+    actions.back()->evaluate(*t);
+    EXPECT_EQ(std::string("hello"), ::getenv("var1"));
   }
 }
 } // namespace Parser

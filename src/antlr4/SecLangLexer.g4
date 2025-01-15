@@ -347,7 +347,8 @@ SeverityEnum:
 Setuid: 'setuid';
 Setrsc: 'setrsc';
 Setsid: 'setsid';
-Setenv: 'setenv';
+Setenv:
+	'setenv' -> pushMode(ModeSecRuleActionSetVar), pushMode(ModeSecRuleActionSetVarName);
 Setvar: 'setvar' -> pushMode(ModeSecRuleActionSetVar);
 Skip: 'skip';
 SkipAfter: 'skipAfter';
@@ -364,7 +365,7 @@ ModeSecRuleActionSetVar_QUOTE: '"' -> type(QUOTE), popMode;
 ModeSecRuleActionSetVar_COMMA: ',' -> type(COMMA), popMode;
 ModeSecRuleActionSetVar_COLON: ':' -> type(COLON);
 TX: ('t' | 'T') ('x' | 'X');
-DOT: '.' -> pushMode(ModeSecRuleActionSetVarValue);
+DOT: '.' -> pushMode(ModeSecRuleActionSetVarName);
 REMOTE_ADDR: ('REMOTE_ADDR' | 'remote_addr');
 USERID: ('USERID' | 'userid');
 HIGHEST_SEVERITY: ('HIGHEST_SEVERITY' | 'highest_severity');
@@ -382,9 +383,12 @@ ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
 LEFT_BRACKET: '{';
 RIGHT_BRACKET: '}';
 
+mode ModeSecRuleActionSetVarName;
+ModeSecRuleActionSetVarName_COLON: ':' -> type(COLON);
+VAR_NAME: [a-zA-Z_] [0-9a-zA-Z_]* -> popMode;
+
 mode ModeSecRuleActionSetVarValue;
 PLUS: '+';
 MINUS: '-';
 PER_CENT: '%' -> popMode;
-VAR_NAME: [a-zA-Z_] [0-9a-zA-Z_]* -> popMode;
 VAR_VALUE: ~[ +\-:",%{}=\n]+ -> popMode;

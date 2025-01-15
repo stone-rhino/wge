@@ -5,6 +5,7 @@
 
 #include <assert.h>
 
+#include "../action/set_env.h"
 #include "../action/set_var.h"
 #include "../common/try.h"
 #include "../macro/tx.h"
@@ -316,42 +317,62 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_tx(
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_remote_addr(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_remote_addrContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_user_id(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_user_idContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_highest_severity(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_highest_severityContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_varContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var_name(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_var_nameContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_strict_error(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
         ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_rule(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) {
-  return "";
+  return "Not implemented!";
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_session(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) {
+  return "Not implemented!";
+}
+
+std::any Visitor::visitAction_non_disruptive_setenv(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), macro));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(
+        std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText()));
+  }
+
   return "";
 }
 

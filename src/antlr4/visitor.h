@@ -87,6 +87,7 @@ public:
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) override;
   std::any visitAction_non_disruptive_setvar_decrease(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) override;
+
   // setvar macro expansion
   std::any visitAction_non_disruptive_setvar_macro_tx(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_txContext* ctx) override;
@@ -111,6 +112,10 @@ public:
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) override;
   std::any visitAction_non_disruptive_setvar_macro_session(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) override;
+
+  // setenv
+  std::any visitAction_non_disruptive_setenv(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) override;
 
   // Audit log configurations
 public:

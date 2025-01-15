@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "../macro/tx.h"
-
 namespace SrSecurity {
 namespace Action {
 SetVar::SetVar(std::string&& name, std::string&& value, EvaluateType type)
