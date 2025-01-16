@@ -156,6 +156,13 @@ public:
   std::any visitAction_disruptive_redirect(
       Antlr4Gen::SecLangParser::Action_disruptive_redirectContext* ctx) override;
 
+  // Action Group: Data
+public:
+  std::any
+  visitAction_data_status(Antlr4Gen::SecLangParser::Action_data_statusContext* ctx) override;
+  std::any
+  visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsContext* ctx) override;
+
   // Audit log configurations
 public:
   std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;

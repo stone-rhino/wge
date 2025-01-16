@@ -93,6 +93,13 @@ public:
   const std::string& redirect() { return redirect_; }
   void redirect(std::string&& value) { redirect_ = std::move(value); }
 
+  // Action Group: Data
+public:
+  const std::string& status() const { return status_; }
+  void status(std::string&& value) { status_ = std::move(value); }
+  const std::string& xmlns() const { return xml_ns_; }
+  void xmlns(std::string&& value) { xml_ns_ = std::move(value); }
+
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   void removeVariable(const std::string& full_name);

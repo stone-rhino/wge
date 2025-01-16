@@ -509,6 +509,18 @@ std::any Visitor::visitAction_disruptive_redirect(
   return "";
 }
 
+std::any
+Visitor::visitAction_data_status(Antlr4Gen::SecLangParser::Action_data_statusContext* ctx) {
+  (*current_rule_iter_)->status(ctx->INT()->getText());
+  return "";
+}
+
+std::any
+Visitor::visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsContext* ctx) {
+  (*current_rule_iter_)->xmlns(ctx->STRING()->getText());
+  return "";
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

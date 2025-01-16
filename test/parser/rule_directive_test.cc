@@ -687,5 +687,25 @@ TEST_F(RuleTest, ActionRedirect) {
   EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::REDIRECT);
   EXPECT_EQ(parser.rules().back()->redirect(), "http://www.srhino.com");
 }
+
+TEST_F(RuleTest, ActionStatus) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,status:500,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->status(), "500");
+}
+
+TEST_F(RuleTest, ActionXmlns) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,xmlns:xsd=http://www.w3.org/2001/XMLSchema,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->xmlns(), "xsd=http://www.w3.org/2001/XMLSchema");
+}
 } // namespace Parser
 } // namespace SrSecurity

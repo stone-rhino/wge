@@ -371,7 +371,7 @@ Status: 'status';
 T: 't';
 Tag: 'tag';
 Ver: 'ver';
-Xmlns: 'xmlns';
+Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: [ \t]+ -> skip;
