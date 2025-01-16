@@ -575,5 +575,61 @@ TEST_F(RuleTest, ActionSetUid) {
     EXPECT_EQ(actions.size(), 1);
   }
 }
+
+TEST_F(RuleTest, ActionAuditLog) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->auditLog());
+}
+
+TEST_F(RuleTest, ActionLog) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,log,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->log());
+}
+
+TEST_F(RuleTest, ActionNoAuditLog) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,noauditlog,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->noAuditLog());
+}
+
+TEST_F(RuleTest, ActionNoLog) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,nolog,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->noLog());
+}
+
+TEST_F(RuleTest, ActionCapture) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,capture,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->capture());
+}
+
+TEST_F(RuleTest, ActionMultiMatch) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,multiMatch,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->multiMatch());
+}
 } // namespace Parser
 } // namespace SrSecurity

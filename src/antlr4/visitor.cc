@@ -436,6 +436,42 @@ std::any Visitor::visitAction_non_disruptive_setsid(
   return "";
 }
 
+std::any Visitor::visitAction_non_disruptive_audit_log(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_audit_logContext* ctx) {
+  (*current_rule_iter_)->auditLog(true);
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_log(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_logContext* ctx) {
+  (*current_rule_iter_)->log(true);
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_no_audit_log(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_no_audit_logContext* ctx) {
+  (*current_rule_iter_)->noAuditLog(true);
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_no_log(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) {
+  (*current_rule_iter_)->noLog(true);
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_capture(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_captureContext* ctx) {
+  (*current_rule_iter_)->capture(true);
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_multi_match(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_multi_matchContext* ctx) {
+  (*current_rule_iter_)->multiMatch(true);
+  return "";
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

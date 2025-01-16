@@ -94,7 +94,13 @@ action_non_disruptive:
 	| action_non_disruptive_setenv
 	| action_non_disruptive_setuid
 	| action_non_disruptive_setrsc
-	| action_non_disruptive_setsid;
+	| action_non_disruptive_setsid
+	| action_non_disruptive_audit_log
+	| action_non_disruptive_log
+	| action_non_disruptive_no_audit_log
+	| action_non_disruptive_no_log
+	| action_non_disruptive_capture
+	| action_non_disruptive_multi_match;
 action_non_disruptive_setvar:
 	action_non_disruptive_setvar_create
 	| action_non_disruptive_setvar_create_init
@@ -179,6 +185,13 @@ action_non_disruptive_setsid:
 			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
 		)
 	);
+
+action_non_disruptive_audit_log: Auditlog;
+action_non_disruptive_log: Log;
+action_non_disruptive_no_audit_log: Noauditlog;
+action_non_disruptive_no_log: Nolog;
+action_non_disruptive_capture: Capture;
+action_non_disruptive_multi_match: MultiMatch;
 
 audit_log_config:
 	sec_audit_engine

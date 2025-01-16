@@ -71,6 +71,18 @@ public:
 
   // Action Group: Non-disruptive
 public:
+  bool auditLog() const { return audit_log_; }
+  void auditLog(bool value) { audit_log_ = value; }
+  bool log() const { return log_; }
+  void log(bool value) { log_ = value; };
+  bool noAuditLog() const { return no_audit_log_; }
+  void noAuditLog(bool value) { no_audit_log_ = value; }
+  bool noLog() const { return no_log_; }
+  void noLog(bool value) { no_log_ = value; }
+  bool capture() const { return capture_; }
+  void capture(bool value) { capture_ = value; }
+  bool multiMatch() const { return multi_match_; }
+  void multiMatch(bool value) { multi_match_ = value; }
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
 
@@ -134,20 +146,17 @@ private:
 
   // Action Group: Non-disruptive
 private:
-  bool audit_log_{false};
-  bool capture_{false};
   std::string ctl_;
   std::string exec_;
   std::string expire_var_;
   std::string init_col_;
-  bool log_{false};
   std::string log_data_;
-  bool multi_match_{false};
+  bool audit_log_{false};
+  bool log_{false};
   bool no_audit_log_{false};
   bool no_log_{false};
-  std::string set_uid_;
-  std::string set_rsc_;
-  std::string set_sid_;
+  bool capture_{false};
+  bool multi_match_{false};
   std::unordered_set<std::string> t_;
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
