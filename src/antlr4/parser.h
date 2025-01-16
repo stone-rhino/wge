@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <expected>
 #include <list>
 #include <memory>
 #include <string>
@@ -19,16 +20,16 @@ public:
   /**
    * Load the rule set from a file
    * @param file_path supports relative and absolute path
-   * @result an error string is returned if fails, an empty string is returned otherwise
+   * @result An error string is returned if fails, and returned true otherwise
    */
-  std::string loadFromFile(const std::string& file_path);
+  std::expected<bool, std::string> loadFromFile(const std::string& file_path);
 
   /**
    * Load the rule set from a configuration directive
    * @param directive Configuration directive
-   * @result An error string is returned if fails, an empty string is returned otherwise
+   * @result An error string is returned if fails, and returned true otherwise
    */
-  std::string load(const std::string& directive);
+  std::expected<bool, std::string> load(const std::string& directive);
 
 public:
   // Engine configuration

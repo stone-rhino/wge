@@ -12,12 +12,12 @@ TEST_F(IncludeTest, Empty) {
   const std::string directive = R"()";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(directive);
-  if (!error.empty()) {
-    std::cout << error << std::endl;
+  auto result = parser.load(directive);
+  if (!result.has_value()) {
+    std::cout << result.error() << std::endl;
   }
 
-  ASSERT_TRUE(error.empty());
+  ASSERT_TRUE(result.has_value());
 }
 
 TEST_F(IncludeTest, Comment) {
@@ -26,12 +26,12 @@ TEST_F(IncludeTest, Comment) {
   # This is comment3)";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(directive);
-  if (!error.empty()) {
-    std::cout << error << std::endl;
+  auto result = parser.load(directive);
+  if (!result.has_value()) {
+    std::cout << result.error() << std::endl;
   }
 
-  ASSERT_TRUE(error.empty());
+  ASSERT_TRUE(result.has_value());
 }
 
 TEST_F(IncludeTest, Include) {
@@ -40,12 +40,12 @@ TEST_F(IncludeTest, Include) {
   )";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(directive);
-  if (!error.empty()) {
-    std::cout << error << std::endl;
+  auto result = parser.load(directive);
+  if (!result.has_value()) {
+    std::cout << result.error() << std::endl;
   }
 
-  ASSERT_TRUE(error.empty());
+  ASSERT_TRUE(result.has_value());
 }
 } // namespace Parser
 } // namespace SrSecurity

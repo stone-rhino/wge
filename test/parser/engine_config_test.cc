@@ -20,8 +20,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
     ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::On);
@@ -43,8 +43,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
     ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
@@ -66,8 +66,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
     ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
@@ -84,8 +84,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(!error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(!result.has_value());
   }
 
   {
@@ -94,8 +94,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(!error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(!result.has_value());
   }
 
   {
@@ -104,8 +104,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(!error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(!result.has_value());
   }
 
   {
@@ -114,8 +114,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(!error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(!result.has_value());
   }
 
   {
@@ -124,8 +124,8 @@ TEST_F(EngineConfigTest, EngineConfig) {
   )";
 
     Antlr4::Parser parser;
-    std::string error = parser.load(directive);
-    ASSERT_TRUE(!error.empty());
+    auto result = parser.load(directive);
+    ASSERT_TRUE(!result.has_value());
   }
 }
 } // namespace Parsr

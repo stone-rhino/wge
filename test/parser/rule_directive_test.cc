@@ -33,8 +33,8 @@ TEST_F(RuleTest, Rule) {
   const std::string rule_directive =
       R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:1,tag:'foo',msg:'bar'")";
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
 
   // variables pool
   EXPECT_EQ(parser.rules().size(), 1);
@@ -98,16 +98,16 @@ TEST_F(RuleTest, RuleRemoveById) {
   )";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
 
   auto& rules = parser.rules();
   EXPECT_EQ(rules.size(), 10);
 
   {
     const std::string rule_remove = R"(SecRuleRemoveById 1)";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 9);
     auto iter = std::find_if(rules.begin(), rules.end(),
                              [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
@@ -116,8 +116,8 @@ TEST_F(RuleTest, RuleRemoveById) {
 
   {
     const std::string rule_remove = R"(SecRuleRemoveById 2 3)";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 7);
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 2 || rule->id() == 3;
@@ -127,8 +127,8 @@ TEST_F(RuleTest, RuleRemoveById) {
 
   {
     const std::string rule_remove = R"(SecRuleRemoveById 4 5 6-8)";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 2);
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 4 || rule->id() == 5 || rule->id() == 6 || rule->id() == 7 ||
@@ -152,16 +152,16 @@ TEST_F(RuleTest, RuleRemoveByMsg) {
   )";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
 
   auto& rules = parser.rules();
   EXPECT_EQ(rules.size(), 10);
 
   {
     const std::string rule_remove = R"(SecRuleRemoveByMsg "msg1")";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 9);
     auto iter = std::find_if(rules.begin(), rules.end(),
                              [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
@@ -170,8 +170,8 @@ TEST_F(RuleTest, RuleRemoveByMsg) {
 
   {
     const std::string rule_remove = R"(SecRuleRemoveByMsg "msg6")";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 4);
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 6 || rule->id() == 7 || rule->id() == 8 || rule->id() == 9 ||
@@ -195,16 +195,16 @@ TEST_F(RuleTest, RuleRemoveByTag) {
   )";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
 
   auto& rules = parser.rules();
   EXPECT_EQ(rules.size(), 10);
 
   {
     const std::string rule_remove = R"(SecRuleRemoveByTag "tag1")";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 9);
     auto iter = std::find_if(rules.begin(), rules.end(),
                              [](const std::unique_ptr<Rule>& rule) { return rule->id() == 1; });
@@ -213,8 +213,8 @@ TEST_F(RuleTest, RuleRemoveByTag) {
 
   {
     const std::string rule_remove = R"(SecRuleRemoveByTag "tag2")";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 7);
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 2 || rule->id() == 3;
@@ -224,8 +224,8 @@ TEST_F(RuleTest, RuleRemoveByTag) {
 
   {
     const std::string rule_remove = R"(SecRuleRemoveByTag "tag6")";
-    error = parser.load(rule_remove);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_remove);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(rules.size(), 2);
     auto iter = std::find_if(rules.begin(), rules.end(), [](const std::unique_ptr<Rule>& rule) {
       return rule->id() == 6 || rule->id() == 7 || rule->id() == 8 || rule->id() == 9 ||
@@ -239,14 +239,14 @@ TEST_F(RuleTest, RuleUpdateActionById) {
   const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1'")";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.rules().back()->msg(), "msg1");
 
   {
     const std::string rule_update = R"(SecRuleUpdateActionById 1 "msg:'msg2'")";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(parser.rules().back()->msg(), "msg2");
   }
 
@@ -258,8 +258,8 @@ TEST_F(RuleTest, RuleUpdateActionById) {
 
     const std::string rule_update =
         R"(SecRuleUpdateActionById 1 "msg:'msg3',tag:'tag2',tag:'tag3'")";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_EQ(parser.rules().back()->msg(), "msg3");
     EXPECT_EQ(tags.find("tag1"), tags.end());
     EXPECT_NE(tags.find("tag2"), tags.end());
@@ -272,8 +272,8 @@ TEST_F(RuleTest, RuleUpdateTargetById) {
       R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:'tag1',msg:'msg1'")";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
   EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
   EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
@@ -282,15 +282,15 @@ TEST_F(RuleTest, RuleUpdateTargetById) {
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetById 1 ARGS:ccc)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetById 1 !ARGS:aaa|!ARGS:bbb)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
@@ -304,8 +304,8 @@ TEST_F(RuleTest, RuleUpdateTargetByMsg) {
       R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:'tag1',msg:'msg1'")";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
   EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
   EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
@@ -314,15 +314,15 @@ TEST_F(RuleTest, RuleUpdateTargetByMsg) {
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" ARGS:ccc)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" !ARGS:aaa|!ARGS:bbb)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
@@ -336,8 +336,8 @@ TEST_F(RuleTest, RuleUpdateTargetByTag) {
       R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:'tag1',msg:'msg1'")";
 
   Antlr4::Parser parser;
-  std::string error = parser.load(rule_directive);
-  ASSERT_TRUE(error.empty());
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
   EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
   EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
@@ -346,15 +346,15 @@ TEST_F(RuleTest, RuleUpdateTargetByTag) {
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" ARGS:ccc)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" !ARGS:aaa|!ARGS:bbb)";
-    error = parser.load(rule_update);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
     EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
     EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
@@ -371,8 +371,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setvar:tx.score,msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -385,8 +385,9 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score2=100,msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    ;
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -399,8 +400,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score3=%{tx.score2},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -415,8 +416,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:!tx.score2,msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -430,8 +431,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+100,msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -446,8 +447,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+%{tx.score},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -462,8 +463,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-50,msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -478,8 +479,8 @@ TEST_F(RuleTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-%{tx.score},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -494,8 +495,8 @@ TEST_F(RuleTest, ActionSetEnv) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:var1=hello,msg:'aaa bbb'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
@@ -509,11 +510,10 @@ TEST_F(RuleTest, ActionSetRsc) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:'this is rsc',msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
-
   }
 
   // Macro expansion
@@ -521,8 +521,8 @@ TEST_F(RuleTest, ActionSetRsc) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:%{tx.0},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }
@@ -534,8 +534,8 @@ TEST_F(RuleTest, ActionSetSid) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:'this is sid',msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }
@@ -545,8 +545,8 @@ TEST_F(RuleTest, ActionSetSid) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:%{tx.0},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }
@@ -558,8 +558,8 @@ TEST_F(RuleTest, ActionSetUid) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setuid:'this is uid',msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }
@@ -569,8 +569,8 @@ TEST_F(RuleTest, ActionSetUid) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:%{tx.0},msg:'aaa'")";
     Antlr4::Parser parser;
-    std::string error = parser.load(rule_directive);
-    ASSERT_TRUE(error.empty());
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }

@@ -47,7 +47,7 @@ public:
   std::string error_msg;
 };
 
-std::string Parser::loadFromFile(const std::string& file_path) {
+std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // init
   std::ifstream ifs(file_path);
   antlr4::ANTLRInputStream input(ifs);
@@ -67,10 +67,10 @@ std::string Parser::loadFromFile(const std::string& file_path) {
   // parse
   auto tree = parser.configuration();
   if (!parser_error_listener.error_msg.empty()) {
-    return parser_error_listener.error_msg;
+    return std::unexpected(parser_error_listener.error_msg);
   }
   if (!lexer_error_listener.error_msg.empty()) {
-    return lexer_error_listener.error_msg;
+    return std::unexpected(lexer_error_listener.error_msg);
   }
 
   // visit
@@ -78,10 +78,10 @@ std::string Parser::loadFromFile(const std::string& file_path) {
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
-  return error;
+  return true;
 }
 
-std::string Parser::load(const std::string& directive) {
+std::expected<bool, std::string> Parser::load(const std::string& directive) {
   // init
   antlr4::ANTLRInputStream input(directive);
   Antlr4Gen::SecLangLexer lexer(&input);
@@ -100,10 +100,10 @@ std::string Parser::load(const std::string& directive) {
   // parse
   auto tree = parser.configuration();
   if (!parser_error_listener.error_msg.empty()) {
-    return parser_error_listener.error_msg;
+    return std::unexpected(parser_error_listener.error_msg);
   }
   if (!lexer_error_listener.error_msg.empty()) {
-    return lexer_error_listener.error_msg;
+    return std::unexpected(lexer_error_listener.error_msg);
   }
 
   // visit
@@ -111,7 +111,7 @@ std::string Parser::load(const std::string& directive) {
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
-  return error;
+  return true;
 }
 
 void Parser::secRuleEngine(EngineConfig::Option option) { engine_config_.is_rule_engine_ = option; }

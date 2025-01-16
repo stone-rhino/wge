@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <memory>
 #include <vector>
 
@@ -19,16 +20,16 @@ public:
   /**
    * Load the rule set from a file
    * @param file_path Supports relative and absolute path
-   * @result An error string is returned if fails, an empty string is returned otherwise
+   * @result An error string is returned if fails, and returned true otherwise
    */
-  std::string loadFromFile(const std::string& file_path);
+  std::expected<bool, std::string> loadFromFile(const std::string& file_path);
 
   /**
    * Load the rule set from a configuration directive
    * @param directive Configuration directive
-   * @result An error string is returned if fails, an empty string is returned otherwise
+   * @result An error string is returned if fails, and returned true otherwise
    */
-  std::string load(const std::string& directive);
+  std::expected<bool, std::string> load(const std::string& directive);
 
   /**
    * This method initializes some important variables, such as hyperscan database and so on
