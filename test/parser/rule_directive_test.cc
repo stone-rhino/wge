@@ -631,5 +631,61 @@ TEST_F(RuleTest, ActionMultiMatch) {
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(parser.rules().back()->multiMatch());
 }
+
+TEST_F(RuleTest, ActionAllow) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,allow,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::ALLOW);
+}
+
+TEST_F(RuleTest, ActionBlock) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,block,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::BLOCK);
+}
+
+TEST_F(RuleTest, ActionDeny) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,deny,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::DENY);
+}
+
+TEST_F(RuleTest, ActionDrop) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,drop,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::DROP);
+}
+
+TEST_F(RuleTest, ActionPass) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,pass,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::PASS);
+}
+
+TEST_F(RuleTest, ActionRedirect) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,redirect:http://www.srhino.com,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::REDIRECT);
+  EXPECT_EQ(parser.rules().back()->redirect(), "http://www.srhino.com");
+}
 } // namespace Parser
 } // namespace SrSecurity

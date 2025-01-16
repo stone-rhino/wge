@@ -63,7 +63,10 @@ operator: (AT OPERATOR_NAME)? operator_value;
 
 operator_value: STRING;
 
-action: action_meta_data | action_non_disruptive;
+action:
+	action_meta_data
+	| action_non_disruptive
+	| action_disruptive;
 
 action_meta_data:
 	action_meta_data_id
@@ -192,6 +195,20 @@ action_non_disruptive_no_audit_log: Noauditlog;
 action_non_disruptive_no_log: Nolog;
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
+
+action_disruptive:
+	action_disruptive_allow
+	| action_disruptive_block
+	| action_disruptive_deny
+	| action_disruptive_drop
+	| action_disruptive_pass
+	| action_disruptive_redirect;
+action_disruptive_allow: Allow;
+action_disruptive_block: Block;
+action_disruptive_deny: Deny;
+action_disruptive_drop: Drop;
+action_disruptive_pass: Pass;
+action_disruptive_redirect: Redirect COLON STRING;
 
 audit_log_config:
 	sec_audit_engine

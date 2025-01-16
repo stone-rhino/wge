@@ -56,6 +56,7 @@ public:
       Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
 
   // Action Group: Meta-data
+public:
   std::any
   visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) override;
   std::any visitAction_meta_data_phase(
@@ -76,6 +77,7 @@ public:
       Antlr4Gen::SecLangParser::Action_meta_data_maturityContext* ctx) override;
 
   // Action Group: Non-disruptive
+public:
   // setvar
   std::any visitAction_non_disruptive_setvar_create(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) override;
@@ -138,6 +140,21 @@ public:
       Antlr4Gen::SecLangParser::Action_non_disruptive_captureContext* ctx) override;
   std::any visitAction_non_disruptive_multi_match(
       Antlr4Gen::SecLangParser::Action_non_disruptive_multi_matchContext* ctx) override;
+
+  // Action Group: Disruptive
+public:
+  std::any visitAction_disruptive_allow(
+      Antlr4Gen::SecLangParser::Action_disruptive_allowContext* ctx) override;
+  std::any visitAction_disruptive_block(
+      Antlr4Gen::SecLangParser::Action_disruptive_blockContext* ctx) override;
+  std::any visitAction_disruptive_deny(
+      Antlr4Gen::SecLangParser::Action_disruptive_denyContext* ctx) override;
+  std::any visitAction_disruptive_drop(
+      Antlr4Gen::SecLangParser::Action_disruptive_dropContext* ctx) override;
+  std::any visitAction_disruptive_pass(
+      Antlr4Gen::SecLangParser::Action_disruptive_passContext* ctx) override;
+  std::any visitAction_disruptive_redirect(
+      Antlr4Gen::SecLangParser::Action_disruptive_redirectContext* ctx) override;
 
   // Audit log configurations
 public:

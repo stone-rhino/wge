@@ -347,7 +347,7 @@ Noauditlog: 'noauditlog';
 Nolog: 'nolog';
 Pass: 'pass';
 Phase: 'phase';
-Redirect: 'redirect';
+Redirect: 'redirect' -> pushMode(ModeSecRuleActionRedirect);
 Rev: 'rev';
 Severity: 'severity';
 SeverityEnum:
@@ -437,3 +437,11 @@ ModeSecRuleActionSetUid_SINGLE_QUOTE:
 ModeSecRuleActionSetUid_QUOTE: QUOTE -> type(QUOTE), popMode;
 ModeSecRuleActionSetUid_COMMA: COMMA -> type(COMMA), popMode;
 ModeSecRuleActionSetUid_COLON: COLON -> type(COLON);
+
+mode ModeSecRuleActionRedirect;
+ModeSecRuleActionRedirect_COLON:
+	COLON -> type(COLON), popMode, pushMode(ModeSecRuleActionRedirectValue);
+
+mode ModeSecRuleActionRedirectValue;
+ModeSecRuleActionRedirect_STRING:
+	~[,]+ -> type(STRING), popMode;

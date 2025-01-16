@@ -472,6 +472,43 @@ std::any Visitor::visitAction_non_disruptive_multi_match(
   return "";
 }
 
+std::any Visitor::visitAction_disruptive_allow(
+    Antlr4Gen::SecLangParser::Action_disruptive_allowContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW);
+  return "";
+}
+
+std::any Visitor::visitAction_disruptive_block(
+    Antlr4Gen::SecLangParser::Action_disruptive_blockContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::BLOCK);
+  return "";
+}
+
+std::any
+Visitor::visitAction_disruptive_deny(Antlr4Gen::SecLangParser::Action_disruptive_denyContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::DENY);
+  return "";
+}
+
+std::any
+Visitor::visitAction_disruptive_drop(Antlr4Gen::SecLangParser::Action_disruptive_dropContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::DROP);
+  return "";
+}
+
+std::any
+Visitor::visitAction_disruptive_pass(Antlr4Gen::SecLangParser::Action_disruptive_passContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::PASS);
+  return "";
+}
+
+std::any Visitor::visitAction_disruptive_redirect(
+    Antlr4Gen::SecLangParser::Action_disruptive_redirectContext* ctx) {
+  (*current_rule_iter_)->disruptive(Rule::Disruptive::REDIRECT);
+  (*current_rule_iter_)->redirect(ctx->STRING()->getText());
+  return "";
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

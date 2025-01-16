@@ -86,6 +86,13 @@ public:
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
 
+  // Action Group: Disruptive
+public:
+  Disruptive disruptive() const { return disruptive_; }
+  void disruptive(Disruptive value) { disruptive_ = value; }
+  const std::string& redirect() { return redirect_; }
+  void redirect(std::string&& value) { redirect_ = std::move(value); }
+
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   void removeVariable(const std::string& full_name);
@@ -175,7 +182,7 @@ private:
 
   // Action Group: Disruptive
 private:
-  Disruptive disruptive_;
+  Disruptive disruptive_{Disruptive::ALLOW};
 
   // Intercepts transaction by issuing an external (client-visible) redirection to the given
   // location.
