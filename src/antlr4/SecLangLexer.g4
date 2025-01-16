@@ -2,24 +2,38 @@ lexer grammar SecLangLexer;
 
 tokens{
 	QUOTE,
+	SINGLE_QUOTE,
 	COMMA,
 	NOT,
-	STRING,
-	OPTION,
-	INT,
-	PIPE,
+	DOT,
 	COLON,
+	LEFT_BRACKET,
+	RIGHT_BRACKET,
+	PER_CENT,
+	PIPE,
+	INT,
+	OPTION,
+	STRING,
 	VAR_COUNT,
 	VAR_MAIN_NAME
 }
 
-WS: [ \t\r\n]+ -> skip;
-COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
 QUOTE: '"';
+SINGLE_QUOTE: '\'';
+COMMA: ',';
 NOT: '!';
+DOT: '.';
+COLON: ':';
+LEFT_BRACKET: '{';
+RIGHT_BRACKET: '}';
+PER_CENT: '%';
+PIPE: '|';
+
 INT_RANGE: INT '-' INT;
 INT: [0-9]+;
 OPTION: ('On' | 'Off');
+COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
+WS: [ \t\r\n]+ -> skip;
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction';
@@ -214,11 +228,11 @@ ModeRuleUpdateActionById_INT:
 
 mode ModeRuleUpdateTarget;
 ModeRuleUpdateTarget_WS: WS -> skip;
-ModeRuleUpdateTarget_QUOTE: '"' -> type(QUOTE);
-ModeRuleUpdateTarget_PIPE: '|' -> type(PIPE);
-ModeRuleUpdateTarget_COLON: ':' -> type(COLON);
+ModeRuleUpdateTarget_QUOTE: QUOTE -> type(QUOTE);
+ModeRuleUpdateTarget_PIPE: PIPE -> type(PIPE);
+ModeRuleUpdateTarget_COLON: COLON -> type(COLON);
 ModeRuleUpdateTarget_VAR_COUNT: '&' -> type(VAR_COUNT);
-ModeRuleUpdateTarget_VAR_NOT: '!' -> type(NOT);
+ModeRuleUpdateTarget_VAR_NOT: NOT -> type(NOT);
 ModeRuleUpdateTarget_INT: [0-9]+ -> type(INT);
 ModeRuleUpdateTarget_VAR_MAIN_NAME:
 	VAR_MAIN_NAME -> type(VAR_MAIN_NAME);
@@ -242,10 +256,10 @@ ModeSecRuleVariable_WS:
 mode ModeSecRuleVariableName;
 ModeSecRuleVariableName_WS:
 	[ \t] -> skip, popMode, pushMode(ModeSecRuleOperator);
-ModeSecRuleVariableName_PIPE: '|' -> type(PIPE);
-ModeSecRuleVariableName_COLON: ':' -> type(COLON);
+ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
+ModeSecRuleVariableName_COLON: COLON -> type(COLON);
 ModeSecRuleVariableName_VAR_COUNT: '&' -> type(VAR_COUNT);
-ModeSecRuleVariableName_VAR_NOT: '!' -> type(NOT);
+ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
 ModeSecRuleVariableName_VAR_MAIN_NAME:
 	VAR_MAIN_NAME -> type(VAR_MAIN_NAME);
 ModeSecRuleVariableName_VAR_SUB_NAME:
@@ -303,10 +317,11 @@ OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMod
 
 mode ModeSecRuleAction;
 ModeSecRuleAction_WS: [ \t]+ -> skip;
-ModeSecRuleAction_QUOTE: '"' -> type(QUOTE);
-ModeSecRuleAction_COLON: ':' -> type(COLON);
-ModeSecRuleAction_COMMA: ',' -> type(COMMA);
-SINGLE_QUOTE: '\'';
+ModeSecRuleAction_QUOTE: QUOTE -> type(QUOTE);
+ModeSecRuleAction_COLON: COLON -> type(COLON);
+ModeSecRuleAction_COMMA: COMMA -> type(COMMA);
+ModeSecRuleAction_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
 ModeSecRuleAction_INT: INT -> type(INT);
 LEVEL: [1-9];
 ModeSecRuleAction_EOF: ('\r'? ('\n' | EOF)) -> skip, popMode;
@@ -344,9 +359,9 @@ SeverityEnum:
 	| 'NOTICE'
 	| 'INFO'
 	| 'DEBUG';
-Setuid: 'setuid';
-Setrsc: 'setrsc';
-Setsid: 'setsid';
+Setuid: 'setuid' -> pushMode(ModeSecRuleActionSetUid);
+Setrsc: 'setrsc' -> pushMode(ModeSecRuleActionSetUid);
+Setsid: 'setsid' -> pushMode(ModeSecRuleActionSetUid);
 Setenv:
 	'setenv' -> pushMode(ModeSecRuleActionSetVar), pushMode(ModeSecRuleActionSetVarName);
 Setvar: 'setvar' -> pushMode(ModeSecRuleActionSetVar);
@@ -357,15 +372,39 @@ T: 't';
 Tag: 'tag';
 Ver: 'ver';
 Xmlns: 'xmlns';
-ACTION_VALUE: ~[ :",'\n]+ -> type(STRING);
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: [ \t]+ -> skip;
-ModeSecRuleActionSetVar_QUOTE: '"' -> type(QUOTE), popMode;
-ModeSecRuleActionSetVar_COMMA: ',' -> type(COMMA), popMode;
-ModeSecRuleActionSetVar_COLON: ':' -> type(COLON);
+ModeSecRuleActionSetVar_QUOTE: QUOTE -> type(QUOTE), popMode;
+ModeSecRuleActionSetVar_COMMA: COMMA -> type(COMMA), popMode;
+ModeSecRuleActionSetVar_COLON: COLON -> type(COLON);
+ModeSecRuleActionSetVar_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
 TX: ('t' | 'T') ('x' | 'X');
-DOT: '.' -> pushMode(ModeSecRuleActionSetVarName);
+ModeSecRuleActionSetVar_DOT:
+	DOT -> type(DOT), pushMode(ModeSecRuleActionSetVarName);
+ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
+ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
+
+mode ModeSecRuleActionSetVarName;
+ModeSecRuleActionSetVarName_COLON: COLON -> type(COLON);
+VAR_NAME: [0-9a-zA-Z_]+ -> popMode;
+
+mode ModeSecRuleActionSetVarValue;
+PLUS: '+';
+MINUS: '-';
+ModeSecRuleActionSetVarValue_PER_CENT:
+	PER_CENT -> type(PER_CENT), popMode, pushMode(ModeSecRuleActionMacroExpansion);
+VAR_VALUE: ~[ +\-:",%{}=\n]+ -> popMode;
+
+mode ModeSecRuleActionMacroExpansion;
+ModeSecRuleActionSetVar_LEFT_BRACKET:
+	LEFT_BRACKET -> type(LEFT_BRACKET);
+ModeSecRuleActionSetVar_RIGHT_BRACKET:
+	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
+TX2: ('t' | 'T') ('x' | 'X');
+ModeSecRuleActionMacroExpansion_DOT:
+	DOT -> type(DOT), pushMode(ModeSecRuleActionMacroExpansionString);
 REMOTE_ADDR: ('REMOTE_ADDR' | 'remote_addr');
 USERID: ('USERID' | 'userid');
 HIGHEST_SEVERITY: ('HIGHEST_SEVERITY' | 'highest_severity');
@@ -375,20 +414,26 @@ MULTIPART_STRICT_ERROR: (
 		'MULTIPART_STRICT_ERROR'
 		| 'multipart_strict_error'
 	);
-RULE: ('r' | 'R') ('u' | 'U') ('l' | 'L') ('e' | 'E') '.' -> popMode, pushMode(
-		ModeSecRuleActionSetVarValue);
+RULE: ('r' | 'R') ('u' | 'U') ('l' | 'L') ('e' | 'E');
 SESSION: ('SESSION' | 'session');
-ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
-ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
-LEFT_BRACKET: '{';
-RIGHT_BRACKET: '}';
 
-mode ModeSecRuleActionSetVarName;
-ModeSecRuleActionSetVarName_COLON: ':' -> type(COLON);
-VAR_NAME: [a-zA-Z_] [0-9a-zA-Z_]* -> popMode;
+mode ModeSecRuleActionMacroExpansionString;
+ModeSecRuleActionMacroExpansionString_STRING:
+	[0-9a-zA-Z_]+ -> type(STRING), popMode;
 
-mode ModeSecRuleActionSetVarValue;
-PLUS: '+';
-MINUS: '-';
-PER_CENT: '%' -> popMode;
-VAR_VALUE: ~[ +\-:",%{}=\n]+ -> popMode;
+mode ModeSecRuleActionString;
+ModeSecRuleActionSetVarString_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+ModeSecRuleActionSetVarString_STRING: (('\\\'') | ~([' ])) (
+		('\\\'')
+		| ~('\'')
+	)* -> type(STRING);
+
+mode ModeSecRuleActionSetUid;
+ModeSecRuleActionSetUid_PER_CENT:
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+ModeSecRuleActionSetUid_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
+ModeSecRuleActionSetUid_QUOTE: QUOTE -> type(QUOTE), popMode;
+ModeSecRuleActionSetUid_COMMA: COMMA -> type(COMMA), popMode;
+ModeSecRuleActionSetUid_COLON: COLON -> type(COLON);

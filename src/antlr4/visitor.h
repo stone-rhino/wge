@@ -117,6 +117,15 @@ public:
   std::any visitAction_non_disruptive_setenv(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) override;
 
+  std::any visitAction_non_disruptive_setuid(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setuidContext* ctx) override;
+
+  std::any visitAction_non_disruptive_setrsc(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setrscContext* ctx) override;
+
+  std::any visitAction_non_disruptive_setsid(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setsidContext* ctx) override;
+
   // Audit log configurations
 public:
   std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;

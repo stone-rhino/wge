@@ -6,6 +6,9 @@
 #include <assert.h>
 
 #include "../action/set_env.h"
+#include "../action/set_rsc.h"
+#include "../action/set_sid.h"
+#include "../action/set_uid.h"
 #include "../action/set_var.h"
 #include "../common/try.h"
 #include "../macro/tx.h"
@@ -311,7 +314,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_tx(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_txContext* ctx) {
-  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::Tx>(ctx->VAR_NAME()->getText());
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::Tx>(ctx->STRING()->getText());
   return macro;
 }
 
@@ -371,6 +374,63 @@ std::any Visitor::visitAction_non_disruptive_setenv(
   } else {
     actions.emplace_back(
         std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText()));
+  }
+
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setuid(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setuidContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetUid>(macro));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(std::make_unique<Action::SetUid>(ctx->STRING()->getText()));
+  }
+
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setrsc(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setrscContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetRsc>(macro));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(std::make_unique<Action::SetRsc>(ctx->STRING()->getText()));
+  }
+
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_setsid(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setsidContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+
+  if (ctx->action_non_disruptive_setvar_macro()) {
+    try {
+      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+          visitChildren(ctx->action_non_disruptive_setvar_macro()));
+      actions.emplace_back(std::make_unique<Action::SetSid>(macro));
+    } catch (const std::bad_any_cast& ex) {
+      return ex.what();
+    }
+  } else {
+    actions.emplace_back(std::make_unique<Action::SetSid>(ctx->STRING()->getText()));
   }
 
   return "";
