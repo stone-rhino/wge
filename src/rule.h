@@ -148,8 +148,6 @@ private:
   std::string set_uid_;
   std::string set_rsc_;
   std::string set_sid_;
-  std::string set_env_;
-  // std::vector<std::unique_ptr<Action::SetVar>> set_vars_;
   std::unordered_set<std::string> t_;
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 

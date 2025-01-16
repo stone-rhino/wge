@@ -492,7 +492,7 @@ TEST_F(RuleTest, ActionSetEnv) {
   auto t = engine_.makeTransaction();
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:var1=hello,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:var1=hello,msg:'aaa bbb'")";
     Antlr4::Parser parser;
     std::string error = parser.load(rule_directive);
     ASSERT_TRUE(error.empty());
@@ -500,6 +500,79 @@ TEST_F(RuleTest, ActionSetEnv) {
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     EXPECT_EQ(std::string("hello"), ::getenv("var1"));
+  }
+}
+
+TEST_F(RuleTest, ActionSetRsc) {
+  auto t = engine_.makeTransaction();
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:'this is rsc',msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+
+  }
+
+  // Macro expansion
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:%{tx.0},msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+  }
+}
+
+TEST_F(RuleTest, ActionSetSid) {
+  auto t = engine_.makeTransaction();
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:'this is sid',msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+  }
+
+  // Macro expansion
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:%{tx.0},msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+  }
+}
+
+TEST_F(RuleTest, ActionSetUid) {
+  auto t = engine_.makeTransaction();
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setuid:'this is uid',msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+  }
+
+  // Macro expansion
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:%{tx.0},msg:'aaa'")";
+    Antlr4::Parser parser;
+    std::string error = parser.load(rule_directive);
+    ASSERT_TRUE(error.empty());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
   }
 }
 } // namespace Parser

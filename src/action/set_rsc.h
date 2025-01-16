@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include "action_base.h"
 
 #include "../macro/macro_base.h"
@@ -7,19 +10,18 @@
 namespace SrSecurity {
 namespace Action {
 /**
- * Creates and updates environment variables that can be accessed by both ModSecurity and the web
- * server.
+ * Special-purpose action that initializes the RESOURCE collection using a key provided as
+ * parameter.
  */
-class SetEnv : public ActionBase {
+class SetRsc : public ActionBase {
 public:
-  SetEnv(std::string&& name, std::string&& value);
-  SetEnv(std::string&& name, std::shared_ptr<Macro::MacroBase> macro);
+  SetRsc(std::string&& value);
+  SetRsc(std::shared_ptr<Macro::MacroBase> macro);
 
 public:
   void evaluate(Transaction& t) override;
 
 private:
-  std::string name_;
   std::string value_;
   std::shared_ptr<Macro::MacroBase> macro_;
 };
