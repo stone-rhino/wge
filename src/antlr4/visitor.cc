@@ -5,13 +5,11 @@
 
 #include <assert.h>
 
-#include "../action/set_env.h"
-#include "../action/set_rsc.h"
-#include "../action/set_sid.h"
-#include "../action/set_uid.h"
-#include "../action/set_var.h"
+#include "../action/actions_include.h"
 #include "../common/try.h"
 #include "../macro/tx.h"
+#include "../operator/operator_include.h"
+#include "../variable/variables_include.h"
 
 namespace SrSecurity::Antlr4 {
 
@@ -56,23 +54,12 @@ std::any Visitor::visitSec_xml_external_entity(
 }
 
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
-  // Variables
-  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
+  // Add an empty rule, and sets variable and operators and actions by visitChildren
+  current_rule_iter_ = parser_->secRule();
 
-  // Operator name is default to rx
-  auto op = ctx->operator_();
-  std::string operator_name = "rx";
-  if (op->OPERATOR_NAME()) {
-    operator_name = op->OPERATOR_NAME()->getText();
-  }
-
-  // Add rule whitout actions first, then sets actions of the rule by visit actions
-  action_map_.clear();
-  current_rule_iter_ = parser_->secRule(std::move(variable_attrs), std::move(operator_name),
-                                        op->operator_value()->getText(), std::move(action_map_));
-
-  // Visit actions
+  // Visit variables and operators and actions
   std::string error;
+  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecRule;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
     parser_->removeBackRule();
@@ -148,24 +135,786 @@ std::any Visitor::visitSec_rule_update_action_by_id(
 std::any Visitor::visitSec_rule_update_target_by_id(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_idContext* ctx) {
   uint64_t id = ::atoll(ctx->INT()->getText().c_str());
-  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
-  parser_->secRuleUpdateTargetById(id, std::move(variable_attrs));
+  current_rule_iter_ = parser_->findRuleById(id);
+
+  if (current_rule_iter_ != parser_->rules().end()) {
+    // Visit variables
+    std::string error;
+    visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+    TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+    if (!error.empty()) {
+      return error;
+    }
+  }
+
   return "";
 }
 
 std::any Visitor::visitSec_rule_update_target_by_msg(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
-  std::string msg = ctx->STRING()->getText();
-  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
-  parser_->secRuleUpdateTargetByMsg(msg, std::move(variable_attrs));
+  auto range = parser_->findRuleByMsg(ctx->STRING()->getText());
+  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    current_rule_iter_ = iter->second;
+    // Visit variables
+    std::string error;
+    TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+    if (!error.empty()) {
+      return error;
+    }
+  }
+
   return "";
 }
 
 std::any Visitor::visitSec_rule_update_target_by_tag(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
-  std::string tag = ctx->STRING()->getText();
-  std::vector<Parser::VariableAttr> variable_attrs = getVariableAttr(ctx);
-  parser_->secRuleUpdateTargetByTag(tag, std::move(variable_attrs));
+  auto range = parser_->findRuleByTag(ctx->STRING()->getText());
+  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    current_rule_iter_ = iter->second;
+    // Visit variables
+    std::string error;
+    TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+    if (!error.empty()) {
+      return error;
+    }
+  }
+
+  return "";
+}
+
+std::any Visitor::visitVariable_args(Antlr4Gen::SecLangParser::Variable_argsContext* ctx) {
+  appendVariable<Variable::Args>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_args_combined_size(
+    Antlr4Gen::SecLangParser::Variable_args_combined_sizeContext* ctx) {
+  appendVariable<Variable::ArgsCombinedSize>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_args_get(Antlr4Gen::SecLangParser::Variable_args_getContext* ctx) {
+  appendVariable<Variable::ArgsGet>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_args_get_names(
+    Antlr4Gen::SecLangParser::Variable_args_get_namesContext* ctx) {
+  appendVariable<Variable::ArgsGetNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_args_names(Antlr4Gen::SecLangParser::Variable_args_namesContext* ctx) {
+  appendVariable<Variable::ArgsNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_args_post(Antlr4Gen::SecLangParser::Variable_args_postContext* ctx) {
+  appendVariable<Variable::ArgsPost>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_args_post_names(
+    Antlr4Gen::SecLangParser::Variable_args_post_namesContext* ctx) {
+  appendVariable<Variable::ArgsPostNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_auth_type(Antlr4Gen::SecLangParser::Variable_auth_typeContext* ctx) {
+  appendVariable<Variable::AuthType>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_duration(Antlr4Gen::SecLangParser::Variable_durationContext* ctx) {
+  appendVariable<Variable::Duration>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_env(Antlr4Gen::SecLangParser::Variable_envContext* ctx) {
+  appendVariable<Variable::Env>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_files(Antlr4Gen::SecLangParser::Variable_filesContext* ctx) {
+  appendVariable<Variable::Files>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_files_combined_size(
+    Antlr4Gen::SecLangParser::Variable_files_combined_sizeContext* ctx) {
+  appendVariable<Variable::FilesCombinedSize>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_files_names(Antlr4Gen::SecLangParser::Variable_files_namesContext* ctx) {
+  appendVariable<Variable::FilesNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_full_request(Antlr4Gen::SecLangParser::Variable_full_requestContext* ctx) {
+  appendVariable<Variable::FullRequest>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_full_request_length(
+    Antlr4Gen::SecLangParser::Variable_full_request_lengthContext* ctx) {
+  appendVariable<Variable::FullRequestLength>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_files_sizes(Antlr4Gen::SecLangParser::Variable_files_sizesContext* ctx) {
+  appendVariable<Variable::FilesSizes>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_files_tmpnames(
+    Antlr4Gen::SecLangParser::Variable_files_tmpnamesContext* ctx) {
+  appendVariable<Variable::FilesTmpNames>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_files_tmp_content(
+    Antlr4Gen::SecLangParser::Variable_files_tmp_contentContext* ctx) {
+  appendVariable<Variable::FilesTmpContent>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_geo(Antlr4Gen::SecLangParser::Variable_geoContext* ctx) {
+  appendVariable<Variable::Geo>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_highest_severity(
+    Antlr4Gen::SecLangParser::Variable_highest_severityContext* ctx) {
+  appendVariable<Variable::HighestSeverity>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_inbound_data_error(
+    Antlr4Gen::SecLangParser::Variable_inbound_data_errorContext* ctx) {
+  appendVariable<Variable::InboundDataError>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_matched_var(Antlr4Gen::SecLangParser::Variable_matched_varContext* ctx) {
+  appendVariable<Variable::MatchedVar>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_matched_vars(Antlr4Gen::SecLangParser::Variable_matched_varsContext* ctx) {
+  appendVariable<Variable::MatchedVars>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_matched_var_name(
+    Antlr4Gen::SecLangParser::Variable_matched_var_nameContext* ctx) {
+  appendVariable<Variable::MatchedVarName>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_matched_vars_names(
+    Antlr4Gen::SecLangParser::Variable_matched_vars_namesContext* ctx) {
+  appendVariable<Variable::MatchedVarsNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_modsec_build(Antlr4Gen::SecLangParser::Variable_modsec_buildContext* ctx) {
+  appendVariable<Variable::ModSecBuild>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_msc_pcre_limits_exceeded(
+    Antlr4Gen::SecLangParser::Variable_msc_pcre_limits_exceededContext* ctx) {
+  appendVariable<Variable::MscPcreLimitsExceeded>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_crlf_lf_lines(
+    Antlr4Gen::SecLangParser::Variable_multipart_crlf_lf_linesContext* ctx) {
+  appendVariable<Variable::MultipartCrlfLfLines>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_filename(
+    Antlr4Gen::SecLangParser::Variable_multipart_filenameContext* ctx) {
+  appendVariable<Variable::MultipartFileName>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_name(
+    Antlr4Gen::SecLangParser::Variable_multipart_nameContext* ctx) {
+  appendVariable<Variable::MultipartName>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_part_headers(
+    Antlr4Gen::SecLangParser::Variable_multipart_part_headersContext* ctx) {
+  appendVariable<Variable::MultipartPartHeaders>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_strict_error(
+    Antlr4Gen::SecLangParser::Variable_multipart_strict_errorContext* ctx) {
+  appendVariable<Variable::MultipartStrictError>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_multipart_unmatched_boundary(
+    Antlr4Gen::SecLangParser::Variable_multipart_unmatched_boundaryContext* ctx) {
+  appendVariable<Variable::MultipartUnmatchedBoundary>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_outbound_data_error(
+    Antlr4Gen::SecLangParser::Variable_outbound_data_errorContext* ctx) {
+  appendVariable<Variable::OutboundDataError>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_path_info(Antlr4Gen::SecLangParser::Variable_path_infoContext* ctx) {
+  appendVariable<Variable::PathInfo>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_query_string(Antlr4Gen::SecLangParser::Variable_query_stringContext* ctx) {
+  appendVariable<Variable::QueryString>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_remote_addr(Antlr4Gen::SecLangParser::Variable_remote_addrContext* ctx) {
+  appendVariable<Variable::RemoteAddr>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_remote_host(Antlr4Gen::SecLangParser::Variable_remote_hostContext* ctx) {
+  appendVariable<Variable::RemoteHost>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_remote_port(Antlr4Gen::SecLangParser::Variable_remote_portContext* ctx) {
+  appendVariable<Variable::RemotePort>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_remote_user(Antlr4Gen::SecLangParser::Variable_remote_userContext* ctx) {
+  appendVariable<Variable::RemoteUser>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_reqbody_error(Antlr4Gen::SecLangParser::Variable_reqbody_errorContext* ctx) {
+  appendVariable<Variable::ReqBodyProcessor>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_reqbody_error_msg(
+    Antlr4Gen::SecLangParser::Variable_reqbody_error_msgContext* ctx) {
+  appendVariable<Variable::ReqBodyErrorMsg>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_reqbody_processor(
+    Antlr4Gen::SecLangParser::Variable_reqbody_processorContext* ctx) {
+  appendVariable<Variable::ReqBodyProcessor>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_basename(
+    Antlr4Gen::SecLangParser::Variable_request_basenameContext* ctx) {
+  appendVariable<Variable::RequestBaseName>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_request_body(Antlr4Gen::SecLangParser::Variable_request_bodyContext* ctx) {
+  appendVariable<Variable::RequestBody>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_body_length(
+    Antlr4Gen::SecLangParser::Variable_request_body_lengthContext* ctx) {
+  appendVariable<Variable::RequestBodyLength>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_cookies(
+    Antlr4Gen::SecLangParser::Variable_request_cookiesContext* ctx) {
+  appendVariable<Variable::RequestCookies>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_cookies_names(
+    Antlr4Gen::SecLangParser::Variable_request_cookies_namesContext* ctx) {
+  appendVariable<Variable::RequestCookiesNames>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_filename(
+    Antlr4Gen::SecLangParser::Variable_request_filenameContext* ctx) {
+  appendVariable<Variable::RequestFileName>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_headers(
+    Antlr4Gen::SecLangParser::Variable_request_headersContext* ctx) {
+  appendVariable<Variable::RequestHeaders>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_headers_names(
+    Antlr4Gen::SecLangParser::Variable_request_headers_namesContext* ctx) {
+  appendVariable<Variable::RequestHeadersNames>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_request_line(Antlr4Gen::SecLangParser::Variable_request_lineContext* ctx) {
+  appendVariable<Variable::RequestLine>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_method(
+    Antlr4Gen::SecLangParser::Variable_request_methodContext* ctx) {
+  appendVariable<Variable::RequestMothod>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_protocol(
+    Antlr4Gen::SecLangParser::Variable_request_protocolContext* ctx) {
+  appendVariable<Variable::RequestProtocol>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_request_uri(Antlr4Gen::SecLangParser::Variable_request_uriContext* ctx) {
+  appendVariable<Variable::RequestUri>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_request_uri_raw(
+    Antlr4Gen::SecLangParser::Variable_request_uri_rawContext* ctx) {
+  appendVariable<Variable::RequestUriRaw>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_response_body(Antlr4Gen::SecLangParser::Variable_response_bodyContext* ctx) {
+  appendVariable<Variable::RequestBody>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_content_length(
+    Antlr4Gen::SecLangParser::Variable_response_content_lengthContext* ctx) {
+  appendVariable<Variable::ResponseContentLength>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_content_type(
+    Antlr4Gen::SecLangParser::Variable_response_content_typeContext* ctx) {
+  appendVariable<Variable::ResponseContentType>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_headers(
+    Antlr4Gen::SecLangParser::Variable_response_headersContext* ctx) {
+  appendVariable<Variable::RequestHeaders>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_headers_names(
+    Antlr4Gen::SecLangParser::Variable_response_headers_namesContext* ctx) {
+  appendVariable<Variable::ResponseHeadersNames>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_protocol(
+    Antlr4Gen::SecLangParser::Variable_response_protocolContext* ctx) {
+  appendVariable<Variable::ResponseProtocol>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_response_status(
+    Antlr4Gen::SecLangParser::Variable_response_statusContext* ctx) {
+  appendVariable<Variable::ResponseStatus>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_rule(Antlr4Gen::SecLangParser::Variable_ruleContext* ctx) {
+  appendVariable<Variable::Rule>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_server_addr(Antlr4Gen::SecLangParser::Variable_server_addrContext* ctx) {
+  appendVariable<Variable::ServerAddr>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_server_name(Antlr4Gen::SecLangParser::Variable_server_nameContext* ctx) {
+  appendVariable<Variable::ServerName>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_server_port(Antlr4Gen::SecLangParser::Variable_server_portContext* ctx) {
+  appendVariable<Variable::ServerPort>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_session(Antlr4Gen::SecLangParser::Variable_sessionContext* ctx) {
+  appendVariable<Variable::Session>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_sessionid(Antlr4Gen::SecLangParser::Variable_sessionidContext* ctx) {
+  appendVariable<Variable::SessionId>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_status_line(Antlr4Gen::SecLangParser::Variable_status_lineContext* ctx) {
+  appendVariable<Variable::StatusLine>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_time(Antlr4Gen::SecLangParser::Variable_timeContext* ctx) {
+  appendVariable<Variable::Time>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_time_day(Antlr4Gen::SecLangParser::Variable_time_dayContext* ctx) {
+  appendVariable<Variable::TimeDay>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_time_epoch(Antlr4Gen::SecLangParser::Variable_time_epochContext* ctx) {
+  appendVariable<Variable::TimeEpoch>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_time_hour(Antlr4Gen::SecLangParser::Variable_time_hourContext* ctx) {
+  appendVariable<Variable::TimeHour>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_time_min(Antlr4Gen::SecLangParser::Variable_time_minContext* ctx) {
+  appendVariable<Variable::TimeMin>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_time_mon(Antlr4Gen::SecLangParser::Variable_time_monContext* ctx) {
+  appendVariable<Variable::TimeMon>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_time_sec(Antlr4Gen::SecLangParser::Variable_time_secContext* ctx) {
+  appendVariable<Variable::TimeSec>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_time_wday(Antlr4Gen::SecLangParser::Variable_time_wdayContext* ctx) {
+  appendVariable<Variable::TimeWDay>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_time_year(Antlr4Gen::SecLangParser::Variable_time_yearContext* ctx) {
+  appendVariable<Variable::TimeYear>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_tx(Antlr4Gen::SecLangParser::Variable_txContext* ctx) {
+  appendVariable<Variable::Tx>(ctx);
+  return "";
+};
+
+std::any
+Visitor::visitVariable_unique_id(Antlr4Gen::SecLangParser::Variable_unique_idContext* ctx) {
+  appendVariable<Variable::UniqueId>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_urlencoded_error(
+    Antlr4Gen::SecLangParser::Variable_urlencoded_errorContext* ctx) {
+  appendVariable<Variable::UrlenCodedError>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_userid(Antlr4Gen::SecLangParser::Variable_useridContext* ctx) {
+  appendVariable<Variable::UserId>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_webappid(Antlr4Gen::SecLangParser::Variable_webappidContext* ctx) {
+  appendVariable<Variable::WebAppId>(ctx);
+  return "";
+};
+
+std::any Visitor::visitVariable_xml(Antlr4Gen::SecLangParser::Variable_xmlContext* ctx) {
+  appendVariable<Variable::Xml>(ctx);
+  return "";
+};
+
+std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::BeginsWith(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_contains(Antlr4Gen::SecLangParser::Op_containsContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Contains(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_contains_word(Antlr4Gen::SecLangParser::Op_contains_wordContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::ContainsWord(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_detect_sqli(Antlr4Gen::SecLangParser::Op_detect_sqliContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::DetectSqli(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_detect_xss(Antlr4Gen::SecLangParser::Op_detect_xssContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::DetectXSS(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_ends_with(Antlr4Gen::SecLangParser::Op_ends_withContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::EndsWith(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_fuzzy_hash(Antlr4Gen::SecLangParser::Op_fuzzy_hashContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::FuzzyHash(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_eq(Antlr4Gen::SecLangParser::Op_eqContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Eq(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_ge(Antlr4Gen::SecLangParser::Op_geContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Ge(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_geo_lookup(Antlr4Gen::SecLangParser::Op_geo_lookupContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::GeoLookup(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_gt(Antlr4Gen::SecLangParser::Op_gtContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Gt(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_inspect_file(Antlr4Gen::SecLangParser::Op_inspect_fileContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::InspectFile(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_ip_match(Antlr4Gen::SecLangParser::Op_ip_matchContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::IpMatch(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_ip_match_f(Antlr4Gen::SecLangParser::Op_ip_match_fContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::IpMatchFromFile(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any
+Visitor::visitOp_ip_match_from_file(Antlr4Gen::SecLangParser::Op_ip_match_from_fileContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::IpMatchFromFile(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_le(Antlr4Gen::SecLangParser::Op_leContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Le(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_lt(Antlr4Gen::SecLangParser::Op_ltContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Lt(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_no_match(Antlr4Gen::SecLangParser::Op_no_matchContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::NoMatch(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_pm(Antlr4Gen::SecLangParser::Op_pmContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Pm(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_pmf(Antlr4Gen::SecLangParser::Op_pmfContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::PmFromFile(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_pm_from_file(Antlr4Gen::SecLangParser::Op_pm_from_fileContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::PmFromFile(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_rbl(Antlr4Gen::SecLangParser::Op_rblContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Rbl(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_rsub(Antlr4Gen::SecLangParser::Op_rsubContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Rsub(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_rx(Antlr4Gen::SecLangParser::Op_rxContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Rx(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_rx_global(Antlr4Gen::SecLangParser::Op_rx_globalContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::RxGlobal(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_streq(Antlr4Gen::SecLangParser::Op_streqContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Streq(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_strmatch(Antlr4Gen::SecLangParser::Op_strmatchContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Strmatch(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any
+Visitor::visitOp_unconditional_match(Antlr4Gen::SecLangParser::Op_unconditional_matchContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::UnconditionalMatch(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any
+Visitor::visitOp_validate_byte_range(Antlr4Gen::SecLangParser::Op_validate_byte_rangeContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::ValidateByteRange(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_validate_dtd(Antlr4Gen::SecLangParser::Op_validate_dtdContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::ValidateDTD(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any
+Visitor::visitOp_validate_schema(Antlr4Gen::SecLangParser::Op_validate_schemaContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::ValidateSchema(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_validate_url_encoding(
+    Antlr4Gen::SecLangParser::Op_validate_url_encodingContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::ValidateUrlEncoding(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_validate_utf8_encoding(
+    Antlr4Gen::SecLangParser::Op_validate_utf8_encodingContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(
+      new Operator::ValidateUtf8Encoding(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_verify_cc(Antlr4Gen::SecLangParser::Op_verify_ccContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::VerifyCC(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_verify_cpf(Antlr4Gen::SecLangParser::Op_verify_cpfContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::VerifyCPF(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_verify_ssn(Antlr4Gen::SecLangParser::Op_verify_ssnContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::VerifySSN(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Within(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return "";
+}
+
+std::any Visitor::visitOp_rx2(Antlr4Gen::SecLangParser::Op_rx2Context* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op(new Operator::Rx(ctx->STRING()->getText()));
+  (*current_rule_iter_)->setOperator(std::move(op));
   return "";
 }
 

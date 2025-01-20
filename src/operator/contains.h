@@ -7,9 +7,10 @@
 namespace SrSecurity {
 namespace Operator {
 class Contains : public OperatorBase {
+  DECLARE_OPERATOR_NAME(contains);
+
 public:
-  Contains(std::string&& operator_name, std::string&& operator_value)
-      : OperatorBase(std::move(operator_name), std::move(operator_value)) {}
+  Contains(std::string&& operator_value) : OperatorBase(std::move(operator_value)) {}
 
 public:
   void preCompile() override { regex_expr_ = ".*" + Util::regexEscape(operator_value_) + ".*"; }

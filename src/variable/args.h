@@ -10,9 +10,11 @@
 namespace SrSecurity {
 namespace Variable {
 class Args : public VariableBase {
+  DECLARE_VIRABLE_NAME(ARGS);
+
 public:
-  Args(std::string&& full_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(full_name), is_not, is_counter) {}
+  Args(std::string&& sub_name, bool is_not, bool is_counter)
+      : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
   void preCompile() override {

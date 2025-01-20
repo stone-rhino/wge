@@ -7,16 +7,16 @@ namespace SrSecurity {
 bool Rule::evaluate(const HttpExtractor& extractor) const { return false; }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
-  const std::string& name = var->fullName();
-  auto iter = variables_index_by_full_name_.find(name);
+  auto full_name = var->fullName();
+  auto iter = variables_index_by_full_name_.find(full_name);
   if (iter == variables_index_by_full_name_.end()) {
     var->preCompile();
     variables_pool_.emplace_back(std::move(var));
-    variables_index_by_full_name_.insert({name, *variables_pool_.back()});
+    variables_index_by_full_name_.insert({full_name, *variables_pool_.back()});
   }
 }
 
-void Rule::removeVariable(const std::string& full_name) {
+void Rule::removeVariable(const Variable::VariableBase::FullName& full_name) {
   auto iter = variables_index_by_full_name_.find(full_name);
   if (iter != variables_index_by_full_name_.end()) {
     variables_index_by_full_name_.erase(iter);

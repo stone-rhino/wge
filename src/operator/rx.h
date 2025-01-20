@@ -7,9 +7,10 @@
 namespace SrSecurity {
 namespace Operator {
 class Rx : public OperatorBase {
+  DECLARE_OPERATOR_NAME(rx);
+
 public:
-  Rx(std::string&& operator_name, std::string&& operator_value)
-      : OperatorBase(std::move(operator_name), std::move(operator_value)) {}
+  Rx(std::string&& operator_value) : OperatorBase(std::move(operator_value)) {}
 
 public:
   void preCompile() override { regex_expr_ = operator_value_; }
