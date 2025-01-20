@@ -226,8 +226,6 @@ private:
   AuditLogConfig audit_log_config_;
 
 private:
-  static std::unordered_map<std::string, std::function<void(Parser&, const std::string&)>>
-      engine_config_factory_;
   static std::unordered_map<std::string, Rule::Severity> serverity_factory_;
 };
 } // namespace SrSecurity::Antlr4

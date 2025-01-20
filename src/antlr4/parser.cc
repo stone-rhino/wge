@@ -17,11 +17,13 @@
 #include "../variable/args_get.h"
 #include "../variable/args_post.h"
 
-// I don't know why vscode intelli sense was too slowly when placed the code at here, so put them
-// into the file.
-#include "parser.inl"
-
 namespace SrSecurity::Antlr4 {
+std::unordered_map<std::string, Rule::Severity> Parser::serverity_factory_ = {
+    {"EMERGENCY", Rule::Severity::EMERGENCY}, {"ALERT", Rule::Severity::ALERT},
+    {"CRITICAL", Rule::Severity::CRITICAL},   {"ERROR", Rule::Severity::ERROR},
+    {"WARNING", Rule::Severity::WARNING},     {"NOTICE", Rule::Severity::NOTICE},
+    {"INFO", Rule::Severity::INFO},           {"DEBUG", Rule::Severity::DEBUG},
+};
 
 class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
