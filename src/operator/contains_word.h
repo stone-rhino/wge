@@ -7,9 +7,10 @@
 namespace SrSecurity {
 namespace Operator {
 class ContainsWord : public OperatorBase {
+  DECLARE_OPERATOR_NAME(containsWord);
+
 public:
-  ContainsWord(std::string&& operator_name, std::string&& operator_value)
-      : OperatorBase(std::move(operator_name), std::move(operator_value)) {}
+  ContainsWord(std::string&& operator_value) : OperatorBase(std::move(operator_value)) {}
 
 public:
   void preCompile() override {

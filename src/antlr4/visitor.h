@@ -55,6 +55,329 @@ public:
   std::any visitSec_rule_update_target_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
 
+  // SecRule variables
+public:
+  std::any visitVariable_args(Antlr4Gen::SecLangParser::Variable_argsContext* ctx) override;
+
+  std::any visitVariable_args_combined_size(
+      Antlr4Gen::SecLangParser::Variable_args_combined_sizeContext* ctx) override;
+
+  std::any visitVariable_args_get(Antlr4Gen::SecLangParser::Variable_args_getContext* ctx) override;
+
+  std::any visitVariable_args_get_names(
+      Antlr4Gen::SecLangParser::Variable_args_get_namesContext* ctx) override;
+
+  std::any
+  visitVariable_args_names(Antlr4Gen::SecLangParser::Variable_args_namesContext* ctx) override;
+
+  std::any
+  visitVariable_args_post(Antlr4Gen::SecLangParser::Variable_args_postContext* ctx) override;
+
+  std::any visitVariable_args_post_names(
+      Antlr4Gen::SecLangParser::Variable_args_post_namesContext* ctx) override;
+
+  std::any
+  visitVariable_auth_type(Antlr4Gen::SecLangParser::Variable_auth_typeContext* ctx) override;
+
+  std::any visitVariable_duration(Antlr4Gen::SecLangParser::Variable_durationContext* ctx) override;
+
+  std::any visitVariable_env(Antlr4Gen::SecLangParser::Variable_envContext* ctx) override;
+
+  std::any visitVariable_files(Antlr4Gen::SecLangParser::Variable_filesContext* ctx) override;
+
+  std::any visitVariable_files_combined_size(
+      Antlr4Gen::SecLangParser::Variable_files_combined_sizeContext* ctx) override;
+
+  std::any
+  visitVariable_files_names(Antlr4Gen::SecLangParser::Variable_files_namesContext* ctx) override;
+
+  std::any
+  visitVariable_full_request(Antlr4Gen::SecLangParser::Variable_full_requestContext* ctx) override;
+
+  std::any visitVariable_full_request_length(
+      Antlr4Gen::SecLangParser::Variable_full_request_lengthContext* ctx) override;
+
+  std::any
+  visitVariable_files_sizes(Antlr4Gen::SecLangParser::Variable_files_sizesContext* ctx) override;
+
+  std::any visitVariable_files_tmpnames(
+      Antlr4Gen::SecLangParser::Variable_files_tmpnamesContext* ctx) override;
+
+  std::any visitVariable_files_tmp_content(
+      Antlr4Gen::SecLangParser::Variable_files_tmp_contentContext* ctx) override;
+
+  std::any visitVariable_geo(Antlr4Gen::SecLangParser::Variable_geoContext* ctx) override;
+
+  std::any visitVariable_highest_severity(
+      Antlr4Gen::SecLangParser::Variable_highest_severityContext* ctx) override;
+
+  std::any visitVariable_inbound_data_error(
+      Antlr4Gen::SecLangParser::Variable_inbound_data_errorContext* ctx) override;
+
+  std::any
+  visitVariable_matched_var(Antlr4Gen::SecLangParser::Variable_matched_varContext* ctx) override;
+
+  std::any
+  visitVariable_matched_vars(Antlr4Gen::SecLangParser::Variable_matched_varsContext* ctx) override;
+
+  std::any visitVariable_matched_var_name(
+      Antlr4Gen::SecLangParser::Variable_matched_var_nameContext* ctx) override;
+
+  std::any visitVariable_matched_vars_names(
+      Antlr4Gen::SecLangParser::Variable_matched_vars_namesContext* ctx) override;
+
+  std::any
+  visitVariable_modsec_build(Antlr4Gen::SecLangParser::Variable_modsec_buildContext* ctx) override;
+
+  std::any visitVariable_msc_pcre_limits_exceeded(
+      Antlr4Gen::SecLangParser::Variable_msc_pcre_limits_exceededContext* ctx) override;
+
+  std::any visitVariable_multipart_crlf_lf_lines(
+      Antlr4Gen::SecLangParser::Variable_multipart_crlf_lf_linesContext* ctx) override;
+
+  std::any visitVariable_multipart_filename(
+      Antlr4Gen::SecLangParser::Variable_multipart_filenameContext* ctx) override;
+
+  std::any visitVariable_multipart_name(
+      Antlr4Gen::SecLangParser::Variable_multipart_nameContext* ctx) override;
+
+  std::any visitVariable_multipart_part_headers(
+      Antlr4Gen::SecLangParser::Variable_multipart_part_headersContext* ctx) override;
+
+  std::any visitVariable_multipart_strict_error(
+      Antlr4Gen::SecLangParser::Variable_multipart_strict_errorContext* ctx) override;
+
+  std::any visitVariable_multipart_unmatched_boundary(
+      Antlr4Gen::SecLangParser::Variable_multipart_unmatched_boundaryContext* ctx) override;
+
+  std::any visitVariable_outbound_data_error(
+      Antlr4Gen::SecLangParser::Variable_outbound_data_errorContext* ctx) override;
+
+  std::any
+  visitVariable_path_info(Antlr4Gen::SecLangParser::Variable_path_infoContext* ctx) override;
+
+  std::any
+  visitVariable_query_string(Antlr4Gen::SecLangParser::Variable_query_stringContext* ctx) override;
+
+  std::any
+  visitVariable_remote_addr(Antlr4Gen::SecLangParser::Variable_remote_addrContext* ctx) override;
+
+  std::any
+  visitVariable_remote_host(Antlr4Gen::SecLangParser::Variable_remote_hostContext* ctx) override;
+
+  std::any
+  visitVariable_remote_port(Antlr4Gen::SecLangParser::Variable_remote_portContext* ctx) override;
+
+  std::any
+  visitVariable_remote_user(Antlr4Gen::SecLangParser::Variable_remote_userContext* ctx) override;
+
+  std::any visitVariable_reqbody_error(
+      Antlr4Gen::SecLangParser::Variable_reqbody_errorContext* ctx) override;
+
+  std::any visitVariable_reqbody_error_msg(
+      Antlr4Gen::SecLangParser::Variable_reqbody_error_msgContext* ctx) override;
+
+  std::any visitVariable_reqbody_processor(
+      Antlr4Gen::SecLangParser::Variable_reqbody_processorContext* ctx) override;
+
+  std::any visitVariable_request_basename(
+      Antlr4Gen::SecLangParser::Variable_request_basenameContext* ctx) override;
+
+  std::any
+  visitVariable_request_body(Antlr4Gen::SecLangParser::Variable_request_bodyContext* ctx) override;
+
+  std::any visitVariable_request_body_length(
+      Antlr4Gen::SecLangParser::Variable_request_body_lengthContext* ctx) override;
+
+  std::any visitVariable_request_cookies(
+      Antlr4Gen::SecLangParser::Variable_request_cookiesContext* ctx) override;
+
+  std::any visitVariable_request_cookies_names(
+      Antlr4Gen::SecLangParser::Variable_request_cookies_namesContext* ctx) override;
+
+  std::any visitVariable_request_filename(
+      Antlr4Gen::SecLangParser::Variable_request_filenameContext* ctx) override;
+
+  std::any visitVariable_request_headers(
+      Antlr4Gen::SecLangParser::Variable_request_headersContext* ctx) override;
+
+  std::any visitVariable_request_headers_names(
+      Antlr4Gen::SecLangParser::Variable_request_headers_namesContext* ctx) override;
+
+  std::any
+  visitVariable_request_line(Antlr4Gen::SecLangParser::Variable_request_lineContext* ctx) override;
+
+  std::any visitVariable_request_method(
+      Antlr4Gen::SecLangParser::Variable_request_methodContext* ctx) override;
+
+  std::any visitVariable_request_protocol(
+      Antlr4Gen::SecLangParser::Variable_request_protocolContext* ctx) override;
+
+  std::any
+  visitVariable_request_uri(Antlr4Gen::SecLangParser::Variable_request_uriContext* ctx) override;
+
+  std::any visitVariable_request_uri_raw(
+      Antlr4Gen::SecLangParser::Variable_request_uri_rawContext* ctx) override;
+
+  std::any visitVariable_response_body(
+      Antlr4Gen::SecLangParser::Variable_response_bodyContext* ctx) override;
+
+  std::any visitVariable_response_content_length(
+      Antlr4Gen::SecLangParser::Variable_response_content_lengthContext* ctx) override;
+
+  std::any visitVariable_response_content_type(
+      Antlr4Gen::SecLangParser::Variable_response_content_typeContext* ctx) override;
+
+  std::any visitVariable_response_headers(
+      Antlr4Gen::SecLangParser::Variable_response_headersContext* ctx) override;
+
+  std::any visitVariable_response_headers_names(
+      Antlr4Gen::SecLangParser::Variable_response_headers_namesContext* ctx) override;
+
+  std::any visitVariable_response_protocol(
+      Antlr4Gen::SecLangParser::Variable_response_protocolContext* ctx) override;
+
+  std::any visitVariable_response_status(
+      Antlr4Gen::SecLangParser::Variable_response_statusContext* ctx) override;
+
+  std::any visitVariable_rule(Antlr4Gen::SecLangParser::Variable_ruleContext* ctx) override;
+
+  std::any
+  visitVariable_server_addr(Antlr4Gen::SecLangParser::Variable_server_addrContext* ctx) override;
+
+  std::any
+  visitVariable_server_name(Antlr4Gen::SecLangParser::Variable_server_nameContext* ctx) override;
+
+  std::any
+  visitVariable_server_port(Antlr4Gen::SecLangParser::Variable_server_portContext* ctx) override;
+
+  std::any visitVariable_session(Antlr4Gen::SecLangParser::Variable_sessionContext* ctx) override;
+
+  std::any
+  visitVariable_sessionid(Antlr4Gen::SecLangParser::Variable_sessionidContext* ctx) override;
+
+  std::any
+  visitVariable_status_line(Antlr4Gen::SecLangParser::Variable_status_lineContext* ctx) override;
+
+  std::any visitVariable_time(Antlr4Gen::SecLangParser::Variable_timeContext* ctx) override;
+
+  std::any visitVariable_time_day(Antlr4Gen::SecLangParser::Variable_time_dayContext* ctx) override;
+
+  std::any
+  visitVariable_time_epoch(Antlr4Gen::SecLangParser::Variable_time_epochContext* ctx) override;
+
+  std::any
+  visitVariable_time_hour(Antlr4Gen::SecLangParser::Variable_time_hourContext* ctx) override;
+
+  std::any visitVariable_time_min(Antlr4Gen::SecLangParser::Variable_time_minContext* ctx) override;
+
+  std::any visitVariable_time_mon(Antlr4Gen::SecLangParser::Variable_time_monContext* ctx) override;
+
+  std::any visitVariable_time_sec(Antlr4Gen::SecLangParser::Variable_time_secContext* ctx) override;
+
+  std::any
+  visitVariable_time_wday(Antlr4Gen::SecLangParser::Variable_time_wdayContext* ctx) override;
+
+  std::any
+  visitVariable_time_year(Antlr4Gen::SecLangParser::Variable_time_yearContext* ctx) override;
+
+  std::any visitVariable_tx(Antlr4Gen::SecLangParser::Variable_txContext* ctx) override;
+
+  std::any
+  visitVariable_unique_id(Antlr4Gen::SecLangParser::Variable_unique_idContext* ctx) override;
+
+  std::any visitVariable_urlencoded_error(
+      Antlr4Gen::SecLangParser::Variable_urlencoded_errorContext* ctx) override;
+
+  std::any visitVariable_userid(Antlr4Gen::SecLangParser::Variable_useridContext* ctx) override;
+
+  std::any visitVariable_webappid(Antlr4Gen::SecLangParser::Variable_webappidContext* ctx) override;
+
+  std::any visitVariable_xml(Antlr4Gen::SecLangParser::Variable_xmlContext* ctx) override;
+  // SecRule operators
+public:
+  std::any visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) override;
+
+  std::any visitOp_contains(Antlr4Gen::SecLangParser::Op_containsContext* ctx) override;
+
+  std::any visitOp_contains_word(Antlr4Gen::SecLangParser::Op_contains_wordContext* ctx) override;
+
+  std::any visitOp_detect_sqli(Antlr4Gen::SecLangParser::Op_detect_sqliContext* ctx) override;
+
+  std::any visitOp_detect_xss(Antlr4Gen::SecLangParser::Op_detect_xssContext* ctx) override;
+
+  std::any visitOp_ends_with(Antlr4Gen::SecLangParser::Op_ends_withContext* ctx) override;
+
+  std::any visitOp_fuzzy_hash(Antlr4Gen::SecLangParser::Op_fuzzy_hashContext* ctx) override;
+
+  std::any visitOp_eq(Antlr4Gen::SecLangParser::Op_eqContext* ctx) override;
+
+  std::any visitOp_ge(Antlr4Gen::SecLangParser::Op_geContext* ctx) override;
+
+  std::any visitOp_geo_lookup(Antlr4Gen::SecLangParser::Op_geo_lookupContext* ctx) override;
+
+  std::any visitOp_gt(Antlr4Gen::SecLangParser::Op_gtContext* ctx) override;
+
+  std::any visitOp_inspect_file(Antlr4Gen::SecLangParser::Op_inspect_fileContext* ctx) override;
+
+  std::any visitOp_ip_match(Antlr4Gen::SecLangParser::Op_ip_matchContext* ctx) override;
+
+  std::any visitOp_ip_match_f(Antlr4Gen::SecLangParser::Op_ip_match_fContext* ctx) override;
+
+  std::any
+  visitOp_ip_match_from_file(Antlr4Gen::SecLangParser::Op_ip_match_from_fileContext* ctx) override;
+
+  std::any visitOp_le(Antlr4Gen::SecLangParser::Op_leContext* ctx) override;
+
+  std::any visitOp_lt(Antlr4Gen::SecLangParser::Op_ltContext* ctx) override;
+
+  std::any visitOp_no_match(Antlr4Gen::SecLangParser::Op_no_matchContext* ctx) override;
+
+  std::any visitOp_pm(Antlr4Gen::SecLangParser::Op_pmContext* ctx) override;
+
+  std::any visitOp_pmf(Antlr4Gen::SecLangParser::Op_pmfContext* ctx) override;
+
+  std::any visitOp_pm_from_file(Antlr4Gen::SecLangParser::Op_pm_from_fileContext* ctx) override;
+
+  std::any visitOp_rbl(Antlr4Gen::SecLangParser::Op_rblContext* ctx) override;
+
+  std::any visitOp_rsub(Antlr4Gen::SecLangParser::Op_rsubContext* ctx) override;
+
+  std::any visitOp_rx(Antlr4Gen::SecLangParser::Op_rxContext* ctx) override;
+
+  std::any visitOp_rx_global(Antlr4Gen::SecLangParser::Op_rx_globalContext* ctx) override;
+
+  std::any visitOp_streq(Antlr4Gen::SecLangParser::Op_streqContext* ctx) override;
+
+  std::any visitOp_strmatch(Antlr4Gen::SecLangParser::Op_strmatchContext* ctx) override;
+
+  std::any visitOp_unconditional_match(
+      Antlr4Gen::SecLangParser::Op_unconditional_matchContext* ctx) override;
+
+  std::any visitOp_validate_byte_range(
+      Antlr4Gen::SecLangParser::Op_validate_byte_rangeContext* ctx) override;
+
+  std::any visitOp_validate_dtd(Antlr4Gen::SecLangParser::Op_validate_dtdContext* ctx) override;
+
+  std::any
+  visitOp_validate_schema(Antlr4Gen::SecLangParser::Op_validate_schemaContext* ctx) override;
+
+  std::any visitOp_validate_url_encoding(
+      Antlr4Gen::SecLangParser::Op_validate_url_encodingContext* ctx) override;
+
+  std::any visitOp_validate_utf8_encoding(
+      Antlr4Gen::SecLangParser::Op_validate_utf8_encodingContext* ctx) override;
+
+  std::any visitOp_verify_cc(Antlr4Gen::SecLangParser::Op_verify_ccContext* ctx) override;
+
+  std::any visitOp_verify_cpf(Antlr4Gen::SecLangParser::Op_verify_cpfContext* ctx) override;
+
+  std::any visitOp_verify_ssn(Antlr4Gen::SecLangParser::Op_verify_ssnContext* ctx) override;
+
+  std::any visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx) override;
+
+  std::any visitOp_rx2(Antlr4Gen::SecLangParser::Op_rx2Context* ctx) override;
+
   // Action Group: Meta-data
 public:
   std::any
@@ -187,26 +510,31 @@ public:
 
 private:
   static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
-  template <class T> std::vector<Parser::VariableAttr> getVariableAttr(T* ctx) {
-    auto variables = ctx->variables()->variable();
-    std::vector<Parser::VariableAttr> variable_attrs;
-    for (auto var : variables) {
-      Parser::VariableAttr attr;
-      attr.full_name_ = var->VAR_MAIN_NAME()->getText();
-      if (var->STRING()) {
-        attr.full_name_ += ":" + var->STRING()->getText();
-      }
-      attr.main_name_ = var->VAR_MAIN_NAME()->getText();
-      attr.is_not_ = var->NOT() != nullptr;
-      attr.is_counter_ = var->VAR_COUNT() != nullptr;
-      variable_attrs.emplace_back(std::move(attr));
+  template <class VarT, class CtxT> void appendVariable(CtxT* ctx) {
+    std::string sub_name;
+    if (ctx->STRING()) {
+      sub_name = ctx->STRING()->getText();
     }
-    return variable_attrs;
+    bool is_not = ctx->NOT() != nullptr;
+    bool is_counter = ctx->VAR_COUNT() != nullptr;
+    std::unique_ptr<Variable::VariableBase> variable(
+        new VarT(std::move(sub_name), is_not, is_counter));
+
+    // Remove the variable first if current mode is update rule
+    if (visit_variable_mode_ == VisitVariableMode::VisitVariableMode_SecUpdateTarget) {
+      Variable::VariableBase::FullName full_name{variable->fullName()};
+      (*current_rule_iter_)->removeVariable(full_name);
+    }
+
+    // Append variable
+    (*current_rule_iter_)->appendVariable(std::move(variable));
   }
 
 private:
   Parser* parser_;
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
   std::unordered_multimap<std::string, std::string> action_map_;
+  enum class VisitVariableMode { VisitVariableMode_SecRule, VisitVariableMode_SecUpdateTarget };
+  VisitVariableMode visit_variable_mode_{VisitVariableMode::VisitVariableMode_SecRule};
 };
 } // namespace SrSecurity::Antlr4

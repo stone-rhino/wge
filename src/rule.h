@@ -102,7 +102,7 @@ public:
 
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
-  void removeVariable(const std::string& full_name);
+  void removeVariable(const Variable::VariableBase::FullName& full_name);
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
 
 private:
@@ -110,7 +110,8 @@ private:
   std::unique_ptr<Operator::OperatorBase> operator_;
 
   // Build the index to quick find
-  std::unordered_map<std::string_view, Variable::VariableBase&> variables_index_by_full_name_;
+  std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>
+      variables_index_by_full_name_;
 
   // Action Group: Meta-data
 private:

@@ -158,13 +158,6 @@ public:
     std::string component_signature_;
   };
 
-  struct VariableAttr {
-    std::string full_name_;
-    std::string main_name_;
-    bool is_not_;
-    bool is_counter_;
-  };
-
   // Modsecurity configuration directive
 public:
   // Engine configurations
@@ -176,16 +169,13 @@ public:
   void secXmlExternalEntity(EngineConfig::Option option);
 
   // Rule directives
-  std::list<std::unique_ptr<Rule>>::iterator
-  secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
-          std::string&& operator_value,
-          std::unordered_multimap<std::string, std::string>&& actions);
+  std::list<std::unique_ptr<Rule>>::iterator secRule();
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
-  void secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs);
-  void secRuleUpdateTargetByMsg(const std::string& msg, std::vector<VariableAttr>&& variable_attrs);
-  void secRuleUpdateTargetByTag(const std::string& tag, std::vector<VariableAttr>&& variable_attrs);
+  void secRuleUpdateTargetById(uint64_t id);
+  void secRuleUpdateTargetByMsg(const std::string& msg);
+  void secRuleUpdateTargetByTag(const std::string& tag);
 
   // Audit log configurations
   void secAuditEngine(AuditLogConfig::AuditEngine option);
@@ -213,6 +203,16 @@ public:
                        const std::string_view& tag);
   void clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   std::list<std::unique_ptr<Rule>>::iterator findRuleById(uint64_t id);
+  std::pair<std::unordered_multimap<std::string_view,
+                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator,
+            std::unordered_multimap<std::string_view,
+                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator>
+  findRuleByMsg(const std::string& msg);
+  std::pair<std::unordered_multimap<std::string_view,
+                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator,
+            std::unordered_multimap<std::string_view,
+                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator>
+  findRuleByTag(const std::string& tag);
   Rule::Severity transferServerity(const std::string& value);
 
 private:
@@ -228,12 +228,6 @@ private:
 private:
   static std::unordered_map<std::string, std::function<void(Parser&, const std::string&)>>
       engine_config_factory_;
-  static std::unordered_map<std::string, std::function<std::unique_ptr<Variable::VariableBase>(
-                                             std::string&&, bool, bool)>>
-      variable_factory_;
-  static std::unordered_map<std::string, std::function<std::unique_ptr<Operator::OperatorBase>(
-                                             std::string&&, std::string&&)>>
-      operator_factory_;
   static std::unordered_map<std::string, Rule::Severity> serverity_factory_;
 };
 } // namespace SrSecurity::Antlr4

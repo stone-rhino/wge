@@ -136,28 +136,25 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
   engine_config_.is_xml_external_entity_ = option;
 }
 
-std::list<std::unique_ptr<Rule>>::iterator
-Parser::secRule(std::vector<VariableAttr>&& variable_attrs, std::string&& operator_name,
-                std::string&& operator_value,
-                std::unordered_multimap<std::string, std::string>&& actions) {
+std::list<std::unique_ptr<Rule>>::iterator Parser::secRule() {
   auto& rule = rules_.emplace_back(std::make_unique<Rule>());
 
-  // Append variable
-  for (auto& attr : variable_attrs) {
-    auto iter = variable_factory_.find(attr.main_name_);
-    if (iter != variable_factory_.end()) {
-      rule->appendVariable(
-          iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-    }
-  }
+  // // Append variable
+  // for (auto& attr : variable_attrs) {
+  //   auto iter = variable_factory_.find(attr.main_name_);
+  //   if (iter != variable_factory_.end()) {
+  //     rule->appendVariable(
+  //         iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+  //   }
+  // }
 
-  // Sets operator
-  {
-    auto iter = operator_factory_.find(operator_name);
-    if (iter != operator_factory_.end()) {
-      rule->setOperator(iter->second(std::move(operator_name), std::move(operator_value)));
-    }
-  }
+  // // Sets operator
+  // {
+  //   auto iter = operator_factory_.find(operator_name);
+  //   if (iter != operator_factory_.end()) {
+  //     rule->setOperator(iter->second(std::move(operator_name), std::move(operator_value)));
+  //   }
+  // }
 
   return std::prev(rules_.end());
 }
@@ -186,57 +183,55 @@ void Parser::secRuleRemoveByTag(const std::string& tag) {
   rules_index_tag_.erase(tag);
 }
 
-void Parser::secRuleUpdateTargetById(uint64_t id, std::vector<VariableAttr>&& variable_attrs) {
-  auto iter = rules_index_id_.find(id);
-  if (iter != rules_index_id_.end()) {
-    auto& rule = *iter->second;
+void Parser::secRuleUpdateTargetById(uint64_t id) {
+  // auto iter = rules_index_id_.find(id);
+  // if (iter != rules_index_id_.end()) {
+  //   auto& rule = *iter->second;
 
-    // Append variable
-    for (auto& attr : variable_attrs) {
-      auto iter = variable_factory_.find(attr.main_name_);
-      if (iter != variable_factory_.end()) {
-        rule->removeVariable(attr.full_name_);
-        rule->appendVariable(
-            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-      }
-    }
-  }
+  //   // Append variable
+  //   for (auto& attr : variable_attrs) {
+  //     auto iter = variable_factory_.find(attr.main_name_);
+  //     if (iter != variable_factory_.end()) {
+  //       rule->removeVariable(attr.full_name_);
+  //       rule->appendVariable(
+  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+  //     }
+  //   }
+  // }
 }
 
-void Parser::secRuleUpdateTargetByMsg(const std::string& msg,
-                                      std::vector<VariableAttr>&& variable_attrs) {
-  auto range = rules_index_msg_.equal_range(msg);
-  for (auto iter = range.first; iter != range.second; ++iter) {
-    auto& rule = *iter->second;
+void Parser::secRuleUpdateTargetByMsg(const std::string& msg) {
+  // auto range = rules_index_msg_.equal_range(msg);
+  // for (auto iter = range.first; iter != range.second; ++iter) {
+  //   auto& rule = *iter->second;
 
-    // Append variable
-    for (auto& attr : variable_attrs) {
-      auto iter = variable_factory_.find(attr.main_name_);
-      if (iter != variable_factory_.end()) {
-        rule->removeVariable(attr.full_name_);
-        rule->appendVariable(
-            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-      }
-    }
-  }
+  //   // Append variable
+  //   for (auto& attr : variable_attrs) {
+  //     auto iter = variable_factory_.find(attr.main_name_);
+  //     if (iter != variable_factory_.end()) {
+  //       rule->removeVariable(attr.full_name_);
+  //       rule->appendVariable(
+  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+  //     }
+  //   }
+  // }
 }
 
-void Parser::secRuleUpdateTargetByTag(const std::string& tag,
-                                      std::vector<VariableAttr>&& variable_attrs) {
-  auto range = rules_index_tag_.equal_range(tag);
-  for (auto iter = range.first; iter != range.second; ++iter) {
-    auto& rule = *iter->second;
+void Parser::secRuleUpdateTargetByTag(const std::string& tag) {
+  // auto range = rules_index_tag_.equal_range(tag);
+  // for (auto iter = range.first; iter != range.second; ++iter) {
+  //   auto& rule = *iter->second;
 
-    // Append variable
-    for (auto& attr : variable_attrs) {
-      auto iter = variable_factory_.find(attr.main_name_);
-      if (iter != variable_factory_.end()) {
-        rule->removeVariable(attr.full_name_);
-        rule->appendVariable(
-            iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-      }
-    }
-  }
+  //   // Append variable
+  //   for (auto& attr : variable_attrs) {
+  //     auto iter = variable_factory_.find(attr.main_name_);
+  //     if (iter != variable_factory_.end()) {
+  //       rule->removeVariable(attr.full_name_);
+  //       rule->appendVariable(
+  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
+  //     }
+  //   }
+  // }
 }
 
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {
@@ -382,6 +377,20 @@ std::list<std::unique_ptr<Rule>>::iterator Parser::findRuleById(uint64_t id) {
   }
 
   return rules_.end();
+}
+
+std::pair<
+    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator,
+    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
+Parser::findRuleByMsg(const std::string& msg) {
+  return rules_index_msg_.equal_range(msg);
+}
+
+std::pair<
+    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator,
+    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
+Parser::findRuleByTag(const std::string& tag) {
+  return rules_index_tag_.equal_range(tag);
 }
 
 Rule::Severity Parser::transferServerity(const std::string& value) {

@@ -14,8 +14,7 @@ tokens{
 	INT,
 	OPTION,
 	STRING,
-	VAR_COUNT,
-	VAR_MAIN_NAME
+	VAR_COUNT
 }
 
 QUOTE: '"';
@@ -86,11 +85,11 @@ SecRuleScript: 'SecRuleScript';
 SecRuleUpdateActionById:
 	'SecRuleUpdateActionById' -> pushMode(ModeRuleUpdateActionById);
 SecRuleUpdateTargetById:
-	'SecRuleUpdateTargetById' -> pushMode(ModeRuleUpdateTarget);
+	'SecRuleUpdateTargetById' -> pushMode(ModeRuleUpdateTargetById);
 SecRuleUpdateTargetByMsg:
-	'SecRuleUpdateTargetByMsg' -> pushMode(ModeRuleUpdateTarget);
+	'SecRuleUpdateTargetByMsg' -> pushMode(ModeRuleUpdateTargetByMsg);
 SecRuleUpdateTargetByTag:
-	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTarget);
+	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTargetByMsg);
 SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
 SecTmpDir: 'SecTmpDir';
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
@@ -101,91 +100,6 @@ SecUploadFileMode: 'SecUploadFileMode';
 SecUploadKeepFiles: 'SecUploadKeepFiles';
 SecWebAppId: 'SecWebAppId';
 SecXmlExternalEntity: 'SecXmlExternalEntity';
-
-VAR_MAIN_NAME:
-	'ARGS'
-	| 'ARGS_COMBINED_SIZE'
-	| 'ARGS_GET'
-	| 'ARGS_GET_NAMES'
-	| 'ARGS_NAMES'
-	| 'ARGS_POST'
-	| 'ARGS_POST_NAMES'
-	| 'AUTH_TYPE'
-	| 'DURATION'
-	| 'ENV'
-	| 'FILES'
-	| 'FILES_COMBINED_SIZE'
-	| 'FILES_NAMES'
-	| 'FULL_REQUEST'
-	| 'FULL_REQUEST_LENGTH'
-	| 'FILES_SIZES'
-	| 'FILES_TMPNAMES'
-	| 'FILES_TMP_CONTENT'
-	| 'GEO'
-	| 'HIGHEST_SEVERITY'
-	| 'INBOUND_DATA_ERROR'
-	| 'MATCHED_VAR'
-	| 'MATCHED_VARS'
-	| 'MATCHED_VAR_NAME'
-	| 'MATCHED_VARS_NAMES'
-	| 'MODSEC_BUILD'
-	| 'MSC_PCRE_LIMITS_EXCEEDED'
-	| 'MULTIPART_CRLF_LF_LINES'
-	| 'MULTIPART_FILENAME'
-	| 'MULTIPART_NAME'
-	| 'MULTIPART_PART_HEADERS'
-	| 'MULTIPART_STRICT_ERROR'
-	| 'MULTIPART_UNMATCHED_BOUNDARY'
-	| 'OUTBOUND_DATA_ERROR'
-	| 'PATH_INFO'
-	| 'QUERY_STRING'
-	| 'REMOTE_ADDR'
-	| 'REMOTE_HOST'
-	| 'REMOTE_USER'
-	| 'REQBODY_ERROR'
-	| 'REQBODY_ERROR_MSG'
-	| 'REQBODY_PROCESSOR'
-	| 'REQUEST_BASENAME'
-	| 'REQUEST_BODY'
-	| 'REQUEST_BODY_LENGTH'
-	| 'REQUEST_COOKIES'
-	| 'REQUEST_COOKIES_NAMES'
-	| 'REQUEST_FILENAME'
-	| 'REQUEST_HEADERS'
-	| 'REQUEST_HEADERS_NAMES'
-	| 'REQUEST_LINE'
-	| 'REQUEST_METHOD'
-	| 'REQUEST_PROTOCOL'
-	| 'REQUEST_URI'
-	| 'REQUEST_URI_RAW'
-	| 'RESPONSE_BODY'
-	| 'RESPONSE_CONTENT_LENGTH'
-	| 'RESPONSE_CONTENT_TYPE'
-	| 'RESPONSE_HEADERS'
-	| 'RESPONSE_HEADERS_NAMES'
-	| 'RESPONSE_PROTOCOL'
-	| 'RESPONSE_STATUS'
-	| 'RULE'
-	| 'SERVER_ADDR'
-	| 'SERVER_NAME'
-	| 'SERVER_PORT'
-	| 'SESSION'
-	| 'SESSIONID'
-	| 'STATUS_LINE'
-	| 'TIME'
-	| 'TIME_DAY'
-	| 'TIME_EPOCH'
-	| 'TIME_HOUR'
-	| 'TIME_MIN'
-	| 'TIME_MON'
-	| 'TIME_SEC'
-	| 'TIME_WDAY'
-	| 'TIME_YEAR'
-	| 'TX'
-	| 'UNIQUE_ID'
-	| 'URLENCODED_ERROR'
-	| 'USERID'
-	| 'WEBAPPID';
 
 mode ModeInclude;
 ModeInclude_WS: WS -> skip;
@@ -226,86 +140,168 @@ ModeRuleUpdateActionById_WS: WS -> skip;
 ModeRuleUpdateActionById_INT:
 	[0-9]+ -> type(INT), pushMode(ModeSecRuleAction);
 
-mode ModeRuleUpdateTarget;
-ModeRuleUpdateTarget_WS: WS -> skip;
-ModeRuleUpdateTarget_QUOTE: QUOTE -> type(QUOTE);
-ModeRuleUpdateTarget_PIPE: PIPE -> type(PIPE);
-ModeRuleUpdateTarget_COLON: COLON -> type(COLON);
-ModeRuleUpdateTarget_VAR_COUNT: '&' -> type(VAR_COUNT);
-ModeRuleUpdateTarget_VAR_NOT: NOT -> type(NOT);
-ModeRuleUpdateTarget_INT: [0-9]+ -> type(INT);
-ModeRuleUpdateTarget_VAR_MAIN_NAME:
-	VAR_MAIN_NAME -> type(VAR_MAIN_NAME);
-ModeRuleUpdateTargetById_VAR_SUB_NAME:
-	~[ :!&|",\n]+ -> type(STRING);
+mode ModeRuleUpdateTargetById;
+ModeRuleUpdateTargetById_WS: WS -> skip;
+ModeRuleUpdateTargetById_INT:
+	[0-9]+ -> type(INT), popMode, pushMode(ModeSecRuleVariable);
 
 mode ModeRuleUpdateTargetByMsg;
 ModeRuleUpdateTargetByMsg_WS: WS -> skip;
 ModeRuleUpdateTargetByMsg_QUOTE:
-	'"' -> type(QUOTE), pushMode(ModeSecRuleVariable);
+	'"' -> type(QUOTE), popMode, pushMode(ModeRuleUpdateTargetByMsgString);
 
-mode ModeRuleUpdateTargetByTag;
-ModeRuleUpdateTargetByTag_WS: WS -> skip;
-ModeRuleUpdateTargetByTag_QUOTE:
-	'"' -> type(QUOTE), pushMode(ModeSecRuleVariable);
+mode ModeRuleUpdateTargetByMsgString;
+ModeRuleUpdateTargetByMsgString_QUOTE:
+	'"' -> type(QUOTE), popMode, pushMode(ModeSecRuleVariable);
+ModeRuleUpdateTargetByMsgString_STRING: (('\\"') | ~([" ])) (
+		('\\"')
+		| ~('"')
+	)* -> type(STRING);
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:
 	[ \t]+ -> skip, popMode, pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleVariableName;
-ModeSecRuleVariableName_WS:
-	[ \t] -> skip, popMode, pushMode(ModeSecRuleOperator);
+VAR_ARGS: 'ARGS';
+VAR_ARGS_COMBINED_SIZE: 'ARGS_COMBINED_SIZE';
+VAR_ARGS_GET: 'ARGS_GET';
+VAR_ARGS_GET_NAMES: 'ARGS_GET_NAMES';
+VAR_ARGS_NAMES: 'ARGS_NAMES';
+VAR_ARGS_POST: 'ARGS_POST';
+VAR_ARGS_POST_NAMES: 'ARGS_POST_NAMES';
+VAR_AUTH_TYPE: 'AUTH_TYPE';
+VAR_DURATION: 'DURATION';
+VAR_ENV: 'ENV';
+VAR_FILES: 'FILES';
+VAR_FILES_COMBINED_SIZE: 'FILES_COMBINED_SIZE';
+VAR_FILES_NAMES: 'FILES_NAMES';
+VAR_FULL_REQUEST: 'FULL_REQUEST';
+VAR_FULL_REQUEST_LENGTH: 'FULL_REQUEST_LENGTH';
+VAR_FILES_SIZES: 'FILES_SIZES';
+VAR_FILES_TMPNAMES: 'FILES_TMPNAMES';
+VAR_FILES_TMP_CONTENT: 'FILES_TMP_CONTENT';
+VAR_GEO: 'GEO';
+VAR_HIGHEST_SEVERITY: 'HIGHEST_SEVERITY';
+VAR_INBOUND_DATA_ERROR: 'INBOUND_DATA_ERROR';
+VAR_MATCHED_VAR: 'MATCHED_VAR';
+VAR_MATCHED_VARS: 'MATCHED_VARS';
+VAR_MATCHED_VAR_NAME: 'MATCHED_VAR_NAME';
+VAR_MATCHED_VARS_NAMES: 'MATCHED_VARS_NAMES';
+VAR_MODSEC_BUILD: 'MODSEC_BUILD';
+VAR_MSC_PCRE_LIMITS_EXCEEDED: 'MSC_PCRE_LIMITS_EXCEEDED';
+VAR_MULTIPART_CRLF_LF_LINES: 'MULTIPART_CRLF_LF_LINES';
+VAR_MULTIPART_FILENAME: 'MULTIPART_FILENAME';
+VAR_MULTIPART_NAME: 'MULTIPART_NAME';
+VAR_MULTIPART_PART_HEADERS: 'MULTIPART_PART_HEADERS';
+VAR_MULTIPART_STRICT_ERROR: 'MULTIPART_STRICT_ERROR';
+VAR_MULTIPART_UNMATCHED_BOUNDARY:
+	'MULTIPART_UNMATCHED_BOUNDARY';
+VAR_OUTBOUND_DATA_ERROR: 'OUTBOUND_DATA_ERROR';
+VAR_PATH_INFO: 'PATH_INFO';
+VAR_QUERY_STRING: 'QUERY_STRING';
+VAR_REMOTE_ADDR: 'REMOTE_ADDR';
+VAR_REMOTE_HOST: 'REMOTE_HOST';
+VAR_REMOTE_PORT: 'REMOTE_PORT';
+VAR_REMOTE_USER: 'REMOTE_USER';
+VAR_REQBODY_ERROR: 'REQBODY_ERROR';
+VAR_REQBODY_ERROR_MSG: 'REQBODY_ERROR_MSG';
+VAR_REQBODY_PROCESSOR: 'REQBODY_PROCESSOR';
+VAR_REQUEST_BASENAME: 'REQUEST_BASENAME';
+VAR_REQUEST_BODY: 'REQUEST_BODY';
+VAR_REQUEST_BODY_LENGTH: 'REQUEST_BODY_LENGTH';
+VAR_REQUEST_COOKIES: 'REQUEST_COOKIES';
+VAR_REQUEST_COOKIES_NAMES: 'REQUEST_COOKIES_NAMES';
+VAR_REQUEST_FILENAME: 'REQUEST_FILENAME';
+VAR_REQUEST_HEADERS: 'REQUEST_HEADERS';
+VAR_REQUEST_HEADERS_NAMES: 'REQUEST_HEADERS_NAMES';
+VAR_REQUEST_LINE: 'REQUEST_LINE';
+VAR_REQUEST_METHOD: 'REQUEST_METHOD';
+VAR_REQUEST_PROTOCOL: 'REQUEST_PROTOCOL';
+VAR_REQUEST_URI: 'REQUEST_URI';
+VAR_REQUEST_URI_RAW: 'REQUEST_URI_RAW';
+VAR_RESPONSE_BODY: 'RESPONSE_BODY';
+VAR_RESPONSE_CONTENT_LENGTH: 'RESPONSE_CONTENT_LENGTH';
+VAR_RESPONSE_CONTENT_TYPE: 'RESPONSE_CONTENT_TYPE';
+VAR_RESPONSE_HEADERS: 'RESPONSE_HEADERS';
+VAR_RESPONSE_HEADERS_NAMES: 'RESPONSE_HEADERS_NAMES';
+VAR_RESPONSE_PROTOCOL: 'RESPONSE_PROTOCOL';
+VAR_RESPONSE_STATUS: 'RESPONSE_STATUS';
+VAR_RULE: 'RULE';
+VAR_SERVER_ADDR: 'SERVER_ADDR';
+VAR_SERVER_NAME: 'SERVER_NAME';
+VAR_SERVER_PORT: 'SERVER_PORT';
+VAR_SESSION: 'SESSION';
+VAR_SESSIONID: 'SESSIONID';
+VAR_STATUS_LINE: 'STATUS_LINE';
+VAR_TIME: 'TIME';
+VAR_TIME_DAY: 'TIME_DAY';
+VAR_TIME_EPOCH: 'TIME_EPOCH';
+VAR_TIME_HOUR: 'TIME_HOUR';
+VAR_TIME_MIN: 'TIME_MIN';
+VAR_TIME_MON: 'TIME_MON';
+VAR_TIME_SEC: 'TIME_SEC';
+VAR_TIME_WDAY: 'TIME_WDAY';
+VAR_TIME_YEAR: 'TIME_YEAR';
+VAR_TX: 'TX';
+VAR_UNIQUE_ID: 'UNIQUE_ID';
+VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
+VAR_USERID: 'USERID';
+VAR_WEBAPPID: 'WEBAPPID';
+VAR_XML: 'XML';
+ModeSecRuleVariableName_WS: [ \t] -> skip;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
-ModeSecRuleVariableName_COLON: COLON -> type(COLON);
+ModeSecRuleVariableName_COLON:
+	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubName);
 ModeSecRuleVariableName_VAR_COUNT: '&' -> type(VAR_COUNT);
 ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
-ModeSecRuleVariableName_VAR_MAIN_NAME:
-	VAR_MAIN_NAME -> type(VAR_MAIN_NAME);
-ModeSecRuleVariableName_VAR_SUB_NAME:
-	~[ :!&|",\n]+ -> type(STRING);
+ModeSecRuleVariableName_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
+
+mode ModeSecRuleVariableSubName;
+ModeSecRuleVariableSubName_VAR_SUB_NAME:
+	~[ :!&|",\n]+ -> type(STRING), popMode;
 
 mode ModeSecRuleOperator;
 ModeSecRuleOperator_QUOTE: '"' -> type(QUOTE);
 AT: '@';
-OPERATOR_NAME:
-	'beginsWith'
-	| 'contains'
-	| 'containsWord'
-	| 'detectSQLi'
-	| 'detectXSS'
-	| 'endsWith'
-	| 'fuzzyHash'
-	| 'eq'
-	| 'ge'
-	| 'geoLookup'
-	| 'gt'
-	| 'inspectFile'
-	| 'ipMatch'
-	| 'ipMatchF'
-	| 'ipMatchFromFile'
-	| 'le'
-	| 'lt'
-	| 'noMatch'
-	| 'pm'
-	| 'pmf'
-	| 'pmFromFile'
-	| 'rbl'
-	| 'rsub'
-	| 'rx'
-	| 'rxGlobal'
-	| 'streq'
-	| 'strmatch'
-	| 'unconditionalMatch'
-	| 'validateByteRange'
-	| 'validateDTD'
-	| 'validateSchema'
-	| 'validateUrlEncoding'
-	| 'validateUtf8Encoding'
-	| 'verifyCC'
-	| 'verifyCPF'
-	| 'verifySSN'
-	| 'within';
+OP_BEGINS_WITH: 'beginsWith';
+OP_CONTAINS: 'contains';
+OP_CONTAINS_WORD: 'containsWord';
+OP_DETECT_SQLI: 'detectSQLi';
+OP_DETECT_XSS: 'detectXSS';
+OP_ENDS_WITH: 'endsWith';
+OP_FUZZY_HASH: 'fuzzyHash';
+OP_EQ: 'eq';
+OP_GE: 'ge';
+OP_GEO_LOOKUP: 'geoLookup';
+OP_GT: 'gt';
+OP_INSPECT_FILE: 'inspectFile';
+OP_IP_MATCH: 'ipMatch';
+OP_IP_MATCH_F: 'ipMatchF';
+OP_IP_MATCH_FROM_FILE: 'ipMatchFromFile';
+OP_LE: 'le';
+OP_LT: 'lt';
+OP_NO_MATCH: 'noMatch';
+OP_PM: 'pm';
+OP_PMF: 'pmf';
+OP_PM_FROM_FILE: 'pmFromFile';
+OP_RBL: 'rbl';
+OP_RSUB: 'rsub';
+OP_RX: 'rx';
+OP_RX_GLOBAL: 'rxGlobal';
+OP_STREQ: 'streq';
+OP_STRMATCH: 'strmatch';
+OP_UNCONDITIONAL_MATCH: 'unconditionalMatch';
+OP_VALIDATE_BYTE_RANGE: 'validateByteRange';
+OP_VALIDATE_DTD: 'validateDTD';
+OP_VALIDATE_SCHEMA: 'validateSchema';
+OP_VALIDATE_URL_ENCODING: 'validateUrlEncoding';
+OP_VALIDATE_UTF8_ENCODING: 'validateUtf8Encoding';
+OP_VERIFY_CC: 'verifyCC';
+OP_VERIFY_CPF: 'verifyCPF';
+OP_VERIFY_SSN: 'verifySSN';
+OP_WITHIN: 'within';
 ModeSecRuleOperator_WS:
 	[ \t]+ -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
 OPERATOR_VALUE: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode, pushMode(

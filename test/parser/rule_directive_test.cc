@@ -7,6 +7,7 @@
 
 #include "antlr4/parser.h"
 #include "engine.h"
+#include "variable/variables_include.h"
 
 namespace SrSecurity {
 namespace Parser {
@@ -17,7 +18,7 @@ public:
     return rule.variables_pool_;
   }
 
-  const std::unordered_map<std::string_view, Variable::VariableBase&>&
+  const std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>&
   getRuleVariableIndex(Rule& rule) const {
     return rule.variables_index_by_full_name_;
   }
@@ -32,6 +33,7 @@ public:
 TEST_F(RuleTest, Rule) {
   const std::string rule_directive =
       R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:1,tag:'foo',msg:'bar'")";
+
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
@@ -40,26 +42,22 @@ TEST_F(RuleTest, Rule) {
   EXPECT_EQ(parser.rules().size(), 1);
   auto& rule_var_pool = getRuleVariablePool(*parser.rules().back());
   ASSERT_EQ(rule_var_pool.size(), 4);
-  EXPECT_EQ(rule_var_pool[0]->fullName(), "ARGS_GET");
-  EXPECT_EQ(rule_var_pool[0]->mainName(), "ARGS_GET");
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
   EXPECT_FALSE(rule_var_pool[0]->isCounter());
   EXPECT_FALSE(rule_var_pool[0]->isNot());
 
-  EXPECT_EQ(rule_var_pool[1]->fullName(), "ARGS_POST:foo");
-  EXPECT_EQ(rule_var_pool[1]->mainName(), "ARGS_POST");
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsPost*>(rule_var_pool[1].get()));
   EXPECT_EQ(rule_var_pool[1]->subName(), "foo");
   EXPECT_FALSE(rule_var_pool[1]->isCounter());
   EXPECT_FALSE(rule_var_pool[1]->isNot());
 
-  EXPECT_EQ(rule_var_pool[2]->fullName(), "ARGS_GET:foo");
-  EXPECT_EQ(rule_var_pool[2]->mainName(), "ARGS_GET");
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
   EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
   EXPECT_FALSE(rule_var_pool[2]->isCounter());
   EXPECT_TRUE(rule_var_pool[2]->isNot());
 
-  EXPECT_EQ(rule_var_pool[3]->fullName(), "ARGS");
-  EXPECT_EQ(rule_var_pool[3]->mainName(), "ARGS");
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
   EXPECT_EQ(rule_var_pool[3]->subName(), "");
   EXPECT_TRUE(rule_var_pool[3]->isCounter());
   EXPECT_FALSE(rule_var_pool[3]->isNot());
@@ -67,19 +65,19 @@ TEST_F(RuleTest, Rule) {
   // variables map
   auto& rule_var_index = getRuleVariableIndex(*parser.rules().back());
   {
-    auto iter = rule_var_index.find("ARGS_GET");
+    auto iter = rule_var_index.find({"ARGS_GET", ""});
     ASSERT_TRUE(iter != rule_var_index.end());
     EXPECT_EQ(&iter->second, rule_var_pool[0].get());
   }
   {
-    auto iter = rule_var_index.find("ARGS_POST:foo");
+    auto iter = rule_var_index.find({"ARGS_POST", "foo"});
     ASSERT_TRUE(iter != rule_var_index.end());
     EXPECT_EQ(&iter->second, rule_var_pool[1].get());
   }
 
   // operator
   auto& rule_operator = getRuleOperator(*parser.rules().back());
-  EXPECT_EQ(rule_operator->name(), "rx");
+  EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->value(), "bar");
   EXPECT_EQ(rule_operator->regexExpr(), "bar");
 }
@@ -275,27 +273,27 @@ TEST_F(RuleTest, RuleUpdateTargetById) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
-  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
-  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+  EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+  EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+  EXPECT_FALSE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+  EXPECT_FALSE(variable_index.find({"ARGS", "bbb"})->second.isNot());
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetById 1 ARGS:ccc)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetById 1 !ARGS:aaa|!ARGS:bbb)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
-    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
-    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
+    EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
+    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
   }
 }
 
@@ -307,27 +305,27 @@ TEST_F(RuleTest, RuleUpdateTargetByMsg) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
-  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
-  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+  EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+  EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+  EXPECT_FALSE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+  EXPECT_FALSE(variable_index.find({"ARGS", "bbb"})->second.isNot());
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" ARGS:ccc)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByMsg "msg1" !ARGS:aaa|!ARGS:bbb)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
-    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
-    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
+    EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
+    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
   }
 }
 
@@ -339,27 +337,27 @@ TEST_F(RuleTest, RuleUpdateTargetByTag) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
   auto& variable_index = getRuleVariableIndex(*parser.rules().back());
-  EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-  EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-  EXPECT_FALSE(variable_index.find("ARGS:aaa")->second.isNot());
-  EXPECT_FALSE(variable_index.find("ARGS:bbb")->second.isNot());
+  EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+  EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+  EXPECT_FALSE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+  EXPECT_FALSE(variable_index.find({"ARGS", "bbb"})->second.isNot());
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" ARGS:ccc)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
   }
 
   {
     const std::string rule_update = R"(SecRuleUpdateTargetByTag "tag1" !ARGS:aaa|!ARGS:bbb)";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
-    EXPECT_NE(variable_index.find("ARGS:aaa"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:bbb"), variable_index.end());
-    EXPECT_NE(variable_index.find("ARGS:ccc"), variable_index.end());
-    EXPECT_TRUE(variable_index.find("ARGS:aaa")->second.isNot());
-    EXPECT_TRUE(variable_index.find("ARGS:bbb")->second.isNot());
+    EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
+    EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
+    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
+    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
   }
 }
 
