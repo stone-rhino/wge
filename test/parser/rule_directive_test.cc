@@ -574,6 +574,25 @@ TEST_F(RuleTest, ActionSetUid) {
   }
 }
 
+TEST_F(RuleTest, ActionTransformation) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,t:none,t:hexDecode,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->hasTransform(Rule::TransformBitFlag::None));
+  EXPECT_TRUE(parser.rules().back()->hasTransform(Rule::TransformBitFlag::HexDecode));
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,t:none,t:hexDecode123,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(!result.has_value());
+  }
+}
+
 TEST_F(RuleTest, ActionAuditLog) {
   auto t = engine_.makeTransaction();
   const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,msg:'aaa'")";

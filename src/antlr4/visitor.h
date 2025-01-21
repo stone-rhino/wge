@@ -469,6 +469,120 @@ public:
   std::any visitAction_non_disruptive_setsid(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setsidContext* ctx) override;
 
+  std::any visitAction_non_disruptive_t_base64_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_sql_hex_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_sql_hex_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_base64_decode_ext(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_decode_extContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_base64_encode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_encodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_cmdline(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_cmdlineContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_compress_whitespace(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_compress_whitespaceContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_css_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_css_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_escape_seq_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_escape_seq_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_hex_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_hex_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_hex_encode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_hex_encodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_html_entity_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_html_entity_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_js_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_js_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_length(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_lengthContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_lowercase(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_lowercaseContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_md5(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_md5Context* ctx) override;
+
+  std::any visitAction_non_disruptive_t_none(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_noneContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_normalise_path(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalise_pathContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_normalize_path(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalize_pathContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_normalise_pathwin(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalise_pathwinContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_normalize_pathwin(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalize_pathwinContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_parity_even_7bit(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_even_7bitContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_parity_odd_7bit(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_odd_7bitContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_parity_zero_7bit(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_zero_7bitContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_remove_nulls(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_nullsContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_remove_whitespace(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_whitespaceContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_replace_comments(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_replace_commentsContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_remove_commentschar(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_commentscharContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_remove_comments(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_commentsContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_replace_nulls(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_replace_nullsContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_url_decode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_decodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_uppercase(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_uppercaseContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_url_decode_uni(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_decode_uniContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_url_encode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_encodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_utf8_to_unicode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_utf8_to_unicodeContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_sha1(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_sha1Context* ctx) override;
+
+  std::any visitAction_non_disruptive_t_trim_left(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_trim_leftContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_trim_right(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_trim_rightContext* ctx) override;
+
+  std::any visitAction_non_disruptive_t_trim(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_t_trimContext* ctx) override;
+
   std::any visitAction_non_disruptive_audit_log(
       Antlr4Gen::SecLangParser::Action_non_disruptive_audit_logContext* ctx) override;
   std::any visitAction_non_disruptive_log(

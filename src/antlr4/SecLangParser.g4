@@ -434,6 +434,7 @@ action_non_disruptive:
 	| action_non_disruptive_setuid
 	| action_non_disruptive_setrsc
 	| action_non_disruptive_setsid
+	| action_non_disruptive_t
 	| action_non_disruptive_audit_log
 	| action_non_disruptive_log
 	| action_non_disruptive_no_audit_log
@@ -524,6 +525,87 @@ action_non_disruptive_setsid:
 			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
 		)
 	);
+action_non_disruptive_t:
+	T COLON (
+		action_non_disruptive_t_base64_decode
+		| action_non_disruptive_t_sql_hex_decode
+		| action_non_disruptive_t_base64_decode_ext
+		| action_non_disruptive_t_base64_encode
+		| action_non_disruptive_t_cmdline
+		| action_non_disruptive_t_compress_whitespace
+		| action_non_disruptive_t_css_decode
+		| action_non_disruptive_t_escape_seq_decode
+		| action_non_disruptive_t_hex_decode
+		| action_non_disruptive_t_hex_encode
+		| action_non_disruptive_t_html_entity_decode
+		| action_non_disruptive_t_js_decode
+		| action_non_disruptive_t_length
+		| action_non_disruptive_t_lowercase
+		| action_non_disruptive_t_md5
+		| action_non_disruptive_t_none
+		| action_non_disruptive_t_normalise_path
+		| action_non_disruptive_t_normalize_path
+		| action_non_disruptive_t_normalise_pathwin
+		| action_non_disruptive_t_normalize_pathwin
+		| action_non_disruptive_t_parity_even_7bit
+		| action_non_disruptive_t_parity_odd_7bit
+		| action_non_disruptive_t_parity_zero_7bit
+		| action_non_disruptive_t_remove_nulls
+		| action_non_disruptive_t_remove_whitespace
+		| action_non_disruptive_t_replace_comments
+		| action_non_disruptive_t_remove_commentschar
+		| action_non_disruptive_t_remove_comments
+		| action_non_disruptive_t_replace_nulls
+		| action_non_disruptive_t_url_decode
+		| action_non_disruptive_t_uppercase
+		| action_non_disruptive_t_url_decode_uni
+		| action_non_disruptive_t_url_encode
+		| action_non_disruptive_t_utf8_to_unicode
+		| action_non_disruptive_t_sha1
+		| action_non_disruptive_t_trim_left
+		| action_non_disruptive_t_trim_right
+		| action_non_disruptive_t_trim
+	);
+action_non_disruptive_t_base64_decode: BASE64_DECODE;
+action_non_disruptive_t_sql_hex_decode: SQL_HEX_DECODE;
+action_non_disruptive_t_base64_decode_ext: BASE64_DECODE_EXT;
+action_non_disruptive_t_base64_encode: BASE64_ENCODE;
+action_non_disruptive_t_cmdline: CMDLINE;
+action_non_disruptive_t_compress_whitespace:
+	COMPRESS_WHITESPACE;
+action_non_disruptive_t_css_decode: CSS_DECODE;
+action_non_disruptive_t_escape_seq_decode: ESCAPE_SEQ_DECODE;
+action_non_disruptive_t_hex_decode: HEX_DECODE;
+action_non_disruptive_t_hex_encode: HEX_ENCODE;
+action_non_disruptive_t_html_entity_decode: HTML_ENTITY_DECODE;
+action_non_disruptive_t_js_decode: JS_DECODE;
+action_non_disruptive_t_length: LENGTH;
+action_non_disruptive_t_lowercase: LOWERCASE;
+action_non_disruptive_t_md5: MD5;
+action_non_disruptive_t_none: NONE;
+action_non_disruptive_t_normalise_path: NORMALISE_PATH;
+action_non_disruptive_t_normalize_path: NORMALIZE_PATH;
+action_non_disruptive_t_normalise_pathwin: NORMALISE_PATHWIN;
+action_non_disruptive_t_normalize_pathwin: NORMALIZE_PATHWIN;
+action_non_disruptive_t_parity_even_7bit: PARITY_EVEN_7BIT;
+action_non_disruptive_t_parity_odd_7bit: PARITY_ODD_7BIT;
+action_non_disruptive_t_parity_zero_7bit: PARITY_ZERO_7BIT;
+action_non_disruptive_t_remove_nulls: REMOVE_NULLS;
+action_non_disruptive_t_remove_whitespace: REMOVE_WHITESPACE;
+action_non_disruptive_t_replace_comments: REPLACE_COMMENTS;
+action_non_disruptive_t_remove_commentschar:
+	REMOVE_COMMENTSCHAR;
+action_non_disruptive_t_remove_comments: REMOVE_COMMENTS;
+action_non_disruptive_t_replace_nulls: REPLACE_NULLS;
+action_non_disruptive_t_url_decode: URL_DECODE;
+action_non_disruptive_t_uppercase: UPPERCASE;
+action_non_disruptive_t_url_decode_uni: URL_DECODE_UNI;
+action_non_disruptive_t_url_encode: URL_ENCODE;
+action_non_disruptive_t_utf8_to_unicode: UTF8_TO_UNICODE;
+action_non_disruptive_t_sha1: SHA1;
+action_non_disruptive_t_trim_left: TRIM_LEFT;
+action_non_disruptive_t_trim_right: TRIM_RIGHT;
+action_non_disruptive_t_trim: TRIM;
 
 action_non_disruptive_audit_log: Auditlog;
 action_non_disruptive_log: Log;
