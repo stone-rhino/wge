@@ -168,6 +168,9 @@ public:
   void secUploadKeepFiles(EngineConfig::Option option);
   void secXmlExternalEntity(EngineConfig::Option option);
 
+  // Engine action
+  std::list<std::unique_ptr<Rule>>::iterator secAction();
+
   // Rule directives
   std::list<std::unique_ptr<Rule>>::iterator secRule();
   void secRuleRemoveById(uint64_t id);
@@ -192,9 +195,11 @@ public:
 
 public:
   const EngineConfig& engineConfig() const { return engine_config_; }
+  const std::list<std::unique_ptr<Rule>>& uncondRules() const { return uncond_rules_; }
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
   void removeBackRule();
+  void removeBackUncondRule();
   void setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
@@ -216,6 +221,8 @@ public:
 
 private:
   EngineConfig engine_config_;
+  // Unconditionally processes rule(action) list
+  std::list<std::unique_ptr<Rule>> uncond_rules_;
   std::list<std::unique_ptr<Rule>> rules_;
   std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
