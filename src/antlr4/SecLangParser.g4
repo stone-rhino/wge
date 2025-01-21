@@ -493,12 +493,12 @@ action_non_disruptive_setvar_macro_rule: RULE DOT STRING;
 action_non_disruptive_setvar_macro_session: SESSION;
 
 action_non_disruptive_setenv:
-	Setenv COLON VAR_NAME ASSIGN (
+	Setenv COLON SINGLE_QUOTE VAR_NAME ASSIGN (
 		VAR_VALUE
 		| (
 			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
 		)
-	);
+	) SINGLE_QUOTE;
 
 action_non_disruptive_setuid:
 	Setuid COLON (

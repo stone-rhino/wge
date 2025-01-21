@@ -356,7 +356,7 @@ Setuid: 'setuid' -> pushMode(ModeSecRuleActionSetUid);
 Setrsc: 'setrsc' -> pushMode(ModeSecRuleActionSetUid);
 Setsid: 'setsid' -> pushMode(ModeSecRuleActionSetUid);
 Setenv:
-	'setenv' -> pushMode(ModeSecRuleActionSetVar), pushMode(ModeSecRuleActionSetVarName);
+	'setenv' -> pushMode(ModeSecRuleActionSetVar);
 Setvar: 'setvar' -> pushMode(ModeSecRuleActionSetVar);
 Skip: 'skip';
 SkipAfter: 'skipAfter';
@@ -368,26 +368,22 @@ Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;
-ModeSecRuleActionSetVar_QUOTE: QUOTE -> type(QUOTE), popMode;
-ModeSecRuleActionSetVar_COMMA: COMMA -> type(COMMA), popMode;
 ModeSecRuleActionSetVar_COLON: COLON -> type(COLON);
 ModeSecRuleActionSetVar_SINGLE_QUOTE:
-	SINGLE_QUOTE -> type(SINGLE_QUOTE);
-TX: ('t' | 'T') ('x' | 'X');
-ModeSecRuleActionSetVar_DOT:
-	DOT -> type(DOT), pushMode(ModeSecRuleActionSetVarName);
-ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
-ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleActionSetVarName);
 
 mode ModeSecRuleActionSetVarName;
-ModeSecRuleActionSetVarName_COLON: COLON -> type(COLON);
-VAR_NAME: [0-9a-zA-Z_]+ -> popMode;
+TX: ('t' | 'T') ('x' | 'X');
+ModeSecRuleActionSetVar_DOT: DOT -> type(DOT);
+ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
+ModeSecRuleActionSetVarName_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
+VAR_NAME: [0-9a-zA-Z_][0-9a-zA-Z_]*;
 
 mode ModeSecRuleActionSetVarValue;
 PLUS: '+';
 MINUS: '-';
-ModeSecRuleActionSetVarValue_SINGLE_QUOTE:
-	SINGLE_QUOTE -> type(SINGLE_QUOTE);
 ModeSecRuleActionSetVarValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), popMode, pushMode(ModeSecRuleActionMacroExpansion);
 VAR_VALUE: ~[ +\-:"',%{}=\n]+ -> popMode;

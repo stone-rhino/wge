@@ -491,7 +491,7 @@ TEST_F(RuleTest, ActionSetEnv) {
   auto t = engine_.makeTransaction();
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:var1=hello,msg:'aaa bbb'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:'var1=hello',msg:'aaa bbb'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
