@@ -32,7 +32,8 @@ INT_RANGE: INT '-' INT;
 INT: [0-9]+;
 OPTION: ('On' | 'Off');
 COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
-WS: [ \t\r\n]+ -> skip;
+NL: '\\' '\r'? '\n' -> skip;
+WS: (([ \t\r\n]+) | NL) -> skip;
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction';
@@ -160,7 +161,7 @@ ModeRuleUpdateTargetByMsgString_STRING: (('\\"') | ~([" ])) (
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:
-	[ \t]+ -> skip, popMode, pushMode(ModeSecRuleVariableName);
+	WS -> skip, popMode, pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleVariableName;
 VAR_ARGS: 'ARGS';
@@ -249,7 +250,7 @@ VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
 VAR_USERID: 'USERID';
 VAR_WEBAPPID: 'WEBAPPID';
 VAR_XML: 'XML';
-ModeSecRuleVariableName_WS: [ \t] -> skip;
+ModeSecRuleVariableName_WS: WS -> skip;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
 ModeSecRuleVariableName_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubName);
@@ -263,7 +264,8 @@ ModeSecRuleVariableSubName_VAR_SUB_NAME:
 	~[ :!&|",\n]+ -> type(STRING), popMode;
 
 mode ModeSecRuleOperator;
-ModeSecRuleOperator_QUOTE: '"' -> type(QUOTE);
+ModeSecRuleOperatorName_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode( ModeSecRuleAction);
 AT: '@';
 OP_BEGINS_WITH: 'beginsWith';
 OP_CONTAINS: 'contains';
@@ -302,25 +304,29 @@ OP_VERIFY_CC: 'verifyCC';
 OP_VERIFY_CPF: 'verifyCPF';
 OP_VERIFY_SSN: 'verifySSN';
 OP_WITHIN: 'within';
-ModeSecRuleOperator_WS:
-	[ \t]+ -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
-OPERATOR_VALUE: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode, pushMode(
-		ModeSecRuleAction);
+ModeSecRuleOperatorName_WS:
+	WS -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
+OPERATOR_VALUE: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING);
 
 mode ModeSecRuleOperatorValue;
-OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode, pushMode(
-		ModeSecRuleAction);
+ModeSecRuleOperatorValue_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode( ModeSecRuleAction);
+OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING);
 
 mode ModeSecRuleAction;
-ModeSecRuleAction_WS: [ \t]+ -> skip;
-ModeSecRuleAction_QUOTE: QUOTE -> type(QUOTE);
-ModeSecRuleAction_COLON: COLON -> type(COLON);
-ModeSecRuleAction_COMMA: COMMA -> type(COMMA);
-ModeSecRuleAction_SINGLE_QUOTE:
+ModeSecRuleAction_WS: WS -> skip;
+ModeSecRuleAction_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleActionName);
+
+mode ModeSecRuleActionName;
+ModeSecRuleActionName_WS: WS -> skip;
+ModeSecRuleActionName_QUOTE: QUOTE -> type(QUOTE), popMode;
+ModeSecRuleActionName_COLON: COLON -> type(COLON);
+ModeSecRuleActionName_COMMA: COMMA -> type(COMMA);
+ModeSecRuleActionName_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
-ModeSecRuleAction_INT: INT -> type(INT);
+ModeSecRuleActionName_INT: INT -> type(INT);
 LEVEL: [1-9];
-ModeSecRuleAction_EOF: ('\r'? ('\n' | EOF)) -> skip, popMode;
 Accuracy: 'accuracy';
 Allow: 'allow';
 Auditlog: 'auditlog';
@@ -370,7 +376,7 @@ Ver: 'ver';
 Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 
 mode ModeSecRuleActionSetVar;
-ModeSecRuleActionSetVar_WS: [ \t]+ -> skip;
+ModeSecRuleActionSetVar_WS: WS -> skip;
 ModeSecRuleActionSetVar_QUOTE: QUOTE -> type(QUOTE), popMode;
 ModeSecRuleActionSetVar_COMMA: COMMA -> type(COMMA), popMode;
 ModeSecRuleActionSetVar_COLON: COLON -> type(COLON);
