@@ -367,7 +367,7 @@ TEST_F(RuleTest, ActionSetVar) {
   // Create
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setvar:tx.score,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setvar:'tx.score',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -381,7 +381,7 @@ TEST_F(RuleTest, ActionSetVar) {
   // Create and init
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score2=100,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:'tx.score2=100',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -396,7 +396,7 @@ TEST_F(RuleTest, ActionSetVar) {
   // Create and init (Macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score3=%{tx.score2},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:'tx.score3=%{tx.score2}',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -412,7 +412,7 @@ TEST_F(RuleTest, ActionSetVar) {
   {
     EXPECT_NE(nullptr, t->getVariable("score2"));
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:!tx.score2,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:'!tx.score2',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -427,7 +427,7 @@ TEST_F(RuleTest, ActionSetVar) {
     int old_score = t->getVariableInt("score");
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+100,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:'tx.score=+100',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -443,7 +443,7 @@ TEST_F(RuleTest, ActionSetVar) {
     int old_score = t->getVariableInt("score");
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+%{tx.score},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:'tx.score=+%{tx.score}',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -459,7 +459,7 @@ TEST_F(RuleTest, ActionSetVar) {
     int old_score = t->getVariableInt("score");
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-50,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score=-50',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -475,7 +475,7 @@ TEST_F(RuleTest, ActionSetVar) {
     int old_score = t->getVariableInt("score");
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-%{tx.score},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score=-%{tx.score}',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
