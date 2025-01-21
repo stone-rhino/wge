@@ -32,6 +32,7 @@ public:
 
 public:
   enum class Severity { EMERGENCY = 0, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG };
+
   enum class Disruptive {
     // Stops rule processing on a successful match and allows the transaction to proceed.
     ALLOW,
@@ -46,6 +47,47 @@ public:
     // Intercepts transaction by issuing an external (client-visible) redirection to the given
     // location..
     REDIRECT
+  };
+
+  enum class TransformBitFlag : uint64_t {
+    Base64Decode = 1LL,
+    Base64DecodeExt = 1LL << 1,
+    Base64Encode = 1LL << 2,
+    CmdLine = 1LL << 3,
+    CompressWhiteSpace = 1LL << 4,
+    CssDecode = 1LL << 5,
+    EscapeSeqDecode = 1LL << 6,
+    HexDecode = 1LL << 7,
+    HexEncode = 1LL << 8,
+    HtmlEntityDecode = 1LL << 9,
+    JsDecode = 1LL << 10,
+    Length = 1LL << 11,
+    LowerCase = 1LL << 12,
+    Md5 = 1LL << 13,
+    None = 1LL << 14,
+    NormalisePathWin = 1LL << 15,
+    NormalisePath = 1LL << 16,
+    NormalizePathWin = 1LL << 17,
+    NormalizePath = 1LL << 18,
+    ParityEven7Bit = 1LL << 19,
+    ParityOdd7Bit = 1LL << 20,
+    ParityZero7Bit = 1LL << 21,
+    RemoveComments = 1LL << 22,
+    RemoveCommentChar = 1LL << 23,
+    RemoveNulls = 1LL << 24,
+    RemoveWhitespace = 1LL << 25,
+    ReplaceComments = 1LL << 26,
+    ReplaceNulls = 1LL << 27,
+    Sha1 = 1LL << 28,
+    SqlHexDecode = 1LL << 29,
+    TrimLeft = 1LL << 30,
+    TrimRight = 1LL << 31,
+    Trim = 1LL << 32,
+    UpperCase = 1LL << 33,
+    UrlDecodeUni = 1LL << 34,
+    UrlDecode = 1LL << 35,
+    UrlEncode = 1LL << 36,
+    Utf8ToUnicode = 1LL << 37
   };
 
   // Action Group: Meta-data
@@ -83,6 +125,10 @@ public:
   void capture(bool value) { capture_ = value; }
   bool multiMatch() const { return multi_match_; }
   void multiMatch(bool value) { multi_match_ = value; }
+  bool hasTransform(TransformBitFlag flag) const {
+    return transform_flag_ & static_cast<uint64_t>(flag);
+  }
+  void addTransform(TransformBitFlag flag) { transform_flag_ |= static_cast<uint64_t>(flag); }
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
 
@@ -172,7 +218,7 @@ private:
   bool no_log_{false};
   bool capture_{false};
   bool multi_match_{false};
-  std::unordered_set<std::string> t_;
+  uint64_t transform_flag_{0};
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
   // Action Group: Flow
