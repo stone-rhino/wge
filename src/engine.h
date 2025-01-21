@@ -13,6 +13,8 @@ class Parser;
 
 namespace SrSecurity {
 class Engine {
+  friend class CrsTest;
+
 public:
   Engine();
 
