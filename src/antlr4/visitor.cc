@@ -932,13 +932,6 @@ Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_
   return "";
 };
 
-std::any Visitor::visitAction_meta_data_severity(
-    Antlr4Gen::SecLangParser::Action_meta_data_severityContext* ctx) {
-  std::string value = ctx->SeverityEnum()->getText();
-  (*current_rule_iter_)->severity(parser_->transferServerity(value));
-  return "";
-};
-
 std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
   (*current_rule_iter_)->msg(ctx->STRING()->getText());
@@ -980,6 +973,54 @@ std::any Visitor::visitAction_meta_data_maturity(
   (*current_rule_iter_)->maturity(::atoll(ctx->LEVEL()->getText().c_str()));
   return "";
 };
+
+std::any Visitor::visitAction_meta_data_severity_emergency(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_emergencyContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::EMERGENCY);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_alert(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_alertContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::ALERT);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_critical(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_criticalContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::CRITICAL);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_error(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_errorContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::ERROR);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_waring(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_waringContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::WARNING);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_notice(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_noticeContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::NOTICE);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_info(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_infoContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::INFO);
+  return "";
+}
+
+std::any Visitor::visitAction_meta_data_severity_debug(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_debugContext* ctx) {
+  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::DEBUG);
+  return "";
+}
 
 std::any Visitor::visitAction_non_disruptive_setvar_create(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {

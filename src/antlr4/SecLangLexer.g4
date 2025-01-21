@@ -351,16 +351,7 @@ Pass: 'pass';
 Phase: 'phase';
 Redirect: 'redirect' -> pushMode(ModeSecRuleActionRedirect);
 Rev: 'rev';
-Severity: 'severity';
-SeverityEnum:
-	'EMERGENCY'
-	| 'ALERT'
-	| 'CRITICAL'
-	| 'ERROR'
-	| 'WARNING'
-	| 'NOTICE'
-	| 'INFO'
-	| 'DEBUG';
+Severity: 'severity' -> pushMode(ModeSecRuleActionSeverity);
 Setuid: 'setuid' -> pushMode(ModeSecRuleActionSetUid);
 Setrsc: 'setrsc' -> pushMode(ModeSecRuleActionSetUid);
 Setsid: 'setsid' -> pushMode(ModeSecRuleActionSetUid);
@@ -447,3 +438,20 @@ ModeSecRuleActionRedirect_COLON:
 mode ModeSecRuleActionRedirectValue;
 ModeSecRuleActionRedirect_STRING:
 	~[,]+ -> type(STRING), popMode;
+
+mode ModeSecRuleActionSeverity;
+ModeSecRuleActionSeverity_COLON: COLON -> type(COLON);
+ModeSecRuleActionSeverity_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleActionSeverityValue);
+
+mode ModeSecRuleActionSeverityValue;
+ModeSecRuleActionSeverityValue_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+EMERGENCY: 'EMERGENCY';
+ALERT: 'ALERT';
+CRITICAL: 'CRITICAL';
+ERROR: 'ERROR';
+WARNING: 'WARNING';
+NOTICE: 'NOTICE';
+INFO: 'INFO';
+DEBUG: 'DEBUG';

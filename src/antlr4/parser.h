@@ -213,7 +213,6 @@ public:
             std::unordered_multimap<std::string_view,
                                     std::list<std::unique_ptr<Rule>>::iterator>::iterator>
   findRuleByTag(const std::string& tag);
-  Rule::Severity transferServerity(const std::string& value);
 
 private:
   EngineConfig engine_config_;
@@ -224,8 +223,5 @@ private:
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
       rules_index_tag_;
   AuditLogConfig audit_log_config_;
-
-private:
-  static std::unordered_map<std::string, Rule::Severity> serverity_factory_;
 };
 } // namespace SrSecurity::Antlr4

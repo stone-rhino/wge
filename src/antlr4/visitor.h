@@ -384,8 +384,6 @@ public:
   visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) override;
   std::any visitAction_meta_data_phase(
       Antlr4Gen::SecLangParser::Action_meta_data_phaseContext* ctx) override;
-  std::any visitAction_meta_data_severity(
-      Antlr4Gen::SecLangParser::Action_meta_data_severityContext* ctx) override;
   std::any
   visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) override;
   std::any
@@ -398,6 +396,22 @@ public:
       Antlr4Gen::SecLangParser::Action_meta_data_accuracyContext* ctx) override;
   std::any visitAction_meta_data_maturity(
       Antlr4Gen::SecLangParser::Action_meta_data_maturityContext* ctx) override;
+  std::any visitAction_meta_data_severity_emergency(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_emergencyContext* ctx) override;
+  std::any visitAction_meta_data_severity_alert(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_alertContext* ctx) override;
+  std::any visitAction_meta_data_severity_critical(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_criticalContext* ctx) override;
+  std::any visitAction_meta_data_severity_error(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_errorContext* ctx) override;
+  std::any visitAction_meta_data_severity_waring(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_waringContext* ctx) override;
+  std::any visitAction_meta_data_severity_notice(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_noticeContext* ctx) override;
+  std::any visitAction_meta_data_severity_info(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_infoContext* ctx) override;
+  std::any visitAction_meta_data_severity_debug(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_debugContext* ctx) override;
 
   // Action Group: Non-disruptive
 public:

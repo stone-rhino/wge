@@ -18,13 +18,6 @@
 #include "../variable/args_post.h"
 
 namespace SrSecurity::Antlr4 {
-std::unordered_map<std::string, Rule::Severity> Parser::serverity_factory_ = {
-    {"EMERGENCY", Rule::Severity::EMERGENCY}, {"ALERT", Rule::Severity::ALERT},
-    {"CRITICAL", Rule::Severity::CRITICAL},   {"ERROR", Rule::Severity::ERROR},
-    {"WARNING", Rule::Severity::WARNING},     {"NOTICE", Rule::Severity::NOTICE},
-    {"INFO", Rule::Severity::INFO},           {"DEBUG", Rule::Severity::DEBUG},
-};
-
 class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
   void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
@@ -393,13 +386,5 @@ std::pair<
     std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
 Parser::findRuleByTag(const std::string& tag) {
   return rules_index_tag_.equal_range(tag);
-}
-
-Rule::Severity Parser::transferServerity(const std::string& value) {
-  auto iter = serverity_factory_.find(value);
-  if (iter != serverity_factory_.end()) {
-    return iter->second;
-  }
-  return Rule::Severity::DEBUG;
 }
 } // namespace SrSecurity::Antlr4
