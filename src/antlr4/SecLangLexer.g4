@@ -36,7 +36,7 @@ NL: '\\' '\r'? '\n' -> skip;
 WS: (([ \t\r\n]+) | NL) -> skip;
 
 Include: 'Include' -> pushMode(ModeInclude);
-SecAction: 'SecAction';
+SecAction: 'SecAction' -> pushMode(ModeSecRuleAction);
 SecArgumentSeparator: 'SecArgumentSeparator';
 SecArgumentsLimit: 'SecArgumentsLimit';
 SecAuditEngine: 'SecAuditEngine' -> pushMode(ModeAuditLog);
@@ -386,7 +386,7 @@ PLUS: '+';
 MINUS: '-';
 ModeSecRuleActionSetVarValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), popMode, pushMode(ModeSecRuleActionMacroExpansion);
-VAR_VALUE: ~[ +\-:"',%{}=\n]+ -> popMode;
+VAR_VALUE: ~[+\-%']~[']* -> popMode;
 
 mode ModeSecRuleActionMacroExpansion;
 ModeSecRuleActionSetVar_LEFT_BRACKET:

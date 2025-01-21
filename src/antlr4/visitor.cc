@@ -53,6 +53,21 @@ std::any Visitor::visitSec_xml_external_entity(
   return "";
 }
 
+std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) {
+  // Add an empty rule, and sets actions by visitChildren
+  current_rule_iter_ = parser_->secAction();
+
+  visit_action_mode_ = VisitActionMode::VisitActionMode_SecAction;
+  std::string error;
+  TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+  if (!error.empty()) {
+    parser_->removeBackUncondRule();
+    return error;
+  }
+
+  return "";
+}
+
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
   // Add an empty rule, and sets variable and operators and actions by visitChildren
   current_rule_iter_ = parser_->secRule();
@@ -60,6 +75,7 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
   // Visit variables and operators and actions
   std::string error;
   visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecRule;
+  visit_action_mode_ = VisitActionMode::VisitActionMode_SecRule;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
     parser_->removeBackRule();
@@ -122,6 +138,7 @@ std::any Visitor::visitSec_rule_update_action_by_id(
     }
 
     // Visit actions
+    visit_action_mode_ = VisitActionMode::VisitActionMode_SecRuleUpdateAction;
     std::string error;
     TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
     if (!error.empty()) {
@@ -922,7 +939,9 @@ std::any
 Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) {
   uint64_t id = ::atoll(ctx->INT()->getText().c_str());
   (*current_rule_iter_)->id(id);
-  parser_->setRuleIdIndex(current_rule_iter_);
+  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+    parser_->setRuleIdIndex(current_rule_iter_);
+  }
   return "";
 };
 
@@ -935,7 +954,9 @@ Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_
 std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
   (*current_rule_iter_)->msg(ctx->STRING()->getText());
-  parser_->setRuleMsgIndex(current_rule_iter_);
+  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+    parser_->setRuleMsgIndex(current_rule_iter_);
+  }
   return "";
 };
 
@@ -943,8 +964,10 @@ std::any
 Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
   auto& tags = (*current_rule_iter_)->tags();
   auto result = tags.emplace(ctx->STRING()->getText());
-  if (result.second) {
-    parser_->setRuleTagIndex(current_rule_iter_, *result.first);
+  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+    if (result.second) {
+      parser_->setRuleTagIndex(current_rule_iter_, *result.first);
+    }
   }
 
   return "";

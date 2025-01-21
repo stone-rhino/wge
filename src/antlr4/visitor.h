@@ -30,6 +30,10 @@ public:
   std::any visitSec_xml_external_entity(
       Antlr4Gen::SecLangParser::Sec_xml_external_entityContext* ctx) override;
 
+  // Engine action
+public:
+  std::any visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) override;
+
   // Rule directives
 public:
   std::any visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) override;
@@ -549,6 +553,12 @@ private:
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
   std::unordered_multimap<std::string, std::string> action_map_;
   enum class VisitVariableMode { VisitVariableMode_SecRule, VisitVariableMode_SecUpdateTarget };
+  enum class VisitActionMode {
+    VisitActionMode_SecRule,
+    VisitActionMode_SecRuleUpdateAction,
+    VisitActionMode_SecAction
+  };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::VisitVariableMode_SecRule};
+  VisitActionMode visit_action_mode_{VisitActionMode::VisitActionMode_SecRule};
 };
 } // namespace SrSecurity::Antlr4

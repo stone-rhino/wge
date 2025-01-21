@@ -131,26 +131,13 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
   engine_config_.is_xml_external_entity_ = option;
 }
 
+std::list<std::unique_ptr<Rule>>::iterator Parser::secAction() {
+  uncond_rules_.emplace_back(std::make_unique<Rule>());
+  return std::prev(uncond_rules_.end());
+}
+
 std::list<std::unique_ptr<Rule>>::iterator Parser::secRule() {
-  auto& rule = rules_.emplace_back(std::make_unique<Rule>());
-
-  // // Append variable
-  // for (auto& attr : variable_attrs) {
-  //   auto iter = variable_factory_.find(attr.main_name_);
-  //   if (iter != variable_factory_.end()) {
-  //     rule->appendVariable(
-  //         iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-  //   }
-  // }
-
-  // // Sets operator
-  // {
-  //   auto iter = operator_factory_.find(operator_name);
-  //   if (iter != operator_factory_.end()) {
-  //     rule->setOperator(iter->second(std::move(operator_name), std::move(operator_value)));
-  //   }
-  // }
-
+  rules_.emplace_back(std::make_unique<Rule>());
   return std::prev(rules_.end());
 }
 
@@ -316,6 +303,8 @@ void Parser::removeBackRule() {
   // remove rule
   rules_.erase(std::prev(rules_.end()));
 }
+
+void Parser::removeBackUncondRule() { uncond_rules_.erase(std::prev(uncond_rules_.end())); }
 
 void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
   rules_index_id_[(*iter)->id()] = iter;

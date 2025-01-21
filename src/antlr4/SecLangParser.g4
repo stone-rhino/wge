@@ -7,6 +7,7 @@ options {
 configuration: (
 		include
 		| engine_config
+		| engine_action
 		| rule_directive
 		| audit_log_config
 	)* EOF;
@@ -20,13 +21,15 @@ engine_config:
 	| sec_tmp_save_uploaded_files
 	| sec_upload_keep_files
 	| sec_xml_external_entity;
-
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_access: SecResponseBodyAccess OPTION;
 sec_rule_engine: SecRuleEngine OPTION;
 sec_tmp_save_uploaded_files: SecTmpSaveUploadedFiles OPTION;
 sec_upload_keep_files: SecUploadKeepFiles OPTION;
 sec_xml_external_entity: SecXmlExternalEntity OPTION;
+
+engine_action: sec_action;
+sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;
 
 rule_directive:
 	sec_rule
