@@ -55,7 +55,7 @@ sec_rule_update_target_by_tag:
 
 sec_rule:
 	SecRule variables QUOTE operator QUOTE QUOTE action (
-		COMMA action
+		COMMA? action
 	)* QUOTE;
 
 variables: variable (PIPE variable)*;
@@ -435,6 +435,7 @@ action_non_disruptive:
 	| action_non_disruptive_setrsc
 	| action_non_disruptive_setsid
 	| action_non_disruptive_t
+	| action_non_disruptive_ctl
 	| action_non_disruptive_audit_log
 	| action_non_disruptive_log
 	| action_non_disruptive_no_audit_log
@@ -606,6 +607,51 @@ action_non_disruptive_t_sha1: SHA1;
 action_non_disruptive_t_trim_left: TRIM_LEFT;
 action_non_disruptive_t_trim_right: TRIM_RIGHT;
 action_non_disruptive_t_trim: TRIM;
+
+action_non_disruptive_ctl:
+	Ctl COLON (
+		action_non_disruptive_ctl_audit_engine
+		| action_non_disruptive_ctl_audit_log_parts
+		| action_non_disruptive_ctl_force_request_body_variable
+		| action_non_disruptive_ctl_request_body_access
+		| action_non_disruptive_ctl_request_body_processor
+		| action_non_disruptive_ctl_rule_engine
+		| action_non_disruptive_ctl_rule_remove_by_id
+		| action_non_disruptive_ctl_rule_remove_by_tag
+		| action_non_disruptive_ctl_rule_remove_target_by_id
+		| action_non_disruptive_ctl_rule_remove_target_by_tag
+	);
+action_non_disruptive_ctl_audit_engine:
+	CTL_AUDIT_ENGINE ASSIGN AUDIT_ENGINE;
+action_non_disruptive_ctl_audit_log_parts:
+	CTL_AUDIT_LOG_PARTS ASSIGN (PLUS | MINUS) AUDIT_PARTS;
+action_non_disruptive_ctl_force_request_body_variable:
+	CTL_FORCE_REQUEST_BODY_VARIABLE ASSIGN OPTION;
+action_non_disruptive_ctl_request_body_access:
+	CTL_REQUEST_BODY_ACCESS ASSIGN OPTION;
+action_non_disruptive_ctl_request_body_processor:
+	action_non_disruptive_ctl_request_body_processor_url_encode
+	| action_non_disruptive_ctl_request_body_processor_multi_part
+	| action_non_disruptive_ctl_request_body_processor_xml
+	| action_non_disruptive_ctl_request_body_processor_json;
+action_non_disruptive_ctl_request_body_processor_url_encode:
+	CTL_REQUEST_BODY_PROCESSOR ASSIGN URLENCODED;
+action_non_disruptive_ctl_request_body_processor_multi_part:
+	CTL_REQUEST_BODY_PROCESSOR ASSIGN MULTIPART;
+action_non_disruptive_ctl_request_body_processor_xml:
+	CTL_REQUEST_BODY_PROCESSOR ASSIGN XML;
+action_non_disruptive_ctl_request_body_processor_json:
+	CTL_REQUEST_BODY_PROCESSOR ASSIGN JSON;
+action_non_disruptive_ctl_rule_engine:
+	CTL_RULE_ENGINE ASSIGN OPTION;
+action_non_disruptive_ctl_rule_remove_by_id:
+	CTL_RULE_REMOVE_BY_ID ASSIGN (INT | INT_RANGE);
+action_non_disruptive_ctl_rule_remove_by_tag:
+	CTL_RULE_REMOVE_BY_TAG ASSIGN STRING;
+action_non_disruptive_ctl_rule_remove_target_by_id:
+	CTL_RULE_REMOVE_TARGET_BY_ID ASSIGN INT SEMICOLON variables;
+action_non_disruptive_ctl_rule_remove_target_by_tag:
+	CTL_RULE_REMOVE_TARGET_BY_TAG ASSIGN STRING SEMICOLON variables;
 
 action_non_disruptive_audit_log: Auditlog;
 action_non_disruptive_log: Log;

@@ -1,9 +1,13 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
+#include "audit_log_config.h"
+#include "engine_config.h"
 #include "http_extractor.h"
 
 namespace SrSecurity {
@@ -43,6 +47,15 @@ private:
   HttpExtractor extractor_;
   const Engine& engin_;
   std::unordered_map<std::string, std::string> tx_;
+
+  // ctl
+private:
+  std::optional<AuditLogConfig::AuditEngine> audit_engine_;
+  std::optional<AuditLogConfig::AuditLogPart> audit_log_part_;
+  std::optional<EngineConfig::Option> request_body_access_;
+  std::optional<EngineConfig::Option> rule_engine_;
+  std::vector<uint64_t> rule_remove_by_id_;
+  std::vector<std::string> rule_remove_by_tag_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

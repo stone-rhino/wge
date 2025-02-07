@@ -1478,6 +1478,127 @@ std::any Visitor::visitAction_non_disruptive_t_trim(
   return "";
 }
 
+std::any Visitor::visitAction_non_disruptive_ctl_audit_engine(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_engineContext* ctx) {
+  using Option = SrSecurity::AuditLogConfig::AuditEngine;
+  Option option = Option::Off;
+
+  std::string option_str = ctx->AUDIT_ENGINE()->getText();
+  if (option_str == "On") {
+    option = Option::On;
+  } else if (option_str == "RelevantOnly") {
+    option = Option::RelevantOnly;
+  }
+
+  auto& actions = (*current_rule_iter_)->actions();
+
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::AuditEngine, option));
+
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_audit_log_parts(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_log_partsContext* ctx) {
+  std::string parts = ctx->AUDIT_PARTS()->getText();
+
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::AuditLogParts, parts));
+
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_force_request_body_variable(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_force_request_body_variableContext* ctx) {
+  // Not implemented in ModSecurity v3 (REQUEST_BODY is always populated in v3)
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_request_body_access(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_accessContext* ctx) {
+  using Option = SrSecurity::EngineConfig::Option;
+  Option option = Option::Off;
+
+  std::string option_str = ctx->OPTION()->getText();
+  if (option_str == "On") {
+    option = Option::On;
+  }
+
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(
+      std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyAccess, option));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_url_encode(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_url_encodeContext*
+        ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
+                                                     Action::Ctl::BodyProcessorType::UrlEncoded));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_multi_part(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_multi_partContext*
+        ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
+                                                     Action::Ctl::BodyProcessorType::MultiPart));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_xml(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_xmlContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
+                                                     Action::Ctl::BodyProcessorType::Xml));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_json(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_jsonContext* ctx) {
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
+                                                     Action::Ctl::BodyProcessorType::Json));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_rule_engine(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_engineContext* ctx) {
+  SrSecurity::EngineConfig::Option option = optionStr2EnumValue(ctx->OPTION()->getText());
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleEngine, option));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_id(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_idContext* ctx) {
+  // uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+  // auto& actions = (*current_rule_iter_)->actions();
+  // actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveById, id));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_tag(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_tagContext* ctx) {
+  std::string tag = ctx->STRING()->getText();
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByTag, tag));
+  return "";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_id(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_idContext* ctx) {
+  // TODO: implement
+  return "Not implemented!";
+}
+
+std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_tag(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_tagContext* ctx) {
+  // TODO: implement
+  return "Not implemented!";
+}
+
 std::any Visitor::visitAction_non_disruptive_audit_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_audit_logContext* ctx) {
   (*current_rule_iter_)->auditLog(true);
@@ -1564,7 +1685,7 @@ Visitor::visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsCon
 }
 
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
-  using Option = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditEngine;
+  using Option = SrSecurity::AuditLogConfig::AuditEngine;
   Option option = Option::Off;
 
   std::string option_str = ctx->AUDIT_ENGINE()->getText();
@@ -1598,7 +1719,7 @@ Visitor::visitSec_audit_log_dir_mode(Antlr4Gen::SecLangParser::Sec_audit_log_dir
 
 std::any
 Visitor::visitSec_audit_log_format(Antlr4Gen::SecLangParser::Sec_audit_log_formatContext* ctx) {
-  using Format = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditFormat;
+  using Format = SrSecurity::AuditLogConfig::AuditFormat;
   Format format = Format::Native;
 
   std::string format_str = ctx->AUDIT_FORMAT()->getText().c_str();
@@ -1639,7 +1760,7 @@ std::any Visitor::visitSec_audit_log_storage_dir(
 
 std::any
 Visitor::visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) {
-  using Type = SrSecurity::Antlr4::Parser::AuditLogConfig::AuditLogType;
+  using Type = SrSecurity::AuditLogConfig::AuditLogType;
   Type type = Type::Serial;
 
   std::string type_str = ctx->AUDIT_TYPE()->getText();
@@ -1659,12 +1780,12 @@ std::any Visitor::visitSec_component_signature(
   return "";
 }
 
-Parser::EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {
-  Parser::EngineConfig::Option option = Parser::EngineConfig::Option::Off;
+EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {
+  EngineConfig::Option option = EngineConfig::Option::Off;
   if (option_str == "On") {
-    option = Parser::EngineConfig::Option::On;
+    option = EngineConfig::Option::On;
   } else if (option_str == "DetectionOnly") {
-    option = Parser::EngineConfig::Option::DetectionOnly;
+    option = EngineConfig::Option::DetectionOnly;
   }
   return option;
 }

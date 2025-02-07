@@ -24,12 +24,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::On);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::On);
   }
 
   {
@@ -47,12 +47,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::Off);
   }
 
   {
@@ -70,12 +70,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, Antlr4::Parser::EngineConfig::Option::DetectionOnly);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, Antlr4::Parser::EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, Antlr4::Parser::EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::DetectionOnly);
+    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::Off);
+    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::Off);
   }
 
   {

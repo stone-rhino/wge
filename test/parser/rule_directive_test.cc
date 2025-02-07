@@ -279,9 +279,11 @@ TEST_F(RuleTest, RuleUpdateTargetById) {
   EXPECT_FALSE(variable_index.find({"ARGS", "bbb"})->second.isNot());
 
   {
-    const std::string rule_update = R"(SecRuleUpdateTargetById 1 ARGS:ccc)";
+    const std::string rule_update = R"(SecRuleUpdateTargetById 1 ARGS:ccc
+SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,tag:'tag1',msg:'msg1'")";
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(parser.rules().size(), 2);
     EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
   }
 
@@ -723,6 +725,191 @@ TEST_F(RuleTest, ActionXmlns) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.rules().back()->xmlns(), "xsd=http://www.w3.org/2001/XMLSchema");
+}
+
+TEST_F(RuleTest, ActionCtlAuditEngine) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=On,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=Off,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=RelevantOnly,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=asdfasdf,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(!result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlAuditLogParts) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=+ABCDEF,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=-ABCDEF,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=+ABCDEFL,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlRequestBodyAccess) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=On,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=Off,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=Hi,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlRequestBodyProcessor) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=XML,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=JSON,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=Hi,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlRuleEngine) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=On,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=Off,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=DetectionOnly,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=Hi,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlRuleRemoveById) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveById=123,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveById=222-333,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+  }
+}
+
+TEST_F(RuleTest, ActionCtlRuleRemoveByTag) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveByTag=foo,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+}
+
+TEST_F(RuleTest, ActionCtlRuleRemoveTargetById) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveTargetById=123;ARGS:foo|ARGS:bar,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+}
+
+TEST_F(RuleTest, ActionCtlRuleRemoveTargetByTag) {
+  auto t = engine_.makeTransaction();
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveTargetByTag=foo;ARGS:foo|ARGS:bar,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
 }
 } // namespace Parser
 } // namespace SrSecurity

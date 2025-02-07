@@ -583,6 +583,52 @@ public:
   std::any visitAction_non_disruptive_t_trim(
       Antlr4Gen::SecLangParser::Action_non_disruptive_t_trimContext* ctx) override;
 
+  std::any visitAction_non_disruptive_ctl_audit_engine(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_engineContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_audit_log_parts(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_log_partsContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_force_request_body_variable(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_force_request_body_variableContext* ctx)
+      override;
+
+  std::any visitAction_non_disruptive_ctl_request_body_access(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_accessContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_request_body_processor_url_encode(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_url_encodeContext*
+          ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_request_body_processor_multi_part(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_multi_partContext*
+          ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_request_body_processor_xml(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_xmlContext* ctx)
+      override;
+
+  std::any visitAction_non_disruptive_ctl_request_body_processor_json(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_jsonContext* ctx)
+      override;
+
+  std::any visitAction_non_disruptive_ctl_rule_engine(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_engineContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_rule_remove_by_id(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_idContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_rule_remove_by_tag(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_tagContext* ctx) override;
+
+  std::any visitAction_non_disruptive_ctl_rule_remove_target_by_id(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_idContext* ctx)
+      override;
+
+  std::any visitAction_non_disruptive_ctl_rule_remove_target_by_tag(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_tagContext* ctx)
+      override;
+
   std::any visitAction_non_disruptive_audit_log(
       Antlr4Gen::SecLangParser::Action_non_disruptive_audit_logContext* ctx) override;
   std::any visitAction_non_disruptive_log(
@@ -641,7 +687,7 @@ public:
       Antlr4Gen::SecLangParser::Sec_component_signatureContext* ctx) override;
 
 private:
-  static Parser::EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
+  static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   template <class VarT, class CtxT> void appendVariable(CtxT* ctx) {
     std::string sub_name;
     if (ctx->STRING()) {

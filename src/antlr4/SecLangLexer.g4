@@ -7,11 +7,16 @@ tokens{
 	NOT,
 	DOT,
 	COLON,
+	SEMICOLON,
+	ASSIGN,
 	LEFT_BRACKET,
 	RIGHT_BRACKET,
 	PER_CENT,
 	PIPE,
+	PLUS,
+	MINUS,
 	INT,
+	INT_RANGE,
 	OPTION,
 	STRING,
 	VAR_COUNT
@@ -23,10 +28,14 @@ COMMA: ',';
 NOT: '!';
 DOT: '.';
 COLON: ':';
+SEMICOLON: ';';
+ASSIGN: '=';
 LEFT_BRACKET: '{';
 RIGHT_BRACKET: '}';
 PER_CENT: '%';
 PIPE: '|';
+PLUS: '+';
+MINUS: '-';
 
 INT_RANGE: INT '-' INT;
 INT: [0-9]+;
@@ -40,8 +49,8 @@ SecAction: 'SecAction' -> pushMode(ModeSecRuleAction);
 SecArgumentSeparator: 'SecArgumentSeparator';
 SecArgumentsLimit: 'SecArgumentsLimit';
 SecAuditEngine: 'SecAuditEngine' -> pushMode(ModeAuditLog);
-SecAuditLog: 'SecAuditLog' -> pushMode(ModeAuditLog);
-SecAuditLog2: 'SecAuditLog2' -> pushMode(ModeAuditLog);
+SecAuditLog: 'SecAuditLog' -> pushMode(ModeAuditLogString);
+SecAuditLog2: 'SecAuditLog2' -> pushMode(ModeAuditLogString);
 SecAuditLogDirMode:
 	'SecAuditLogDirMode' -> pushMode(ModeAuditLog);
 SecAuditLogFormat:
@@ -50,12 +59,12 @@ SecAuditLogFileMode:
 	'SecAuditLogFileMode' -> pushMode(ModeAuditLog);
 SecAuditLogParts: 'SecAuditLogParts' -> pushMode(ModeAuditLog);
 SecAuditLogRelevantStatus:
-	'SecAuditLogRelevantStatus' -> pushMode(ModeAuditLog);
+	'SecAuditLogRelevantStatus' -> pushMode(ModeAuditLogString);
 SecAuditLogStorageDir:
-	'SecAuditLogStorageDir' -> pushMode(ModeAuditLog);
+	'SecAuditLogStorageDir' -> pushMode(ModeAuditLogString);
 SecAuditLogType: 'SecAuditLogType' -> pushMode(ModeAuditLog);
 SecComponentSignature:
-	'SecComponentSignature' -> pushMode(ModeAuditLog);
+	'SecComponentSignature' -> pushMode(ModeAuditLogString);
 SecDebugLog: 'SecDebugLog';
 SecDebugLogLevel: 'SecDebugLogLevel';
 SecDefaultAction: 'SecDefaultAction';
@@ -91,7 +100,7 @@ SecRuleUpdateTargetByMsg:
 	'SecRuleUpdateTargetByMsg' -> pushMode(ModeRuleUpdateTargetByMsg);
 SecRuleUpdateTargetByTag:
 	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTargetByMsg);
-SecRule: 'SecRule' -> pushMode(ModeSecRuleVariable);
+SecRule: 'SecRule' -> pushMode(ModeSecRule);
 SecTmpDir: 'SecTmpDir';
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
 SecUnicodeMapFile: 'SecUnicodeMapFile';
@@ -116,7 +125,11 @@ AUDIT_FORMAT: ('JSON' | 'Native') -> popMode;
 AUDIT_PARTS: [ABCDEFGHIJKZ]+ -> popMode;
 AUDIT_TYPE: ('Serial' | 'Concurrent' | 'HTTPS') -> popMode;
 OCTAL: '0' [0-9]+ -> popMode;
-ModeAuditLog_STRING: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
+
+mode ModeAuditLogString;
+ModeAuditLogString_WS: WS -> skip;
+ModeAuditLogString_QUOTE: QUOTE -> type(QUOTE);
+ModeAuditLogString_STRING: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
 
 mode ModeRuleEngine;
 ModeEngineConfig_WS: WS -> skip;
@@ -144,7 +157,7 @@ ModeRuleUpdateActionById_INT:
 mode ModeRuleUpdateTargetById;
 ModeRuleUpdateTargetById_WS: WS -> skip;
 ModeRuleUpdateTargetById_INT:
-	[0-9]+ -> type(INT), popMode, pushMode(ModeSecRuleVariable);
+	INT -> type(INT), popMode, pushMode(ModeSecRuleVariable);
 
 mode ModeRuleUpdateTargetByMsg;
 ModeRuleUpdateTargetByMsg_WS: WS -> skip;
@@ -158,6 +171,11 @@ ModeRuleUpdateTargetByMsgString_STRING: (('\\"') | ~([" ])) (
 		('\\"')
 		| ~('"')
 	)* -> type(STRING);
+
+mode ModeSecRule;
+ModeSecRule_WS: WS -> skip, pushMode(ModeSecRuleVariableName);
+ModeSecRule_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:
@@ -250,14 +268,13 @@ VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
 VAR_USERID: 'USERID';
 VAR_WEBAPPID: 'WEBAPPID';
 VAR_XML: 'XML';
-ModeSecRuleVariableName_WS: WS -> skip;
+ModeSecRuleVariableName_WS: WS -> skip, popMode;
+ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
 ModeSecRuleVariableName_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubName);
 ModeSecRuleVariableName_VAR_COUNT: '&' -> type(VAR_COUNT);
 ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
-ModeSecRuleVariableName_QUOTE:
-	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
 
 mode ModeSecRuleVariableSubName;
 ModeSecRuleVariableSubName_VAR_SUB_NAME:
@@ -265,7 +282,7 @@ ModeSecRuleVariableSubName_VAR_SUB_NAME:
 
 mode ModeSecRuleOperator;
 ModeSecRuleOperatorName_QUOTE:
-	QUOTE -> type(QUOTE), popMode, pushMode( ModeSecRuleAction);
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
 AT: '@';
 OP_BEGINS_WITH: 'beginsWith';
 OP_CONTAINS: 'contains';
@@ -333,7 +350,7 @@ Auditlog: 'auditlog';
 Block: 'block';
 Capture: 'capture';
 Chain: 'chain';
-Ctl: 'ctl';
+Ctl: 'ctl' -> pushMode(ModeSecRuleActionCtl);
 Deny: 'deny';
 Drop: 'drop';
 Exec: 'exec';
@@ -377,12 +394,13 @@ ModeSecRuleActionSetVar_DOT: DOT -> type(DOT);
 ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
 ModeSecRuleActionSetVarName_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
-ASSIGN: '=' -> pushMode(ModeSecRuleActionSetVarValue);
+ModeSecRuleActionSetVarName_ASSIGN:
+	ASSIGN -> type(ASSIGN), pushMode(ModeSecRuleActionSetVarValue);
 VAR_NAME: [0-9a-zA-Z_][0-9a-zA-Z_]*;
 
 mode ModeSecRuleActionSetVarValue;
-PLUS: '+';
-MINUS: '-';
+ModeSecRuleActionSetVarValue_PLUS: PLUS -> type(PLUS);
+ModeSecRuleActionSetVarValue_MINUS: MINUS -> type(MINUS);
 ModeSecRuleActionSetVarValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), popMode, pushMode(ModeSecRuleActionMacroExpansion);
 VAR_VALUE: ~[+\-%']~[']* -> popMode;
@@ -468,6 +486,92 @@ SHA1: 'sha1' -> popMode;
 TRIM_LEFT: 'trimLeft' -> popMode;
 TRIM_RIGHT: 'trimRight' -> popMode;
 TRIM: 'trim' -> popMode;
+
+mode ModeSecRuleActionCtl;
+ModeSecRuleActionCtl_COLON: COLON -> type(COLON);
+CTL_AUDIT_ENGINE:
+	'auditEngine' -> popMode, pushMode(ModeSecRuleActionCtlAuditEngine);
+CTL_AUDIT_LOG_PARTS:
+	'auditLogParts' -> popMode, pushMode(ModeSecRuleActionCtlAuditLogParts);
+CTL_FORCE_REQUEST_BODY_VARIABLE:
+	'forceRequestBodyVariable' -> popMode, pushMode(ModeSecRuleActionCtlForceRequestBodyVariable);
+CTL_REQUEST_BODY_ACCESS:
+	'requestBodyAccess' -> popMode, pushMode(ModeSecRuleActionCtlForceRequestBodyVariable);
+CTL_REQUEST_BODY_PROCESSOR:
+	'requestBodyProcessor' -> popMode, pushMode(ModeSecRuleActionCtlRequestBodyProcessor);
+CTL_RULE_ENGINE:
+	'ruleEngine' -> popMode, pushMode(ModeSecRuleActionCtlRuleEngine);
+CTL_RULE_REMOVE_BY_ID:
+	'ruleRemoveById' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveById);
+CTL_RULE_REMOVE_BY_TAG:
+	'ruleRemoveByTag' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveByTag);
+CTL_RULE_REMOVE_TARGET_BY_ID:
+	'ruleRemoveTargetById' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveTargetById);
+CTL_RULE_REMOVE_TARGET_BY_TAG:
+	'ruleRemoveTargetByTag' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveTargetByTag);
+
+mode ModeSecRuleActionCtlAuditEngine;
+ModeSecRuleActionCtlAuditEngine_ASSIGN:
+	ASSIGN -> type(ASSIGN), popMode, pushMode(ModeAuditLog);
+
+mode ModeSecRuleActionCtlAuditLogParts;
+ModeSecRuleActionCtlAuditLogParts_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlAuditLogParts_PLUS:
+	PLUS -> type(PLUS), popMode, pushMode(ModeAuditLog);
+ModeSecRuleActionCtlAuditLogParts_MINUS:
+	MINUS -> type(MINUS), popMode, pushMode(ModeAuditLog);
+
+mode ModeSecRuleActionCtlForceRequestBodyVariable;
+ModeSecRuleActionCtlForceRequestBodyVariable_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlForceRequestBodyVariable_OPTION:
+	OPTION -> type(OPTION), popMode;
+
+mode ModeSecRuleActionCtlRequestBodyProcessor;
+ModeSecRuleActionCtlValueRequestBodyProcessor_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+URLENCODED: 'URLENCODED' -> popMode;
+MULTIPART: 'MULTIPART' -> popMode;
+XML: 'XML' -> popMode;
+JSON: 'JSON' -> popMode;
+
+mode ModeSecRuleActionCtlRuleEngine;
+ModeSecRuleActionCtlRuleEngine_ASSIGN: ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlRuleEngine_OPTION: (
+		'On'
+		| 'Off'
+		| 'DetectionOnly'
+	) -> type(OPTION), popMode;
+
+mode ModeSecRuleActionCtlRuleRemoveById;
+ModeSecRuleActionCtlRuleRemoveById_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlRuleRemoveById_INT:
+	INT -> type(INT), popMode;
+ModeSecRuleActionCtlRuleRemoveById_INT_RANGE:
+	INT_RANGE -> type(INT_RANGE), popMode;
+
+mode ModeSecRuleActionCtlRuleRemoveByTag;
+ModeSecRuleActionCtlRuleRemoveByTag_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlRuleRemoveByTag_STRING:
+	~[,=]+ -> type(STRING), popMode;
+
+mode ModeSecRuleActionCtlRuleRemoveTargetById;
+ModeSecRuleActionCtlRuleRemoveTargetById_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlRuleRemoveTargetById_INT: INT -> type(INT);
+ModeSecRuleActionCtlRuleRemoveTargetById_SEMICOLON:
+	SEMICOLON -> type(SEMICOLON), popMode, pushMode(ModeSecRuleVariableName);
+
+mode ModeSecRuleActionCtlRuleRemoveTargetByTag;
+ModeSecRuleActionCtlRuleRemoveTargetByTag_ASSIGN:
+	ASSIGN -> type(ASSIGN);
+ModeSecRuleActionCtlRuleRemoveTargetByTag_SEMICOLON:
+	SEMICOLON -> type(SEMICOLON), popMode, pushMode(ModeSecRuleVariableName);
+ModeSecRuleActionCtlRuleRemoveTargetByTag_STRING:
+	~[,=;]+ -> type(STRING);
 
 mode ModeSecRuleActionRedirect;
 ModeSecRuleActionRedirect_COLON:

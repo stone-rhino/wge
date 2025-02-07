@@ -16,19 +16,18 @@ TEST_F(AuditLogConfigTest, AuditEngine) {
   std::string directive = R"(SecAuditEngine On)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_engine_, Antlr4::Parser::AuditLogConfig::AuditEngine::On);
+  EXPECT_EQ(parser.auditLogConfig().audit_engine_, AuditLogConfig::AuditEngine::On);
 
   directive = R"(SecAuditEngine Off)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_engine_,
-            Antlr4::Parser::AuditLogConfig::AuditEngine::Off);
+  EXPECT_EQ(parser.auditLogConfig().audit_engine_, AuditLogConfig::AuditEngine::Off);
 
   directive = R"(SecAuditEngine RelevantOnly)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.auditLogConfig().audit_engine_,
-            Antlr4::Parser::AuditLogConfig::AuditEngine::RelevantOnly);
+            AuditLogConfig::AuditEngine::RelevantOnly);
 }
 
 TEST_F(AuditLogConfigTest, AuditLog) {
@@ -65,12 +64,12 @@ TEST_F(AuditLogConfigTest, AuditLogFormat) {
   std::string directive = R"(SecAuditLogFormat JSON)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().format_, Antlr4::Parser::AuditLogConfig::AuditFormat::Json);
+  EXPECT_EQ(parser.auditLogConfig().format_, AuditLogConfig::AuditFormat::Json);
 
   directive = R"(SecAuditLogFormat Native)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().format_, Antlr4::Parser::AuditLogConfig::AuditFormat::Native);
+  EXPECT_EQ(parser.auditLogConfig().format_, AuditLogConfig::AuditFormat::Native);
 }
 
 TEST_F(AuditLogConfigTest, AuditLogFileMode) {
@@ -89,7 +88,7 @@ TEST_F(AuditLogConfigTest, AuditLogParts) {
   std::string directive = R"(SecAuditLogParts ABCDEFGHIJKZ)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  for (size_t i = 0; i < static_cast<size_t>(Antlr4::Parser::AuditLogConfig::AuditLogPart::End);
+  for (size_t i = 0; i < static_cast<size_t>(AuditLogConfig::AuditLogPart::End);
        i++) {
     EXPECT_TRUE(parser.auditLogConfig().log_parts_[i]);
   }
@@ -129,19 +128,19 @@ TEST_F(AuditLogConfigTest, AuditLogType) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            Antlr4::Parser::AuditLogConfig::AuditLogType::Serial);
+            AuditLogConfig::AuditLogType::Serial);
 
   directive = R"(SecAuditLogType Concurrent)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            Antlr4::Parser::AuditLogConfig::AuditLogType::Concurrent);
+            AuditLogConfig::AuditLogType::Concurrent);
 
   directive = R"(SecAuditLogType HTTPS)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            Antlr4::Parser::AuditLogConfig::AuditLogType::Https);
+            AuditLogConfig::AuditLogType::Https);
 
   directive = R"(SecAuditLogType asdf)";
   result = parser.load(directive);
