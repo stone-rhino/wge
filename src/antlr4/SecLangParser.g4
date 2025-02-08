@@ -384,7 +384,8 @@ action:
 	action_meta_data
 	| action_non_disruptive
 	| action_disruptive
-	| action_data;
+	| action_data
+	| action_flow;
 
 action_meta_data:
 	action_meta_data_id
@@ -677,6 +678,9 @@ action_disruptive_redirect: Redirect COLON STRING;
 action_data: action_data_status | action_data_xml_ns;
 action_data_status: Status COLON INT;
 action_data_xml_ns: Xmlns COLON STRING;
+
+action_flow: action_flow_chain;
+action_flow_chain: Chain;
 
 audit_log_config:
 	sec_audit_engine

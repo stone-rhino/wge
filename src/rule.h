@@ -1,11 +1,11 @@
 #pragma once
 
 #include <bitset>
+#include <list>
 #include <memory>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 #include "action/action_base.h"
 #include "http_extractor.h"
@@ -147,6 +147,15 @@ public:
   const std::string& xmlns() const { return xml_ns_; }
   void xmlns(std::string&& value) { xml_ns_ = std::move(value); }
 
+  // Action Grop: Flow
+public:
+  std::list<std::unique_ptr<Rule>>::iterator appendChainRule() {
+    chain_.emplace_back(std::make_unique<Rule>());
+    return std::prev(chain_.end());
+  }
+  void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
+  std::unique_ptr<Rule>& backChainRule() { return chain_.back(); }
+
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   void removeVariable(const Variable::VariableBase::FullName& full_name);
@@ -226,7 +235,7 @@ private:
 private:
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.
   // Chained rules allow for more complex processing logic.
-  bool chain_{false};
+  std::list<std::unique_ptr<Rule>> chain_;
 
   // Skips one or more rules (or chains) on successful match.
   int skip_{0};

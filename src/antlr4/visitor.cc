@@ -71,7 +71,13 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
 
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
   // Add an empty rule, and sets variable and operators and actions by visitChildren
-  current_rule_iter_ = parser_->secRule();
+  if (chain_) {
+    current_rule_iter_ = (*current_rule_iter_)->appendChainRule();
+  } else {
+    current_rule_iter_ = parser_->secRule();
+  }
+
+  chain_ = false;
 
   // Visit variables and operators and actions
   std::string error;
@@ -1681,6 +1687,11 @@ Visitor::visitAction_data_status(Antlr4Gen::SecLangParser::Action_data_statusCon
 std::any
 Visitor::visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsContext* ctx) {
   (*current_rule_iter_)->xmlns(ctx->STRING()->getText());
+  return "";
+}
+
+std::any Visitor::visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_chainContext* ctx) {
+  chain_ = true;
   return "";
 }
 

@@ -664,6 +664,10 @@ public:
   std::any
   visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsContext* ctx) override;
 
+  // Action Grop: Flow
+public:
+  std::any visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_chainContext* ctx) override;
+
   // Audit log configurations
 public:
   std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;
@@ -688,6 +692,7 @@ public:
 
 private:
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
+
   template <class VarT, class CtxT> void appendVariable(CtxT* ctx) {
     std::string sub_name;
     if (ctx->STRING()) {
@@ -711,6 +716,7 @@ private:
 private:
   Parser* parser_;
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
+  bool chain_{false};
   std::unordered_multimap<std::string, std::string> action_map_;
   enum class VisitVariableMode { VisitVariableMode_SecRule, VisitVariableMode_SecUpdateTarget };
   enum class VisitActionMode {
