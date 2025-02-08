@@ -26,8 +26,7 @@ TEST_F(AuditLogConfigTest, AuditEngine) {
   directive = R"(SecAuditEngine RelevantOnly)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_engine_,
-            AuditLogConfig::AuditEngine::RelevantOnly);
+  EXPECT_EQ(parser.auditLogConfig().audit_engine_, AuditLogConfig::AuditEngine::RelevantOnly);
 }
 
 TEST_F(AuditLogConfigTest, AuditLog) {
@@ -88,8 +87,7 @@ TEST_F(AuditLogConfigTest, AuditLogParts) {
   std::string directive = R"(SecAuditLogParts ABCDEFGHIJKZ)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  for (size_t i = 0; i < static_cast<size_t>(AuditLogConfig::AuditLogPart::End);
-       i++) {
+  for (size_t i = 0; i < static_cast<size_t>(AuditLogConfig::AuditLogPart::End); i++) {
     EXPECT_TRUE(parser.auditLogConfig().log_parts_[i]);
   }
 
@@ -127,20 +125,17 @@ TEST_F(AuditLogConfigTest, AuditLogType) {
   std::string directive = R"(SecAuditLogType Serial)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            AuditLogConfig::AuditLogType::Serial);
+  EXPECT_EQ(parser.auditLogConfig().audit_log_type_, AuditLogConfig::AuditLogType::Serial);
 
   directive = R"(SecAuditLogType Concurrent)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            AuditLogConfig::AuditLogType::Concurrent);
+  EXPECT_EQ(parser.auditLogConfig().audit_log_type_, AuditLogConfig::AuditLogType::Concurrent);
 
   directive = R"(SecAuditLogType HTTPS)";
   result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().audit_log_type_,
-            AuditLogConfig::AuditLogType::Https);
+  EXPECT_EQ(parser.auditLogConfig().audit_log_type_, AuditLogConfig::AuditLogType::Https);
 
   directive = R"(SecAuditLogType asdf)";
   result = parser.load(directive);
