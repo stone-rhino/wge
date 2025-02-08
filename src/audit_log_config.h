@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bitset>
 #include <string>
 
 namespace SrSecurity {
@@ -87,7 +88,7 @@ struct AuditLogConfig {
   // Defines which parts of each transaction are going to be recorded in the audit log. Each part
   // is assigned a single letter; when a letter appears in the list then the equivalent part will
   // be recorded. See below for the list of all parts.
-  bool log_parts_[static_cast<int>(AuditLogPart::End)];
+  std::bitset<16> log_parts_;
 
   // SecAuditLogRelevantStatus
   // Configures which response status code is to be considered relevant for the purpose of audit
