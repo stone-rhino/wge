@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 
+#include "action/actions_include.h"
 #include "antlr4/parser.h"
 #include "engine.h"
 #include "variable/variables_include.h"
@@ -936,6 +937,18 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->value(), "bar");
   EXPECT_EQ(rule_operator->regexExpr(), "bar");
+}
+
+TEST_F(RuleTest, ActionInitCol) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,initcol:global=global,initcol:ip=%{REMOTE_ADDR}")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().size(), 1);
+  auto& actions = parser.rules().back()->actions();
+  EXPECT_EQ(actions.size(), 2);
+  EXPECT_NE(nullptr, dynamic_cast<Action::InitCol*>(actions.front().get()));
 }
 } // namespace Parser
 } // namespace SrSecurity

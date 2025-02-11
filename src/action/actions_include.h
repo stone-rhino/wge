@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ctl.h"
+#include "initcol.h"
 #include "set_env.h"
 #include "set_rsc.h"
 #include "set_sid.h"

@@ -442,7 +442,8 @@ action_non_disruptive:
 	| action_non_disruptive_no_audit_log
 	| action_non_disruptive_no_log
 	| action_non_disruptive_capture
-	| action_non_disruptive_multi_match;
+	| action_non_disruptive_multi_match
+	| action_non_disruptive_initcol;
 action_non_disruptive_setvar:
 	action_non_disruptive_setvar_create
 	| action_non_disruptive_setvar_create_init
@@ -660,6 +661,8 @@ action_non_disruptive_no_audit_log: Noauditlog;
 action_non_disruptive_no_log: Nolog;
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
+action_non_disruptive_initcol:
+	Initcol COLON STRING ASSIGN STRING;
 
 action_disruptive:
 	action_disruptive_allow
