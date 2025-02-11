@@ -1,3 +1,4 @@
+#include <format>
 #include <functional>
 #include <string>
 #include <vector>
@@ -423,6 +424,22 @@ TEST_F(RuleTest, ActionSetVar) {
     int score2 = t->getVariableInt("score2");
     int score3 = t->getVariableInt("score3");
     EXPECT_EQ(score2, score3);
+  }
+
+  // Create and init (Multi macro expansion)
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:'tx.foo=%{tx.score2}_%{tx.score}',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    auto& actions = parser.rules().back()->actions();
+    EXPECT_EQ(actions.size(), 1);
+    actions.back()->evaluate(*t);
+    int score2 = t->getVariableInt("score2");
+    int score = t->getVariableInt("score");
+    std::string foo = *t->getVariable("foo");
+    EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
   // Remove

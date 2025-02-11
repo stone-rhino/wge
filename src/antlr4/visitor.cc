@@ -7,6 +7,7 @@
 
 #include "../action/actions_include.h"
 #include "../common/try.h"
+#include "../macro/multi_macro.h"
 #include "../macro/tx.h"
 #include "../operator/operator_include.h"
 #include "../transformation/transform_include.h"
@@ -1069,19 +1070,37 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
 
-  if (ctx->action_non_disruptive_setvar_macro()) {
+  auto macro_ctx_array =
+      ctx->action_non_disruptive_setvar_create_init_value()->action_non_disruptive_setvar_macro();
+  if (!macro_ctx_array.empty()) {
     try {
-      std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
-          visitChildren(ctx->action_non_disruptive_setvar_macro()));
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::CreateAndInit));
+      if (macro_ctx_array.size() == 1) {
+        std::shared_ptr<Macro::MacroBase> macro = std::any_cast<std::shared_ptr<Macro::MacroBase>>(
+            visitChildren(macro_ctx_array.front()));
+        actions.emplace_back(std::make_unique<Action::SetVar>(
+            ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::CreateAndInit));
+      } else {
+        std::vector<std::shared_ptr<Macro::MacroBase>> macros;
+        for (auto& macro_ctx : macro_ctx_array) {
+          macros.emplace_back(
+              std::any_cast<std::shared_ptr<Macro::MacroBase>>(visitChildren(macro_ctx)));
+        }
+
+        std::shared_ptr<Macro::MultiMacro> multi_macro = std::make_shared<Macro::MultiMacro>(
+            ctx->action_non_disruptive_setvar_create_init_value()->getText(), std::move(macros));
+
+        actions.emplace_back(std::make_unique<Action::SetVar>(
+            ctx->VAR_NAME()->getText(), multi_macro, Action::SetVar::EvaluateType::CreateAndInit));
+      }
+
     } catch (const std::bad_any_cast& ex) {
       return ex.what();
     }
   } else {
-    actions.emplace_back(
-        std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText(),
-                                         Action::SetVar::EvaluateType::CreateAndInit));
+    actions.emplace_back(std::make_unique<Action::SetVar>(
+        ctx->VAR_NAME()->getText(),
+        ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText(),
+        Action::SetVar::EvaluateType::CreateAndInit));
   }
 
   return "";

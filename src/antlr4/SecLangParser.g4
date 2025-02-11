@@ -455,12 +455,17 @@ action_non_disruptive_setvar:
 action_non_disruptive_setvar_create:
 	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME SINGLE_QUOTE;
 action_non_disruptive_setvar_create_init:
-	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME ASSIGN (
+	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME ASSIGN action_non_disruptive_setvar_create_init_value
+		SINGLE_QUOTE;
+action_non_disruptive_setvar_create_init_value: (
 		VAR_VALUE
 		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+			(
+				VAR_VALUE? PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+					VAR_VALUE?
+			)+
 		)
-	) SINGLE_QUOTE;
+	);
 action_non_disruptive_setvar_remove:
 	Setvar COLON SINGLE_QUOTE NOT TX DOT VAR_NAME SINGLE_QUOTE;
 action_non_disruptive_setvar_increase:
