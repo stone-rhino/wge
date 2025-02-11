@@ -208,6 +208,11 @@ std::any Visitor::visitSec_rule_update_target_by_tag(
   return "";
 }
 
+std::any Visitor::visitSec_marker(Antlr4Gen::SecLangParser::Sec_markerContext* ctx) {
+  parser_->secMarker(ctx->STRING()->getText());
+  return "";
+}
+
 std::any Visitor::visitVariable_args(Antlr4Gen::SecLangParser::Variable_argsContext* ctx) {
   appendVariable<Variable::Args>(ctx);
   return "";

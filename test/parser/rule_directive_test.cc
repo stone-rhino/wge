@@ -364,6 +364,20 @@ TEST_F(RuleTest, RuleUpdateTargetByTag) {
   }
 }
 
+TEST_F(RuleTest, Marker) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,tag:'tag1',msg:'msg1'"
+SecMarker "Hi")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  auto& rules = parser.rules();
+  auto& markers = parser.markers();
+  EXPECT_EQ(rules.size(), 1);
+  EXPECT_EQ(markers.size(), 1);
+}
+
 TEST_F(RuleTest, ActionSetVar) {
   auto t = engine_.makeTransaction();
 

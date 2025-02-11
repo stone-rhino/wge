@@ -70,7 +70,7 @@ SecDebugLogLevel: 'SecDebugLogLevel';
 SecDefaultAction: 'SecDefaultAction';
 SecGeoLookupDb: 'SecGeoLookupDb';
 SecHttpBlKey: 'SecHttpBlKey';
-SecMarker: 'SecMarker';
+SecMarker: 'SecMarker' -> pushMode(ModeAuditLogString);
 SecPcreMatchLimit: 'SecPcreMatchLimit';
 SecRemoteRules: 'SecRemoteRules';
 SecRemoteRulesFailAction: 'SecRemoteRulesFailAction';

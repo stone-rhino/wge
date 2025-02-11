@@ -2,8 +2,10 @@
 
 #include <expected>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
+#include "marker.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
@@ -35,8 +37,9 @@ public:
   std::expected<bool, std::string> load(const std::string& directive);
 
   /**
-   * This method initializes some important variables, such as hyperscan database and so on
-   * @note Must call once before call makeTransaction, and only once in the life of the
+   * This method initializes some important variables, such as rules chain per phase and hyperscan
+   * database and so on
+   * @note Must call once before call makeTransaction, and only once in the life of the engine
    * instance.
    */
   void preEvaluateRules();
@@ -57,12 +60,13 @@ public:
 
 private:
   void initValidRules();
+  void initMakers();
 
 private:
   std::shared_ptr<Antlr4::Parser> parser_;
-  std::vector<std::unique_ptr<Rule>> rules_pool_;
   constexpr static size_t phase_total_ = 5;
   std::array<std::vector<Rule*>, phase_total_> valid_rules_;
+  std::unordered_map<std::string, Marker> markers_;
   PersistentStorage::Storage storage_;
 };
 } // namespace SrSecurity

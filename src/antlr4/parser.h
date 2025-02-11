@@ -10,6 +10,7 @@
 
 #include "../audit_log_config.h"
 #include "../engine_config.h"
+#include "../marker.h"
 #include "../rule.h"
 
 namespace SrSecurity::Antlr4 {
@@ -51,9 +52,7 @@ public:
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
-  void secRuleUpdateTargetById(uint64_t id);
-  void secRuleUpdateTargetByMsg(const std::string& msg);
-  void secRuleUpdateTargetByTag(const std::string& tag);
+  void secMarker(std::string&& name);
 
   // Audit log configurations
   void secAuditEngine(AuditLogConfig::AuditEngine option);
@@ -72,6 +71,7 @@ public:
   const EngineConfig& engineConfig() const { return engine_config_; }
   const std::list<std::unique_ptr<Rule>>& uncondRules() const { return uncond_rules_; }
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
+  const std::list<Marker>& markers() const { return makers_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
   void removeBackRule();
   void removeBackUncondRule();
@@ -96,6 +96,7 @@ public:
 
 private:
   EngineConfig engine_config_;
+  AuditLogConfig audit_log_config_;
   // Unconditionally processes rule(action) list
   std::list<std::unique_ptr<Rule>> uncond_rules_;
   std::list<std::unique_ptr<Rule>> rules_;
@@ -104,6 +105,6 @@ private:
       rules_index_msg_;
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
       rules_index_tag_;
-  AuditLogConfig audit_log_config_;
+  std::list<Marker> makers_;
 };
 } // namespace SrSecurity::Antlr4

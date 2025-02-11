@@ -165,55 +165,13 @@ void Parser::secRuleRemoveByTag(const std::string& tag) {
   rules_index_tag_.erase(tag);
 }
 
-void Parser::secRuleUpdateTargetById(uint64_t id) {
-  // auto iter = rules_index_id_.find(id);
-  // if (iter != rules_index_id_.end()) {
-  //   auto& rule = *iter->second;
+void Parser::secMarker(std::string&& name) {
+  Rule* prev_rule = nullptr;
+  if (!rules_.empty()) {
+    prev_rule = rules_.back().get();
+  }
 
-  //   // Append variable
-  //   for (auto& attr : variable_attrs) {
-  //     auto iter = variable_factory_.find(attr.main_name_);
-  //     if (iter != variable_factory_.end()) {
-  //       rule->removeVariable(attr.full_name_);
-  //       rule->appendVariable(
-  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-  //     }
-  //   }
-  // }
-}
-
-void Parser::secRuleUpdateTargetByMsg(const std::string& msg) {
-  // auto range = rules_index_msg_.equal_range(msg);
-  // for (auto iter = range.first; iter != range.second; ++iter) {
-  //   auto& rule = *iter->second;
-
-  //   // Append variable
-  //   for (auto& attr : variable_attrs) {
-  //     auto iter = variable_factory_.find(attr.main_name_);
-  //     if (iter != variable_factory_.end()) {
-  //       rule->removeVariable(attr.full_name_);
-  //       rule->appendVariable(
-  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-  //     }
-  //   }
-  // }
-}
-
-void Parser::secRuleUpdateTargetByTag(const std::string& tag) {
-  // auto range = rules_index_tag_.equal_range(tag);
-  // for (auto iter = range.first; iter != range.second; ++iter) {
-  //   auto& rule = *iter->second;
-
-  //   // Append variable
-  //   for (auto& attr : variable_attrs) {
-  //     auto iter = variable_factory_.find(attr.main_name_);
-  //     if (iter != variable_factory_.end()) {
-  //       rule->removeVariable(attr.full_name_);
-  //       rule->appendVariable(
-  //           iter->second(std::move(attr.full_name_), attr.is_not_, attr.is_counter_));
-  //     }
-  //   }
-  // }
+  makers_.emplace_back(std::move(name), prev_rule);
 }
 
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {

@@ -59,6 +59,8 @@ public:
   std::any visitSec_rule_update_target_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) override;
 
+  std::any visitSec_marker(Antlr4Gen::SecLangParser::Sec_markerContext* ctx) override;
+
   // SecRule variables
 public:
   std::any visitVariable_args(Antlr4Gen::SecLangParser::Variable_argsContext* ctx) override;

@@ -34,6 +34,7 @@ void Engine::preEvaluateRules() {
   ASSERT_IS_MAIN_THREAD();
 
   initValidRules();
+  initMakers();
 }
 
 TransactionPtr Engine::makeTransaction() const {
@@ -41,5 +42,6 @@ TransactionPtr Engine::makeTransaction() const {
 }
 
 void Engine::initValidRules() {}
+void Engine::initMakers() {}
 
 } // namespace SrSecurity
