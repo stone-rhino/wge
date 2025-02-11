@@ -356,7 +356,7 @@ Drop: 'drop';
 Exec: 'exec';
 Expirevar: 'expirevar';
 Id: 'id';
-Initcol: 'initcol';
+Initcol: 'initcol' -> pushMode(ModeSecRuleActionInitCol);
 Log: 'log';
 Logdata: 'logdata';
 Maturity: 'maturity';
@@ -509,6 +509,16 @@ CTL_RULE_REMOVE_TARGET_BY_ID:
 	'ruleRemoveTargetById' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveTargetById);
 CTL_RULE_REMOVE_TARGET_BY_TAG:
 	'ruleRemoveTargetByTag' -> popMode, pushMode(ModeSecRuleActionCtlRuleRemoveTargetByTag);
+
+mode ModeSecRuleActionInitCol;
+ModeSecRuleActionInitCol_COLON: COLON -> type(COLON);
+ModeSecRuleActionInitCol_ASSIGN:
+	ASSIGN -> type(ASSIGN), popMode, pushMode(ModeSecRuleActionInitColValue);
+ModeSecRuleActionInitCol_STRING: ~[=:]+ -> type(STRING);
+
+mode ModeSecRuleActionInitColValue;
+ModeSecRuleActionInitColValue_STRING:
+	~[,"]+ -> type(STRING), popMode;
 
 mode ModeSecRuleActionCtlAuditEngine;
 ModeSecRuleActionCtlAuditEngine_ASSIGN:

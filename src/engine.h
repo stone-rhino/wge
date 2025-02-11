@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
 
@@ -48,6 +49,12 @@ public:
    */
   TransactionPtr makeTransaction() const;
 
+  /**
+   * Get persistent storage
+   * @return reference of persistent storage
+   */
+  PersistentStorage::Storage& storage() { return storage_; }
+
 private:
   void initValidRules();
 
@@ -56,5 +63,6 @@ private:
   std::vector<std::unique_ptr<Rule>> rules_pool_;
   constexpr static size_t phase_total_ = 5;
   std::array<std::vector<Rule*>, phase_total_> valid_rules_;
+  PersistentStorage::Storage storage_;
 };
 } // namespace SrSecurity

@@ -1641,6 +1641,15 @@ std::any Visitor::visitAction_non_disruptive_multi_match(
   return "";
 }
 
+std::any Visitor::visitAction_non_disruptive_initcol(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_initcolContext* ctx) {
+  std::string name = ctx->STRING(0)->getText();
+  std::string value = ctx->STRING(1)->getText();
+  auto& actions = (*current_rule_iter_)->actions();
+  actions.emplace_back(std::make_unique<Action::InitCol>(std::move(name), std::move(value)));
+  return "";
+}
+
 std::any Visitor::visitAction_disruptive_allow(
     Antlr4Gen::SecLangParser::Action_disruptive_allowContext* ctx) {
   (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW);

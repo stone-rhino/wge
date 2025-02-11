@@ -8,6 +8,7 @@ add_subdirectory(antlr4)
 add_subdirectory(common)
 add_subdirectory(macro)
 add_subdirectory(variable)
+add_subdirectory(persistent_storage)
 
 set(antlr4_obj
   ${CMAKE_BINARY_DIR}/antlr4obj/ANTLRErrorListener.cpp.o
@@ -152,6 +153,7 @@ add_library(srsecurity
   $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
   $<TARGET_OBJECTS:macro>
+  $<TARGET_OBJECTS:persistent_storage>
   ${antlr4_obj}
   ${local_source}
 )
