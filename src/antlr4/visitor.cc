@@ -1709,6 +1709,12 @@ std::any Visitor::visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_c
   return "";
 }
 
+std::any
+Visitor::visitAction_flow_skip_after(Antlr4Gen::SecLangParser::Action_flow_skip_afterContext* ctx) {
+  (*current_rule_iter_)->skipAfter(ctx->STRING()->getText());
+  return "";
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = SrSecurity::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

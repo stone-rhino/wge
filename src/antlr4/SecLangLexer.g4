@@ -375,7 +375,7 @@ Setsid: 'setsid' -> pushMode(ModeSecRuleActionSetUid);
 Setenv: 'setenv' -> pushMode(ModeSecRuleActionSetVar);
 Setvar: 'setvar' -> pushMode(ModeSecRuleActionSetVar);
 Skip: 'skip';
-SkipAfter: 'skipAfter';
+SkipAfter: 'skipAfter' -> pushMode(ModeSecRuleActionRedirect);
 Status: 'status';
 T: 't' -> pushMode(ModeSecRuleActionT);
 Tag: 'tag';
@@ -589,7 +589,7 @@ ModeSecRuleActionRedirect_COLON:
 
 mode ModeSecRuleActionRedirectValue;
 ModeSecRuleActionRedirect_STRING:
-	~[,]+ -> type(STRING), popMode;
+	~[,"]+ -> type(STRING), popMode;
 
 mode ModeSecRuleActionSeverity;
 ModeSecRuleActionSeverity_COLON: COLON -> type(COLON);

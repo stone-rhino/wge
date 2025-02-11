@@ -676,6 +676,8 @@ public:
   // Action Grop: Flow
 public:
   std::any visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_chainContext* ctx) override;
+  std::any visitAction_flow_skip_after(
+      Antlr4Gen::SecLangParser::Action_flow_skip_afterContext* ctx) override;
 
   // Audit log configurations
 public:

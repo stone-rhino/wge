@@ -964,5 +964,15 @@ TEST_F(RuleTest, ActionInitCol) {
   EXPECT_EQ(actions.size(), 2);
   EXPECT_NE(nullptr, dynamic_cast<Action::InitCol*>(actions.front().get()));
 }
+
+TEST_F(RuleTest, ActionSkipAfter) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,skipAfter:hi,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->skipAfter(), "hi");
+}
+
 } // namespace Parser
 } // namespace SrSecurity

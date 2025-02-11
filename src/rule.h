@@ -155,6 +155,8 @@ public:
   }
   void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
   std::unique_ptr<Rule>& backChainRule() { return chain_.back(); }
+  const std::string& skipAfter() const { return skip_after_; }
+  void skipAfter(std::string&& skip_after) { skip_after_ = std::move(skip_after); }
 
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
