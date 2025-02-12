@@ -342,7 +342,7 @@ operator:
 	| op_verify_cpf
 	| op_verify_ssn
 	| op_within
-	| op_rx2;
+	| op_rx_default;
 op_begins_with: AT OP_BEGINS_WITH STRING;
 op_contains: AT OP_CONTAINS STRING;
 op_contains_word: AT OP_CONTAINS_WORD STRING;
@@ -380,7 +380,7 @@ op_verify_cc: AT OP_VERIFY_CC STRING;
 op_verify_cpf: AT OP_VERIFY_CPF STRING;
 op_verify_ssn: AT OP_VERIFY_SSN STRING;
 op_within: AT OP_WITHIN STRING;
-op_rx2: STRING;
+op_rx_default: STRING;
 
 action:
 	action_meta_data

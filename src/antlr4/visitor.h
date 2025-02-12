@@ -382,7 +382,7 @@ public:
 
   std::any visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx) override;
 
-  std::any visitOp_rx2(Antlr4Gen::SecLangParser::Op_rx2Context* ctx) override;
+  std::any visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) override;
 
   // Action Group: Meta-data
 public:

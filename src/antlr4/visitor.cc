@@ -942,7 +942,7 @@ std::any Visitor::visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx
   return "";
 }
 
-std::any Visitor::visitOp_rx2(Antlr4Gen::SecLangParser::Op_rx2Context* ctx) {
+std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(new Operator::Rx(ctx->STRING()->getText()));
   (*current_rule_iter_)->setOperator(std::move(op));
   return "";

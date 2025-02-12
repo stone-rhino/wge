@@ -281,9 +281,14 @@ ModeSecRuleVariableSubName_VAR_SUB_NAME:
 	~[ :!&|",\n]+ -> type(STRING), popMode;
 
 mode ModeSecRuleOperator;
-ModeSecRuleOperatorName_QUOTE:
+AT: '@' -> popMode, pushMode(ModeSecRuleOperatorName);
+ModeSecRuleOperator_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
-AT: '@';
+RX_DEFUALT: (('\\"') | ~([" @])) (('\\"') | ~('"'))* -> type(STRING);
+
+mode ModeSecRuleOperatorName;
+ModeSecRuleOperator_WS:
+	WS -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
 OP_BEGINS_WITH: 'beginsWith';
 OP_CONTAINS: 'contains';
 OP_CONTAINS_WORD: 'containsWord';
@@ -321,13 +326,10 @@ OP_VERIFY_CC: 'verifyCC';
 OP_VERIFY_CPF: 'verifyCPF';
 OP_VERIFY_SSN: 'verifySSN';
 OP_WITHIN: 'within';
-ModeSecRuleOperatorName_WS:
-	WS -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
-OPERATOR_VALUE: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING);
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:
-	QUOTE -> type(QUOTE), popMode, pushMode( ModeSecRuleAction);
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
 OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING);
 
 mode ModeSecRuleAction;
