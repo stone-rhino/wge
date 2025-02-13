@@ -30,6 +30,10 @@ public:
 public:
   void evaluate(Transaction& t) override;
 
+public:
+  const std::string& name() const { return name_; }
+  const std::string& value() const { return value_; }
+
 private:
   std::string name_;
   std::string value_;
