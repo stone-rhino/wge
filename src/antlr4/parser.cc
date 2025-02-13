@@ -132,8 +132,8 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction() {
-  uncond_rules_.emplace_back(std::make_unique<Rule>());
-  return std::prev(uncond_rules_.end());
+  rules_.emplace_back(std::make_unique<Rule>());
+  return std::prev(rules_.end());
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secRule() {
@@ -261,8 +261,6 @@ void Parser::removeBackRule() {
   // remove rule
   rules_.erase(std::prev(rules_.end()));
 }
-
-void Parser::removeBackUncondRule() { uncond_rules_.erase(std::prev(uncond_rules_.end())); }
 
 void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
   rules_index_id_[(*iter)->id()] = iter;

@@ -63,7 +63,7 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
   std::string error;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
-    parser_->removeBackUncondRule();
+    parser_->removeBackRule();
     return error;
   }
 

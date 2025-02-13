@@ -21,7 +21,7 @@ TEST_F(EngineActionTest, SecAction) {
   Antlr4::Parser parser;
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  auto& rules = parser.uncondRules();
+  auto& rules = parser.rules();
   EXPECT_EQ(rules.size(), 1);
   auto& rule = rules.front();
   EXPECT_EQ(rule->id(), 1);
