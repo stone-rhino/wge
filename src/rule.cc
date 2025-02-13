@@ -11,8 +11,8 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
   auto iter = variables_index_by_full_name_.find(full_name);
   if (iter == variables_index_by_full_name_.end()) {
     var->preCompile();
-    variables_pool_.emplace_back(std::move(var));
-    variables_index_by_full_name_.insert({full_name, *variables_pool_.back()});
+    variables_.emplace_back(std::move(var));
+    variables_index_by_full_name_.insert({full_name, *variables_.back()});
   }
 }
 
@@ -20,7 +20,7 @@ void Rule::removeVariable(const Variable::VariableBase::FullName& full_name) {
   auto iter = variables_index_by_full_name_.find(full_name);
   if (iter != variables_index_by_full_name_.end()) {
     variables_index_by_full_name_.erase(iter);
-    std::erase_if(variables_pool_, [&](const std::unique_ptr<Variable::VariableBase>& var) {
+    std::erase_if(variables_, [&](const std::unique_ptr<Variable::VariableBase>& var) {
       if (var->fullName() == full_name) {
         return true;
       }

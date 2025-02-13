@@ -17,7 +17,7 @@ class RuleTest : public testing::Test {
 public:
   const std::vector<std::unique_ptr<Variable::VariableBase>>&
   getRuleVariablePool(Rule& rule) const {
-    return rule.variables_pool_;
+    return rule.variables_;
   }
 
   const std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>&
