@@ -42,13 +42,13 @@ public:
    * @note Must call once before call makeTransaction, and only once in the life of the engine
    * instance.
    */
-  void preEvaluateRules();
+  void init();
 
 public:
   /**
    * Make a transaction to evaluate rules.
    * @return Pointer of transaction
-   * @note Must call preEvaluateRules once before call this
+   * @note Must call init once before call this
    */
   TransactionPtr makeTransaction() const;
 
@@ -59,14 +59,14 @@ public:
   PersistentStorage::Storage& storage() { return storage_; }
 
 private:
-  void initValidRules();
+  void initRules();
   void initMakers();
 
 private:
-  std::shared_ptr<Antlr4::Parser> parser_;
   constexpr static size_t phase_total_ = 5;
-  std::array<std::vector<Rule*>, phase_total_> valid_rules_;
-  std::unordered_map<std::string, Marker> markers_;
+  std::shared_ptr<Antlr4::Parser> parser_;
+  std::array<std::vector<Rule*>, phase_total_> rules_;
+  std::unordered_map<std::string, Marker&> markers_;
   PersistentStorage::Storage storage_;
 };
 } // namespace SrSecurity

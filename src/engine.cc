@@ -3,6 +3,7 @@
 #include "antlr4/parser.h"
 #include "common/assert.h"
 #include "common/likely.h"
+#include "common/log.h"
 
 std::thread::id main_thread_id;
 
@@ -28,12 +29,12 @@ std::expected<bool, std::string> Engine::load(const std::string& directive) {
   return parser_->load(directive);
 }
 
-void Engine::preEvaluateRules() {
+void Engine::init() {
   // An efficient and rational design should not call this method in the worker thread.
   // This assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
-  initValidRules();
+  initRules();
   initMakers();
 }
 
@@ -41,7 +42,37 @@ TransactionPtr Engine::makeTransaction() const {
   return std::unique_ptr<Transaction>(new Transaction(*this));
 }
 
-void Engine::initValidRules() {}
-void Engine::initMakers() {}
+void Engine::initRules() {
+  auto& rules = parser_->rules();
+
+  // Sets the rules for each phase
+  for (auto& rule : rules) {
+    auto phase = rule->phase();
+    assert(phase >= 1 && phase <= phase_total_);
+    if (phase < 1 || phase > phase_total_) {
+      SRSECURITY_LOG(warn, "phase {} invalid. rule id:{}", phase, rule->id());
+      continue;
+    }
+    rules_.at(phase - 1).emplace_back(rule.get());
+  }
+}
+
+void Engine::initMakers() {
+  auto& markers = const_cast<std::list<Marker>&>(parser_->markers());
+  for (auto& marker : markers) {
+    for (int i = 1; i <= 5; ++i) {
+      for (auto iter = rules_[i].begin(); iter != rules_[i].end(); ++iter) {
+        if (*iter == marker.prevRule()) {
+          marker.init(iter);
+          markers_.emplace(marker.name(), marker);
+          break;
+        }
+      }
+      if (marker.prevRuleIter().has_value()) {
+        break;
+      }
+    }
+  }
+}
 
 } // namespace SrSecurity

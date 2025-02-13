@@ -32,10 +32,12 @@ TEST_F(CrsTest, crs901) {
     std::cout << result.error() << std::endl;
   }
 
+  engine_.init();
+
   EXPECT_EQ(parser_->auditLogConfig().component_signature_, "OWASP_CRS/4.3.0-dev");
 
   auto& rules = parser_->rules();
-  EXPECT_EQ(rules.size(), 28);
+  EXPECT_EQ(rules.size(), 29);
 
   for (auto& rule : rules) {
     auto iter = rule_tests_.find(rule->id());

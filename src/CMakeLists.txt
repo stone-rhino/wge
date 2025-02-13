@@ -152,11 +152,15 @@ set(antlr4_obj
 add_library(srsecurity 
   $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
+  $<TARGET_OBJECTS:common>
   $<TARGET_OBJECTS:macro>
   $<TARGET_OBJECTS:persistent_storage>
   ${antlr4_obj}
   ${local_source}
 )
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(srsecurity spdlog::spdlog_header_only)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   SET(antlr4_lib ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/debug/lib/libantlr4-runtime.a)

@@ -1,10 +1,23 @@
 #include "rule.h"
 
 #include "common/assert.h"
+#include "common/likely.h"
 #include "common/try.h"
 
 namespace SrSecurity {
-bool Rule::evaluate(const HttpExtractor& extractor) const { return false; }
+bool Rule::evaluate(const HttpExtractor& extractor, Transaction& t) const {
+  // Check whether the rule is unconditional(SecAction)
+  bool is_uncondition = operator_ == nullptr;
+
+  if (unlikely(is_uncondition)) {
+    for (auto& action : actions_) {
+      action->evaluate(t);
+    }
+  } else {
+  }
+
+  return false;
+}
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
   auto full_name = var->fullName();
