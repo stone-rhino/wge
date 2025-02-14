@@ -18,7 +18,8 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   } else [[likely]] {
     result = true;
     for (auto& var : variables_) {
-      if (!operator_->evaluate(t, var.get())) {
+      const std::string& value = var->evaluate(t);
+      if (!operator_->evaluate(t, value)) {
         result = false;
         break;
       }
@@ -51,9 +52,6 @@ void Rule::removeVariable(const Variable::VariableBase::FullName& full_name) {
   }
 }
 
-void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
-  operator_ = std::move(op);
-  operator_->preCompile();
-}
+void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) { operator_ = std::move(op); }
 
 } // namespace SrSecurity

@@ -2,12 +2,7 @@
   "dependencies": [
     "antlr4",
     "spdlog",
-    "gtest"
-  ],
-  "overrides": [
-    {
-      "name": "antlr4",
-      "version": "4.13.2"
-    }
+    "gtest",
+    "pcre2"
   ]
 }

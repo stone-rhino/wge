@@ -49,7 +49,7 @@ public:
    * @param phase Specify the phase of rule, the valid range is 1-5.
    * @return vector of rules
    */
-  const std::vector<Rule*>& rules(size_t phase) const;
+  const std::vector<Rule*>& rules(int phase) const;
 
 public:
   /**

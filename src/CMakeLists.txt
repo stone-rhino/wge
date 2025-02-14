@@ -7,6 +7,7 @@ add_subdirectory(action)
 add_subdirectory(antlr4)
 add_subdirectory(common)
 add_subdirectory(macro)
+add_subdirectory(operator)
 add_subdirectory(variable)
 add_subdirectory(persistent_storage)
 
@@ -160,7 +161,10 @@ add_library(srsecurity
 )
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(srsecurity spdlog::spdlog_header_only)
+target_link_libraries(srsecurity PRIVATE spdlog::spdlog_header_only)
+
+find_package(pcre2 CONFIG REQUIRED)
+target_link_libraries(srsecurity PRIVATE PCRE2::8BIT)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   SET(antlr4_lib ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/debug/lib/libantlr4-runtime.a)

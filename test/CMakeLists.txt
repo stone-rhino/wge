@@ -13,3 +13,6 @@ target_link_libraries(test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock G
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
+
+find_package(pcre2 CONFIG REQUIRED)
+target_link_libraries(test PRIVATE PCRE2::8BIT)

@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include "../variable/variable_base.h"
-
 #define DECLARE_OPERATOR_NAME(n)                                                                   \
 public:                                                                                            \
   const char* name() const override { return name_; }                                              \
@@ -16,20 +14,18 @@ namespace Operator {
 
 class OperatorBase {
 public:
-  OperatorBase(std::string&& operator_value) : operator_value_(std::move(operator_value)) {}
+  OperatorBase(std::string&& literal_value) : literal_value_(std::move(literal_value)) {}
+  virtual ~OperatorBase() = default;
 
 public:
-  const std::string& value() const { return operator_value_; }
-  const std::string& regexExpr() const { return regex_expr_; }
+  const std::string& literalValue() const { return literal_value_; }
 
 public:
-  virtual bool evaluate(Transaction& t, Variable::VariableBase* variable) const { return false; }
-  virtual void preCompile() {}
+  virtual bool evaluate(Transaction& t, const std::string& value) const = 0;
   virtual const char* name() const = 0;
 
 protected:
-  std::string operator_value_;
-  std::string regex_expr_;
+  std::string literal_value_;
 };
 
 } // namespace Operator

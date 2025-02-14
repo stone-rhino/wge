@@ -58,7 +58,7 @@ RULE_TEST(901001) {
   auto& op = rule.getOperator();
   EXPECT_NE(op, nullptr);
   EXPECT_EQ(std::string("eq"), op->name());
-  EXPECT_EQ(std::string("0"), op->value());
+  EXPECT_EQ(std::string("0"), op->literalValue());
 
   // Actions
   EXPECT_EQ(rule.id(), 901001);
@@ -88,7 +88,7 @@ RULE_TEST(901100) {
   auto& op = rule.getOperator();
   EXPECT_NE(op, nullptr);
   EXPECT_EQ(std::string("eq"), op->name());
-  EXPECT_EQ(std::string("0"), op->value());
+  EXPECT_EQ(std::string("0"), op->literalValue());
 
   // Actions
   EXPECT_EQ(rule.id(), 901100);

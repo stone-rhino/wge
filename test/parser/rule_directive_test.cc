@@ -80,8 +80,7 @@ TEST_F(RuleTest, Rule) {
   // operator
   auto& rule_operator = getRuleOperator(*parser.rules().back());
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
-  EXPECT_EQ(rule_operator->value(), "bar");
-  EXPECT_EQ(rule_operator->regexExpr(), "bar");
+  EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
 TEST_F(RuleTest, RuleRemoveById) {
@@ -966,8 +965,7 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   // operator
   auto& rule_operator = getRuleOperator(*chain_rule);
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
-  EXPECT_EQ(rule_operator->value(), "bar");
-  EXPECT_EQ(rule_operator->regexExpr(), "bar");
+  EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
 TEST_F(RuleTest, ActionInitCol) {

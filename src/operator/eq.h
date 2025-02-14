@@ -2,8 +2,6 @@
 
 #include "operator_base.h"
 
-#include "../common/util.h"
-
 namespace SrSecurity {
 namespace Operator {
 
@@ -15,13 +13,12 @@ class Eq : public OperatorBase {
   DECLARE_OPERATOR_NAME(eq);
 
 public:
-  Eq(std::string&& operator_value) : OperatorBase(std::move(operator_value)) {
-    value_ = ::atoll(operator_value.c_str());
+  Eq(std::string&& literal_value) : OperatorBase(std::move(literal_value)) {
+    value_ = ::atoll(literal_value.c_str());
   }
 
 public:
-  bool evaluate(Transaction& t, Variable::VariableBase* variable) const override {
-    const std::string& value = variable->evaluate(t);
+  bool evaluate(Transaction& t, const std::string& value) const override {
     return value_ == ::atoll(value.c_str());
   }
 

@@ -24,7 +24,7 @@ void Log::init(const std::string& log_level, const std::string& log_file) {
     spdlog::set_level(spdlog::level::off);
   }
 
-  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e %z][thread %t][%^%l%$] %v");
+  spdlog::set_pattern("[srsecurity][%Y-%m-%d %H:%M:%S.%e %z][thread %t][%^%l%$] %v");
 }
 } // namespace common
 } // namespace SrSecurity

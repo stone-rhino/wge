@@ -37,7 +37,7 @@ void Engine::init() {
   initMakers();
 }
 
-const std::vector<Rule*>& Engine::rules(size_t phase) const {
+const std::vector<Rule*>& Engine::rules(int phase) const {
   assert(phase >= 1 && phase <= 5);
   if (phase >= 1 && phase <= 5) {
     return rules_[phase - 1];

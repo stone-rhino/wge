@@ -2,18 +2,16 @@
 
 #include "operator_base.h"
 
-#include "../common/util.h"
-
 namespace SrSecurity {
 namespace Operator {
 class Rsub : public OperatorBase {
   DECLARE_OPERATOR_NAME(rsub);
 
 public:
-  Rsub(std::string&& operator_value) : OperatorBase(std::move(operator_value)) {}
+  Rsub(std::string&& literal_value) : OperatorBase(std::move(literal_value)) {}
 
 public:
-  void preCompile() override { regex_expr_ = operator_value_; }
+  bool evaluate(Transaction& t, const std::string& value) const override { assert(false); }
 };
 } // namespace Operator
 } // namespace SrSecurity
