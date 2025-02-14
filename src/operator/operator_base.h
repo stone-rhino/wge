@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "../variable/variable_base.h"
+
 #define DECLARE_OPERATOR_NAME(n)                                                                   \
 public:                                                                                            \
   const char* name() const override { return name_; }                                              \
@@ -21,7 +23,8 @@ public:
   const std::string& regexExpr() const { return regex_expr_; }
 
 public:
-  virtual void preCompile() = 0;
+  virtual bool evaluate(Transaction& t, Variable::VariableBase* variable) const { return false; }
+  virtual void preCompile() {}
   virtual const char* name() const = 0;
 
 protected:

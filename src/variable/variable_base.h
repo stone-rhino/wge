@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../http_extractor.h"
+#include "../transaction.h"
 
 #define DECLARE_VIRABLE_NAME(name)                                                                 \
 public:                                                                                            \
@@ -70,6 +71,10 @@ public:
   VariableBase(bool is_not, bool is_counter) : is_not_(is_not), is_counter_(is_counter) {}
 
 public:
+  virtual const std::string& evaluate(Transaction& t) const {
+    static std::string empty_string;
+    return empty_string;
+  }
   virtual void preCompile() = 0;
   virtual FullName fullName() const = 0;
   virtual const char* mainName() const = 0;

@@ -2,7 +2,6 @@
 
 #include "antlr4/parser.h"
 #include "common/assert.h"
-#include "common/likely.h"
 #include "common/log.h"
 
 std::thread::id main_thread_id;
@@ -36,6 +35,16 @@ void Engine::init() {
 
   initRules();
   initMakers();
+}
+
+const std::vector<Rule*>& Engine::rules(size_t phase) const {
+  assert(phase >= 1 && phase <= 5);
+  if (phase >= 1 && phase <= 5) {
+    return rules_[phase - 1];
+  } else {
+    static std::vector<Rule*> empty_rules;
+    return empty_rules;
+  }
 }
 
 TransactionPtr Engine::makeTransaction() const {

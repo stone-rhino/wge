@@ -19,20 +19,12 @@ protected:
   Transaction(const Engine& engin);
 
 public:
-  struct Result {
-    bool intervened_{false};
-    std::string_view message_;
-    std::string_view header_key_;
-    int64_t from_{0};
-    int64_t to_{0};
-  };
-
-public:
-  void processUri(UriExtractor uri_extractor, Result& result);
-  void processRequestHeader(HeaderExtractor header_extractor, Result& result);
-  void processRequestBody(BodyExtractor body_extractor, Result& result);
-  void processResponseHeader(HeaderExtractor header_extractor, Result& result);
-  void processResponseBody(BodyExtractor body_extractor, Result& result);
+  void processConnection(ConnectionExtractor conn_extractor);
+  void processUri(UriExtractor uri_extractor);
+  void processRequestHeaders(HeaderExtractor header_extractor);
+  void processRequestBody(BodyExtractor body_extractor);
+  void processResponseHeaders(HeaderExtractor header_extractor);
+  void processResponseBody(BodyExtractor body_extractor);
 
 public:
   void createVariable(std::string&& name, int value = 1);

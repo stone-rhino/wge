@@ -44,6 +44,13 @@ public:
    */
   void init();
 
+  /**
+   * Get rules
+   * @param phase Specify the phase of rule, the valid range is 1-5.
+   * @return vector of rules
+   */
+  const std::vector<Rule*>& rules(size_t phase) const;
+
 public:
   /**
    * Make a transaction to evaluate rules.
