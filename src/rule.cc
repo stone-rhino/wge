@@ -33,7 +33,6 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
   auto full_name = var->fullName();
   auto iter = variables_index_by_full_name_.find(full_name);
   if (iter == variables_index_by_full_name_.end()) {
-    var->preCompile();
     variables_.emplace_back(std::move(var));
     variables_index_by_full_name_.insert({full_name, *variables_.back()});
   }

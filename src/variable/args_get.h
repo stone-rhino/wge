@@ -16,10 +16,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void preCompile() override { regex_expr_.req_line_ = regex_; }
-
-private:
-  static constexpr char regex_[] = R"EOF([?&][\w-]+=[\w-]+)EOF";
+  const std::string& evaluate(Transaction& t) const override { throw "Not implemented!"; };
 };
 } // namespace Variable
 } // namespace SrSecurity

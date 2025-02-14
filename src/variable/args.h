@@ -17,10 +17,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void preCompile() override {
-    regex_expr_.req_line_ = ArgsGet::regex_;
-    regex_expr_.req_body_ = ArgsPost::regex_;
-  }
+  const std::string& evaluate(Transaction& t) const override { throw "Not implemented!"; };
 };
 } // namespace Variable
 } // namespace SrSecurity
