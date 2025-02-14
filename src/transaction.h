@@ -34,11 +34,14 @@ public:
   const std::string* getVariable(const std::string& name) const;
   std::string* getVariable(const std::string& name);
   int getVariableInt(const std::string& name) const;
+  void setMatched(size_t index, const std::string_view& value);
+  const std::string_view* getMatched(size_t index) const;
 
 private:
   HttpExtractor extractor_;
   const Engine& engin_;
   std::unordered_map<std::string, std::string> tx_;
+  std::array<std::string_view, 100> matched_;
 
   // ctl
 private:

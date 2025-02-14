@@ -1,5 +1,7 @@
 #include "transaction.h"
 
+#include <assert.h>
+
 #include "common/try.h"
 #include "engine.h"
 
@@ -86,6 +88,22 @@ int Transaction::getVariableInt(const std::string& name) const {
   }
 
   return 0;
+}
+
+void Transaction::setMatched(size_t index, const std::string_view& value) {
+  assert(index < matched_.size());
+  if (index < matched_.size()) {
+    matched_[index] = value;
+  }
+}
+
+const std::string_view* Transaction::getMatched(size_t index) const {
+  assert(index < matched_.size());
+  if (index < matched_.size()) {
+    return &matched_[index];
+  }
+
+  return nullptr;
 }
 
 } // namespace SrSecurity
