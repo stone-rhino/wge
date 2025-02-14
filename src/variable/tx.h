@@ -30,7 +30,6 @@ public:
       }
     }
   }
-  void preCompile() override {}
 
 private:
   static constexpr std::string number_{"1"};

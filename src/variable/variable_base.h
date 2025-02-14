@@ -20,19 +20,10 @@ namespace SrSecurity {
 namespace Variable {
 
 /**
- * Base class of variable
+ * Base class for all variables.
  */
 class VariableBase {
 public:
-  struct RegexExpression {
-    std::string req_line_;
-    std::string req_headers_;
-    std::string req_body_;
-    std::string resp_line_;
-    std::string resp_headers_;
-    std::string resp_body_;
-  };
-
   struct FullName {
     const char* main_name_;
     const std::string& sub_name_;
@@ -71,30 +62,55 @@ public:
   VariableBase(bool is_not, bool is_counter) : is_not_(is_not), is_counter_(is_counter) {}
 
 public:
-  virtual const std::string& evaluate(Transaction& t) const {
-    static std::string empty_string;
-    return empty_string;
-  }
-  virtual void preCompile() = 0;
+  /**
+   * Evaluate the variable.
+   * @param t the transaction.
+   * @return the value of the variable.
+   */
+  virtual const std::string& evaluate(Transaction& t) const = 0;
+
+  /**
+   * Get the full name of the variable.
+   * @return the full name of the variable.
+   */
   virtual FullName fullName() const = 0;
+
+  /**
+   * Get the main name of the variable.
+   * @return the main name of the variable.
+   */
   virtual const char* mainName() const = 0;
 
 public:
+  /**
+   * Get the sub name of the variable.
+   * @return the sub name of the variable.
+   */
   const std::string& subName() const { return sub_name_; }
-  bool isNot() const { return is_not_; }
-  bool isCounter() const { return is_counter_; }
-  const RegexExpression& regexExpr() const { return regex_expr_; }
 
-private:
+  /**
+   * Get whether the variable is negated.
+   * @return true if the variable is negated, false otherwise.
+   */
+  bool isNot() const { return is_not_; }
+
+  /**
+   * Get whether the variable is a counter.
+   * @return true if the variable is a counter, false otherwise.
+   */
+  bool isCounter() const { return is_counter_; }
+
 protected:
   std::string sub_name_;
   bool is_not_;
   bool is_counter_;
-  RegexExpression regex_expr_;
 };
 } // namespace Variable
 } // namespace SrSecurity
 
+/**
+ * Hash function for FullName.
+ */
 namespace std {
 template <> struct hash<SrSecurity::Variable::VariableBase::FullName> {
   size_t operator()(const SrSecurity::Variable::VariableBase::FullName& s) const {
