@@ -1,0 +1,114 @@
+#include "pcre.h"
+
+#ifndef PCRE2_STATIC
+#define PCRE2_STATIC
+#endif
+
+#ifndef PCRE2_CODE_UNIT_WIDTH
+#define PCRE2_CODE_UNIT_WIDTH 8
+#else
+#error PCRE2_CODE_UNIT_WIDTH was defined!
+#endif
+
+#include <assert.h>
+#include <pcre2.h>
+
+#include "log.h"
+
+namespace SrSecurity {
+namespace Common {
+Pcre::Pcre(const std::string& pattern, bool case_less) : db_(nullptr) {
+  compile(pattern, case_less);
+}
+
+Pcre::~Pcre() {
+  if (db_) {
+    pcre2_code_free(reinterpret_cast<pcre2_code_8*>(db_));
+    db_ = nullptr;
+  }
+}
+
+bool Pcre::match(const std::string_view& subject, Scratch& scratch, size_t& from,
+                 size_t& to) const {
+  assert(scratch.scratch_);
+  if (!scratch.scratch_) [[unlikely]] {
+    return false;
+  }
+
+  int rc = pcre2_match(reinterpret_cast<const pcre2_code_8*>(db_),
+                       reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
+                       0, reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_), nullptr);
+  if (rc < 0) [[unlikely]] {
+    switch (rc) {
+    case PCRE2_ERROR_NOMATCH:
+      SRSECURITY_LOG(trace, "pcre no match: {}", subject);
+      break;
+    default:
+      break;
+    }
+    return false;
+  }
+
+  assert(rc == 1);
+  if (rc == 0) [[unlikely]] {
+    SRSECURITY_LOG(err, "ovector was not big enough for captured substring", subject);
+    return false;
+  }
+
+  auto ovector = pcre2_get_ovector_pointer(reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_));
+  from = ovector[0];
+  to = ovector[1];
+
+  return true;
+}
+
+std::vector<std::pair<size_t, size_t>> Pcre::matchGlobal(const std::string_view& subject,
+                                                         Scratch& scratch) const {
+  std::vector<std::pair<size_t, size_t>> result;
+  assert(scratch.scratch_);
+  if (!scratch.scratch_) [[unlikely]] {
+    return result;
+  }
+
+  int rc = 0;
+  size_t start_offset = 0;
+  do {
+    rc = pcre2_match(reinterpret_cast<const pcre2_code_8*>(db_),
+                     reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
+                     start_offset, 0, reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_),
+                     nullptr);
+    if (rc == 1) {
+      auto ovector =
+          pcre2_get_ovector_pointer(reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_));
+      result.emplace_back(std::make_pair(ovector[0], ovector[1]));
+      start_offset = ovector[1] + 1;
+    }
+  } while (rc > 0);
+
+  return result;
+}
+
+void Pcre::compile(const std::string& pattern, bool case_less) {
+  int error_number;
+  PCRE2_SIZE error_offset;
+  db_ = pcre2_compile(reinterpret_cast<const unsigned char*>(pattern.c_str()), pattern.length(),
+                      case_less ? PCRE2_CASELESS : 0, &error_number, &error_offset, nullptr);
+  if (db_ == nullptr) [[unlikely]] {
+    char buffer[256];
+    pcre2_get_error_message(error_number, reinterpret_cast<unsigned char*>(buffer), sizeof(buffer));
+    SRSECURITY_LOG(warn, "pcre compile error: {}", buffer);
+    return;
+  }
+}
+
+Pcre::Scratch::Scratch() { scratch_ = pcre2_match_data_create(1, nullptr); }
+
+Pcre::Scratch::~Scratch() {
+  if (scratch_) {
+    pcre2_match_data_free(reinterpret_cast<pcre2_match_data*>(scratch_));
+    scratch_ = nullptr;
+  }
+}
+
+} // namespace Common
+} // namespace SrSecurity
