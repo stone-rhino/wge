@@ -11,9 +11,9 @@ using ConnectionExtractor =
 using UriExtractor = std::function<void(std::string_view& method, std::string_view& path,
                                         std::string_view& version)>;
 
-using HeaderExtractor = std::function<std::vector<std::string_view>(const std::string& key)>;
+using HeaderExtractor = std::function<std::string_view(const std::string& key)>;
 
-using BodyExtractor = std::function<std::vector<std::string_view>()>;
+using BodyExtractor = std::function<const std::vector<std::string_view>&()>;
 
 /**
  * Http message info extractor

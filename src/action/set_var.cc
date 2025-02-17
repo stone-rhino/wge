@@ -1,5 +1,7 @@
 #include "set_var.h"
 
+#include <charconv>
+
 #include <assert.h>
 
 namespace SrSecurity {
@@ -25,10 +27,10 @@ void SetVar::evaluate(Transaction& t) {
     break;
   case EvaluateType::CreateAndInit:
     if (macro_) {
-      std::string* value = macro_->evaluate(t);
-      assert(value);
-      if (value) {
-        t.createVariable(std::move(name_), std::string(*value));
+      std::string_view value = macro_->evaluate(t);
+      assert(!value.empty());
+      if (!value.empty()) {
+        t.createVariable(std::move(name_), std::string(value));
       }
     } else {
       t.createVariable(std::move(name_), ::atoll(value_.c_str()));
@@ -39,10 +41,12 @@ void SetVar::evaluate(Transaction& t) {
     break;
   case EvaluateType::Increase:
     if (macro_) {
-      std::string* value = macro_->evaluate(t);
-      assert(value);
-      if (value) {
-        t.increaseVariable(name_, ::atoll(value->c_str()));
+      std::string_view value = macro_->evaluate(t);
+      assert(!value.empty());
+      if (!value.empty()) {
+        int64_t v;
+        std::from_chars(value.data(), value.data() + value.size(), v);
+        t.increaseVariable(name_, v);
       }
     } else {
       t.increaseVariable(name_, ::atoll(value_.c_str()));
@@ -50,10 +54,12 @@ void SetVar::evaluate(Transaction& t) {
     break;
   case EvaluateType::Decrease:
     if (macro_) {
-      std::string* value = macro_->evaluate(t);
-      assert(value);
-      if (value) {
-        t.increaseVariable(name_, -::atoll(value->c_str()));
+      std::string_view value = macro_->evaluate(t);
+      assert(!value.empty());
+      if (!value.empty()) {
+        int64_t v;
+        std::from_chars(value.data(), value.data() + value.size(), v);
+        t.increaseVariable(name_, -v);
       }
     } else {
       t.increaseVariable(name_, -::atoll(value_.c_str()));

@@ -14,25 +14,16 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  const std::string& evaluate(Transaction& t) const override {
-    std::string* value = t.getVariable(sub_name_);
+  std::string_view evaluate(Transaction& t) const override {
     if (is_counter_) {
-      if (value) {
-        return number_;
-      } else {
-        return EMPTY_STRING;
-      }
+      return t.hasVariable(sub_name_) ? number_ : EMPTY_STRING_VIEW;
     } else {
-      if (value) [[likely]] {
-        return *value;
-      } else {
-        return EMPTY_STRING;
-      }
+      return t.getVariable(sub_name_);
     }
   }
 
 private:
-  static constexpr std::string number_{"1"};
+  static constexpr std::string_view number_{"1"};
 };
 } // namespace Variable
 } // namespace SrSecurity

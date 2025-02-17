@@ -1,7 +1,10 @@
 #include "transaction.h"
 
+#include <charconv>
+
 #include <assert.h>
 
+#include "common/empty_string.h"
 #include "common/try.h"
 #include "engine.h"
 
@@ -63,32 +66,37 @@ void Transaction::increaseVariable(const std::string& name, int value) {
   }
 }
 
-const std::string* Transaction::getVariable(const std::string& name) const {
+std::string_view Transaction::getVariable(const std::string& name) const {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
-    return &iter->second;
+    return iter->second;
   }
 
-  return nullptr;
-}
-
-std::string* Transaction::getVariable(const std::string& name) {
-  auto iter = tx_.find(name);
-  if (iter != tx_.end()) {
-    return &iter->second;
-  }
-
-  return nullptr;
+  return EMPTY_STRING_VIEW;
 }
 
 int Transaction::getVariableInt(const std::string& name) const {
-  const std::string* val = getVariable(name);
-  if (val) {
-    return ::atol(val->c_str());
-  }
-
-  return 0;
+  std::string_view str_value = getVariable(name);
+  int int_value = 0;
+  std::from_chars(str_value.data(), str_value.data() + str_value.size(), int_value);
+  return int_value;
 }
+
+void Transaction::setVariable(const std::string& name, std::string&& value) {
+  auto iter = tx_.find(name);
+  if (iter != tx_.end()) {
+    iter->second = std::move(value);
+  }
+}
+
+void Transaction::setVariableInt(const std::string& name, int value) {
+  auto iter = tx_.find(name);
+  if (iter != tx_.end()) {
+    iter->second = std::to_string(value);
+  }
+}
+
+bool Transaction::hasVariable(const std::string& name) const { return tx_.find(name) != tx_.end(); }
 
 void Transaction::setMatched(size_t index, const std::string_view& value) {
   assert(index < matched_.size());

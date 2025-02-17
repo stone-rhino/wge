@@ -20,9 +20,9 @@ SetEnv::SetEnv(std::string&& name, std::shared_ptr<Macro::MacroBase> macro)
 
 void SetEnv::evaluate(Transaction& t) {
   if (macro_) {
-    std::string* value = macro_->evaluate(t);
-    if (value) {
-      ::setenv(name_.c_str(), value->c_str(), 1);
+    std::string_view value = macro_->evaluate(t);
+    if (!value.empty()) {
+      ::setenv(name_.c_str(), std::string(value).c_str(), 1);
     }
   } else {
     ::setenv(name_.c_str(), value_.c_str(), 1);

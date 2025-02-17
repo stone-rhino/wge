@@ -11,7 +11,7 @@ public:
   ContainsWord(std::string&& literal_value) : OperatorBase(std::move(literal_value)) {}
 
 public:
-  bool evaluate(Transaction& t, const std::string& value) const override { assert(false); }
+  bool evaluate(Transaction& t, std::string_view operand) const override { assert(false); }
 };
 } // namespace Operator
 } // namespace SrSecurity
