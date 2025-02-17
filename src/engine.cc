@@ -33,8 +33,19 @@ void Engine::init() {
   // This assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
+  initDefaultActions();
   initRules();
   initMakers();
+}
+
+static std::vector<Rule*> empty_rules;
+const std::vector<Rule*>& Engine::defaultActions(int phase) const {
+  assert(phase >= 1 && phase <= 5);
+  if (phase >= 1 && phase <= 5) {
+    return default_actions_[phase - 1];
+  } else {
+    return empty_rules;
+  }
 }
 
 const std::vector<Rule*>& Engine::rules(int phase) const {
@@ -42,13 +53,27 @@ const std::vector<Rule*>& Engine::rules(int phase) const {
   if (phase >= 1 && phase <= 5) {
     return rules_[phase - 1];
   } else {
-    static std::vector<Rule*> empty_rules;
     return empty_rules;
   }
 }
 
 TransactionPtr Engine::makeTransaction() const {
   return std::unique_ptr<Transaction>(new Transaction(*this));
+}
+
+void Engine::initDefaultActions() {
+  auto& rules = parser_->defaultActions();
+
+  // Sets the default actions for each phase
+  for (auto& rule : rules) {
+    auto phase = rule->phase();
+    assert(phase >= 1 && phase <= phase_total_);
+    if (phase < 1 || phase > phase_total_) {
+      SRSECURITY_LOG(warn, "phase {} invalid.", phase);
+      continue;
+    }
+    default_actions_.at(phase - 1).emplace_back(rule.get());
+  }
 }
 
 void Engine::initRules() {

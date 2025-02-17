@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bitset>
 #include <list>
 #include <memory>
 #include <string_view>
@@ -10,6 +9,7 @@
 #include "action/action_base.h"
 #include "http_extractor.h"
 #include "operator/operator_base.h"
+#include "transformation/transform_base.h"
 #include "variable/variable_base.h"
 
 namespace SrSecurity {
@@ -50,47 +50,6 @@ public:
     REDIRECT
   };
 
-  enum class TransformBitFlag : uint64_t {
-    Base64Decode = 1,
-    Base64DecodeExt,
-    Base64Encode,
-    CmdLine,
-    CompressWhiteSpace,
-    CssDecode,
-    EscapeSeqDecode,
-    HexDecode,
-    HexEncode,
-    HtmlEntityDecode,
-    JsDecode,
-    Length,
-    LowerCase,
-    Md5,
-    None,
-    NormalisePathWin,
-    NormalisePath,
-    NormalizePathWin,
-    NormalizePath,
-    ParityEven7Bit,
-    ParityOdd7Bit,
-    ParityZero7Bit,
-    RemoveComments,
-    RemoveCommentChar,
-    RemoveNulls,
-    RemoveWhitespace,
-    ReplaceComments,
-    ReplaceNulls,
-    Sha1,
-    SqlHexDecode,
-    TrimLeft,
-    TrimRight,
-    Trim,
-    UpperCase,
-    UrlDecodeUni,
-    UrlDecode,
-    UrlEncode,
-    Utf8ToUnicode
-  };
-
   // Action Group: Meta-data
 public:
   uint64_t id() const { return id_; }
@@ -126,10 +85,12 @@ public:
   void capture(bool value) { capture_ = value; }
   bool multiMatch() const { return multi_match_; }
   void multiMatch(bool value) { multi_match_ = value; }
-  bool hasTransform(TransformBitFlag flag) const {
-    return transform_flag_.test(static_cast<size_t>(flag));
+  const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
+    return transforms_;
   }
-  void addTransform(TransformBitFlag flag) { transform_flag_.set(static_cast<size_t>(flag)); }
+  std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() { return transforms_; }
+  bool isIgnoreDefaultTransform() const { return is_ingnore_default_transform_; }
+  void isIgnoreDefaultTransform(bool ignore) { is_ingnore_default_transform_ = ignore; }
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
 
@@ -242,7 +203,8 @@ private:
   bool no_log_{false};
   bool capture_{false};
   bool multi_match_{false};
-  std::bitset<64> transform_flag_;
+  std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
+  bool is_ingnore_default_transform_{false};
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
   // Action Group: Flow

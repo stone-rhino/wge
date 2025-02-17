@@ -155,6 +155,12 @@ public:
    */
   const std::string& getUniqueId() const { return unique_id_; }
 
+  /**
+   * Get the engine.
+   * @return the engine.
+   */
+  const Engine& getEngine() const { return engin_; }
+
 private:
   class RandomInitHelper {
   public:

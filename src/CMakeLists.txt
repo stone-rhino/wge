@@ -10,6 +10,7 @@ add_subdirectory(macro)
 add_subdirectory(operator)
 add_subdirectory(variable)
 add_subdirectory(persistent_storage)
+add_subdirectory(transformation)
 
 set(antlr4_obj
   ${CMAKE_BINARY_DIR}/antlr4obj/ANTLRErrorListener.cpp.o
@@ -158,15 +159,13 @@ add_library(srsecurity
   $<TARGET_OBJECTS:operator>
   $<TARGET_OBJECTS:variable>
   $<TARGET_OBJECTS:persistent_storage>
+  $<TARGET_OBJECTS:transformation>
   ${antlr4_obj}
   ${local_source}
 )
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(srsecurity PRIVATE spdlog::spdlog_header_only)
-
-find_package(pcre2 CONFIG REQUIRED)
-target_link_libraries(srsecurity PRIVATE PCRE2::8BIT)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   SET(antlr4_lib ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/debug/lib/libantlr4-runtime.a)

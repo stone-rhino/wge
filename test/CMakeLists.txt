@@ -16,3 +16,6 @@ target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 
 find_package(pcre2 CONFIG REQUIRED)
 target_link_libraries(test PRIVATE PCRE2::8BIT)
+
+find_package(Boost REQUIRED COMPONENTS url)
+target_link_libraries(test PRIVATE Boost::url)

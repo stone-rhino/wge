@@ -45,6 +45,13 @@ public:
   void init();
 
   /**
+   * Get default actions
+   * @param phase Specify the phase of the default actions, the valid range is 1-5.
+   * @return vector of default actions
+   */
+  const std::vector<Rule*>& defaultActions(int phase) const;
+
+  /**
    * Get rules
    * @param phase Specify the phase of rule, the valid range is 1-5.
    * @return vector of rules
@@ -66,12 +73,14 @@ public:
   PersistentStorage::Storage& storage() { return storage_; }
 
 private:
+  void initDefaultActions();
   void initRules();
   void initMakers();
 
 private:
   constexpr static size_t phase_total_ = 5;
   std::shared_ptr<Antlr4::Parser> parser_;
+  std::array<std::vector<Rule*>, phase_total_> default_actions_;
   std::array<std::vector<Rule*>, phase_total_> rules_;
   std::unordered_map<std::string, Marker&> markers_;
   PersistentStorage::Storage storage_;

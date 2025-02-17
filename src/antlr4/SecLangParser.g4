@@ -40,7 +40,8 @@ rule_directive:
 	| sec_rule_update_target_by_id
 	| sec_rule_update_target_by_msg
 	| sec_rule_update_target_by_tag
-	| sec_marker;
+	| sec_marker
+	| sec_default_action;
 sec_rule_remove_by_id:
 	SecRuleRemoveById (INT | INT_RANGE) (INT | INT_RANGE)*;
 sec_rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
@@ -54,6 +55,7 @@ sec_rule_update_target_by_msg:
 sec_rule_update_target_by_tag:
 	SecRuleUpdateTargetByTag ((QUOTE STRING QUOTE) | STRING) variables;
 sec_marker: SecMarker ((QUOTE STRING QUOTE) | STRING);
+sec_default_action: SecDefaultAction QUOTE action QUOTE;
 
 sec_rule:
 	SecRule variables QUOTE operator QUOTE QUOTE action (

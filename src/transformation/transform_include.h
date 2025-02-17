@@ -2,6 +2,7 @@
 
 #include "base64_decode.h"
 #include "base64_decode_ext.h"
+#include "base64_encode.h"
 #include "cmd_line.h"
 #include "compress_whitespace.h"
 #include "css_decode.h"
@@ -13,7 +14,6 @@
 #include "length.h"
 #include "lowercase.h"
 #include "md5.h"
-#include "none.h"
 #include "normalise_path.h"
 #include "normalise_path_win.h"
 #include "normalize_path.h"

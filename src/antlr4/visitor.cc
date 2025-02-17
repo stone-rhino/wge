@@ -1282,229 +1282,266 @@ std::any Visitor::visitAction_non_disruptive_setsid(
 
 std::any Visitor::visitAction_non_disruptive_t_base64_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Base64Decode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Base64Decode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_sql_hex_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_sql_hex_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::SqlHexDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::SqlHexDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_base64_decode_ext(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_decode_extContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Base64DecodeExt);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Base64DecodeExt>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_base64_encode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_base64_encodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Base64Encode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Base64Encode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_cmdline(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_cmdlineContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::CmdLine);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::CmdLine>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_compress_whitespace(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_compress_whitespaceContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::CompressWhiteSpace);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::CompressWhiteSpace>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_css_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_css_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::CssDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::CssDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_escape_seq_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_escape_seq_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::EscapeSeqDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::EscapeSeqDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_hex_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_hex_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::HexDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::HexDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_hex_encode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_hex_encodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::HexEncode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::HexEncode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_html_entity_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_html_entity_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::HtmlEntityDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::HtmlEntityDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_js_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_js_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::JsDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::JsDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_length(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_lengthContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Length);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Length>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_lowercase(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_lowercaseContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::LowerCase);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::LowerCase>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_md5(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_md5Context* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Md5);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Md5>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_none(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_noneContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::None);
+  (*current_rule_iter_)->isIgnoreDefaultTransform(true);
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_normalise_path(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalise_pathContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::NormalisePath);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::NormalisePath>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_normalize_path(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalize_pathContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::NormalizePath);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::NormalizePath>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_normalise_pathwin(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalise_pathwinContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::NormalisePathWin);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::NormalisePathWin>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_normalize_pathwin(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_normalize_pathwinContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::NormalizePathWin);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::NormalizePathWin>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_parity_even_7bit(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_even_7bitContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::ParityEven7Bit);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::ParityEven7Bit>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_parity_odd_7bit(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_odd_7bitContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::ParityOdd7Bit);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::ParityOdd7Bit>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_parity_zero_7bit(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_parity_zero_7bitContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::ParityZero7Bit);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::ParityZero7Bit>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_remove_nulls(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_nullsContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::RemoveNulls);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::RemoveNulls>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_remove_whitespace(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_whitespaceContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::RemoveWhitespace);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::RemoveWhitespace>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_replace_comments(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_replace_commentsContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::ReplaceComments);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::ReplaceComments>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_remove_commentschar(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_commentscharContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::RemoveCommentChar);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::RemoveCommentChar>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_remove_comments(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_commentsContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::RemoveComments);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::RemoveComments>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_replace_nulls(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_replace_nullsContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::ReplaceNulls);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::ReplaceNulls>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_url_decode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_decodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::UrlDecode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::UrlDecode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_uppercase(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_uppercaseContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::UpperCase);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::UpperCase>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_url_decode_uni(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_decode_uniContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::UrlDecodeUni);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::UrlDecodeUni>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_url_encode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_url_encodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::UrlEncode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::UrlEncode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_utf8_to_unicode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_utf8_to_unicodeContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Utf8ToUnicode);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Utf8ToUnicode>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_sha1(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_sha1Context* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Sha1);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Sha1>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_trim_left(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_trim_leftContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::TrimLeft);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::TrimLeft>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_trim_right(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_trim_rightContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::TrimRight);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::TrimRight>());
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_t_trim(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_trimContext* ctx) {
-  (*current_rule_iter_)->addTransform(Rule::TransformBitFlag::Trim);
+  auto& transforms = (*current_rule_iter_)->transforms();
+  transforms.emplace_back(std::make_unique<Transformation::Trim>());
   return "";
 }
 

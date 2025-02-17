@@ -2,6 +2,7 @@
 
 #include "common/assert.h"
 #include "common/try.h"
+#include "engine.h"
 
 namespace SrSecurity {
 bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
@@ -11,14 +12,35 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   bool is_uncondition = operator_ == nullptr;
 
   if (is_uncondition) [[unlikely]] {
+    // Evaluate the actions
     for (auto& action : actions_) {
       action->evaluate(t);
     }
     result = true;
   } else [[likely]] {
     result = true;
+    std::string transform_data;
+
+    // Evaluate the variables
     for (auto& var : variables_) {
       auto var_value = var->evaluate(t);
+
+      // Evaluate the transformations
+      if (!is_ingnore_default_transform_) {
+        auto& default_actions = t.getEngine().defaultActions(phase_);
+        for (auto& action : default_actions) {
+          for (auto& transform : action->transforms()) {
+            transform_data = transform->evaluate(var_value.data(), var_value.size());
+            var_value = transform_data;
+          }
+        }
+      }
+      for (auto& transform : transforms_) {
+        transform_data = transform->evaluate(var_value.data(), var_value.size());
+        var_value = transform_data;
+      }
+
+      // Evaluate the operator
       if (!operator_->evaluate(t, var_value)) {
         result = false;
         break;

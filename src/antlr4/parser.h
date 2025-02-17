@@ -68,6 +68,7 @@ public:
 
 public:
   const EngineConfig& engineConfig() const { return engine_config_; }
+  const std::list<std::unique_ptr<Rule>>& defaultActions() const { return default_actions_; }
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
   const std::list<Marker>& markers() const { return makers_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
@@ -94,6 +95,7 @@ public:
 private:
   EngineConfig engine_config_;
   AuditLogConfig audit_log_config_;
+  std::list<std::unique_ptr<Rule>> default_actions_;
   std::list<std::unique_ptr<Rule>> rules_;
   std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>

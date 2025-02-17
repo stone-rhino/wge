@@ -8,7 +8,7 @@ namespace SrSecurity {
 namespace Transformation {
 class UrlDecodeUni : public TransformBase {
 public:
-  void evaluate(const void* data, size_t data_len, void* buffer, size_t buffer_len) override {}
+  std::string evaluate(const void* data, size_t data_len) const override;
 };
 } // namespace Transformation
 } // namespace SrSecurity

@@ -76,7 +76,10 @@
         "complex": "cpp",
         "expected": "cpp",
         "csignal": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "*.ipp": "cpp",
+        "cfenv": "cpp",
+        "stdfloat": "cpp"
     },
     "cmake.debugConfig": {
         "cwd": "${workspaceFolder}",

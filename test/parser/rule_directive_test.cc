@@ -9,6 +9,7 @@
 #include "action/actions_include.h"
 #include "antlr4/parser.h"
 #include "engine.h"
+#include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
 namespace SrSecurity {
@@ -610,8 +611,9 @@ TEST_F(RuleTest, ActionTransformation) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->hasTransform(Rule::TransformBitFlag::None));
-  EXPECT_TRUE(parser.rules().back()->hasTransform(Rule::TransformBitFlag::HexDecode));
+  auto& transforms = parser.rules().back()->transforms();
+  EXPECT_TRUE(parser.rules().back()->isIgnoreDefaultTransform());
+  EXPECT_NE(nullptr, dynamic_cast<Transformation::HexDecode*>(transforms[0].get()));
 
   {
     const std::string rule_directive =
