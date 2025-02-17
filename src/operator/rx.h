@@ -22,18 +22,17 @@ public:
 
 public:
   bool evaluate(Transaction& t, std::string_view operand) const override {
-    size_t from, to;
-    bool result = pcre_.match(operand, per_thread_pcre_scratch_, from, to);
-    if (result) {
-      // if (capture_) {
-      //   t.setMatched(0, std::string_view(value.data() + from, to - from));
-      // }
+    // Match the operand with the pattern.
+    auto result = pcre_.match(operand, per_thread_pcre_scratch_);
 
-      // Ignore capture_ and set the match result directly, because we need to capture the
-      // matched string for %{MATCHED_VAR} in the rule action.
-      t.setMatched(0, std::string_view(operand.data() + from, to - from));
+    // Ignore capture_ and set the match result directly, because we need to capture the
+    // matched string for %{MATCHED_VAR} in the rule action.
+    size_t index = 0;
+    for (const auto& [from, to] : result) {
+      t.setMatched(index++, std::string_view(operand.data() + from, to - from));
     }
-    return result;
+
+    return !result.empty();
   }
 
 public:

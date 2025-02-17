@@ -28,10 +28,12 @@ Pcre::~Pcre() {
   }
 }
 
-bool Pcre::match(std::string_view subject, Scratch& scratch, size_t& from, size_t& to) const {
+std::vector<std::pair<size_t, size_t>> Pcre::match(std::string_view subject,
+                                                   Scratch& scratch) const {
+  std::vector<std::pair<size_t, size_t>> result;
   assert(scratch.scratch_);
   if (!scratch.scratch_) [[unlikely]] {
-    return false;
+    return result;
   }
 
   int rc = pcre2_match(reinterpret_cast<const pcre2_code_8*>(db_),
@@ -45,20 +47,20 @@ bool Pcre::match(std::string_view subject, Scratch& scratch, size_t& from, size_
     default:
       break;
     }
-    return false;
+    return result;
   }
 
-  assert(rc == 1);
-  if (rc == 0) [[unlikely]] {
+  if (rc == 0) {
     SRSECURITY_LOG(err, "ovector was not big enough for captured substring", subject);
-    return false;
+    return result;
   }
 
   auto ovector = pcre2_get_ovector_pointer(reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_));
-  from = ovector[0];
-  to = ovector[1];
+  for (size_t i = 0; i < rc; i++) {
+    result.emplace_back(std::make_pair(ovector[i * 2], ovector[i * 2 + 1]));
+  }
 
-  return true;
+  return result;
 }
 
 std::vector<std::pair<size_t, size_t>> Pcre::matchGlobal(std::string_view subject,
@@ -100,7 +102,9 @@ void Pcre::compile(const std::string& pattern, bool case_less) {
   }
 }
 
-Pcre::Scratch::Scratch() { scratch_ = pcre2_match_data_create(1, nullptr); }
+Pcre::Scratch::Scratch(int result_count) {
+  scratch_ = pcre2_match_data_create(result_count, nullptr);
+}
 
 Pcre::Scratch::~Scratch() {
   if (scratch_) {

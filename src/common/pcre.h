@@ -18,11 +18,15 @@ public:
   ~Pcre();
 
 public:
+  /**
+   * Scratch space for a match operation.
+   * Construct a Scratch object with the number of matches expected.
+   */
   class Scratch {
     friend class Pcre;
 
   public:
-    Scratch();
+    Scratch(int matched_count);
     ~Scratch();
 
   private:
@@ -30,7 +34,7 @@ public:
   };
 
 public:
-  bool match(std::string_view subject, Scratch& scratch, size_t& from, size_t& to) const;
+  std::vector<std::pair<size_t, size_t>> match(std::string_view subject, Scratch& scratch) const;
   std::vector<std::pair<size_t, size_t>> matchGlobal(std::string_view subject,
                                                      Scratch& scratch) const;
 
