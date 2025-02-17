@@ -8,14 +8,38 @@
 #include "rule.h"
 
 namespace SrSecurity {
+/**
+ * Adds a fixed rule marker that can be used as a target in a skipAfter action. A SecMarker
+ * directive essentially creates a rule that does nothing and whose only purpose is to carry the
+ * given ID.
+ */
 class Marker {
 public:
   Marker(std::string&& name, Rule* prev_rule);
 
 public:
+  /**
+   * Initialize the marker with the previous rule iterator.
+   * @param prev_rule_iter the previous rule iterator.
+   */
   void init(std::vector<Rule*>::iterator prev_rule_iter) { prev_rule_iter_ = prev_rule_iter; }
+
+  /**
+   * Get the name of the marker.
+   * @return the name of the marker.
+   */
   const std::string& name() const { return name_; }
+
+  /**
+   * Get the previous rule.
+   * @return the previous rule.
+   */
   Rule* prevRule() const { return prev_rule_; }
+
+  /**
+   * Get the previous rule iterator.
+   * @return the previous rule iterator.
+   */
   const std::optional<std::vector<Rule*>::iterator>& prevRuleIter() const {
     return prev_rule_iter_;
   }
