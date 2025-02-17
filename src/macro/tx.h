@@ -9,7 +9,7 @@ public:
   Tx(std::string&& var_name) : var_name_(std::move(var_name)) {}
 
 public:
-  std::string* evaluate(Transaction& t) override { return t.getVariable(var_name_); }
+  std::string_view evaluate(Transaction& t) override { return t.getVariable(var_name_); }
 
 private:
   std::string var_name_;

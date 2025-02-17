@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 #include "../transaction.h"
 
@@ -19,7 +19,7 @@ public:
   MacroBase() {}
 
 public:
-  virtual std::string* evaluate(Transaction& t) = 0;
+  virtual std::string_view evaluate(Transaction& t) = 0;
 };
 } // namespace Macro
 } // namespace SrSecurity

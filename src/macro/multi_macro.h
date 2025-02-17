@@ -14,7 +14,7 @@ public:
       : var_name_(std::move(var_name)), macros_(std::move(macros)) {}
 
 public:
-  std::string* evaluate(Transaction& t) override {
+  std::string_view evaluate(Transaction& t) override {
     evaluate_value_ = var_name_;
     for (auto& macro : macros_) {
       auto pos1 = evaluate_value_.find("%{");
@@ -22,10 +22,10 @@ public:
       if (pos1 != evaluate_value_.npos) {
         auto pos2 = evaluate_value_.find('}', pos1);
         assert(pos2 != std::string::npos);
-        evaluate_value_ = evaluate_value_.replace(pos1, pos2 - pos1 + 1, *macro->evaluate(t));
+        evaluate_value_ = evaluate_value_.replace(pos1, pos2 - pos1 + 1, macro->evaluate(t));
       }
     }
-    return &evaluate_value_;
+    return evaluate_value_;
   }
 
 private:

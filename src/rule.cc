@@ -18,8 +18,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   } else [[likely]] {
     result = true;
     for (auto& var : variables_) {
-      const std::string& value = var->evaluate(t);
-      if (!operator_->evaluate(t, value)) {
+      if (!operator_->evaluate(t, var->evaluate(t))) {
         result = false;
         break;
       }

@@ -67,7 +67,7 @@ public:
    * @param t the transaction.
    * @return the value of the variable.
    */
-  virtual const std::string& evaluate(Transaction& t) const = 0;
+  virtual std::string_view evaluate(Transaction& t) const = 0;
 
   /**
    * Get the full name of the variable.

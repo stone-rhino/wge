@@ -39,7 +39,11 @@ public:
         result.emplace_back(iter->second.data(), iter->second.length());
       }
 
-      return result;
+      if (result.size() > 0) {
+        return result[0];
+      } else {
+        return std::string_view();
+      }
     };
   }
 

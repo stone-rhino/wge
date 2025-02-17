@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "../transaction.h"
 
@@ -32,10 +33,10 @@ public:
   /**
    * Evaluate the operator.
    * @param t the transaction.
-   * @param value the value to evaluate.
+   * @param operand the operand to evaluate.
    * @return true if the value matches the operator, false otherwise.
    */
-  virtual bool evaluate(Transaction& t, const std::string& value) const = 0;
+  virtual bool evaluate(Transaction& t, std::string_view operand) const = 0;
 
   /**
    * Get the name of the operator.

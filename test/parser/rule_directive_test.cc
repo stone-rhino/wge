@@ -437,13 +437,13 @@ TEST_F(RuleTest, ActionSetVar) {
     actions.back()->evaluate(*t);
     int score2 = t->getVariableInt("score2");
     int score = t->getVariableInt("score");
-    std::string foo = *t->getVariable("foo");
+    std::string_view foo = t->getVariable("foo");
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
   // Remove
   {
-    EXPECT_NE(nullptr, t->getVariable("score2"));
+    EXPECT_FALSE(t->getVariable("score2").empty());
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:'!tx.score2',msg:'aaa'")";
     Antlr4::Parser parser;
@@ -452,7 +452,7 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    EXPECT_EQ(nullptr, t->getVariable("score2"));
+    EXPECT_TRUE(t->getVariable("score2").empty());
   }
 
   // Increase

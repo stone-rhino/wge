@@ -28,8 +28,7 @@ Pcre::~Pcre() {
   }
 }
 
-bool Pcre::match(const std::string_view& subject, Scratch& scratch, size_t& from,
-                 size_t& to) const {
+bool Pcre::match(std::string_view subject, Scratch& scratch, size_t& from, size_t& to) const {
   assert(scratch.scratch_);
   if (!scratch.scratch_) [[unlikely]] {
     return false;
@@ -62,7 +61,7 @@ bool Pcre::match(const std::string_view& subject, Scratch& scratch, size_t& from
   return true;
 }
 
-std::vector<std::pair<size_t, size_t>> Pcre::matchGlobal(const std::string_view& subject,
+std::vector<std::pair<size_t, size_t>> Pcre::matchGlobal(std::string_view subject,
                                                          Scratch& scratch) const {
   std::vector<std::pair<size_t, size_t>> result;
   assert(scratch.scratch_);

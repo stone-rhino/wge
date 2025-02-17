@@ -12,7 +12,9 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  const std::string& evaluate(Transaction& t) const override { throw "Not implemented!"; };
+  std::string_view evaluate(Transaction& t)  const override {
+    return t.httpExtractor().request_header_extractor_(sub_name_);
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity

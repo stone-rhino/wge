@@ -30,8 +30,8 @@ public:
   };
 
 public:
-  bool match(const std::string_view& subject, Scratch& scratch, size_t& from, size_t& to) const;
-  std::vector<std::pair<size_t, size_t>> matchGlobal(const std::string_view& subject,
+  bool match(std::string_view subject, Scratch& scratch, size_t& from, size_t& to) const;
+  std::vector<std::pair<size_t, size_t>> matchGlobal(std::string_view subject,
                                                      Scratch& scratch) const;
 
 private:

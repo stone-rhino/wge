@@ -18,8 +18,10 @@ public:
   }
 
 public:
-  bool evaluate(Transaction& t, const std::string& value) const override {
-    return value_ == ::atoll(value.c_str());
+  bool evaluate(Transaction& t, std::string_view operand) const override {
+    int64_t operand_value = 0;
+    std::from_chars(operand.data(), operand.data() + operand.size(), operand_value);
+    return value_ == operand_value;
   }
 
 private:
