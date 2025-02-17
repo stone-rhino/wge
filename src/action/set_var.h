@@ -28,7 +28,7 @@ public:
   SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
 
 public:
-  void evaluate(Transaction& t) override;
+  void evaluate(Transaction& t) const override;
 
 public:
   const std::string& name() const { return name_; }

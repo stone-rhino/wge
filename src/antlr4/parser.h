@@ -8,8 +8,7 @@
 #include <string_view>
 #include <unordered_map>
 
-#include "../audit_log_config.h"
-#include "../engine_config.h"
+#include "../config.h"
 #include "../marker.h"
 #include "../rule.h"
 

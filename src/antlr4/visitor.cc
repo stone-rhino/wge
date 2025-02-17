@@ -1564,7 +1564,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_url_enco
         ctx) {
   auto& actions = (*current_rule_iter_)->actions();
   actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     Action::Ctl::BodyProcessorType::UrlEncoded));
+                                                     BodyProcessorType::UrlEncoded));
   return "";
 }
 
@@ -1573,7 +1573,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_multi_pa
         ctx) {
   auto& actions = (*current_rule_iter_)->actions();
   actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     Action::Ctl::BodyProcessorType::MultiPart));
+                                                     BodyProcessorType::MultiPart));
   return "";
 }
 
@@ -1581,7 +1581,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_xml(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_xmlContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
   actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     Action::Ctl::BodyProcessorType::Xml));
+                                                     BodyProcessorType::Xml));
   return "";
 }
 
@@ -1589,7 +1589,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_json(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_jsonContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
   actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     Action::Ctl::BodyProcessorType::Json));
+                                                     BodyProcessorType::Json));
   return "";
 }
 

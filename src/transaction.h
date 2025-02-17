@@ -6,8 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "audit_log_config.h"
-#include "engine_config.h"
+#include "config.h"
 #include "http_extractor.h"
 
 namespace SrSecurity {
@@ -86,9 +85,9 @@ public:
   /**
    * Get the string value of a variable in the transient transaction collection
    * @param name the name of the variable.
-   * @return the value of the variable. if the variable does not exist, return an empty string view.
+   * @return the value of the variable. if the variable does not exist, return an empty string.
    */
-  std::string_view getVariable(const std::string& name) const;
+  const std::string& getVariable(const std::string& name) const;
 
   /**
    * Get the int value of a variable in the transient transaction collection
@@ -119,7 +118,7 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * set the matched string that is captured by the operator.
+   * Set the matched string that is captured by the operator.
    * @param index the index of the matched string.the range is [0, 99].
    * @param value the reference of the matched string.
    */
@@ -138,17 +137,46 @@ public:
    */
   const HttpExtractor& httpExtractor() const { return extractor_; }
 
+  /**
+   * Set the request body processor.
+   * @param type the request body processor.
+   */
+  void setRequestBodyProcessor(BodyProcessorType type) { request_body_processor_ = type; }
+
+  /**
+   * Get the request body processor.
+   * @return the request body processor.
+   */
+  BodyProcessorType getRequestBodyProcessor() const { return *request_body_processor_; }
+
+  /**
+   * Get the Unique ID of the transaction.
+   * @return the Unique ID of the transaction.
+   */
+  const std::string& getUniqueId() const { return unique_id_; }
+
 private:
+  class RandomInitHelper {
+  public:
+    RandomInitHelper() { ::srand(::time(nullptr)); }
+  };
+
+  void initUniqueId();
+
+private:
+  std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engin_;
   std::unordered_map<std::string, std::string> tx_;
   std::array<std::string_view, 100> matched_;
+  static const RandomInitHelper random_init_helper_;
 
   // ctl
 private:
   std::optional<AuditLogConfig::AuditEngine> audit_engine_;
   std::optional<AuditLogConfig::AuditLogPart> audit_log_part_;
   std::optional<EngineConfig::Option> request_body_access_;
+  std::optional<BodyProcessorType> request_body_processor_;
   std::optional<EngineConfig::Option> rule_engine_;
   std::vector<uint64_t> rule_remove_by_id_;
   std::vector<std::string> rule_remove_by_tag_;

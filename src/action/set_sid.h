@@ -18,7 +18,7 @@ public:
   SetSid(std::shared_ptr<Macro::MacroBase> macro);
 
 public:
-  void evaluate(Transaction& t) override;
+  void evaluate(Transaction& t) const override;
 
 private:
   std::string value_;

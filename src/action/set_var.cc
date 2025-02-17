@@ -20,20 +20,20 @@ SetVar::SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, Eval
                  [](unsigned char c) { return std::tolower(c); });
 }
 
-void SetVar::evaluate(Transaction& t) {
+void SetVar::evaluate(Transaction& t) const {
   switch (type_) {
   case EvaluateType::Create:
-    t.createVariable(std::move(name_));
+    t.createVariable(std::string(name_));
     break;
   case EvaluateType::CreateAndInit:
     if (macro_) {
       std::string_view value = macro_->evaluate(t);
       assert(!value.empty());
       if (!value.empty()) {
-        t.createVariable(std::move(name_), std::string(value));
+        t.createVariable(std::string(name_), std::string(value));
       }
     } else {
-      t.createVariable(std::move(name_), ::atoll(value_.c_str()));
+      t.createVariable(std::string(name_), ::atoll(value_.c_str()));
     }
     break;
   case EvaluateType::Remove:

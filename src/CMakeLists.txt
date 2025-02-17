@@ -156,6 +156,7 @@ add_library(srsecurity
   $<TARGET_OBJECTS:common>
   $<TARGET_OBJECTS:macro>
   $<TARGET_OBJECTS:operator>
+  $<TARGET_OBJECTS:variable>
   $<TARGET_OBJECTS:persistent_storage>
   ${antlr4_obj}
   ${local_source}

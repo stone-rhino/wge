@@ -27,13 +27,22 @@ public:
     RuleRemoveTargetByTag
   };
 
-  enum class BodyProcessorType { UrlEncoded, MultiPart, Xml, Json };
-
 public:
   Ctl(CtlType type, std::any&& value);
 
 public:
-  void evaluate(Transaction& t) override;
+  void evaluate(Transaction& t) const override;
+
+private:
+  void evaluate_audit_engine(Transaction& t) const;
+  void evaluate_audit_log_parts(Transaction& t) const;
+  void evaluate_request_body_access(Transaction& t) const;
+  void evaluate_request_body_processor(Transaction& t) const;
+  void evaluate_rule_engine(Transaction& t) const;
+  void evaluate_rule_remove_by_id(Transaction& t) const;
+  void evaluate_rule_remove_by_tag(Transaction& t) const;
+  void evaluate_rule_remove_target_by_id(Transaction& t) const;
+  void evaluate_rule_remove_target_by_tag(Transaction& t) const;
 
 private:
   CtlType type_;

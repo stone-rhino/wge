@@ -15,7 +15,7 @@ public:
   T();
 
 public:
-  void evaluate(Transaction& t) override;
+  void evaluate(Transaction& t) const override;
 };
 } // namespace Action
 } // namespace SrSecurity

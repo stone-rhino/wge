@@ -18,7 +18,7 @@ SetEnv::SetEnv(std::string&& name, std::shared_ptr<Macro::MacroBase> macro)
                  [](unsigned char c) { return std::tolower(c); });
 }
 
-void SetEnv::evaluate(Transaction& t) {
+void SetEnv::evaluate(Transaction& t) const {
   if (macro_) {
     std::string_view value = macro_->evaluate(t);
     if (!value.empty()) {

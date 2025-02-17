@@ -1,6 +1,8 @@
 #include "transaction.h"
 
 #include <charconv>
+#include <chrono>
+#include <format>
 
 #include <assert.h>
 
@@ -9,7 +11,9 @@
 #include "engine.h"
 
 namespace SrSecurity {
-Transaction::Transaction(const Engine& engin) : engin_(engin) {}
+const Transaction::RandomInitHelper Transaction::random_init_helper_;
+
+Transaction::Transaction(const Engine& engin) : engin_(engin) { initUniqueId(); }
 
 void Transaction::processConnection(ConnectionExtractor conn_extractor) {
   extractor_.connection_extractor_ = std::move(conn_extractor);
@@ -66,13 +70,13 @@ void Transaction::increaseVariable(const std::string& name, int value) {
   }
 }
 
-std::string_view Transaction::getVariable(const std::string& name) const {
+const std::string& Transaction::getVariable(const std::string& name) const {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
     return iter->second;
   }
 
-  return EMPTY_STRING_VIEW;
+  return EMPTY_STRING;
 }
 
 int Transaction::getVariableInt(const std::string& name) const {
@@ -112,6 +116,14 @@ const std::string_view* Transaction::getMatched(size_t index) const {
   }
 
   return nullptr;
+}
+
+void Transaction::initUniqueId() {
+  using namespace std::chrono;
+  uint64_t timestamp =
+      time_point_cast<std::chrono::milliseconds>(system_clock::now()).time_since_epoch().count();
+  int random = ::rand() % 100000 + 100000;
+  unique_id_ = std::format("{}.{}", timestamp, random);
 }
 
 } // namespace SrSecurity

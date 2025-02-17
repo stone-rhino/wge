@@ -11,7 +11,7 @@ public:
   InitCol(std::string&& name, std::string&& value);
 
 public:
-  void evaluate(Transaction& t) override;
+  void evaluate(Transaction& t) const override;
 
 private:
   std::string name_;
