@@ -18,16 +18,16 @@ class RuleTest : public testing::Test {
 public:
   const std::vector<std::unique_ptr<Variable::VariableBase>>&
   getRuleVariablePool(Rule& rule) const {
-    return rule.variables_;
+    return rule.variables();
   }
 
   const std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>&
   getRuleVariableIndex(Rule& rule) const {
-    return rule.variables_index_by_full_name_;
+    return rule.variablesIndex();
   }
 
   const std::unique_ptr<Operator::OperatorBase>& getRuleOperator(Rule& rule) {
-    return rule.operator_;
+    return rule.getOperator();
   }
 
   Engine engine_;

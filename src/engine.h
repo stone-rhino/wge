@@ -16,8 +16,6 @@ class Parser;
 
 namespace SrSecurity {
 class Engine {
-  friend class CrsTest;
-
 public:
   Engine();
 
@@ -65,6 +63,12 @@ public:
    * @note Must call init once before call this
    */
   TransactionPtr makeTransaction() const;
+
+  /**
+   * Get the parser
+   * @return reference of parser
+   */
+  const Antlr4::Parser& parser() const { return *parser_; }
 
   /**
    * Get persistent storage

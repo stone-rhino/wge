@@ -14,16 +14,10 @@
 
 namespace SrSecurity {
 
-namespace Parser {
-class RuleTest;
-}
-
 /**
  * The rule class.
  */
 class Rule {
-  friend class Parser::RuleTest;
-
 public:
   /**
    * Evaluate the rule

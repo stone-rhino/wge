@@ -22,15 +22,10 @@ public:
    * Scratch space for a match operation.
    * Construct a Scratch object with the number of matches expected.
    */
-  class Scratch {
-    friend class Pcre;
-
-  public:
+  struct Scratch {
+    void* scratch_;
     Scratch(int matched_count);
     ~Scratch();
-
-  private:
-    void* scratch_;
   };
 
 public:

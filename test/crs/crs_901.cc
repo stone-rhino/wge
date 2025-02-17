@@ -12,14 +12,10 @@
 namespace SrSecurity {
 class CrsTest : public testing::Test {
 public:
-  void SetUp() override { parser_ = engine_.parser_; }
-
-public:
   static std::unordered_map<uint64_t, std::function<void(const SrSecurity::Rule&)>> rule_tests_;
 
 protected:
   Engine engine_;
-  std::shared_ptr<Antlr4::Parser> parser_;
 };
 
 std::unordered_map<uint64_t, std::function<void(const SrSecurity::Rule&)>> CrsTest::rule_tests_;
@@ -34,9 +30,9 @@ TEST_F(CrsTest, crs901) {
 
   engine_.init();
 
-  EXPECT_EQ(parser_->auditLogConfig().component_signature_, "OWASP_CRS/4.3.0-dev");
+  EXPECT_EQ(engine_.parser().auditLogConfig().component_signature_, "OWASP_CRS/4.3.0-dev");
 
-  auto& rules = parser_->rules();
+  auto& rules = engine_.parser().rules();
   EXPECT_EQ(rules.size(), 29);
 
   for (auto& rule : rules) {
