@@ -15,14 +15,14 @@ namespace SrSecurity {
  */
 class Marker {
 public:
-  Marker(std::string&& name, Rule* prev_rule);
+  Marker(std::string&& name, const Rule* prev_rule);
 
 public:
   /**
    * Initialize the marker with the previous rule iterator.
    * @param prev_rule_iter the previous rule iterator.
    */
-  void init(std::vector<Rule*>::iterator prev_rule_iter) { prev_rule_iter_ = prev_rule_iter; }
+  void init(std::vector<const Rule*>::iterator prev_rule_iter) { prev_rule_iter_ = prev_rule_iter; }
 
   /**
    * Get the name of the marker.
@@ -34,19 +34,19 @@ public:
    * Get the previous rule.
    * @return the previous rule.
    */
-  Rule* prevRule() const { return prev_rule_; }
+  const Rule* prevRule() const { return prev_rule_; }
 
   /**
    * Get the previous rule iterator.
    * @return the previous rule iterator.
    */
-  const std::optional<std::vector<Rule*>::iterator>& prevRuleIter() const {
+  const std::optional<std::vector<const Rule*>::iterator>& prevRuleIter() const {
     return prev_rule_iter_;
   }
 
 private:
   std::string name_;
-  Rule* prev_rule_;
-  std::optional<std::vector<Rule*>::iterator> prev_rule_iter_;
+  const Rule* prev_rule_;
+  std::optional<std::vector<const Rule*>::iterator> prev_rule_iter_;
 };
 } // namespace SrSecurity

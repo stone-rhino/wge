@@ -26,7 +26,7 @@ void Transaction::processUri(UriExtractor uri_extractor) {
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor) {
   extractor_.request_header_extractor_ = std::move(header_extractor);
   auto& rules = engin_.rules(1);
-  for (Rule* rule : rules) {
+  for (const Rule* rule : rules) {
     rule->evaluate(*this, extractor_);
   }
 }

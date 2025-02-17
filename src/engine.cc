@@ -38,8 +38,8 @@ void Engine::init() {
   initMakers();
 }
 
-static std::vector<Rule*> empty_rules;
-const std::vector<Rule*>& Engine::defaultActions(int phase) const {
+static std::vector<const Rule*> empty_rules;
+const std::vector<const Rule*>& Engine::defaultActions(int phase) const {
   assert(phase >= 1 && phase <= 5);
   if (phase >= 1 && phase <= 5) {
     return default_actions_[phase - 1];
@@ -48,7 +48,7 @@ const std::vector<Rule*>& Engine::defaultActions(int phase) const {
   }
 }
 
-const std::vector<Rule*>& Engine::rules(int phase) const {
+const std::vector<const Rule*>& Engine::rules(int phase) const {
   assert(phase >= 1 && phase <= 5);
   if (phase >= 1 && phase <= 5) {
     return rules_[phase - 1];
