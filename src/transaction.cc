@@ -25,53 +25,22 @@ void Transaction::processUri(UriExtractor uri_extractor) {
 
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor) {
   extractor_.request_header_extractor_ = std::move(header_extractor);
-
-  // Get the rules of phase 1
-  auto& rules = engin_.rules(1);
-
-  // Traverse the rules and evaluate them
-  for (auto iter = rules.begin(); iter != rules.end();) {
-    // Evaluate the rule
-    auto& rule = *iter;
-    auto is_matched = rule->evaluate(*this, extractor_);
-
-    // Skip the rules if current rule that has a skip action or skipAfter action is matched
-    if (is_matched) {
-      // Process the skip action
-      int skip = rule->skip();
-      if (skip > 0) [[unlikely]] {
-        iter += skip;
-        continue;
-      }
-
-      // Process the skipAfter action
-      const std::string& skip_after = rule->skipAfter();
-      if (!skip_after.empty()) [[unlikely]] {
-        auto next_rule_iter = engin_.marker(skip_after, rule->phase());
-        if (next_rule_iter.has_value()) [[likely]] {
-          iter = next_rule_iter.value();
-          continue;
-        }
-      }
-
-      // If skip and skipAfter are not set, then continue to the next rule
-      ++iter;
-    } else {
-      ++iter;
-    }
-  }
+  process(1);
 }
 
 void Transaction::processRequestBody(BodyExtractor body_extractor) {
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
+  process(2);
 }
 
 void Transaction::processResponseHeaders(HeaderExtractor header_extractor) {
   extractor_.response_header_extractor_ = std::move(header_extractor);
+  process(3);
 }
 
 void Transaction::processResponseBody(BodyExtractor body_extractor) {
   extractor_.response_body_extractor_ = std::move(body_extractor);
+  process(4);
 }
 
 void Transaction::createVariable(std::string&& name, int value) {
@@ -155,6 +124,43 @@ void Transaction::initUniqueId() {
       time_point_cast<std::chrono::milliseconds>(system_clock::now()).time_since_epoch().count();
   int random = ::rand() % 100000 + 100000;
   unique_id_ = std::format("{}.{}", timestamp, random);
+}
+
+inline void Transaction::process(int phase) {
+  // Get the rules in the given phase
+  auto& rules = engin_.rules(phase);
+
+  // Traverse the rules and evaluate them
+  for (auto iter = rules.begin(); iter != rules.end();) {
+    // Evaluate the rule
+    auto& rule = *iter;
+    auto is_matched = rule->evaluate(*this, extractor_);
+
+    // Skip the rules if current rule that has a skip action or skipAfter action is matched
+    if (is_matched) {
+      // Process the skip action
+      int skip = rule->skip();
+      if (skip > 0) [[unlikely]] {
+        iter += skip;
+        continue;
+      }
+
+      // Process the skipAfter action
+      const std::string& skip_after = rule->skipAfter();
+      if (!skip_after.empty()) [[unlikely]] {
+        auto next_rule_iter = engin_.marker(skip_after, rule->phase());
+        if (next_rule_iter.has_value()) [[likely]] {
+          iter = next_rule_iter.value();
+          continue;
+        }
+      }
+
+      // If skip and skipAfter are not set, then continue to the next rule
+      ++iter;
+    } else {
+      ++iter;
+    }
+  }
 }
 
 } // namespace SrSecurity

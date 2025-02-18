@@ -169,6 +169,8 @@ private:
 
   void initUniqueId();
 
+  inline void process(int phase);
+
 private:
   std::string unique_id_;
   HttpExtractor extractor_;
