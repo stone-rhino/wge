@@ -45,6 +45,10 @@ public:
         return std::string_view();
       }
     };
+
+    request_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
+      return request_body_;
+    };
   }
 
 protected:
@@ -52,6 +56,9 @@ protected:
   ConnectionExtractor conn_extractor_;
   UriExtractor uri_extractor_;
   HeaderExtractor request_header_extractor_;
+  BodyExtractor request_body_extractor_;
+  HeaderExtractor response_header_extractor_;
+  BodyExtractor response_body_extractor_;
 
 private:
   std::string downstream_ip_{"192.168.1.100"};
@@ -71,8 +78,9 @@ private:
                  "webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"},
       {"x-forwarded-proto", "http"},
       {"cookie", "aa=bb"},
-      {"cookie", "cc=dd"},
-  };
+      {"cookie", "cc=dd"}};
+
+  std::vector<std::string_view> request_body_;
 };
 
 TEST_F(IntegrationTest, crs) {

@@ -26,7 +26,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
       auto var_value = var->evaluate(t);
 
       // Evaluate the transformations
-      if (!is_ingnore_default_transform_) {
+      if (!is_ingnore_default_transform_) [[unlikely]] {
         auto& default_actions = t.getEngine().defaultActions(phase_);
         for (auto& action : default_actions) {
           for (auto& transform : action->transforms()) {
@@ -41,7 +41,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
       }
 
       // Evaluate the operator
-      if (!operator_->evaluate(t, var_value)) {
+      if (!operator_->evaluate(t, var_value)) [[likely]] {
         result = false;
         break;
       }
