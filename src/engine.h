@@ -2,6 +2,7 @@
 
 #include <expected>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -69,6 +70,8 @@ public:
    * @return reference of parser
    */
   const Antlr4::Parser& parser() const { return *parser_; }
+
+  std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name, int phase) const;
 
   /**
    * Get persistent storage

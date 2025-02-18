@@ -1765,6 +1765,11 @@ std::any Visitor::visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_c
   return "";
 }
 
+std::any Visitor::visitAction_flow_skip(Antlr4Gen::SecLangParser::Action_flow_skipContext* ctx) {
+  (*current_rule_iter_)->skip(::atol(ctx->INT()->getText().c_str()));
+  return "";
+}
+
 std::any
 Visitor::visitAction_flow_skip_after(Antlr4Gen::SecLangParser::Action_flow_skip_afterContext* ctx) {
   (*current_rule_iter_)->skipAfter(ctx->STRING()->getText());

@@ -61,6 +61,25 @@ TransactionPtr Engine::makeTransaction() const {
   return std::unique_ptr<Transaction>(new Transaction(*this));
 }
 
+std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,
+                                                                       int phase) const {
+  assert(phase >= 1 && phase <= phase_total_);
+  if (phase < 1 || phase > phase_total_) {
+    return {};
+  }
+
+  auto iter = markers_.find(name);
+  if (iter != markers_.end()) {
+    if (iter->second.prevRuleIter(phase).has_value()) {
+      return std::next(iter->second.prevRuleIter(phase).value());
+    } else {
+      return {};
+    }
+  }
+
+  return {};
+}
+
 void Engine::initDefaultActions() {
   auto& rules = parser_->defaultActions();
 
@@ -93,19 +112,20 @@ void Engine::initRules() {
 
 void Engine::initMakers() {
   auto& markers = const_cast<std::list<Marker>&>(parser_->markers());
+
+  // Traverse the markers and find the rule that the marker points to
   for (auto& marker : markers) {
-    for (int i = 0; i < 5; ++i) {
+    // Traverse the rules in each phase
+    for (int i = 0; i < phase_total_; ++i) {
+      // Find the rule that the marker points to
       for (auto iter = rules_[i].begin(); iter != rules_[i].end(); ++iter) {
-        if (*iter == marker.prevRule()) {
-          marker.init(iter);
-          markers_.emplace(marker.name(), marker);
+        if (*iter == marker.prevRule(i + 1)) {
+          marker.prevRuleIter(iter, i + 1);
           break;
         }
       }
-      if (marker.prevRuleIter().has_value()) {
-        break;
-      }
     }
+    markers_.emplace(marker.name(), marker);
   }
 }
 

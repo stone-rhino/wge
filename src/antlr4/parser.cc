@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <array>
 #include <format>
 #include <fstream>
 
@@ -165,12 +166,25 @@ void Parser::secRuleRemoveByTag(const std::string& tag) {
 }
 
 void Parser::secMarker(std::string&& name) {
-  Rule* prev_rule = nullptr;
-  if (!rules_.empty()) {
-    prev_rule = rules_.back().get();
+  std::array<const Rule*, Marker::phase_total_> prev_rules{nullptr};
+
+  // Get the previous rule in each phase
+  int geted = 0;
+  for (auto iter = rules_.rbegin(); iter != rules_.rend(); ++iter) {
+    auto& rule = *iter;
+    int phase = rule->phase();
+    if (prev_rules[phase - 1] == nullptr) {
+      prev_rules[phase - 1] = rule.get();
+      ++geted;
+    }
+
+    // each phase has a previous rule then break
+    if (geted == Marker::phase_total_) {
+      break;
+    }
   }
 
-  makers_.emplace_back(std::move(name), prev_rule);
+  makers_.emplace_back(std::move(name), std::move(prev_rules));
 }
 
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {

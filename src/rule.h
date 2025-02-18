@@ -110,6 +110,8 @@ public:
   }
   void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
   std::unique_ptr<Rule>& backChainRule() { return chain_.back(); }
+  int skip() const { return skip_; }
+  void skip(int value) { skip_ = value; }
   const std::string& skipAfter() const { return skip_after_; }
   void skipAfter(std::string&& skip_after) { skip_after_ = std::move(skip_after); }
 

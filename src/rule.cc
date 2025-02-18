@@ -41,8 +41,8 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
       }
 
       // Evaluate the operator
-      if (!operator_->evaluate(t, var_value)) [[likely]] {
-        result = false;
+      if (operator_->evaluate(t, var_value)) {
+        result = true;
         break;
       }
     }

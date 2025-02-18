@@ -691,8 +691,9 @@ action_data: action_data_status | action_data_xml_ns;
 action_data_status: Status COLON INT;
 action_data_xml_ns: Xmlns COLON STRING;
 
-action_flow: action_flow_chain | action_flow_skip_after;
+action_flow: action_flow_chain | action_flow_skip | action_flow_skip_after;
 action_flow_chain: Chain;
+action_flow_skip: Skip COLON INT;
 action_flow_skip_after: SkipAfter COLON STRING;
 
 audit_log_config:

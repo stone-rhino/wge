@@ -25,9 +25,40 @@ void Transaction::processUri(UriExtractor uri_extractor) {
 
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor) {
   extractor_.request_header_extractor_ = std::move(header_extractor);
+
+  // Get the rules of phase 1
   auto& rules = engin_.rules(1);
-  for (const Rule* rule : rules) {
-    rule->evaluate(*this, extractor_);
+
+  // Traverse the rules and evaluate them
+  for (auto iter = rules.begin(); iter != rules.end();) {
+    // Evaluate the rule
+    auto& rule = *iter;
+    auto is_matched = rule->evaluate(*this, extractor_);
+
+    // Skip the rules if current rule that has a skip action or skipAfter action is matched
+    if (is_matched) {
+      // Process the skip action
+      int skip = rule->skip();
+      if (skip > 0) [[unlikely]] {
+        iter += skip;
+        continue;
+      }
+
+      // Process the skipAfter action
+      const std::string& skip_after = rule->skipAfter();
+      if (!skip_after.empty()) [[unlikely]] {
+        auto next_rule_iter = engin_.marker(skip_after, rule->phase());
+        if (next_rule_iter.has_value()) [[likely]] {
+          iter = next_rule_iter.value();
+          continue;
+        }
+      }
+
+      // If skip and skipAfter are not set, then continue to the next rule
+      ++iter;
+    } else {
+      ++iter;
+    }
   }
 }
 
