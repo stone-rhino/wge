@@ -94,7 +94,7 @@ void Engine::initRules() {
 void Engine::initMakers() {
   auto& markers = const_cast<std::list<Marker>&>(parser_->markers());
   for (auto& marker : markers) {
-    for (int i = 1; i <= 5; ++i) {
+    for (int i = 0; i < 5; ++i) {
       for (auto iter = rules_[i].begin(); iter != rules_[i].end(); ++iter) {
         if (*iter == marker.prevRule()) {
           marker.init(iter);

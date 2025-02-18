@@ -1,3 +1,6 @@
 [submodule "test/test_data/waf-conf"]
 	path = test/test_data/waf-conf
 	url = https://git.ouryun.cn/base/waf-conf.git
+[submodule "benchmarks/modsecurity/modsecurity"]
+	path = benchmarks/modsecurity/modsecurity
+	url = https://github.com/owasp-modsecurity/ModSecurity.git
