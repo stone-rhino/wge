@@ -19,10 +19,11 @@ using ConnectionExtractor =
  * Uri info extractor.
  * @param method this reference used to recv the method.
  * @param path this reference used to recv the path.
+ * @param protocol this reference used to recv the protocol.
  * @param version this reference used to recv the version.
  */
 using UriExtractor = std::function<void(std::string_view& method, std::string_view& path,
-                                        std::string_view& version)>;
+                                        std::string_view& protocol, std::string_view& version)>;
 
 /**
  * Header info extractor.

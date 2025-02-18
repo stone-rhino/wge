@@ -24,9 +24,11 @@ void thread_func(SrSecurity::Engine& engine) {
         };
 
     SrSecurity::UriExtractor uri_extractor = [&](std::string_view& method, std::string_view& path,
+                                                 std::string_view& protocol,
                                                  std::string_view& version) {
       method = request.method_;
       path = request.path_;
+      protocol = request.protocol_;
       version = request.version_;
     };
 
@@ -62,7 +64,13 @@ void thread_func(SrSecurity::Engine& engine) {
 
 int main(int argc, const char* argv[]) {
   SrSecurity::Engine engine;
-  engine.loadFromFile("test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
+  std::expected<bool, std::string> result = engine.loadFromFile(
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
+  if (!result.has_value()) {
+    std::cout << "Load rules error: " << result.error() << std::endl;
+    return 1;
+  }
+
   engine.init();
 
   std::vector<std::thread> threads;
@@ -78,4 +86,6 @@ int main(int argc, const char* argv[]) {
   std::cout << "Total time: " << duration.milliseconds() << "ms" << std::endl;
   std::cout << std::fixed << std::setprecision(3)
             << "QPS:" << 1000.0 * test_count / duration.milliseconds() << std::endl;
+
+  return 0;
 }

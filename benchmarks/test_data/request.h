@@ -11,7 +11,8 @@ struct RequestBase {
 
   std::string method_{"Get"};
   std::string path_{"/"};
-  std::string version_{"HTTP/1.1"};
+  std::string protocol_{"HTTP"};
+  std::string version_{"1.1"};
 
   std::unordered_multimap<std::string, std::string> request_headers_{
       {"host", "localhost:80"},
