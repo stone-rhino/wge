@@ -1686,13 +1686,13 @@ std::any Visitor::visitAction_non_disruptive_log(
 
 std::any Visitor::visitAction_non_disruptive_no_audit_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_audit_logContext* ctx) {
-  (*current_rule_iter_)->noAuditLog(true);
+  (*current_rule_iter_)->auditLog(false);
   return "";
 }
 
 std::any Visitor::visitAction_non_disruptive_no_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) {
-  (*current_rule_iter_)->noLog(true);
+  (*current_rule_iter_)->log(false);
   return "";
 }
 

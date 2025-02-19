@@ -90,7 +90,7 @@ RULE_TEST(901100) {
   EXPECT_EQ(rule.id(), 901100);
   EXPECT_EQ(rule.phase(), 1);
   EXPECT_EQ(rule.disruptive(), Rule::Disruptive::PASS);
-  EXPECT_EQ(rule.noLog(), true);
+  EXPECT_EQ(rule.log(), false);
   EXPECT_NE(rule.tags().find("OWASP_CRS"), rule.tags().end());
   EXPECT_EQ(rule.ver(), "OWASP_CRS/4.3.0-dev");
 

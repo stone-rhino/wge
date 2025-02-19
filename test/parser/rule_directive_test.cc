@@ -646,7 +646,7 @@ TEST_F(RuleTest, ActionNoAuditLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->noAuditLog());
+  EXPECT_FALSE(parser.rules().back()->auditLog());
 }
 
 TEST_F(RuleTest, ActionNoLog) {
@@ -654,7 +654,7 @@ TEST_F(RuleTest, ActionNoLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->noLog());
+  EXPECT_FALSE(parser.rules().back()->log());
 }
 
 TEST_F(RuleTest, ActionCapture) {
@@ -992,8 +992,7 @@ TEST_F(RuleTest, ActionSkipAfter) {
 }
 
 TEST_F(RuleTest, ActionSkip) {
-  const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,skip:3,msg:'aaa'")";
+  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,skip:3,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
