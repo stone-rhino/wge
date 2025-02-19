@@ -38,23 +38,14 @@ void Engine::init() {
   initMakers();
 }
 
-static std::vector<const Rule*> empty_rules;
-const std::vector<const Rule*>& Engine::defaultActions(int phase) const {
-  assert(phase >= 1 && phase <= 5);
-  if (phase >= 1 && phase <= 5) {
-    return default_actions_[phase - 1];
-  } else {
-    return empty_rules;
-  }
+const Rule* Engine::defaultActions(int phase) const {
+  assert(phase >= 1 && phase <= phase_total_);
+  return default_actions_[phase - 1];
 }
 
 const std::vector<const Rule*>& Engine::rules(int phase) const {
-  assert(phase >= 1 && phase <= 5);
-  if (phase >= 1 && phase <= 5) {
-    return rules_[phase - 1];
-  } else {
-    return empty_rules;
-  }
+  assert(phase >= 1 && phase <= phase_total_);
+  return rules_[phase - 1];
 }
 
 TransactionPtr Engine::makeTransaction() const {
@@ -91,7 +82,7 @@ void Engine::initDefaultActions() {
       SRSECURITY_LOG(warn, "phase {} invalid.", phase);
       continue;
     }
-    default_actions_.at(phase - 1).emplace_back(rule.get());
+    default_actions_[phase - 1] = rule.get();
   }
 }
 
