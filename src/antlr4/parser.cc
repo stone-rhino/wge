@@ -68,6 +68,17 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
     return std::unexpected(lexer_error_listener.error_msg);
   }
 
+  curr_load_file_ = "";
+  auto result = loaded_file_paths_.emplace(file_path);
+  if (result.second) {
+    curr_load_file_ = *result.first;
+  } else {
+    auto iter = loaded_file_paths_.find(file_path);
+    if (iter != loaded_file_paths_.end()) {
+      curr_load_file_ = *iter;
+    }
+  }
+
   // visit
   std::string error;
   Visitor vistor(this);
@@ -131,13 +142,13 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
   engine_config_.is_xml_external_entity_ = option;
 }
 
-std::list<std::unique_ptr<Rule>>::iterator Parser::secAction() {
-  rules_.emplace_back(std::make_unique<Rule>());
+std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
+  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());
 }
 
-std::list<std::unique_ptr<Rule>>::iterator Parser::secRule() {
-  rules_.emplace_back(std::make_unique<Rule>());
+std::list<std::unique_ptr<Rule>>::iterator Parser::secRule(int line) {
+  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());
 }
 

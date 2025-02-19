@@ -4,6 +4,7 @@
 #include <expected>
 #include <list>
 #include <memory>
+#include <set>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -44,10 +45,10 @@ public:
   void secXmlExternalEntity(EngineConfig::Option option);
 
   // Engine action
-  std::list<std::unique_ptr<Rule>>::iterator secAction();
+  std::list<std::unique_ptr<Rule>>::iterator secAction(int line);
 
   // Rule directives
-  std::list<std::unique_ptr<Rule>>::iterator secRule();
+  std::list<std::unique_ptr<Rule>>::iterator secRule(int line);
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
@@ -103,5 +104,8 @@ private:
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
       rules_index_tag_;
   std::list<Marker> makers_;
+
+  std::set<std::string> loaded_file_paths_;
+  std::string_view curr_load_file_;
 };
 } // namespace SrSecurity::Antlr4

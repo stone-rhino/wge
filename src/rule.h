@@ -19,6 +19,9 @@ namespace SrSecurity {
  */
 class Rule {
 public:
+  Rule(std::string_view file_path, int line) : file_path_(file_path), line_(line) {}
+
+public:
   /**
    * Evaluate the rule
    * @return True if intervening
@@ -43,6 +46,10 @@ public:
     // location..
     REDIRECT
   };
+
+public:
+  std::string_view filePath() const { return file_path_; }
+  int line() const { return line_; }
 
   // Action Group: Meta-data
 public:
@@ -104,8 +111,8 @@ public:
 
   // Action Grop: Flow
 public:
-  std::list<std::unique_ptr<Rule>>::iterator appendChainRule() {
-    chain_.emplace_back(std::make_unique<Rule>());
+  std::list<std::unique_ptr<Rule>>::iterator appendChainRule(int line) {
+    chain_.emplace_back(std::make_unique<Rule>(file_path_, line));
     return std::prev(chain_.end());
   }
   void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
@@ -133,6 +140,8 @@ public:
   const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
 
 private:
+  std::string_view file_path_;
+  int line_;
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
   std::unique_ptr<Operator::OperatorBase> operator_;
 

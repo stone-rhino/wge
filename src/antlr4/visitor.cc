@@ -56,8 +56,11 @@ std::any Visitor::visitSec_xml_external_entity(
 }
 
 std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) {
+  // Get line number
+  int line = ctx->getStart()->getLine();
+
   // Add an empty rule, and sets actions by visitChildren
-  current_rule_iter_ = parser_->secAction();
+  current_rule_iter_ = parser_->secAction(line);
 
   visit_action_mode_ = VisitActionMode::VisitActionMode_SecAction;
   std::string error;
@@ -71,11 +74,14 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
 }
 
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
+  // Get line number
+  int line = ctx->getStart()->getLine();
+
   // Add an empty rule, and sets variable and operators and actions by visitChildren
   if (chain_) {
-    current_rule_iter_ = (*current_rule_iter_)->appendChainRule();
+    current_rule_iter_ = (*current_rule_iter_)->appendChainRule(line);
   } else {
-    current_rule_iter_ = parser_->secRule();
+    current_rule_iter_ = parser_->secRule(line);
   }
 
   chain_ = false;
