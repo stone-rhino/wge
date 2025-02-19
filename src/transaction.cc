@@ -63,7 +63,7 @@ void Transaction::createVariable(std::string&& name, int value) {
 void Transaction::createVariable(std::string&& name, std::string&& value) {
   auto iter = tx_.find(name);
   if (iter == tx_.end()) {
-    tx_.emplace(std::move(name), value);
+    tx_.emplace(std::move(name), std::move(value));
   }
 }
 
@@ -151,7 +151,16 @@ inline void Transaction::process(int phase) {
 
     // Log the matched rule
     if (log_callback_) [[likely]] {
-      log_callback_(*rule);
+      const SrSecurity::Rule* default_action = engin_.defaultActions(rule->phase());
+      if (default_action) {
+        if (rule->log().value_or(default_action->log().value_or(false))) {
+          log_callback_(*rule);
+        }
+      } else {
+        if (rule->log().value_or(false)) {
+          log_callback_(*rule);
+        }
+      }
     }
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched

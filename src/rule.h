@@ -2,6 +2,7 @@
 
 #include <list>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
@@ -74,13 +75,13 @@ public:
 
   // Action Group: Non-disruptive
 public:
-  bool auditLog() const { return audit_log_; }
+  std::optional<bool> auditLog() const { return audit_log_; }
   void auditLog(bool value) { audit_log_ = value; }
-  bool log() const { return log_; }
+  std::optional<bool> log() const { return log_; }
   void log(bool value) { log_ = value; };
-  bool capture() const { return capture_; }
+  std::optional<bool> capture() const { return capture_; }
   void capture(bool value) { capture_ = value; }
-  bool multiMatch() const { return multi_match_; }
+  std::optional<bool> multiMatch() const { return multi_match_; }
   void multiMatch(bool value) { multi_match_ = value; }
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
     return transforms_;
@@ -198,10 +199,10 @@ private:
   std::string expire_var_;
   std::string init_col_;
   std::string log_data_;
-  bool audit_log_{false};
-  bool log_{false};
-  bool capture_{false};
-  bool multi_match_{false};
+  std::optional<bool> audit_log_;
+  std::optional<bool> log_;
+  std::optional<bool> capture_;
+  std::optional<bool> multi_match_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
   bool is_ingnore_default_transform_{false};
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;

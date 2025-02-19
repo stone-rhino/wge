@@ -27,9 +27,9 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
       // Evaluate the transformations
       if (!is_ingnore_default_transform_) [[unlikely]] {
-        auto& default_actions = t.getEngine().defaultActions(phase_);
-        for (auto& action : default_actions) {
-          for (auto& transform : action->transforms()) {
+        const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+        if (default_action) {
+          for (auto& transform : default_action->transforms()) {
             transform_data = transform->evaluate(var_value.data(), var_value.size());
             var_value = transform_data;
           }
@@ -42,6 +42,10 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
       // Evaluate the operator
       if (operator_->evaluate(t, var_value)) {
+        // Evaluate the actions
+        for (auto& action : actions_) {
+          action->evaluate(t);
+        }
         result = true;
         break;
       }

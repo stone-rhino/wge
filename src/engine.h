@@ -48,7 +48,7 @@ public:
    * @param phase Specify the phase of the default actions, the valid range is 1-5.
    * @return vector of default actions
    */
-  const std::vector<const Rule*>& defaultActions(int phase) const;
+  const Rule* defaultActions(int phase) const;
 
   /**
    * Get rules
@@ -71,7 +71,8 @@ public:
    */
   const Antlr4::Parser& parser() const { return *parser_; }
 
-  std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name, int phase) const;
+  std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name,
+                                                                 int phase) const;
 
   /**
    * Get persistent storage
@@ -87,7 +88,7 @@ private:
 private:
   constexpr static size_t phase_total_ = 5;
   std::shared_ptr<Antlr4::Parser> parser_;
-  std::array<std::vector<const Rule*>, phase_total_> default_actions_;
+  std::array<const Rule*, phase_total_> default_actions_{nullptr};
   std::array<std::vector<const Rule*>, phase_total_> rules_;
   std::unordered_map<std::string, Marker&> markers_;
   PersistentStorage::Storage storage_;
