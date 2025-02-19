@@ -89,8 +89,7 @@
                 "value": "/usr/local/lib64:$LD_LIBRARY_PATH;"
             }
         ],
-        "args": [
-        ]
+        "args": []
     },
     "C_Cpp.intelliSenseCacheSize": 0,
     "files.exclude": {
