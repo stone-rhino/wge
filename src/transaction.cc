@@ -23,23 +23,31 @@ void Transaction::processUri(UriExtractor uri_extractor) {
   extractor_.uri_extractor_ = std::move(uri_extractor);
 }
 
-void Transaction::processRequestHeaders(HeaderExtractor header_extractor) {
+void Transaction::processRequestHeaders(HeaderExtractor header_extractor,
+                                        std::function<void(const Rule&)> log_callback) {
   extractor_.request_header_extractor_ = std::move(header_extractor);
+  log_callback_ = std::move(log_callback);
   process(1);
 }
 
-void Transaction::processRequestBody(BodyExtractor body_extractor) {
+void Transaction::processRequestBody(BodyExtractor body_extractor,
+                                     std::function<void(const Rule&)> log_callback) {
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
+  log_callback_ = std::move(log_callback);
   process(2);
 }
 
-void Transaction::processResponseHeaders(HeaderExtractor header_extractor) {
+void Transaction::processResponseHeaders(HeaderExtractor header_extractor,
+                                         std::function<void(const Rule&)> log_callback) {
   extractor_.response_header_extractor_ = std::move(header_extractor);
+  log_callback_ = std::move(log_callback);
   process(3);
 }
 
-void Transaction::processResponseBody(BodyExtractor body_extractor) {
+void Transaction::processResponseBody(BodyExtractor body_extractor,
+                                      std::function<void(const Rule&)> log_callback) {
   extractor_.response_body_extractor_ = std::move(body_extractor);
+  log_callback_ = std::move(log_callback);
   process(4);
 }
 
@@ -136,30 +144,33 @@ inline void Transaction::process(int phase) {
     auto& rule = *iter;
     auto is_matched = rule->evaluate(*this, extractor_);
 
+    if (!is_matched) {
+      ++iter;
+      continue;
+    }
+
+    // Log the matched rule
+    if (log_callback_) [[likely]] {
+      log_callback_(*rule);
+    }
+
     // Skip the rules if current rule that has a skip action or skipAfter action is matched
-    if (is_matched) {
-      // Process the skip action
-      int skip = rule->skip();
-      if (skip > 0) [[unlikely]] {
-        iter += skip;
+    int skip = rule->skip();
+    if (skip > 0) [[unlikely]] {
+      iter += skip;
+      continue;
+    }
+    const std::string& skip_after = rule->skipAfter();
+    if (!skip_after.empty()) [[unlikely]] {
+      auto next_rule_iter = engin_.marker(skip_after, rule->phase());
+      if (next_rule_iter.has_value()) [[likely]] {
+        iter = next_rule_iter.value();
         continue;
       }
-
-      // Process the skipAfter action
-      const std::string& skip_after = rule->skipAfter();
-      if (!skip_after.empty()) [[unlikely]] {
-        auto next_rule_iter = engin_.marker(skip_after, rule->phase());
-        if (next_rule_iter.has_value()) [[likely]] {
-          iter = next_rule_iter.value();
-          continue;
-        }
-      }
-
-      // If skip and skipAfter are not set, then continue to the next rule
-      ++iter;
-    } else {
-      ++iter;
     }
+
+    // If skip and skipAfter are not set, then continue to the next rule
+    ++iter;
   }
 }
 

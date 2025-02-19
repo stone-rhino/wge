@@ -52,7 +52,7 @@ void thread_func(SrSecurity::Engine& engine) {
     auto t = engine.makeTransaction();
     t->processConnection(conn_extractor);
     t->processUri(uri_extractor);
-    t->processRequestHeaders(request_header_extractor);
+    t->processRequestHeaders(request_header_extractor, nullptr);
 
     std::lock_guard<std::mutex> lock(mutex);
     if (test_count >= max_test_count) {

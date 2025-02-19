@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -11,6 +12,7 @@
 
 namespace SrSecurity {
 class Engine;
+class Rule;
 class Transaction final {
   friend class Engine;
 
@@ -33,26 +35,34 @@ public:
   /**
    * Process the request headers.
    * @param header_extractor the request headers extractor.
+   * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processRequestHeaders(HeaderExtractor header_extractor);
+  void processRequestHeaders(HeaderExtractor header_extractor,
+                             std::function<void(const Rule&)> log_callback);
 
   /**
    * Process the request body.
    * @param body_extractor the request body extractor.
+   * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processRequestBody(BodyExtractor body_extractor);
+  void processRequestBody(BodyExtractor body_extractor,
+                          std::function<void(const Rule&)> log_callback);
 
   /**
    * Process the response headers.
    * @param header_extractor the response headers extractor.
+   * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processResponseHeaders(HeaderExtractor header_extractor);
+  void processResponseHeaders(HeaderExtractor header_extractor,
+                              std::function<void(const Rule&)> log_callback);
 
   /**
    * Process the response body.
    * @param body_extractor the response body extractor.
+   * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processResponseBody(BodyExtractor body_extractor);
+  void processResponseBody(BodyExtractor body_extractor,
+                           std::function<void(const Rule&)> log_callback);
 
 public:
   /**
@@ -178,6 +188,7 @@ private:
   std::unordered_map<std::string, std::string> tx_;
   std::array<std::string_view, 100> matched_;
   static const RandomInitHelper random_init_helper_;
+  std::function<void(const Rule&)> log_callback_;
 
   // ctl
 private:

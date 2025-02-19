@@ -13,7 +13,9 @@ constexpr uint32_t max_test_count = 10000000;
 uint32_t test_count = 0;
 std::mutex mutex;
 
-void logCb(void* data, const void* message) {}
+void logCb(void* data, const void* message) {
+  
+}
 
 void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set) {
   while (true) {
