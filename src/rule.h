@@ -78,10 +78,6 @@ public:
   void auditLog(bool value) { audit_log_ = value; }
   bool log() const { return log_; }
   void log(bool value) { log_ = value; };
-  bool noAuditLog() const { return no_audit_log_; }
-  void noAuditLog(bool value) { no_audit_log_ = value; }
-  bool noLog() const { return no_log_; }
-  void noLog(bool value) { no_log_ = value; }
   bool capture() const { return capture_; }
   void capture(bool value) { capture_ = value; }
   bool multiMatch() const { return multi_match_; }
@@ -204,8 +200,6 @@ private:
   std::string log_data_;
   bool audit_log_{false};
   bool log_{false};
-  bool no_audit_log_{false};
-  bool no_log_{false};
   bool capture_{false};
   bool multi_match_{false};
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
