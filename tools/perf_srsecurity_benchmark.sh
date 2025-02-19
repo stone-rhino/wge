@@ -2,4 +2,4 @@
 if [[ ! -d perf ]]; then
   mkdir perf
 fi
-LD_LIBRARY_PATH=/usr/local/lib64 perf record -g -F99 -o perf/srsecurity_benchmark.perf.data -- build/debug/benchmarks/srsecurity/srsecurity_benchmark
+LD_LIBRARY_PATH=/usr/local/lib64 perf record -g -F99 -o perf/srsecurity_benchmark.perf.data -- build/release-with-debug-info/benchmarks/srsecurity/srsecurity_benchmark

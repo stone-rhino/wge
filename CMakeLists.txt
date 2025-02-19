@@ -3,6 +3,10 @@ project(srsecurity VERSION 0.0.1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+  add_compile_options(-fno-omit-frame-pointer)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(benchmarks/srsecurity)

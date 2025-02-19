@@ -29,6 +29,14 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "release-with-debug-info",
+      "inherits": "vcpkg",
+      "binaryDir": "${sourceDir}/build/release-with-debug-info",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     }
   ]
 }
