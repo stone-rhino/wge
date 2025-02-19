@@ -4,18 +4,20 @@
 #include <memory>
 #include <vector>
 
+#include <assert.h>
+
 #include "macro_base.h"
 
 namespace SrSecurity {
 namespace Macro {
 class MultiMacro : public MacroBase {
 public:
-  MultiMacro(std::string&& var_name, std::vector<std::shared_ptr<MacroBase>>&& macros)
-      : var_name_(std::move(var_name)), macros_(std::move(macros)) {}
+  MultiMacro(std::string&& variable_name, std::vector<std::shared_ptr<MacroBase>>&& macros)
+      : variable_name_(std::move(variable_name)), macros_(std::move(macros)) {}
 
 public:
   std::string_view evaluate(Transaction& t) override {
-    evaluate_value_ = var_name_;
+    evaluate_value_ = variable_name_;
     for (auto& macro : macros_) {
       auto pos1 = evaluate_value_.find("%{");
       assert(pos1 != std::string::npos);
@@ -29,7 +31,7 @@ public:
   }
 
 private:
-  std::string var_name_;
+  std::string variable_name_;
   std::vector<std::shared_ptr<MacroBase>> macros_;
   std::string evaluate_value_;
 };

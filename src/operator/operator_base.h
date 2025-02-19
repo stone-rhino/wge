@@ -3,6 +3,8 @@
 #include <string>
 #include <string_view>
 
+#include "../macro/macro_base.h"
+#include "../macro/macro_factory.h"
 #include "../transaction.h"
 
 #define DECLARE_OPERATOR_NAME(n)                                                                   \
@@ -19,7 +21,10 @@ namespace Operator {
  */
 class OperatorBase {
 public:
-  OperatorBase(std::string&& literal_value) : literal_value_(std::move(literal_value)) {}
+  OperatorBase(std::string&& literal_value) : literal_value_(std::move(literal_value)) {
+    macro_ = Macro::MacroFactory::createMacro(literal_value_);
+  }
+
   virtual ~OperatorBase() = default;
 
 public:
@@ -46,6 +51,7 @@ public:
 
 protected:
   std::string literal_value_;
+  std::shared_ptr<Macro::MacroBase> macro_;
 };
 
 } // namespace Operator

@@ -6,7 +6,7 @@
 
 namespace SrSecurity {
 bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
-  bool result = false;
+  bool matched = false;
 
   // Check whether the rule is unconditional(SecAction)
   bool is_uncondition = operator_ == nullptr;
@@ -16,9 +16,8 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
     for (auto& action : actions_) {
       action->evaluate(t);
     }
-    result = true;
+    matched = true;
   } else [[likely]] {
-    result = true;
     std::string transform_data;
 
     // Evaluate the variables
@@ -46,13 +45,13 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
         for (auto& action : actions_) {
           action->evaluate(t);
         }
-        result = true;
+        matched = true;
         break;
       }
     }
   }
 
-  return result;
+  return matched;
 }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
