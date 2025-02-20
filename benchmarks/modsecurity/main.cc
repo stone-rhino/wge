@@ -4,20 +4,23 @@
 
 #include "common/duration.h"
 #include "modsecurity/modsecurity.h"
+#include "modsecurity/rule_message.h"
 #include "modsecurity/rules_set.h"
 #include "modsecurity/transaction.h"
 
 #include "../test_data/request.h"
 
-constexpr uint32_t max_test_count = 10000000;
 uint32_t test_count = 0;
 std::mutex mutex;
 
 void logCb(void* data, const void* message) {
-  
+  const modsecurity::RuleMessage* rule_message =
+      reinterpret_cast<const modsecurity::RuleMessage*>(message);
+  std::cout << rule_message->m_rule.m_ruleId << std::endl;
 }
 
-void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set) {
+void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
+                 uint32_t max_test_count) {
   while (true) {
     Request request;
     modsecurity::Transaction t(&engine, &rules_set, nullptr);
@@ -39,11 +42,47 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
   }
 }
 
-int main(int argc, const char* argv[]) {
+void usage(void);
+int main(int argc, char* argv[]) {
+  // Thread count, default is the number of CPU cores
+  uint32_t concurrency = std::thread::hardware_concurrency();
+  // The maximum requests number of tests, default 10000000
+  uint32_t max_test_count = 10000000;
+
+  // Parse command line arguments
+  int opt;
+  while ((opt = getopt(argc, argv, "c:n:h")) != -1) {
+    switch (opt) {
+    case 'c':
+      try {
+        concurrency = std::stoi(optarg);
+      } catch (...) {
+        std::cout << "Invalid concurrency value" << std::endl;
+        usage();
+        return 1;
+      }
+      break;
+    case 'n':
+      try {
+        max_test_count = std::stoi(optarg);
+      } catch (...) {
+        std::cout << "Invalid test count value" << std::endl;
+        usage();
+        return 1;
+      }
+      break;
+    case 'h':
+    default:
+      usage();
+      return 0;
+    }
+  }
+
+  // Load rules
   modsecurity::ModSecurity engine;
   modsecurity::RulesSet rules_set;
-
-  engine.setServerLogCb(logCb);
+  engine.setServerLogCb(logCb, modsecurity::RuleMessageLogProperty |
+                                   modsecurity::IncludeFullHighlightLogProperty);
   int result = rules_set.loadFromUri(
       "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
   if (result == -1) {
@@ -51,19 +90,35 @@ int main(int argc, const char* argv[]) {
     return 1;
   }
 
+  // Start benchmark
   std::vector<std::thread> threads;
   SrSecurity::Common::Duration duration;
-  for (int i = 0; i < std::thread::hardware_concurrency(); ++i) {
-    threads.emplace_back(std::thread(thread_func, std::ref(engine), std::ref(rules_set)));
+  for (int i = 0; i < concurrency; ++i) {
+    threads.emplace_back(
+        std::thread(thread_func, std::ref(engine), std::ref(rules_set), max_test_count));
   }
+
+  // Wait for all threads to finish
   for (auto& thread : threads) {
     thread.join();
   }
 
+  // Print benchmark result
   duration.stop();
+  std::cout << "Test count: " << test_count << std::endl;
   std::cout << "Total time: " << duration.milliseconds() << "ms" << std::endl;
   std::cout << std::fixed << std::setprecision(3)
             << "QPS:" << 1000.0 * test_count / duration.milliseconds() << std::endl;
 
   return 0;
+}
+
+void usage() {
+  std::cout << R"(USAGE: modsecurity_benchmark [-c concurrency] [-n test count]
+       -c concurrency
+                    thread count, default is the number of CPU cores
+       -n test count
+                    the maximum requests number of tests, default 10000000
+
+)" << std::endl;
 }
