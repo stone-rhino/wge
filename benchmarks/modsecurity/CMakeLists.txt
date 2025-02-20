@@ -88,9 +88,21 @@ add_custom_target(build
   DEPENDS ${INSTALL_PATH}/lib/libmodsecurity.a
 )
 
+# without tcmalloc
 add_executable(modsecurity_benchmark ${local_source})
 add_dependencies(modsecurity_benchmark build)
 target_include_directories(modsecurity_benchmark PRIVATE ${INSTALL_PATH}/include ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(modsecurity_benchmark PRIVATE ${INSTALL_PATH}/lib/libmodsecurity.a)
 target_link_libraries(modsecurity_benchmark PRIVATE dl curl pthread libpcre.a libyajl_s.a libxml2.a libz.a liblzma.a libicuuc.a libicudata.a)
+
+# with tcmalloc
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(TCMALLOC REQUIRED libtcmalloc)
+add_executable(modsecurity_benchmark_tcmalloc ${local_source})
+add_dependencies(modsecurity_benchmark_tcmalloc build)
+target_include_directories(modsecurity_benchmark_tcmalloc PRIVATE ${INSTALL_PATH}/include ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(modsecurity_benchmark_tcmalloc PRIVATE ${INSTALL_PATH}/lib/libmodsecurity.a)
+target_link_libraries(modsecurity_benchmark_tcmalloc PRIVATE dl curl pthread libpcre.a libyajl_s.a libxml2.a libz.a liblzma.a libicuuc.a libicudata.a)
+target_link_directories(modsecurity_benchmark_tcmalloc PRIVATE ${TCMALLOC_LIBRARY_DIRS})
+target_link_libraries(modsecurity_benchmark_tcmalloc PRIVATE ${TCMALLOC_LIBRARIES})
 

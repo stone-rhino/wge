@@ -3,6 +3,7 @@
     "antlr4",
     "spdlog",
     "gtest",
-    "pcre2"
+    "pcre2",
+    "gperftools"
   ]
 }
