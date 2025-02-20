@@ -13,7 +13,10 @@
 namespace SrSecurity {
 const Transaction::RandomInitHelper Transaction::random_init_helper_;
 
-Transaction::Transaction(const Engine& engin) : engin_(engin) { initUniqueId(); }
+Transaction::Transaction(const Engine& engin) : engin_(engin) {
+  initUniqueId();
+  tx_.reserve(100);
+}
 
 void Transaction::processConnection(ConnectionExtractor conn_extractor) {
   extractor_.connection_extractor_ = std::move(conn_extractor);
