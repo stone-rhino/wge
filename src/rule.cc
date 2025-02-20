@@ -18,34 +18,46 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
     }
     matched = true;
   } else [[likely]] {
-    std::string transform_data;
+    Common::Variant transform_data = std::string();
 
     // Evaluate the variables
     for (auto& var : variables_) {
-      auto var_value = var->evaluate(t);
+      const Common::Variant& var_value = var->evaluate(t);
 
       // Evaluate the transformations
       if (!is_ingnore_default_transform_) [[unlikely]] {
         const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
         if (default_action) {
           for (auto& transform : default_action->transforms()) {
-            transform_data = transform->evaluate(var_value.data(), var_value.size());
-            var_value = transform_data;
+            if (IS_STRING_VARIANT(var_value)) {
+              const std::string& var_value_str = std::get<std::string>(var_value);
+              transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
+            } else if (IS_STRING_VIEW_VARIANT(var_value)) {
+              const std::string_view& var_value_str = std::get<std::string_view>(var_value);
+              transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
+            } else {
+              UNREACHABLE();
+            }
           }
         }
       }
       for (auto& transform : transforms_) {
-        transform_data = transform->evaluate(var_value.data(), var_value.size());
-        var_value = transform_data;
+        const std::string& transform_data_str = std::get<std::string>(transform_data);
+        transform_data = transform->evaluate(transform_data_str.data(), transform_data_str.size());
       }
 
       // Evaluate the operator
-      if (operator_->evaluate(t, var_value)) {
-        // Evaluate the actions
+      if (std::get<std::string>(transform_data).empty()) {
+        matched = operator_->evaluate(t, var_value);
+      } else {
+        matched = operator_->evaluate(t, transform_data);
+      }
+
+      // Evaluate the actions
+      if (matched) {
         for (auto& action : actions_) {
           action->evaluate(t);
         }
-        matched = true;
         break;
       }
     }

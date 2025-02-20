@@ -5,8 +5,12 @@
 #include <optional>
 #include <string_view>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
+#include <assert.h>
+
+#include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
 
@@ -68,16 +72,9 @@ public:
   /**
    * Create a variable in the transient transaction collection
    * @param name the name of the variable.
-   * @param value the int value of the variable.
+   * @param value the value of the variable.
    */
-  void createVariable(std::string&& name, int value = 1);
-
-  /**
-   * Create a variable in the transient transaction collection
-   * @param name the name of the variable.
-   * @param value the string value of the variable.
-   */
-  void createVariable(std::string&& name, std::string&& value);
+  void createVariable(std::string&& name, Common::Variant&& value);
 
   /**
    * Remove a variable from the transient transaction collection
@@ -93,32 +90,25 @@ public:
   void increaseVariable(const std::string& name, int value = 1);
 
   /**
-   * Get the string value of a variable in the transient transaction collection
+   * Get the value of a variable in the transient transaction collection
    * @param name the name of the variable.
-   * @return the value of the variable. if the variable does not exist, return an empty string.
+   * @return the value of the variable. if the variable does not exist, return an empty variant.
    */
-  const std::string& getVariable(const std::string& name) const;
+  const Common::Variant& getVariable(const std::string& name) const;
 
   /**
-   * Get the int value of a variable in the transient transaction collection
-   * @param name the name of the variable.
-   * @return the value of the variable.if the variable does not exist, return 0.
-   */
-  int getVariableInt(const std::string& name) const;
-
-  /**
-   * Set the value of a variable in the transient transaction collection
+   * Set the string value of a variable in the transient transaction collection
    * @param name the name of the variable.
    * @param value the string value of the variable.
    */
   void setVariable(const std::string& name, std::string&& value);
 
   /**
-   * Set the value of a variable in the transient transaction collection
+   * Set the int value of a variable in the transient transaction collection
    * @param name the name of the variable.
    * @param value the int value of the variable.
    */
-  void setVariableInt(const std::string& name, int value);
+  void setVariable(const std::string& name, int value);
 
   /**
    * Check if the variable exists in the transient transaction collection
@@ -185,7 +175,7 @@ private:
   std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engin_;
-  std::unordered_map<std::string, std::string> tx_;
+  std::unordered_map<std::string, Common::Variant> tx_;
   std::array<std::string_view, 100> matched_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;

@@ -31,8 +31,8 @@ TEST_F(EngineActionTest, SecAction) {
   for (auto& action : actions) {
     action->evaluate(*t);
   }
-  int score = t->getVariableInt("score");
-  int score1 = t->getVariableInt("score1");
+  int score = std::get<int>(t->getVariable("score"));
+  int score1 = std::get<int>(t->getVariable("score1"));
   EXPECT_EQ(score, 100);
   EXPECT_EQ(score1, 100);
 }

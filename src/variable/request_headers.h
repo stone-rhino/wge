@@ -12,8 +12,9 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  std::string_view evaluate(Transaction& t)  const override {
-    return t.httpExtractor().request_header_extractor_(sub_name_);
+  const Common::Variant& evaluate(Transaction& t) const override {
+    variant_value_ = t.httpExtractor().request_header_extractor_(sub_name_);
+    return variant_value_;
   };
 };
 } // namespace Variable

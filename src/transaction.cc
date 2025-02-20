@@ -51,19 +51,12 @@ void Transaction::processResponseBody(BodyExtractor body_extractor,
   process(4);
 }
 
-void Transaction::createVariable(std::string&& name, int value) {
-  auto iter = tx_.find(name);
-  if (iter == tx_.end()) {
-    tx_.emplace(std::move(name), std::to_string(value));
-  } else {
-    iter->second = std::to_string(value);
-  }
-}
-
-void Transaction::createVariable(std::string&& name, std::string&& value) {
+void Transaction::createVariable(std::string&& name, Common::Variant&& value) {
   auto iter = tx_.find(name);
   if (iter == tx_.end()) {
     tx_.emplace(std::move(name), std::move(value));
+  } else {
+    iter->second = std::move(value);
   }
 }
 
@@ -72,26 +65,17 @@ void Transaction::removeVariable(const std::string& name) { tx_.erase(name); }
 void Transaction::increaseVariable(const std::string& name, int value) {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
-    int v = ::atol(iter->second.c_str());
-    v += value;
-    iter->second = std::to_string(v);
+    iter->second = std::get<int>(iter->second) + value;
   }
 }
 
-const std::string& Transaction::getVariable(const std::string& name) const {
+const Common::Variant& Transaction::getVariable(const std::string& name) const {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
     return iter->second;
   }
 
-  return EMPTY_STRING;
-}
-
-int Transaction::getVariableInt(const std::string& name) const {
-  std::string_view str_value = getVariable(name);
-  int int_value = 0;
-  std::from_chars(str_value.data(), str_value.data() + str_value.size(), int_value);
-  return int_value;
+  return EMPTY_VARIANT;
 }
 
 void Transaction::setVariable(const std::string& name, std::string&& value) {
@@ -101,10 +85,10 @@ void Transaction::setVariable(const std::string& name, std::string&& value) {
   }
 }
 
-void Transaction::setVariableInt(const std::string& name, int value) {
+void Transaction::setVariable(const std::string& name, int value) {
   auto iter = tx_.find(name);
   if (iter != tx_.end()) {
-    iter->second = std::to_string(value);
+    iter->second = value;
   }
 }
 

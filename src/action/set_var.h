@@ -5,6 +5,7 @@
 
 #include "action_base.h"
 
+#include "../common/variant.h"
 #include "../macro/macro_base.h"
 
 namespace SrSecurity {
@@ -24,7 +25,7 @@ public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(std::string&& name, std::string&& value, EvaluateType type);
+  SetVar(std::string&& name, Common::Variant&&, EvaluateType type);
   SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
 
 public:
@@ -32,11 +33,11 @@ public:
 
 public:
   const std::string& name() const { return name_; }
-  const std::string& value() const { return value_; }
+  const Common::Variant& value() const { return value_; }
 
 private:
   std::string name_;
-  std::string value_;
+  const Common::Variant value_;
   EvaluateType type_;
   std::shared_ptr<Macro::MacroBase> macro_;
 };

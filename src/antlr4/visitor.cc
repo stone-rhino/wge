@@ -7,6 +7,7 @@
 
 #include "../action/actions_include.h"
 #include "../common/try.h"
+#include "../common/variant.h"
 #include "../macro/multi_macro.h"
 #include "../macro/tx.h"
 #include "../operator/operator_include.h"
@@ -1067,8 +1068,8 @@ std::any Visitor::visitAction_meta_data_severity_debug(
 std::any Visitor::visitAction_non_disruptive_setvar_create(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), "",
-                                                        Action::SetVar::EvaluateType::Create));
+  actions.emplace_back(std::make_unique<Action::SetVar>(
+      ctx->VAR_NAME()->getText(), Common::Variant(), Action::SetVar::EvaluateType::Create));
   return "";
 };
 
@@ -1103,10 +1104,17 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
       return ex.what();
     }
   } else {
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        ctx->VAR_NAME()->getText(),
-        ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText(),
-        Action::SetVar::EvaluateType::CreateAndInit));
+    std::string value_string =
+        ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText();
+    Common::Variant variant;
+    if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
+      variant = ::atoi(value_string.c_str());
+    } else {
+      variant = value_string;
+    }
+    actions.emplace_back(
+        std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), std::move(variant),
+                                         Action::SetVar::EvaluateType::CreateAndInit));
   }
 
   return "";
@@ -1115,8 +1123,8 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
 std::any Visitor::visitAction_non_disruptive_setvar_remove(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_removeContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), "",
-                                                        Action::SetVar::EvaluateType::Remove));
+  actions.emplace_back(std::make_unique<Action::SetVar>(
+      ctx->VAR_NAME()->getText(), Common::Variant(), Action::SetVar::EvaluateType::Remove));
   return "";
 };
 
@@ -1134,9 +1142,9 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
       return ex.what();
     }
   } else {
-    actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(),
-                                                          ctx->VAR_VALUE()->getText(),
-                                                          Action::SetVar::EvaluateType::Increase));
+    Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
+    actions.emplace_back(std::make_unique<Action::SetVar>(
+        ctx->VAR_NAME()->getText(), std::move(variant), Action::SetVar::EvaluateType::Increase));
   }
   return "";
 };
@@ -1155,9 +1163,9 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
       return ex.what();
     }
   } else {
-    actions.emplace_back(std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(),
-                                                          ctx->VAR_VALUE()->getText(),
-                                                          Action::SetVar::EvaluateType::Decrease));
+    Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
+    actions.emplace_back(std::make_unique<Action::SetVar>(
+        ctx->VAR_NAME()->getText(), std::move(variant), Action::SetVar::EvaluateType::Decrease));
   }
   return "";
 };

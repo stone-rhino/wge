@@ -1,9 +1,8 @@
 #pragma once
 
-#include <assert.h>
-
 #include "operator_base.h"
 
+#include "../common/assert.h"
 #include "../common/pcre.h"
 #include "../transaction.h"
 
@@ -21,15 +20,36 @@ public:
       : OperatorBase(std::move(literal_value)), pcre_(literalValue(), false) {}
 
 public:
-  bool evaluate(Transaction& t, std::string_view operand) const override {
-    // Match the operand with the pattern.
-    auto result = pcre_.match(operand, per_thread_pcre_scratch_);
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+    if (IS_EMPTY_VARIANT(operand)) [[unlikely]] {
+      return false;
+    }
 
-    // Ignore capture_ and set the match result directly, because we need to capture the
-    // matched string for %{MATCHED_VAR} in the rule action.
-    size_t index = 0;
-    for (const auto& [from, to] : result) {
-      t.setMatched(index++, std::string_view(operand.data() + from, to - from));
+    std::vector<std::pair<size_t, size_t>> result;
+
+    // Match the operand with the pattern.
+    if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
+      const std::string_view& operand_str = std::get<std::string_view>(operand);
+      result = pcre_.match(operand_str, per_thread_pcre_scratch_);
+
+      // Ignore capture_ and set the match result directly, because we need to capture the
+      // matched string for %{MATCHED_VAR} in the rule action.
+      size_t index = 0;
+      for (const auto& [from, to] : result) {
+        t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
+      }
+    } else if (IS_STRING_VARIANT(operand)) [[unlikely]] {
+      const std::string& operand_str = std::get<std::string>(operand);
+      result = pcre_.match(operand_str, per_thread_pcre_scratch_);
+
+      // Ignore capture_ and set the match result directly, because we need to capture the
+      // matched string for %{MATCHED_VAR} in the rule action.
+      size_t index = 0;
+      for (const auto& [from, to] : result) {
+        t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
+      }
+    } else {
+      UNREACHABLE();
     }
 
     return !result.empty();

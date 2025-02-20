@@ -9,7 +9,7 @@ public:
   Tx(std::string&& variable_name) : variable_name_(std::move(variable_name)) {}
 
 public:
-  std::string_view evaluate(Transaction& t) override { return t.getVariable(variable_name_); }
+  const Common::Variant& evaluate(Transaction& t) override { return t.getVariable(variable_name_); }
 
 private:
   std::string variable_name_;
