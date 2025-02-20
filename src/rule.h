@@ -153,7 +153,7 @@ private:
 
   // Places the rule or chain into one of five available processing phases. It can also be used in
   // SecDefaultAction to establish the rule defaults for that phase.
-  int phase_;
+  int phase_{-1};
 
   // Assigns severity to the rule in which it is used.
   // Severity values in ModSecurity follows the numeric scale of syslog (where 0 is the most

@@ -4,7 +4,6 @@
 
 #include "variable_base.h"
 
-#include "../common/empty_string.h"
 #include "../config.h"
 
 namespace SrSecurity {
@@ -17,13 +16,14 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  std::string_view evaluate(Transaction& t) const override {
+  const Common::Variant& evaluate(Transaction& t) const override {
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
     if (iter != body_processor_type_map_.end()) {
-      return iter->second;
+      variant_value_ = iter->second;
+      return variant_value_;
     }
-    return EMPTY_STRING_VIEW;
+    return EMPTY_VARIANT;
   };
 
 private:

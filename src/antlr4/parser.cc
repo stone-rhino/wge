@@ -184,9 +184,11 @@ void Parser::secMarker(std::string&& name) {
   for (auto iter = rules_.rbegin(); iter != rules_.rend(); ++iter) {
     auto& rule = *iter;
     int phase = rule->phase();
-    if (prev_rules[phase - 1] == nullptr) {
-      prev_rules[phase - 1] = rule.get();
-      ++geted;
+    if (phase != -1) {
+      if (prev_rules[phase - 1] == nullptr) {
+        prev_rules[phase - 1] = rule.get();
+        ++geted;
+      }
     }
 
     // each phase has a previous rule then break

@@ -99,6 +99,6 @@ RULE_TEST(901100) {
   Action::SetVar* set_var = dynamic_cast<Action::SetVar*>(rule.actions()[0].get());
   EXPECT_NE(set_var, nullptr);
   EXPECT_EQ(set_var->name(), "inbound_anomaly_score_threshold");
-  EXPECT_EQ(set_var->value(), "5");
+  EXPECT_EQ(std::get<int>(set_var->value()), 5);
 }
 } // namespace SrSecurity

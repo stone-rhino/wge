@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string_view>
-
+#include "../common/variant.h"
 #include "../transaction.h"
 
 namespace SrSecurity {
@@ -19,7 +18,10 @@ public:
   MacroBase() {}
 
 public:
-  virtual std::string_view evaluate(Transaction& t) = 0;
+  virtual const Common::Variant& evaluate(Transaction& t) = 0;
+
+protected:
+  static thread_local Common::Variant evaluate_value_;
 };
 } // namespace Macro
 } // namespace SrSecurity

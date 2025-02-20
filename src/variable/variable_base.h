@@ -5,6 +5,7 @@
 
 #include <string.h>
 
+#include "../common/variant.h"
 #include "../http_extractor.h"
 #include "../transaction.h"
 
@@ -67,7 +68,7 @@ public:
    * @param t the transaction.
    * @return the value of the variable.
    */
-  virtual std::string_view evaluate(Transaction& t) const = 0;
+  virtual const Common::Variant& evaluate(Transaction& t) const = 0;
 
   /**
    * Get the full name of the variable.
@@ -104,6 +105,7 @@ protected:
   std::string sub_name_;
   bool is_not_;
   bool is_counter_;
+  static thread_local Common::Variant variant_value_;
 };
 } // namespace Variable
 } // namespace SrSecurity

@@ -392,7 +392,7 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = t->getVariableInt("score");
+    int score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(score, 1);
   }
 
@@ -407,7 +407,7 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = t->getVariableInt("score2");
+    int score = std::get<int>(t->getVariable("score2"));
     EXPECT_EQ(score, 100);
   }
 
@@ -421,8 +421,8 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score2 = t->getVariableInt("score2");
-    int score3 = t->getVariableInt("score3");
+    int score2 = std::get<int>(t->getVariable("score2"));
+    int score3 = std::get<int>(t->getVariable("score3"));
     EXPECT_EQ(score2, score3);
   }
 
@@ -436,15 +436,15 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score2 = t->getVariableInt("score2");
-    int score = t->getVariableInt("score");
-    std::string_view foo = t->getVariable("foo");
+    int score2 = std::get<int>(t->getVariable("score2"));
+    int score = std::get<int>(t->getVariable("score"));
+    const std::string& foo = std::get<std::string>(t->getVariable("foo"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
   // Remove
   {
-    EXPECT_FALSE(t->getVariable("score2").empty());
+    EXPECT_FALSE(IS_EMPTY_VARIANT(t->getVariable("score2")));
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:'!tx.score2',msg:'aaa'")";
     Antlr4::Parser parser;
@@ -453,12 +453,12 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    EXPECT_TRUE(t->getVariable("score2").empty());
+    EXPECT_TRUE(IS_EMPTY_VARIANT(t->getVariable("score2")));
   }
 
   // Increase
   {
-    int old_score = t->getVariableInt("score");
+    int old_score = std::get<int>(t->getVariable("score"));
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:'tx.score=+100',msg:'aaa'")";
@@ -468,13 +468,13 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int new_score = t->getVariableInt("score");
+    int new_score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(new_score, old_score + 100);
   }
 
   // Increase (Macro expansion)
   {
-    int old_score = t->getVariableInt("score");
+    int old_score = std::get<int>(t->getVariable("score"));
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:'tx.score=+%{tx.score}',msg:'aaa'")";
@@ -484,13 +484,13 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int new_score = t->getVariableInt("score");
+    int new_score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(old_score, new_score - old_score);
   }
 
   // Decrease
   {
-    int old_score = t->getVariableInt("score");
+    int old_score = std::get<int>(t->getVariable("score"));
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score=-50',msg:'aaa'")";
@@ -500,13 +500,13 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int new_score = t->getVariableInt("score");
+    int new_score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(old_score, new_score + 50);
   }
 
   // Decrease (Macro expansion)
   {
-    int old_score = t->getVariableInt("score");
+    int old_score = std::get<int>(t->getVariable("score"));
     EXPECT_NE(old_score, 0);
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score=-%{tx.score}',msg:'aaa'")";
@@ -516,7 +516,7 @@ TEST_F(RuleTest, ActionSetVar) {
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int new_score = t->getVariableInt("score");
+    int new_score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(old_score, new_score + old_score);
   }
 }
@@ -646,7 +646,7 @@ TEST_F(RuleTest, ActionNoAuditLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_FALSE(parser.rules().back()->auditLog());
+  EXPECT_FALSE(parser.rules().back()->auditLog().value_or(true));
 }
 
 TEST_F(RuleTest, ActionNoLog) {
@@ -654,7 +654,7 @@ TEST_F(RuleTest, ActionNoLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_FALSE(parser.rules().back()->log());
+  EXPECT_FALSE(parser.rules().back()->log().value_or(true));
 }
 
 TEST_F(RuleTest, ActionCapture) {

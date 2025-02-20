@@ -15,13 +15,14 @@ public:
   }
 
 public:
-  bool evaluate(Transaction& t, std::string_view operand) const override {
-    int64_t operand_value = 0;
-    std::from_chars(operand.data(), operand.data() + operand.size(), operand_value);
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+    if (IS_EMPTY_VARIANT(operand)) [[unlikely]] {
+      return false;
+    }
+
+    int64_t operand_value = std::get<int>(operand);
     if (macro_) {
-      int64_t macro_value = 0;
-      std::string_view macro_string = macro_->evaluate(t);
-      std::from_chars(macro_string.data(), macro_string.data() + macro_string.size(), macro_value);
+      int64_t macro_value = std::get<int>(macro_->evaluate(t));
       return macro_value < operand_value;
     } else {
       return value_ < operand_value;

@@ -2,11 +2,13 @@
 
 #include <format>
 #include <memory>
+#include <thread>
 #include <vector>
 
-#include <assert.h>
-
 #include "macro_base.h"
+
+#include "../common/assert.h"
+#include "../common/variant.h"
 
 namespace SrSecurity {
 namespace Macro {
@@ -16,24 +18,35 @@ public:
       : variable_name_(std::move(variable_name)), macros_(std::move(macros)) {}
 
 public:
-  std::string_view evaluate(Transaction& t) override {
-    evaluate_value_ = variable_name_;
+  const Common::Variant& evaluate(Transaction& t) override {
+    std::string ev = variable_name_;
     for (auto& macro : macros_) {
-      auto pos1 = evaluate_value_.find("%{");
+      auto pos1 = ev.find("%{");
       assert(pos1 != std::string::npos);
-      if (pos1 != evaluate_value_.npos) {
-        auto pos2 = evaluate_value_.find('}', pos1);
+      if (pos1 != ev.npos) {
+        auto pos2 = ev.find('}', pos1);
         assert(pos2 != std::string::npos);
-        evaluate_value_ = evaluate_value_.replace(pos1, pos2 - pos1 + 1, macro->evaluate(t));
+        auto& mv = macro->evaluate(t);
+        if (IS_INT_VARIANT(mv)) {
+          ev = ev.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(mv)));
+        } else if (IS_STRING_VARIANT(mv)) {
+          ev = ev.replace(pos1, pos2 - pos1 + 1, std::get<std::string>(mv));
+        } else if (IS_STRING_VIEW_VARIANT(mv)) {
+          auto& sv = std::get<std::string_view>(mv);
+          ev = ev.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
+        } else [[unlikely]] {
+          UNREACHABLE();
+          ev = ev.replace(pos1, pos2 - pos1 + 1, "");
+        }
       }
     }
+    evaluate_value_ = ev;
     return evaluate_value_;
   }
 
 private:
   std::string variable_name_;
   std::vector<std::shared_ptr<MacroBase>> macros_;
-  std::string evaluate_value_;
 };
 } // namespace Macro
 } // namespace SrSecurity

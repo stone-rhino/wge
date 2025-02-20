@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include <string_view>
 
+#include "../common/variant.h"
 #include "../macro/macro_base.h"
 #include "../macro/macro_factory.h"
 #include "../transaction.h"
@@ -41,7 +41,7 @@ public:
    * @param operand the operand to evaluate.
    * @return true if the value matches the operator, false otherwise.
    */
-  virtual bool evaluate(Transaction& t, std::string_view operand) const = 0;
+  virtual bool evaluate(Transaction& t, const Common::Variant& operand) const = 0;
 
   /**
    * Get the name of the operator.

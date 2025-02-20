@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "../common/assert.h"
+
 namespace SrSecurity {
 namespace Action {
 SetEnv::SetEnv(std::string&& name, std::string&& value)
@@ -20,9 +22,16 @@ SetEnv::SetEnv(std::string&& name, std::shared_ptr<Macro::MacroBase> macro)
 
 void SetEnv::evaluate(Transaction& t) const {
   if (macro_) {
-    std::string_view value = macro_->evaluate(t);
-    if (!value.empty()) {
-      ::setenv(name_.c_str(), std::string(value).c_str(), 1);
+    Common::Variant value = macro_->evaluate(t);
+    if (IS_INT_VARIANT(value)) {
+      ::setenv(name_.c_str(), std::to_string(std::get<int>(value)).c_str(), 1);
+    } else if (IS_STRING_VARIANT(value)) {
+      ::setenv(name_.c_str(), std::get<std::string>(value).c_str(), 1);
+    } else if (IS_STRING_VIEW_VARIANT(value)) {
+      std::string value_str(std::get<std::string_view>(value));
+      ::setenv(name_.c_str(), value_str.c_str(), 1);
+    } else {
+      UNREACHABLE();
     }
   } else {
     ::setenv(name_.c_str(), value_.c_str(), 1);

@@ -11,7 +11,7 @@ public:
   NoMatch(std::string&& literal_value) : OperatorBase(std::move(literal_value)) {}
 
 public:
-  bool evaluate(Transaction& t, std::string_view operand) const override { assert(false); throw "Not implemented!"; }
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override { assert(false); throw "Not implemented!"; }
 };
 } // namespace Operator
 } // namespace SrSecurity

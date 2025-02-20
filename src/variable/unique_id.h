@@ -17,7 +17,10 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  std::string_view evaluate(Transaction& t) const override { return t.getUniqueId(); };
+  const Common::Variant& evaluate(Transaction& t) const override {
+    variant_value_ = t.getUniqueId();
+    return variant_value_;
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity
