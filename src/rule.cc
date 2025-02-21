@@ -1,6 +1,9 @@
 #include "rule.h"
 
+#include <iostream>
+
 #include "common/assert.h"
+#include "common/log.h"
 #include "common/try.h"
 #include "engine.h"
 
@@ -37,7 +40,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
               const std::string& var_value_str = std::get<std::string>(*var_value);
               transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
               var_value = &transform_data;
-            } else [[unlikely]] {
+            } else {
               UNREACHABLE();
             }
           }
@@ -54,13 +57,39 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
           const std::string& var_value_str = std::get<std::string>(*var_value);
           transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
           var_value = &transform_data;
-        } else [[unlikely]] {
-          UNREACHABLE();
+        } else {
+          // UNREACHABLE();
+          if (!var->subName().empty()) [[likely]] {
+            SRSECURITY_LOG(warn,
+                           "Rule try to transform a variant type that is not string. file: {}[{}] "
+                           "variable: {}.{} variant type: {}",
+                           file_path_, line_, var->mainName(), var->subName(), var_value->index());
+          } else [[unlikely]] {
+            SRSECURITY_LOG(warn,
+                           "Rule try to transform a variant type that is not string. file: {}[{}] "
+                           "variable: {} variant type: {}",
+                           file_path_, line_, var->mainName(), var_value->index());
+          }
         }
       }
 
       // Evaluate the operator
       matched = operator_->evaluate(t, *var_value);
+
+      // Evaluate the chained rules
+      if (matched && !chain_.empty()) [[unlikely]] {
+        for (auto& rule : chain_) {
+          matched = rule->evaluate(t, extractor);
+          if (!matched) {
+            break;
+          }
+        }
+
+        // Don't evaluate the actions if the chained rules are not matched
+        if (!matched) {
+          break;
+        }
+      }
 
       // Evaluate the actions
       if (matched) {
