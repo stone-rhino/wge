@@ -28,11 +28,12 @@ std::expected<bool, std::string> Engine::load(const std::string& directive) {
   return parser_->load(directive);
 }
 
-void Engine::init() {
+void Engine::init(spdlog::level::level_enum level, const std::string& log_file) {
   // An efficient and rational design should not call this method in the worker thread.
   // This assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
+  Common::Log::init(level, log_file);
   initDefaultActions();
   initRules();
   initMakers();
@@ -79,7 +80,7 @@ void Engine::initDefaultActions() {
     auto phase = rule->phase();
     assert(phase >= 1 && phase <= phase_total_);
     if (phase < 1 || phase > phase_total_) {
-      SRSECURITY_LOG(warn, "phase {} invalid.", phase);
+      SRSECURITY_LOG_WARN("phase {} invalid.", phase);
       continue;
     }
     default_actions_[phase - 1] = rule.get();
@@ -94,7 +95,7 @@ void Engine::initRules() {
     auto phase = rule->phase();
     assert(phase >= 1 && phase <= phase_total_);
     if (phase < 1 || phase > phase_total_) {
-      SRSECURITY_LOG(warn, "phase {} invalid. rule id:{}", phase, rule->id());
+      SRSECURITY_LOG_WARN("phase {} invalid. rule id:{}", phase, rule->id());
       continue;
     }
     rules_.at(phase - 1).emplace_back(rule.get());

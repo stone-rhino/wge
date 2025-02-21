@@ -42,7 +42,7 @@ std::vector<std::pair<size_t, size_t>> Pcre::match(std::string_view subject,
   if (rc < 0) [[unlikely]] {
     switch (rc) {
     case PCRE2_ERROR_NOMATCH:
-      SRSECURITY_LOG(trace, "pcre no match: {}", subject);
+      SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
       break;
     default:
       break;
@@ -51,7 +51,7 @@ std::vector<std::pair<size_t, size_t>> Pcre::match(std::string_view subject,
   }
 
   if (rc == 0) {
-    SRSECURITY_LOG(err, "ovector was not big enough for captured substring", subject);
+    SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
     return result;
   }
 
@@ -97,7 +97,7 @@ void Pcre::compile(const std::string& pattern, bool case_less) {
   if (db_ == nullptr) [[unlikely]] {
     char buffer[256];
     pcre2_get_error_message(error_number, reinterpret_cast<unsigned char*>(buffer), sizeof(buffer));
-    SRSECURITY_LOG(warn, "pcre compile error: {}", buffer);
+    SRSECURITY_LOG_WARN("pcre compile error: {}", buffer);
     return;
   }
 }

@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Load rules error: " << result.error() << std::endl;
     return 1;
   }
-  engine.init();
+  engine.init(spdlog::level::off);
 
   // Start benchmark
   std::vector<std::thread> threads;

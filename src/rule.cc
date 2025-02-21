@@ -60,15 +60,15 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
         } else {
           // UNREACHABLE();
           if (!var->subName().empty()) [[likely]] {
-            SRSECURITY_LOG(warn,
-                           "Rule try to transform a variant type that is not string. file: {}[{}] "
-                           "variable: {}.{} variant type: {}",
-                           file_path_, line_, var->mainName(), var->subName(), var_value->index());
+            SRSECURITY_LOG_WARN(
+                "Rule try to transform a variant type that is not string. file: {}[{}] "
+                "variable: {}.{} variant type: {}",
+                file_path_, line_, var->mainName(), var->subName(), var_value->index());
           } else [[unlikely]] {
-            SRSECURITY_LOG(warn,
-                           "Rule try to transform a variant type that is not string. file: {}[{}] "
-                           "variable: {} variant type: {}",
-                           file_path_, line_, var->mainName(), var_value->index());
+            SRSECURITY_LOG_WARN(
+                "Rule try to transform a variant type that is not string. file: {}[{}] "
+                "variable: {} variant type: {}",
+                file_path_, line_, var->mainName(), var_value->index());
           }
         }
       }

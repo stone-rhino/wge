@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/log.h"
 #include "marker.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
@@ -23,36 +24,38 @@ public:
 public:
   /**
    * Load the rule set from a file
-   * @param file_path Supports relative and absolute path
-   * @result An error string is returned if fails, and returned true otherwise
+   * @param file_path the rule(SecLang) file path. support absolute path and relative path
+   * @result an error string is returned if fails, and returned true otherwise
    */
   std::expected<bool, std::string> loadFromFile(const std::string& file_path);
 
   /**
    * Load the rule set from a configuration directive
-   * @param directive Configuration directive
-   * @result An error string is returned if fails, and returned true otherwise
+   * @param directive configuration directive. such as "SecRuleEngine On"
+   * @result an error string is returned if fails, and returned true otherwise
    */
   std::expected<bool, std::string> load(const std::string& directive);
 
   /**
-   * This method initializes some important variables, such as rules chain per phase and hyperscan
-   * database and so on
-   * @note Must call once before call makeTransaction, and only once in the life of the engine
+   * Initialize the engine
+   * @param level the log level
+   * @param log_file the log file path. If it is empty, the log will be output to the console
+   * @note must call once before call makeTransaction, and only once in the life of the engine
    * instance.
    */
-  void init();
+  void init(spdlog::level::level_enum level = spdlog::level::info,
+            const std::string& log_file = "");
 
   /**
    * Get default actions
-   * @param phase Specify the phase of the default actions, the valid range is 1-5.
+   * @param phase specify the phase of the default actions, the valid range is 1-5.
    * @return vector of default actions
    */
   const Rule* defaultActions(int phase) const;
 
   /**
    * Get rules
-   * @param phase Specify the phase of rule, the valid range is 1-5.
+   * @param phase specify the phase of rule, the valid range is 1-5.
    * @return vector of rules
    */
   const std::vector<const Rule*>& rules(int phase) const;
@@ -60,8 +63,8 @@ public:
 public:
   /**
    * Make a transaction to evaluate rules.
-   * @return Pointer of transaction
-   * @note Must call init once before call this
+   * @return pointer of transaction
+   * @note must call init before call this method
    */
   TransactionPtr makeTransaction() const;
 
