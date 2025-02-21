@@ -7,6 +7,8 @@
 namespace SrSecurity {
 namespace Transformation {
 class HexDecode : public TransformBase {
+  DECLARE_TRANSFORM_NAME(hexDecode);
+
 public:
   std::string evaluate(const void* data, size_t data_len) const override {
     std::string result;

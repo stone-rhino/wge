@@ -15,7 +15,7 @@ public:
       std::cout << result.error() << std::endl;
     }
 
-    engine_.init();
+    engine_.init(spdlog::level::trace);
 
     conn_extractor_ = [&](std::string_view& downstream_ip, short& downstream_port,
                           std::string_view& upstream_ip, short& upstream_port) {

@@ -13,6 +13,7 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) const override {
+    const Common::Variant* variant;
     if (is_counter_) {
       return t.hasVariable(sub_name_) ? number_one_ : number_zero_;
     } else {

@@ -21,22 +21,24 @@ namespace Action {
  * setvar:TX.score=+5
  */
 class SetVar : public ActionBase {
+  DECLARE_ACTION_NAME(setvar);
+
 public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(std::string&& name, Common::Variant&&, EvaluateType type);
-  SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
+  SetVar(std::string&& key, Common::Variant&&, EvaluateType type);
+  SetVar(std::string&& key, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
 
 public:
   void evaluate(Transaction& t) const override;
 
 public:
-  const std::string& name() const { return name_; }
+  const std::string& key() const { return key_; }
   const Common::Variant& value() const { return value_; }
 
 private:
-  std::string name_;
+  std::string key_;
   const Common::Variant value_;
   EvaluateType type_;
   std::shared_ptr<Macro::MacroBase> macro_;

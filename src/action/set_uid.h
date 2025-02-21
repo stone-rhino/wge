@@ -14,6 +14,8 @@ namespace Action {
  * parameter.
  */
 class SetUid : public ActionBase {
+  DECLARE_ACTION_NAME(setuid);
+
 public:
   SetUid(std::string&& value);
   SetUid(std::shared_ptr<Macro::MacroBase> macro);

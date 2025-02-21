@@ -14,6 +14,8 @@ namespace Action {
  * parameter.
  */
 class SetRsc : public ActionBase {
+  DECLARE_ACTION_NAME(setrsc);
+
 public:
   SetRsc(std::string&& value);
   SetRsc(std::shared_ptr<Macro::MacroBase> macro);

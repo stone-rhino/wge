@@ -1,7 +1,5 @@
 #include "set_uid.h"
 
-#include <assert.h>
-
 namespace SrSecurity {
 namespace Action {
 SetUid::SetUid(std::string&& value) : value_(std::move(value)) {}

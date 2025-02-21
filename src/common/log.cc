@@ -19,7 +19,7 @@ void Log::init(spdlog::level::level_enum level, const std::string& log_file) {
     spdlog::flush_on(level);
   }
 
-  spdlog::set_pattern("[SRSECURITY][%Y-%m-%d %H:%M:%S.%e %z][thread %t][%^%l%$] %v");
+  spdlog::set_pattern("[SRSECURITY][%Y-%m-%d %H:%M:%S.%e][%t][%^%l%$] %v");
 }
 } // namespace Common
 } // namespace SrSecurity

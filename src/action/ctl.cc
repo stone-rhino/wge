@@ -1,7 +1,8 @@
 #include "ctl.h"
 
-#include <assert.h>
 #include <stdlib.h>
+
+#include "../common/assert.h"
 
 namespace SrSecurity {
 namespace Action {
@@ -37,23 +38,23 @@ void Ctl::evaluate(Transaction& t) const {
     evaluate_rule_remove_target_by_tag(t);
     break;
   default:
-    assert(false);
+    UNREACHABLE();
     break;
   }
 }
 
 void Ctl::evaluate_audit_engine(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_audit_log_parts(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_request_body_access(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
@@ -62,27 +63,27 @@ void Ctl::evaluate_request_body_processor(Transaction& t) const {
 }
 
 void Ctl::evaluate_rule_engine(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_by_id(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_by_tag(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_target_by_id(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_target_by_tag(Transaction& t) const {
-  assert(false);
+  UNREACHABLE();
   throw "Not implemented!";
 }
 

@@ -1,7 +1,5 @@
 #include "set_sid.h"
 
-#include <assert.h>
-
 namespace SrSecurity {
 namespace Action {
 SetSid::SetSid(std::string&& value) : value_(std::move(value)) {}

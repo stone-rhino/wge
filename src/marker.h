@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include <assert.h>
-
 #include "rule.h"
 
 namespace SrSecurity {

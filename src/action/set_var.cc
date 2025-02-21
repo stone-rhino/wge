@@ -1,58 +1,66 @@
 #include "set_var.h"
 
-#include <charconv>
-
-#include <assert.h>
+#include "../common/assert.h"
+#include "../common/log.h"
 
 namespace SrSecurity {
 namespace Action {
-SetVar::SetVar(std::string&& name, Common::Variant&& value, EvaluateType type)
-    : name_(std::move(name)), value_(std::move(value)), type_(type) {
+SetVar::SetVar(std::string&& key, Common::Variant&& value, EvaluateType type)
+    : key_(std::move(key)), value_(std::move(value)), type_(type) {
   // The variable name is case insensitive
-  std::transform(name_.begin(), name_.end(), name_.begin(),
+  std::transform(key_.begin(), key_.end(), key_.begin(),
                  [](unsigned char c) { return std::tolower(c); });
 }
 
-SetVar::SetVar(std::string&& name, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type)
-    : name_(std::move(name)), macro_(macro), type_(type) {
+SetVar::SetVar(std::string&& key, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type)
+    : key_(std::move(key)), macro_(macro), type_(type) {
   // The variable name is case insensitive
-  std::transform(name_.begin(), name_.end(), name_.begin(),
+  std::transform(key_.begin(), key_.end(), key_.begin(),
                  [](unsigned char c) { return std::tolower(c); });
 }
 
 void SetVar::evaluate(Transaction& t) const {
   switch (type_) {
   case EvaluateType::Create:
-    t.createVariable(std::string(name_), 1);
+    SRSECURITY_LOG_TRACE("setvar(Create): {}=1", key_);
+    t.createVariable(std::string(key_), 1);
     break;
-  case EvaluateType::CreateAndInit:
+  [[likely]] case EvaluateType::CreateAndInit:
     if (macro_) {
       Common::Variant value = macro_->evaluate(t);
-      t.createVariable(std::string(name_), std::move(value));
+      SRSECURITY_LOG_TRACE("setvar(CreateAndInit): {}={}", key_, VISTIT_VARIANT_AS_STRING(value));
+      t.createVariable(std::string(key_), std::move(value));
     } else {
-      t.createVariable(std::string(name_), Common::Variant(value_));
+      SRSECURITY_LOG_TRACE("setvar(CreateAndInit): {}={}", key_, VISTIT_VARIANT_AS_STRING(value_));
+      t.createVariable(std::string(key_), Common::Variant(value_));
     }
     break;
   case EvaluateType::Remove:
-    t.removeVariable(name_);
+    SRSECURITY_LOG_TRACE("setvar(Remove): {}", key_);
+    t.removeVariable(key_);
     break;
   case EvaluateType::Increase:
     if (macro_) {
       int value = std::get<int>(macro_->evaluate(t));
-      t.increaseVariable(name_, value);
+      SRSECURITY_LOG_TRACE("setvar(Increase): {}+={}", key_, value);
+      t.increaseVariable(key_, value);
     } else {
-      t.increaseVariable(name_, std::get<int>(value_));
+      SRSECURITY_LOG_TRACE("setvar(Increase): {}+={}", key_, std::get<int>(value_));
+      t.increaseVariable(key_, std::get<int>(value_));
     }
     break;
   case EvaluateType::Decrease:
     if (macro_) {
       int value = std::get<int>(macro_->evaluate(t));
-      t.increaseVariable(name_, -value);
+      SRSECURITY_LOG_TRACE("setvar(Decrease): {}-={}", key_, value);
+      t.increaseVariable(key_, -value);
     } else {
-      t.increaseVariable(name_, -std::get<int>(value_));
+      SRSECURITY_LOG_TRACE("setvar(Decrease): {}-={}", key_, std::get<int>(value_));
+      t.increaseVariable(key_, -std::get<int>(value_));
     }
     break;
   default:
+    UNREACHABLE();
     break;
   }
 }

@@ -7,14 +7,16 @@
 namespace SrSecurity {
 namespace Action {
 class InitCol : public ActionBase {
+  DECLARE_ACTION_NAME(initcol);
+
 public:
-  InitCol(std::string&& name, std::string&& value);
+  InitCol(std::string&& key, std::string&& value);
 
 public:
   void evaluate(Transaction& t) const override;
 
 private:
-  std::string name_;
+  std::string key_;
   std::string value_;
 };
 } // namespace Action

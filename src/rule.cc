@@ -15,23 +15,32 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   bool is_uncondition = operator_ == nullptr;
 
   if (is_uncondition) [[unlikely]] {
+    SRSECURITY_LOG_TRACE("evaluate SecAction. id: {}", id_);
     // Evaluate the actions
     for (auto& action : actions_) {
       action->evaluate(t);
     }
     matched = true;
+
   } else [[likely]] {
+    SRSECURITY_LOG_TRACE("evaluate SecRule. id: {}", id_);
+
     Common::Variant transform_data;
 
     // Evaluate the variables
     for (auto& var : variables_) {
       const Common::Variant* var_value = &var->evaluate(t);
+      SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
+                           var->isCounter() ? "&" : "", var->mainName(),
+                           var->subName().empty() ? "" : "." + var->subName(),
+                           VISTIT_VARIANT_AS_STRING(*var_value));
 
       // Evaluate the default transformations
       if (!is_ingnore_default_transform_) [[unlikely]] {
         const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
         if (default_action) {
           for (auto& transform : default_action->transforms()) {
+            SRSECURITY_LOG_TRACE("evaluate default transformation: {}", transform->name());
             if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
               const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
               transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
@@ -49,6 +58,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
       // Evaluate the action defined transformations
       for (auto& transform : transforms_) {
+        SRSECURITY_LOG_TRACE("evaluate action defined transformation: {}", transform->name());
         if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
           const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
           transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
@@ -75,10 +85,13 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
       // Evaluate the operator
       matched = operator_->evaluate(t, *var_value);
+      SRSECURITY_LOG_TRACE("evaluate operator: {} {} {} = {}", VISTIT_VARIANT_AS_STRING(*var_value),
+                           operator_->name(), operator_->literalValue(), matched);
 
       // Evaluate the chained rules
       if (matched && !chain_.empty()) [[unlikely]] {
         for (auto& rule : chain_) {
+          SRSECURITY_LOG_TRACE("evaluate chained rule. id: {}", rule->id());
           matched = rule->evaluate(t, extractor);
           if (!matched) {
             break;

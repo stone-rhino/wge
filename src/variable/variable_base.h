@@ -61,6 +61,7 @@ public:
   VariableBase(std::string&& sub_name, bool is_not, bool is_counter)
       : sub_name_(std::move(sub_name)), is_not_(is_not), is_counter_(is_counter) {}
   VariableBase(bool is_not, bool is_counter) : is_not_(is_not), is_counter_(is_counter) {}
+  virtual ~VariableBase() = default;
 
 public:
   /**

@@ -8,8 +8,6 @@
 #include <variant>
 #include <vector>
 
-#include <assert.h>
-
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"

@@ -1,12 +1,10 @@
 #include "transaction.h"
 
-#include <charconv>
 #include <chrono>
 #include <format>
 
-#include <assert.h>
-
 #include "common/empty_string.h"
+#include "common/log.h"
 #include "common/try.h"
 #include "engine.h"
 
@@ -19,15 +17,18 @@ Transaction::Transaction(const Engine& engin) : engin_(engin) {
 }
 
 void Transaction::processConnection(ConnectionExtractor conn_extractor) {
+  SRSECURITY_LOG_TRACE("====process connection====");
   extractor_.connection_extractor_ = std::move(conn_extractor);
 }
 
 void Transaction::processUri(UriExtractor uri_extractor) {
+  SRSECURITY_LOG_TRACE("====process uri====");
   extractor_.uri_extractor_ = std::move(uri_extractor);
 }
 
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor,
                                         std::function<void(const Rule&)> log_callback) {
+  SRSECURITY_LOG_TRACE("====process request headers====");
   extractor_.request_header_extractor_ = std::move(header_extractor);
   log_callback_ = std::move(log_callback);
   process(1);
@@ -35,6 +36,7 @@ void Transaction::processRequestHeaders(HeaderExtractor header_extractor,
 
 void Transaction::processRequestBody(BodyExtractor body_extractor,
                                      std::function<void(const Rule&)> log_callback) {
+  SRSECURITY_LOG_TRACE("====process request body====");
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
   process(2);
@@ -42,6 +44,7 @@ void Transaction::processRequestBody(BodyExtractor body_extractor,
 
 void Transaction::processResponseHeaders(HeaderExtractor header_extractor,
                                          std::function<void(const Rule&)> log_callback) {
+  SRSECURITY_LOG_TRACE("====process response headers====");
   extractor_.response_header_extractor_ = std::move(header_extractor);
   log_callback_ = std::move(log_callback);
   process(3);
@@ -49,6 +52,7 @@ void Transaction::processResponseHeaders(HeaderExtractor header_extractor,
 
 void Transaction::processResponseBody(BodyExtractor body_extractor,
                                       std::function<void(const Rule&)> log_callback) {
+  SRSECURITY_LOG_TRACE("====process response body====");
   extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
   process(4);

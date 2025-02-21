@@ -8,6 +8,7 @@
 #include "macro_base.h"
 
 #include "../common/assert.h"
+#include "../common/log.h"
 #include "../common/variant.h"
 
 namespace SrSecurity {
@@ -41,6 +42,10 @@ public:
       }
     }
     evaluate_value_ = ev;
+
+    SRSECURITY_LOG_TRACE("macro {} expanded: {}", variable_name_,
+                         VISTIT_VARIANT_AS_STRING(evaluate_value_));
+
     return evaluate_value_;
   }
 

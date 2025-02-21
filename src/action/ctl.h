@@ -14,6 +14,8 @@ namespace Action {
  * configuration, as well as the other transactions running in parallel, will be unaffected.
  */
 class Ctl : public ActionBase {
+  DECLARE_ACTION_NAME(ctl);
+
 public:
   enum class CtlType {
     AuditEngine,

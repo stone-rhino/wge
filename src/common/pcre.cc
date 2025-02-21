@@ -10,7 +10,6 @@
 #error PCRE2_CODE_UNIT_WIDTH was defined!
 #endif
 
-#include <assert.h>
 #include <pcre2.h>
 
 #include "log.h"

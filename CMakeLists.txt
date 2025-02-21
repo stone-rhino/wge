@@ -7,6 +7,9 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
   add_compile_options(-fno-omit-frame-pointer)
 endif()
 
+# Enable logging
+add_definitions(-DSRSECURITY_LOG_ACTIVE_LEVEL=1)
+
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(benchmarks/srsecurity)

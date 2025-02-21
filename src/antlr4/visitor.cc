@@ -3,8 +3,6 @@
 #include <format>
 #include <unordered_map>
 
-#include <assert.h>
-
 #include "../action/actions_include.h"
 #include "../common/try.h"
 #include "../common/variant.h"
