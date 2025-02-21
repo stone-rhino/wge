@@ -18,40 +18,49 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
     }
     matched = true;
   } else [[likely]] {
-    Common::Variant transform_data = std::string();
+    Common::Variant transform_data;
 
     // Evaluate the variables
     for (auto& var : variables_) {
-      const Common::Variant& var_value = var->evaluate(t);
+      const Common::Variant* var_value = &var->evaluate(t);
 
-      // Evaluate the transformations
+      // Evaluate the default transformations
       if (!is_ingnore_default_transform_) [[unlikely]] {
         const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
         if (default_action) {
           for (auto& transform : default_action->transforms()) {
-            if (IS_STRING_VARIANT(var_value)) {
-              const std::string& var_value_str = std::get<std::string>(var_value);
+            if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
+              const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
               transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
-            } else if (IS_STRING_VIEW_VARIANT(var_value)) {
-              const std::string_view& var_value_str = std::get<std::string_view>(var_value);
+              var_value = &transform_data;
+            } else if (IS_STRING_VARIANT(*var_value)) [[unlikely]] {
+              const std::string& var_value_str = std::get<std::string>(*var_value);
               transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
-            } else {
+              var_value = &transform_data;
+            } else [[unlikely]] {
               UNREACHABLE();
             }
           }
         }
       }
+
+      // Evaluate the action defined transformations
       for (auto& transform : transforms_) {
-        const std::string& transform_data_str = std::get<std::string>(transform_data);
-        transform_data = transform->evaluate(transform_data_str.data(), transform_data_str.size());
+        if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
+          const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
+          transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
+          var_value = &transform_data;
+        } else if (IS_STRING_VARIANT(*var_value)) [[unlikely]] {
+          const std::string& var_value_str = std::get<std::string>(*var_value);
+          transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
+          var_value = &transform_data;
+        } else [[unlikely]] {
+          UNREACHABLE();
+        }
       }
 
       // Evaluate the operator
-      if (std::get<std::string>(transform_data).empty()) {
-        matched = operator_->evaluate(t, var_value);
-      } else {
-        matched = operator_->evaluate(t, transform_data);
-      }
+      matched = operator_->evaluate(t, *var_value);
 
       // Evaluate the actions
       if (matched) {
