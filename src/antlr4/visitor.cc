@@ -1147,6 +1147,13 @@ std::any Visitor::visitAction_meta_data_severity_debug(
   return std::string();
 }
 
+std::any Visitor::visitAction_meta_data_severity_number(
+    Antlr4Gen::SecLangParser::Action_meta_data_severity_numberContext* ctx) {
+  uint32_t serverity_level = ::atol(ctx->SEVERITY_LEVEL()->getText().c_str());
+  (*current_rule_iter_)->severity(static_cast<SrSecurity::Rule::Severity>(serverity_level));
+  return std::string();
+}
+
 std::any Visitor::visitAction_non_disruptive_setvar_create(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();

@@ -451,6 +451,8 @@ public:
       Antlr4Gen::SecLangParser::Action_meta_data_severity_infoContext* ctx) override;
   std::any visitAction_meta_data_severity_debug(
       Antlr4Gen::SecLangParser::Action_meta_data_severity_debugContext* ctx) override;
+  std::any visitAction_meta_data_severity_number(
+      Antlr4Gen::SecLangParser::Action_meta_data_severity_numberContext* ctx) override;
 
   // Action Group: Non-disruptive
 public:

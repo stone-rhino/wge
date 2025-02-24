@@ -607,6 +607,7 @@ mode ModeSecRuleActionSeverity;
 ModeSecRuleActionSeverity_COLON: COLON -> type(COLON);
 ModeSecRuleActionSeverity_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleActionSeverityValue);
+SEVERITY_LEVEL: [0-7] -> popMode;
 
 mode ModeSecRuleActionSeverityValue;
 ModeSecRuleActionSeverityValue_SINGLE_QUOTE:
