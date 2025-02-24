@@ -30,7 +30,8 @@ engine_config:
 	| sec_response_body_limit
 	| sec_response_body_action
 	| sec_tmp_dir
-	| sec_data_dir;
+	| sec_data_dir
+	| sec_arguments_limit;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
 sec_response_body_mime_type_clear:
@@ -42,7 +43,8 @@ sec_upload_keep_files: SecUploadKeepFiles OPTION;
 sec_xml_external_entity: SecXmlExternalEntity OPTION;
 sec_request_body_limit: SecRequestBodyLimit INT;
 sec_request_body_no_files_limit: SecRequestBodyNoFilesLimit INT;
-sec_request_body_json_depth_limit: SecRequestBodyJsonDepthLimit INT;
+sec_request_body_json_depth_limit:
+	SecRequestBodyJsonDepthLimit INT;
 sec_request_body_action:
 	SecRequestBodyLimitAction BODY_LIMIT_ACTION;
 sec_response_body_limit: SecResponseBodyLimit INT;
@@ -50,6 +52,7 @@ sec_response_body_action:
 	SecResponseBodyLimitAction BODY_LIMIT_ACTION;
 sec_tmp_dir: SecTmpDir STRING;
 sec_data_dir: SecDataDir STRING;
+sec_arguments_limit: SecArgumentsLimit INT;
 
 engine_action: sec_action;
 sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;
@@ -424,7 +427,8 @@ action_meta_data:
 	| action_meta_data_rev
 	| action_meta_data_accuracy
 	| action_meta_data_maturity;
-action_meta_data_id: Id COLON (INT | (SINGLE_QUOTE STRING SINGLE_QUOTE));
+action_meta_data_id:
+	Id COLON (INT | (SINGLE_QUOTE STRING SINGLE_QUOTE));
 action_meta_data_phase: Phase COLON INT;
 action_meta_data_severity:
 	Severity COLON SINGLE_QUOTE (

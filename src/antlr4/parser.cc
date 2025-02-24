@@ -180,6 +180,10 @@ void Parser::secResponseBodyLimitAction(EngineConfig::BodyLimitAction action) {
   engine_config_.response_body_limit_action_ = action;
 }
 
+void Parser::secArgumentsLimit(uint32_t limit_bytes) {
+  engine_config_.arguments_limit_ = limit_bytes;
+}
+
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
   rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());

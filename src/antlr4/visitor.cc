@@ -120,6 +120,12 @@ std::any Visitor::visitSec_response_body_action(
   return std::string();
 }
 
+std::any
+Visitor::visitSec_arguments_limit(Antlr4Gen::SecLangParser::Sec_arguments_limitContext* ctx) {
+  parser_->secArgumentsLimit(::atol(ctx->INT()->getText().c_str()));
+  return std::string();
+}
+
 std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) {
   // Get line number
   int line = ctx->getStart()->getLine();

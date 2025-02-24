@@ -70,6 +70,11 @@ struct EngineConfig {
   // Controls what happens once a response body limit, configured with SecResponseBodyLimit, is
   // encountered.
   BodyLimitAction response_body_limit_action_{BodyLimitAction::ProcessPartial};
+
+  // SecArgumentsLimit
+  // Configures the maximum number of ARGS that will be accepted for processing.
+  // Default: 0 (unlimited)
+  uint32_t arguments_limit_{0};
 };
 
 /**

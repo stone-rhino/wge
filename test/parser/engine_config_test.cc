@@ -236,5 +236,17 @@ TEST_F(EngineConfigTest, ResponseBodyLimitAction) {
   EXPECT_EQ(engine_config.response_body_limit_action_, EngineConfig::BodyLimitAction::Reject);
 }
 
+TEST_F(EngineConfigTest, ArgumentsLimit) {
+  const std::string directive = R"(# Test engine config
+  SecArgumentsLimit 1024
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  EXPECT_EQ(engine_config.arguments_limit_, 1024);
+}
 } // namespace Parsr
 } // namespace SrSecurity
