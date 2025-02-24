@@ -11,6 +11,8 @@ namespace SrSecurity {
  */
 struct EngineConfig {
   enum class Option { On, Off, DetectionOnly };
+  enum class BodyLimitAction { Reject, ProcessPartial };
+
   // SecRequestBodyAccess
   // Configures whether request bodies will be buffered and processed by ModSecurity.
   Option is_request_body_access_{Option::Off};
@@ -40,6 +42,24 @@ struct EngineConfig {
   // SecResponseBodyMimeType
   // Configures which MIME types are to be considered for response body buffering.
   std::vector<std::string> response_body_mime_types_;
+
+  // SecRequestBodyLimit
+  // Configures the maximum request body size ModSecurity will accept for buffering.
+  uint64_t request_body_limit_;
+
+  // SecResponseBodyLimit
+  // Configures the maximum response body size that will be accepted for buffering.
+  uint64_t response_body_limit_;
+
+  // SecRequestBodyLimitAction
+  // Controls what happens once a request body limit, configured with SecRequestBodyLimit, is
+  // encountered
+  BodyLimitAction request_body_limit_action_;
+
+  // SecResponseBodyLimitAction
+  // Controls what happens once a response body limit, configured with SecResponseBodyLimit, is
+  // encountered.
+  BodyLimitAction response_body_limit_action_;
 };
 
 /**

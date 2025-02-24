@@ -40,6 +40,7 @@ MINUS: '-';
 INT_RANGE: INT '-' INT;
 INT: [0-9]+;
 OPTION: ('On' | 'Off');
+BODY_LIMIT_ACTION: ('Reject' | 'ProcessPartial');
 COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
 NL: '\\' '\r'? '\n' -> skip;
 WS: (([ \t\r\n]+) | NL) -> skip;

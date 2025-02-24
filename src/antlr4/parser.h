@@ -45,6 +45,10 @@ public:
   void secTmpSaveUploadedFiles(EngineConfig::Option option);
   void secUploadKeepFiles(EngineConfig::Option option);
   void secXmlExternalEntity(EngineConfig::Option option);
+  void secRequestBodyLimit(uint64_t limit_bytes);
+  void secRequsetBodyLimitAction(EngineConfig::BodyLimitAction action);
+  void secResponseBodyLimit(uint64_t limit_bytes);
+  void secResponseBodyLimitAction(EngineConfig::BodyLimitAction action);
 
   // Engine action
   std::list<std::unique_ptr<Rule>>::iterator secAction(int line);
