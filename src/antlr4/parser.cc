@@ -164,6 +164,10 @@ void Parser::secRequestBodyNoFilesLimit(uint64_t limit_bytes) {
   engine_config_.request_body_no_files_limit_ = limit_bytes;
 }
 
+void Parser::secRequestBodyJsonDepthLimit(uint64_t limit) {
+  engine_config_.request_body_json_depth_limit_ = limit;
+}
+
 void Parser::secRequsetBodyLimitAction(EngineConfig::BodyLimitAction action) {
   engine_config_.request_body_limit_action_ = action;
 }

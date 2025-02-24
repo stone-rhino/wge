@@ -184,6 +184,19 @@ TEST_F(EngineConfigTest, RequestBodyNoFilesLimit) {
   EXPECT_EQ(engine_config.request_body_no_files_limit_, 1024);
 }
 
+TEST_F(EngineConfigTest, RequestBodyJsonDepthLimit) {
+  const std::string directive = R"(# Test engine config
+  SecRequestBodyJsonDepthLimit 1024
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  EXPECT_EQ(engine_config.request_body_json_depth_limit_, 1024);
+}
+
 TEST_F(EngineConfigTest, RequestBodyLimitAction) {
   const std::string directive = R"(# Test engine config
   SecRequestBodyLimitAction Reject

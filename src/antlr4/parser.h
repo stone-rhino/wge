@@ -47,6 +47,7 @@ public:
   void secXmlExternalEntity(EngineConfig::Option option);
   void secRequestBodyLimit(uint64_t limit_bytes);
   void secRequestBodyNoFilesLimit(uint64_t limit_bytes);
+  void secRequestBodyJsonDepthLimit(uint64_t limit);
   void secRequsetBodyLimitAction(EngineConfig::BodyLimitAction action);
   void secResponseBodyLimit(uint64_t limit_bytes);
   void secResponseBodyLimitAction(EngineConfig::BodyLimitAction action);

@@ -52,6 +52,10 @@ struct EngineConfig {
   // Default: 1MB
   uint64_t request_body_no_files_limit_{1048576};
 
+  // Configures the maximum parsing depth that is allowed when parsing a JSON object.
+  // Default: 0 (unlimited)
+  uint64_t request_body_json_depth_limit_{0};
+
   // SecResponseBodyLimit
   // Configures the maximum response body size that will be accepted for buffering.
   // Default: 512KB
