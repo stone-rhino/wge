@@ -11,8 +11,12 @@ class LowerCase : public TransformBase {
 
 public:
   std::string evaluate(const void* data, size_t data_len) const override {
-    assert(false);
-    throw "Not implemted!";
+    std::string result;
+    result.reserve(data_len);
+    for (size_t i = 0; i < data_len; ++i) {
+      result.push_back(std::tolower(static_cast<const char*>(data)[i]));
+    }
+    return result;
   }
 };
 } // namespace Transformation
