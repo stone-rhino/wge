@@ -106,6 +106,15 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
       // Evaluate the actions
       if (matched) {
+        // Evaluate the default actions
+        const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+        if (default_action) {
+          for (auto& action : default_action->actions()) {
+            action->evaluate(t);
+          }
+        }
+
+        // Evaluate the action defined actions
         for (auto& action : actions_) {
           action->evaluate(t);
         }
