@@ -128,5 +128,35 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(!result.has_value());
   }
 }
+
+TEST_F(EngineConfigTest, ResponseBodyMimeType) {
+  const std::string directive = R"(# Test engine config
+  SecResponseBodyMimeType text/html text/plain
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  ASSERT_EQ(engine_config.response_body_mime_types_.size(), 2);
+  ASSERT_EQ(engine_config.response_body_mime_types_[0], "text/html");
+  ASSERT_EQ(engine_config.response_body_mime_types_[1], "text/plain");
+}
+
+TEST_F(EngineConfigTest, ResponseBodyMimeTypeClear) {
+  const std::string directive = R"(# Test engine config
+  SecResponseBodyMimeType text/html text/plain
+  SecResponseBodyMimeTypesClear
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  ASSERT_EQ(engine_config.response_body_mime_types_.size(), 0);
+}
+
 } // namespace Parsr
 } // namespace SrSecurity

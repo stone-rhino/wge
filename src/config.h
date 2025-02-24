@@ -3,6 +3,7 @@
 #include <bitset>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace SrSecurity {
 /**
@@ -35,6 +36,10 @@ struct EngineConfig {
   // Enable or Disable the loading process of xml external entity. Loading external entity without
   // correct verifying process can lead to a security issue.
   Option is_xml_external_entity_{Option::Off};
+
+  // SecResponseBodyMimeType
+  // Configures which MIME types are to be considered for response body buffering.
+  std::vector<std::string> response_body_mime_types_;
 };
 
 /**

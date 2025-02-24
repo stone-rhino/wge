@@ -82,7 +82,8 @@ SecRequestBodyNoFilesLimit: 'SecRequestBodyNoFilesLimit';
 SecRequestBodyLimitAction: 'SecRequestBodyLimitAction';
 SecResponseBodyLimit: 'SecResponseBodyLimit';
 SecResponseBodyLimitAction: 'SecResponseBodyLimitAction';
-SecResponseBodyMimeType: 'SecResponseBodyMimeType';
+SecResponseBodyMimeType:
+	'SecResponseBodyMimeType' -> pushMode(ModeResponseBodyMimeType);
 SecResponseBodyMimeTypesClear: 'SecResponseBodyMimeTypesClear';
 SecResponseBodyAccess: 'SecResponseBodyAccess';
 SecRuleEngine: 'SecRuleEngine' -> pushMode(ModeRuleEngine);
@@ -130,6 +131,11 @@ mode ModeAuditLogString;
 ModeAuditLogString_WS: WS -> skip;
 ModeAuditLogString_QUOTE: QUOTE -> type(QUOTE);
 ModeAuditLogString_STRING: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
+
+mode ModeResponseBodyMimeType;
+ModeResponseBodyMimeType_WS: WS -> skip;
+MIME_TYPE: [a-zA-Z]+ '/' [a-zA-Z]+ ' '*;
+MIME_TYPES: MIME_TYPE+ -> popMode;
 
 mode ModeRuleEngine;
 ModeEngineConfig_WS: WS -> skip;

@@ -16,12 +16,17 @@ include: Include QUOTE? STRING QUOTE?;
 
 engine_config:
 	sec_reqeust_body_access
+	| sec_response_body_mime_type
+	| sec_response_body_mime_type_clear
 	| sec_response_body_access
 	| sec_rule_engine
 	| sec_tmp_save_uploaded_files
 	| sec_upload_keep_files
 	| sec_xml_external_entity;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
+sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
+sec_response_body_mime_type_clear:
+	SecResponseBodyMimeTypesClear;
 sec_response_body_access: SecResponseBodyAccess OPTION;
 sec_rule_engine: SecRuleEngine OPTION;
 sec_tmp_save_uploaded_files: SecTmpSaveUploadedFiles OPTION;
@@ -691,7 +696,10 @@ action_data: action_data_status | action_data_xml_ns;
 action_data_status: Status COLON INT;
 action_data_xml_ns: Xmlns COLON STRING;
 
-action_flow: action_flow_chain | action_flow_skip | action_flow_skip_after;
+action_flow:
+	action_flow_chain
+	| action_flow_skip
+	| action_flow_skip_after;
 action_flow_chain: Chain;
 action_flow_skip: Skip COLON INT;
 action_flow_skip_after: SkipAfter COLON STRING;

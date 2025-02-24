@@ -25,6 +25,34 @@ std::any Visitor::visitSec_reqeust_body_access(
   return "";
 }
 
+std::any Visitor::visitSec_response_body_mime_type(
+    Antlr4Gen::SecLangParser::Sec_response_body_mime_typeContext* ctx) {
+  std::string mime_types_str = ctx->MIME_TYPES()->getText();
+  std::vector<std::string> mime_types_vec;
+
+  // Split the string by space
+  size_t pos = 0;
+  while (pos < mime_types_str.size()) {
+    size_t next_pos = mime_types_str.find(' ', pos);
+    if (next_pos == std::string::npos) {
+      mime_types_vec.emplace_back(mime_types_str.substr(pos));
+      break;
+    } else {
+      mime_types_vec.emplace_back(mime_types_str.substr(pos, next_pos - pos));
+      pos = next_pos + 1;
+    }
+  }
+
+  parser_->secResponseBodyMimeType(mime_types_vec);
+  return "";
+}
+
+std::any Visitor::visitSec_response_body_mime_type_clear(
+    Antlr4Gen::SecLangParser::Sec_response_body_mime_type_clearContext* ctx) {
+  parser_->secResponseBodyMimeTypeClear();
+  return "";
+}
+
 std::any Visitor::visitSec_response_body_access(
     Antlr4Gen::SecLangParser::Sec_response_body_accessContext* ctx) {
   parser_->secResponseBodyAccess(optionStr2EnumValue(ctx->OPTION()->getText()));

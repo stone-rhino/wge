@@ -126,6 +126,16 @@ void Parser::secRequestBodyAccess(EngineConfig::Option option) {
   engine_config_.is_request_body_access_ = option;
 }
 
+void Parser::secResponseBodyMimeType(const std::vector<std::string>& mime_types) {
+  // Multiple SecResponseBodyMimeType directives can be used to add MIME types. Use
+  // SecResponseBodyMimeTypesClear to clear previously configured MIME types and start over.
+  for (auto& mime_type : mime_types) {
+    engine_config_.response_body_mime_types_.emplace_back(mime_type);
+  }
+}
+
+void Parser::secResponseBodyMimeTypeClear() { engine_config_.response_body_mime_types_.clear(); }
+
 void Parser::secResponseBodyAccess(EngineConfig::Option option) {
   engine_config_.is_response_body_access_ = option;
 }

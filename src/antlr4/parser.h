@@ -38,6 +38,8 @@ public:
 public:
   // Engine configurations
   void secRequestBodyAccess(EngineConfig::Option option);
+  void secResponseBodyMimeType(const std::vector<std::string>& mime_types);
+  void secResponseBodyMimeTypeClear();
   void secResponseBodyAccess(EngineConfig::Option option);
   void secRuleEngine(EngineConfig::Option option);
   void secTmpSaveUploadedFiles(EngineConfig::Option option);

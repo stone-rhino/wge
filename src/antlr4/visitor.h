@@ -16,6 +16,12 @@ public:
   std::any visitSec_reqeust_body_access(
       Antlr4Gen::SecLangParser::Sec_reqeust_body_accessContext* ctx) override;
 
+  std::any visitSec_response_body_mime_type(
+      Antlr4Gen::SecLangParser::Sec_response_body_mime_typeContext* ctx) override;
+
+  std::any visitSec_response_body_mime_type_clear(
+      Antlr4Gen::SecLangParser::Sec_response_body_mime_type_clearContext* ctx) override;
+
   std::any visitSec_response_body_access(
       Antlr4Gen::SecLangParser::Sec_response_body_accessContext* ctx) override;
 
