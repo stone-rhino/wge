@@ -9,6 +9,12 @@ public:
   Visitor(Parser* parser) : parser_(parser) {}
 
 public:
+  bool shouldVisitNextChild(antlr4::tree::ParseTree* /*node*/,
+                            const std::any& /*currentResult*/) override {
+    return should_visit_next_child_;
+  }
+
+public:
   std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
 
   // Engine configurations
@@ -757,5 +763,6 @@ private:
   };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::VisitVariableMode_SecRule};
   VisitActionMode visit_action_mode_{VisitActionMode::VisitActionMode_SecRule};
+  bool should_visit_next_child_{true};
 };
 } // namespace SrSecurity::Antlr4

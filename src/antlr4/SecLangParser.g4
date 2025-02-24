@@ -420,7 +420,7 @@ action_meta_data:
 	| action_meta_data_rev
 	| action_meta_data_accuracy
 	| action_meta_data_maturity;
-action_meta_data_id: Id COLON INT;
+action_meta_data_id: Id COLON (INT | (SINGLE_QUOTE STRING SINGLE_QUOTE));
 action_meta_data_phase: Phase COLON INT;
 action_meta_data_severity:
 	Severity COLON SINGLE_QUOTE (

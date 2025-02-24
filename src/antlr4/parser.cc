@@ -117,6 +117,10 @@ std::expected<bool, std::string> Parser::load(const std::string& directive) {
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
+  if (!error.empty()) {
+    return std::unexpected(error);
+  }
+
   return true;
 }
 
