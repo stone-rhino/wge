@@ -66,6 +66,7 @@ SecAuditLogStorageDir:
 SecAuditLogType: 'SecAuditLogType' -> pushMode(ModeAuditLog);
 SecComponentSignature:
 	'SecComponentSignature' -> pushMode(ModeAuditLogString);
+SecDataDir: 'SecDataDir' -> pushMode(ModeAuditLogString);
 SecDebugLog: 'SecDebugLog';
 SecDebugLogLevel: 'SecDebugLogLevel';
 SecDefaultAction: 'SecDefaultAction';
@@ -103,7 +104,7 @@ SecRuleUpdateTargetByMsg:
 SecRuleUpdateTargetByTag:
 	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTargetByMsg);
 SecRule: 'SecRule' -> pushMode(ModeSecRule);
-SecTmpDir: 'SecTmpDir';
+SecTmpDir: 'SecTmpDir' -> pushMode(ModeAuditLogString);
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
 SecUnicodeMapFile: 'SecUnicodeMapFile';
 SecUploadDir: 'SecUploadDir';

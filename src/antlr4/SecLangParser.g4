@@ -26,7 +26,9 @@ engine_config:
 	| sec_request_body_limit
 	| sec_request_body_action
 	| sec_response_body_limit
-	| sec_response_body_action;
+	| sec_response_body_action
+	| sec_tmp_dir
+	| sec_data_dir;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
 sec_response_body_mime_type_clear:
@@ -42,6 +44,8 @@ sec_request_body_action:
 sec_response_body_limit: SecResponseBodyLimit INT;
 sec_response_body_action:
 	SecResponseBodyLimitAction BODY_LIMIT_ACTION;
+sec_tmp_dir: SecTmpDir STRING;
+sec_data_dir: SecDataDir STRING;
 
 engine_action: sec_action;
 sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;
