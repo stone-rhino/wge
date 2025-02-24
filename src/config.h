@@ -45,21 +45,27 @@ struct EngineConfig {
 
   // SecRequestBodyLimit
   // Configures the maximum request body size ModSecurity will accept for buffering.
-  uint64_t request_body_limit_;
+  // Default: 128KB
+  uint64_t request_body_limit_{134217728};
+
+  // SecRequestBodyNoFilesLimit
+  // Default: 1MB
+  uint64_t request_body_no_files_limit_{1048576};
 
   // SecResponseBodyLimit
   // Configures the maximum response body size that will be accepted for buffering.
-  uint64_t response_body_limit_;
+  // Default: 512KB
+  uint64_t response_body_limit_{524288};
 
   // SecRequestBodyLimitAction
   // Controls what happens once a request body limit, configured with SecRequestBodyLimit, is
   // encountered
-  BodyLimitAction request_body_limit_action_;
+  BodyLimitAction request_body_limit_action_{BodyLimitAction::ProcessPartial};
 
   // SecResponseBodyLimitAction
   // Controls what happens once a response body limit, configured with SecResponseBodyLimit, is
   // encountered.
-  BodyLimitAction response_body_limit_action_;
+  BodyLimitAction response_body_limit_action_{BodyLimitAction::ProcessPartial};
 };
 
 /**

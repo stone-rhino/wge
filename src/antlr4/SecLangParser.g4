@@ -24,6 +24,7 @@ engine_config:
 	| sec_upload_keep_files
 	| sec_xml_external_entity
 	| sec_request_body_limit
+	| sec_request_body_no_files_limit
 	| sec_request_body_action
 	| sec_response_body_limit
 	| sec_response_body_action
@@ -39,6 +40,7 @@ sec_tmp_save_uploaded_files: SecTmpSaveUploadedFiles OPTION;
 sec_upload_keep_files: SecUploadKeepFiles OPTION;
 sec_xml_external_entity: SecXmlExternalEntity OPTION;
 sec_request_body_limit: SecRequestBodyLimit INT;
+sec_request_body_no_files_limit: SecRequestBodyNoFilesLimit INT;
 sec_request_body_action:
 	SecRequestBodyLimitAction BODY_LIMIT_ACTION;
 sec_response_body_limit: SecResponseBodyLimit INT;

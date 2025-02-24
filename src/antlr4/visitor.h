@@ -45,6 +45,9 @@ public:
   std::any visitSec_request_body_limit(
       Antlr4Gen::SecLangParser::Sec_request_body_limitContext* ctx) override;
 
+  std::any visitSec_request_body_no_files_limit(
+      Antlr4Gen::SecLangParser::Sec_request_body_no_files_limitContext* ctx) override;
+
   std::any visitSec_request_body_action(
       Antlr4Gen::SecLangParser::Sec_request_body_actionContext* ctx) override;
 

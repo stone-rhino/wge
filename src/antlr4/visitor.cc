@@ -88,6 +88,12 @@ Visitor::visitSec_request_body_limit(Antlr4Gen::SecLangParser::Sec_request_body_
   return std::string();
 }
 
+std::any Visitor::visitSec_request_body_no_files_limit(
+    Antlr4Gen::SecLangParser::Sec_request_body_no_files_limitContext* ctx) {
+  parser_->secRequestBodyNoFilesLimit(::atoll(ctx->INT()->getText().c_str()));
+  return std::string();
+}
+
 std::any Visitor::visitSec_request_body_action(
     Antlr4Gen::SecLangParser::Sec_request_body_actionContext* ctx) {
   parser_->secRequsetBodyLimitAction(
