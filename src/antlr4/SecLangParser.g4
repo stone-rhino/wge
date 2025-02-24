@@ -22,7 +22,11 @@ engine_config:
 	| sec_rule_engine
 	| sec_tmp_save_uploaded_files
 	| sec_upload_keep_files
-	| sec_xml_external_entity;
+	| sec_xml_external_entity
+	| sec_request_body_limit
+	| sec_request_body_action
+	| sec_response_body_limit
+	| sec_response_body_action;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
 sec_response_body_mime_type_clear:
@@ -32,6 +36,12 @@ sec_rule_engine: SecRuleEngine OPTION;
 sec_tmp_save_uploaded_files: SecTmpSaveUploadedFiles OPTION;
 sec_upload_keep_files: SecUploadKeepFiles OPTION;
 sec_xml_external_entity: SecXmlExternalEntity OPTION;
+sec_request_body_limit: SecRequestBodyLimit INT;
+sec_request_body_action:
+	SecRequestBodyLimitAction BODY_LIMIT_ACTION;
+sec_response_body_limit: SecResponseBodyLimit INT;
+sec_response_body_action:
+	SecResponseBodyLimitAction BODY_LIMIT_ACTION;
 
 engine_action: sec_action;
 sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;

@@ -152,6 +152,22 @@ void Parser::secXmlExternalEntity(EngineConfig::Option option) {
   engine_config_.is_xml_external_entity_ = option;
 }
 
+void Parser::secRequestBodyLimit(uint64_t limit_bytes) {
+  engine_config_.request_body_limit_ = limit_bytes;
+}
+
+void Parser::secRequsetBodyLimitAction(EngineConfig::BodyLimitAction action) {
+  engine_config_.request_body_limit_action_ = action;
+}
+
+void Parser::secResponseBodyLimit(uint64_t limit_bytes) {
+  engine_config_.response_body_limit_ = limit_bytes;
+}
+
+void Parser::secResponseBodyLimitAction(EngineConfig::BodyLimitAction action) {
+  engine_config_.response_body_limit_action_ = action;
+}
+
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
   rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());

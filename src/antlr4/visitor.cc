@@ -82,6 +82,30 @@ std::any Visitor::visitSec_xml_external_entity(
   return "";
 }
 
+std::any
+Visitor::visitSec_request_body_limit(Antlr4Gen::SecLangParser::Sec_request_body_limitContext* ctx) {
+  parser_->secRequestBodyLimit(::atoll(ctx->INT()->getText().c_str()));
+  return "";
+}
+
+std::any Visitor::visitSec_request_body_action(
+    Antlr4Gen::SecLangParser::Sec_request_body_actionContext* ctx) {
+  parser_->secRequsetBodyLimitAction(bodyLimitActionStr2EnumValue(ctx->BODY_LIMIT_ACTION()->getText()));
+  return "";
+}
+
+std::any Visitor::visitSec_response_body_limit(
+    Antlr4Gen::SecLangParser::Sec_response_body_limitContext* ctx) {
+  parser_->secResponseBodyLimit(::atoll(ctx->INT()->getText().c_str()));
+  return "";
+}
+
+std::any Visitor::visitSec_response_body_action(
+    Antlr4Gen::SecLangParser::Sec_response_body_actionContext* ctx) {
+  parser_->secResponseBodyLimitAction(bodyLimitActionStr2EnumValue(ctx->BODY_LIMIT_ACTION()->getText()));
+  return "";
+}
+
 std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) {
   // Get line number
   int line = ctx->getStart()->getLine();
@@ -1920,5 +1944,13 @@ EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str)
     option = EngineConfig::Option::DetectionOnly;
   }
   return option;
+}
+
+EngineConfig::BodyLimitAction Visitor::bodyLimitActionStr2EnumValue(const std::string& action_str) {
+  EngineConfig::BodyLimitAction action = EngineConfig::BodyLimitAction::ProcessPartial;
+  if (action_str == "Reject") {
+    action = EngineConfig::BodyLimitAction::Reject;
+  }
+  return action;
 }
 } // namespace SrSecurity::Antlr4
