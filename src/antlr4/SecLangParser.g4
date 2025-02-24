@@ -431,16 +431,21 @@ action_meta_data_id:
 	Id COLON (INT | (SINGLE_QUOTE STRING SINGLE_QUOTE));
 action_meta_data_phase: Phase COLON INT;
 action_meta_data_severity:
-	Severity COLON SINGLE_QUOTE (
-		action_meta_data_severity_emergency
-		| action_meta_data_severity_alert
-		| action_meta_data_severity_critical
-		| action_meta_data_severity_error
-		| action_meta_data_severity_waring
-		| action_meta_data_severity_notice
-		| action_meta_data_severity_info
-		| action_meta_data_severity_debug
-	) SINGLE_QUOTE;
+	Severity COLON (
+		(
+			SINGLE_QUOTE (
+				action_meta_data_severity_emergency
+				| action_meta_data_severity_alert
+				| action_meta_data_severity_critical
+				| action_meta_data_severity_error
+				| action_meta_data_severity_waring
+				| action_meta_data_severity_notice
+				| action_meta_data_severity_info
+				| action_meta_data_severity_debug
+			) SINGLE_QUOTE
+		)
+		| action_meta_data_severity_number
+	);
 action_meta_data_msg:
 	Msg COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
 action_meta_data_tag:
@@ -459,6 +464,7 @@ action_meta_data_severity_waring: WARNING;
 action_meta_data_severity_notice: NOTICE;
 action_meta_data_severity_info: INFO;
 action_meta_data_severity_debug: DEBUG;
+action_meta_data_severity_number: SEVERITY_LEVEL;
 
 action_non_disruptive:
 	action_non_disruptive_setvar

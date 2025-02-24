@@ -1060,5 +1060,102 @@ TEST_F(RuleTest, ActionSkip) {
   EXPECT_EQ(parser.rules().back()->skip(), 3);
 }
 
+TEST_F(RuleTest, ActionServerity) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:2,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 2);
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:8,msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'EMERGENCY',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 0);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'ALERT',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 1);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'CRITICAL',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 2);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'ERROR',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 3);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'WARNING',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 4);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'NOTICE',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 5);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'INFO',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 6);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'DEBUG',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 7);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'HI',msg:'aaa'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_FALSE(result.has_value());
+  }
+}
+
 } // namespace Parser
 } // namespace SrSecurity
