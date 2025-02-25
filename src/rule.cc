@@ -8,6 +8,7 @@
 #include "engine.h"
 
 namespace SrSecurity {
+thread_local std::string Rule::msg_macro_result_;
 bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   bool matched = false;
 
@@ -104,8 +105,19 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
         }
       }
 
-      // Evaluate the actions
+      // If the rule is matched, do some things such as macro expansion and evaluate the actions
       if (matched) {
+        SRSECURITY_LOG_TRACE("Rule is matched. id: {}", id_);
+
+        // Macro expansion
+        if (msg_macro_) {
+          Common::Variant& result = const_cast<Common::Variant&>(msg_macro_->evaluate(t));
+          assert(IS_STRING_VARIANT(result));
+          std::string& msg_macro_result = std::get<std::string>(result);
+          msg_macro_result_ = std::move(msg_macro_result);
+          assert(std::get<std::string>(result).empty());
+        }
+
         // Evaluate the default actions
         const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
         if (default_action) {
@@ -120,7 +132,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
         }
         break;
       }
-    }
+    } // end of for (auto& var : variables_)
   }
 
   return matched;

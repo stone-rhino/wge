@@ -60,14 +60,10 @@ public:
   void phase(int value) { phase_ = value; }
   const Severity severity() const { return severity_; }
   void severity(Severity value) { severity_ = value; }
-  const std::string& msg() const {
-    if (!msg_macro_) [[likely]] {
-      return msg_;
-    } else {
-      // FIXME(zhouyu,2025-02-25): Macro expansion when rule is matched and return the result
-      return msg_macro_result_;
-    }
-  }
+  // Note: If the msg is a macro, then the msg() return a reference to the thread_local variable
+  // that all rule objects share. So we need to copy it to a local variable if we want to use it
+  // after the next rule object is evaluated.
+  const std::string& msg() const { return msg_macro_ ? msg_macro_result_ : msg_; }
   void msg(std::string&& value) { msg_ = std::move(value); }
   void msg(std::shared_ptr<Macro::MacroBase> macro) { msg_macro_ = macro; }
   const std::unordered_set<std::string>& tags() const { return tags_; }
@@ -180,7 +176,11 @@ private:
   // along with every alert.
   std::string msg_;
   std::shared_ptr<Macro::MacroBase> msg_macro_;
-  std::string msg_macro_result_;
+
+  // The result of the macro expansion
+  // All threads share the same rule object, so we need to use thread_local to
+  // avoid
+  static thread_local std::string msg_macro_result_;
 
   // Assigns a tag (category) to a rule or a chain.
   std::unordered_set<std::string> tags_;
