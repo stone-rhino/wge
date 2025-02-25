@@ -444,10 +444,8 @@ ModeSecRuleActionMacroExpansionString_STRING:
 mode ModeSecRuleActionString;
 ModeSecRuleActionSetVarString_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
-ModeSecRuleActionSetVarString_STRING: (('\\\'') | ~([' ])) (
-		('\\\'')
-		| ~('\'')
-	)* -> type(STRING);
+ModeSecRuleActionSetVarString_STRING: ('\\\'' | ~['%] | ('%' ~[{])) ('\\\'' | ~['%] | ('%' ~[{]))* -> type(STRING);
+ModeSecRuleActionString_PER_CENT: PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
 
 mode ModeSecRuleActionSetUid;
 ModeSecRuleActionSetUid_PER_CENT:

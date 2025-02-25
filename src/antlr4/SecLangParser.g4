@@ -447,7 +447,12 @@ action_meta_data_severity:
 		| action_meta_data_severity_number
 	);
 action_meta_data_msg:
-	Msg COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
+	Msg COLON SINGLE_QUOTE action_meta_data_msg_value SINGLE_QUOTE;
+action_meta_data_msg_value:
+	STRING
+	| (
+		STRING? PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET STRING?
+	)+;
 action_meta_data_tag:
 	Tag COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
 action_meta_data_ver:

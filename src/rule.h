@@ -60,8 +60,16 @@ public:
   void phase(int value) { phase_ = value; }
   const Severity severity() const { return severity_; }
   void severity(Severity value) { severity_ = value; }
-  const std::string& msg() const { return msg_; }
+  const std::string& msg() const {
+    if (!msg_macro_) [[likely]] {
+      return msg_;
+    } else {
+      // FIXME(zhouyu,2025-02-25): Macro expansion when rule is matched and return the result
+      return msg_macro_result_;
+    }
+  }
   void msg(std::string&& value) { msg_ = std::move(value); }
+  void msg(std::shared_ptr<Macro::MacroBase> macro) { msg_macro_ = macro; }
   const std::unordered_set<std::string>& tags() const { return tags_; }
   std::unordered_set<std::string>& tags() { return tags_; }
   const std::string& ver() const { return ver_; }
@@ -171,6 +179,8 @@ private:
   // Assigns a custom message to the rule or chain in which it appears. The message will be logged
   // along with every alert.
   std::string msg_;
+  std::shared_ptr<Macro::MacroBase> msg_macro_;
+  std::string msg_macro_result_;
 
   // Assigns a tag (category) to a rule or a chain.
   std::unordered_set<std::string> tags_;

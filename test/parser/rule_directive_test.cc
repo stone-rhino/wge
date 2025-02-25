@@ -145,6 +145,16 @@ TEST_F(RuleTest, RuleIdWithString) {
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
+TEST_F(RuleTest, RuleMsgWithMacro) {
+  const std::string rule_directive =
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'111',tag:'foo',msg:'foo: %{tx.foo} bar: %{tx.bar}'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(parser.rules().back()->msg().empty());
+}
+
 TEST_F(RuleTest, RuleRemoveById) {
   const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1'"
   SecRule ARGS "bar" "id:2,tag:'tag2',tag:'tag3',msg:'msg2'"

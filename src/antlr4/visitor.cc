@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "../action/actions_include.h"
+#include "../common/empty_string.h"
 #include "../common/try.h"
 #include "../common/variant.h"
 #include "../macro/multi_macro.h"
@@ -1055,11 +1056,30 @@ Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_
 
 std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
-  (*current_rule_iter_)->msg(ctx->STRING()->getText());
-  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
-    parser_->setRuleMsgIndex(current_rule_iter_);
+  auto macro_ctx_array = ctx->action_meta_data_msg_value()->action_non_disruptive_setvar_macro();
+  if (!macro_ctx_array.empty()) {
+    try {
+      std::vector<std::shared_ptr<Macro::MacroBase>> macros;
+      for (auto& macro_ctx : macro_ctx_array) {
+        macros.emplace_back(
+            std::any_cast<std::shared_ptr<Macro::MacroBase>>(visitChildren(macro_ctx)));
+      }
+
+      std::shared_ptr<Macro::MultiMacro> multi_macro = std::make_shared<Macro::MultiMacro>(
+          ctx->action_meta_data_msg_value()->getText(), std::move(macros));
+
+      (*current_rule_iter_)->msg(multi_macro);
+    } catch (const std::bad_any_cast& ex) {
+      return std::string(ex.what());
+    }
+  } else {
+    (*current_rule_iter_)->msg(ctx->action_meta_data_msg_value()->STRING().front()->getText());
+    if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+      parser_->setRuleMsgIndex(current_rule_iter_);
+    }
   }
-  return std::string();
+
+  return EMPTY_STRING;
 };
 
 std::any
