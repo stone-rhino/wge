@@ -71,6 +71,10 @@ public:
 private:
   Common::Pcre pcre_;
   bool capture_{false};
+
+  // The result of the regular expression match.
+  // All threads share the same rule object, that means all threads share the same operator object.
+  // So we need to use thread_local to avoid.
   static thread_local Common::Pcre::Scratch per_thread_pcre_scratch_;
 };
 } // namespace Operator
