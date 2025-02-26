@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../common/assert.h"
 #include "../common/variant.h"
 #include "../transaction.h"
 

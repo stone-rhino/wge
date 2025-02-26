@@ -7,11 +7,14 @@
 #include "../common/empty_string.h"
 #include "../common/try.h"
 #include "../common/variant.h"
-#include "../macro/multi_macro.h"
-#include "../macro/tx.h"
+#include "../macro/macro_include.h"
 #include "../operator/operator_include.h"
 #include "../transformation/transform_include.h"
 #include "../variable/variables_include.h"
+
+#define RETURN_ERROR(msg)                                                                          \
+  should_visit_next_child_ = false;                                                                \
+  return std::format("{} line: {}", msg, ctx->getStart()->getLine());
 
 namespace SrSecurity::Antlr4 {
 
@@ -1058,11 +1061,12 @@ std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
   auto macro_ctx_array = ctx->action_meta_data_msg_value()->action_non_disruptive_setvar_macro();
   if (!macro_ctx_array.empty()) {
+    std::any visit_result;
     try {
       std::vector<std::shared_ptr<Macro::MacroBase>> macros;
       for (auto& macro_ctx : macro_ctx_array) {
-        macros.emplace_back(
-            std::any_cast<std::shared_ptr<Macro::MacroBase>>(visitChildren(macro_ctx)));
+        visit_result = visitChildren(macro_ctx);
+        macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
       }
 
       std::shared_ptr<Macro::MultiMacro> multi_macro = std::make_shared<Macro::MultiMacro>(
@@ -1070,7 +1074,8 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
 
       (*current_rule_iter_)->msg(multi_macro);
     } catch (const std::bad_any_cast& ex) {
-      return std::string(ex.what());
+      return std::format("Expect a macro object, but not. return: {}",
+                         std::any_cast<std::string>(visit_result));
     }
   } else {
     (*current_rule_iter_)->msg(ctx->action_meta_data_msg_value()->STRING().front()->getText());
@@ -1314,6 +1319,85 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_strict_error
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
         ctx) {
   return std::string("Not implemented!");
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_reqbody_processor_error(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_processor_errorContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::ReqbodyProcessorError);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_boundary_quoted(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_boundary_quotedContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::BoundaryQuoted);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_boundary_whitespace(
+    Antlr4Gen::SecLangParser::
+        Action_non_disruptive_setvar_macro_multipart_boundary_whitespaceContext* ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::BoundaryWhitespace);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_data_before(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_beforeContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataBefore);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_data_after(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_afterContext* ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataAfter);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_header_folding(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_header_foldingContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::HeaderFolding);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_lf_line(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_lf_lineContext* ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::LfLine);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_missing_semicolon(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_missing_semicolonContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::MissingSemicolon);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_quoting(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_quotingContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::InvalidQuoting);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_part(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_partContext*
+        ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::InvalidPart);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_header_folding(
+    Antlr4Gen::SecLangParser::
+        Action_non_disruptive_setvar_macro_multipart_invalid_header_foldingContext* ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::InvalidHeaderFolding);
+}
+
+std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_file_limit_exceeded(
+    Antlr4Gen::SecLangParser::
+        Action_non_disruptive_setvar_macro_multipart_file_limit_exceededContext* ctx) {
+  return std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::FileLimitExceeded);
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_rule(

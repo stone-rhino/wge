@@ -84,6 +84,10 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
 
+  if (!error.empty()) {
+    return std::unexpected(error);
+  }
+
   return true;
 }
 

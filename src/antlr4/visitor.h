@@ -488,6 +488,42 @@ public:
   std::any visitAction_non_disruptive_setvar_macro_multipart_strict_error(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
           ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_reqbody_processor_error(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_processor_errorContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_boundary_quoted(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_boundary_quotedContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_boundary_whitespace(
+      Antlr4Gen::SecLangParser::
+          Action_non_disruptive_setvar_macro_multipart_boundary_whitespaceContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_data_before(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_beforeContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_data_after(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_afterContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_header_folding(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_header_foldingContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_lf_line(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_lf_lineContext* ctx)
+      override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_missing_semicolon(
+      Antlr4Gen::SecLangParser::
+          Action_non_disruptive_setvar_macro_multipart_missing_semicolonContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_quoting(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_quotingContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_part(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_partContext*
+          ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_header_folding(
+      Antlr4Gen::SecLangParser::
+          Action_non_disruptive_setvar_macro_multipart_invalid_header_foldingContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_multipart_file_limit_exceeded(
+      Antlr4Gen::SecLangParser::
+          Action_non_disruptive_setvar_macro_multipart_file_limit_exceededContext* ctx) override;
   std::any visitAction_non_disruptive_setvar_macro_rule(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) override;
   std::any visitAction_non_disruptive_setvar_macro_session(

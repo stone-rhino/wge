@@ -180,4 +180,28 @@ struct AuditLogConfig {
  * The configuration of the request body processor.
  */
 enum class BodyProcessorType { UrlEncoded, MultiPart, Xml, Json };
+
+struct MultipartStrictError : public std::bitset<16> {
+  enum class ErrorType {
+    MultipartStrictError = 0,
+    ReqbodyProcessorError,
+    BoundaryQuoted,
+    BoundaryWhitespace,
+    DataBefore,
+    DataAfter,
+    HeaderFolding,
+    LfLine,
+    MissingSemicolon,
+    InvalidQuoting,
+    InvalidPart,
+    InvalidHeaderFolding,
+    FileLimitExceeded
+  };
+  bool get(ErrorType type) const { return test(static_cast<size_t>(type)); }
+  void set(ErrorType type) {
+    std::bitset<16>::set(static_cast<size_t>(type));
+    // MultipartStrictError will be set if any of the error is set.
+    std::bitset<16>::set(static_cast<size_t>(MultipartStrictError::ErrorType::MultipartStrictError));
+  }
+};
 } // namespace SrSecurity

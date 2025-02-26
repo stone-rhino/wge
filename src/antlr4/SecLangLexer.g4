@@ -436,6 +436,37 @@ MATCHED_VAR_NAME:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR]'_' [nN][aA][mM][eE];
 MULTIPART_STRICT_ERROR:
 	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [sS][tT][rR][iI][cC][tT]'_' [eE][rR][rR][oO][rR];
+REQBODY_PROCESSOR_ERROR:
+	[rR][eE][qQ][bB][oO][dD][yY]'_' [pP][rR][oO][cC][eE][sS][sS][oO][rR]'_' [eE][rR][rR][oO][rR];
+MULTIPART_BOUNDARY_QUOTED:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [bB][oO][uU][nN][dD][aA][rR][yY]'_' [qQ][uU][oO][tT][eE]
+		[dD];
+MULTIPART_BOUNDARY_WHITESPACE:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [bB][oO][uU][nN][dD][aA][rR][yY]'_' [wW][hH][iI][tT][eE]
+		[sS][pP][aA][cC][eE];
+MULTIPART_DATA_AFTER:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [dD][aA][tT][aA]'_' [aA][fF][tT][eE][rR];
+MULTIPART_DATA_BEFORE:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [dD][aA][tT][aA]'_' [bB][eE][fF][oO][rR][eE];
+MULTIPART_HEADER_FOLDING:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [hH][eE][aA][dD][eE][rR]'_' [fF][oO][lL][dD][iI][nN][gG]
+		;
+MULTIPART_LF_LINE:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [lL][fF]'_' [lL][iI][nN][eE];
+MULTIPART_MISSING_SEMICOLON:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [mM][iI][sS][sS][iI][nN][gG]'_' [sS][eE][mM][iI][cC][oO]
+		[lL][oO][nN];
+MULTIPART_INVALID_QUOTING:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [qQ][uU][oO][tT][iI][nN]
+		[gG];
+MULTIPART_INVALID_PART:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [pP] [aA][rR][tT];
+MULTIPART_INVALID_HEADER_FOLDING:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [hH][eE][aA][dD][eE][rR]
+		'_' [fF][oO][lL][dD][iI][nN][gG];
+MULTIPART_FILE_LIMIT_EXCEEDED:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [fF][iI][lL][eE]'_' [lL][iI][mM][iI][tT]'_' [eE][xX][cC]
+		[eE][eE][dD][eE][dD];
 RULE: [rR][uU][lL][eE];
 SESSION: [sS][eE][sS][sS][iI][oO][nN];
 
