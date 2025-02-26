@@ -422,20 +422,22 @@ ModeSecRuleActionSetVar_LEFT_BRACKET:
 	LEFT_BRACKET -> type(LEFT_BRACKET);
 ModeSecRuleActionSetVar_RIGHT_BRACKET:
 	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
-TX2: ('t' | 'T') ('x' | 'X');
+TX2: [tT][xX];
 ModeSecRuleActionMacroExpansion_DOT:
 	DOT -> type(DOT), pushMode(ModeSecRuleActionMacroExpansionString);
-REMOTE_ADDR: ('REMOTE_ADDR' | 'remote_addr');
-USERID: ('USERID' | 'userid');
-HIGHEST_SEVERITY: ('HIGHEST_SEVERITY' | 'highest_severity');
-MATCHED_VAR: ('MATCHED_VAR' | 'matched_var');
-MATCHED_VAR_NAME: ('MATCHED_VAR_NAME' | 'matched_var_name');
-MULTIPART_STRICT_ERROR: (
-		'MULTIPART_STRICT_ERROR'
-		| 'multipart_strict_error'
-	);
-RULE: ('r' | 'R') ('u' | 'U') ('l' | 'L') ('e' | 'E');
-SESSION: ('SESSION' | 'session');
+REMOTE_ADDR:
+	[rR][eE][mM][oO][tT][eE]'_' [aA][dD][dD][rR];
+USERID: [uU][sS][eE][rR][iI][dD];
+HIGHEST_SEVERITY:
+	[hH][iI][gG][hH][eE][sS][tT]'_' [sS][eE][vV][eE][rR][iI][tT][yY];
+MATCHED_VAR:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR];
+MATCHED_VAR_NAME:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR]'_' [nN][aA][mM][eE];
+MULTIPART_STRICT_ERROR:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [sS][tT][rR][iI][cC][tT]'_' [eE][rR][rR][oO][rR];
+RULE: [rR][uU][lL][eE];
+SESSION: [sS][eE][sS][sS][iI][oO][nN];
 
 mode ModeSecRuleActionMacroExpansionString;
 ModeSecRuleActionMacroExpansionString_STRING:
@@ -444,8 +446,13 @@ ModeSecRuleActionMacroExpansionString_STRING:
 mode ModeSecRuleActionString;
 ModeSecRuleActionSetVarString_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
-ModeSecRuleActionSetVarString_STRING: ('\\\'' | ~['%] | ('%' ~[{])) ('\\\'' | ~['%] | ('%' ~[{]))* -> type(STRING);
-ModeSecRuleActionString_PER_CENT: PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+ModeSecRuleActionSetVarString_STRING: (
+		'\\\''
+		| ~['%]
+		| ('%' ~[{])
+	) ('\\\'' | ~['%] | ('%' ~[{]))* -> type(STRING);
+ModeSecRuleActionString_PER_CENT:
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
 
 mode ModeSecRuleActionSetUid;
 ModeSecRuleActionSetUid_PER_CENT:
