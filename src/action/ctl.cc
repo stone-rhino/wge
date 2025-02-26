@@ -6,36 +6,39 @@
 
 namespace SrSecurity {
 namespace Action {
-Ctl::Ctl(CtlType type, std::any&& value) : type_(type), value_(std::move(value)) {}
-
-void Ctl::evaluate(Transaction& t) const {
+Ctl::Ctl(CtlType type, std::any&& value) : type_(type), value_(std::move(value)) {
   switch (type_) {
   case CtlType::AuditEngine:
-    evaluate_audit_engine(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_audit_engine, this, std::placeholders::_1);
     break;
   case CtlType::AuditLogParts:
-    evaluate_audit_log_parts(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_audit_log_parts, this, std::placeholders::_1);
     break;
   case CtlType::RequestBodyAccess:
-    evaluate_request_body_access(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_request_body_access, this, std::placeholders::_1);
     break;
   case CtlType::RequestBodyProcessor:
-    evaluate_request_body_processor(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_request_body_processor, this, std::placeholders::_1);
     break;
   case CtlType::RuleEngine:
-    evaluate_rule_engine(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_rule_engine, this, std::placeholders::_1);
     break;
   case CtlType::RuleRemoveById:
-    evaluate_rule_remove_by_id(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_rule_remove_by_id, this, std::placeholders::_1);
+    break;
+  case CtlType::RuleRemoveByIdRange:
+    evaluate_func_ = std::bind(&Ctl::evaluate_rule_remove_by_id_range, this, std::placeholders::_1);
     break;
   case CtlType::RuleRemoveByTag:
-    evaluate_rule_remove_by_tag(t);
+    evaluate_func_ = std::bind(&Ctl::evaluate_rule_remove_by_tag, this, std::placeholders::_1);
     break;
   case CtlType::RuleRemoveTargetById:
-    evaluate_rule_remove_target_by_id(t);
+    evaluate_func_ =
+        std::bind(&Ctl::evaluate_rule_remove_target_by_id, this, std::placeholders::_1);
     break;
   case CtlType::RuleRemoveTargetByTag:
-    evaluate_rule_remove_target_by_tag(t);
+    evaluate_func_ =
+        std::bind(&Ctl::evaluate_rule_remove_target_by_tag, this, std::placeholders::_1);
     break;
   default:
     UNREACHABLE();
@@ -44,45 +47,67 @@ void Ctl::evaluate(Transaction& t) const {
 }
 
 void Ctl::evaluate_audit_engine(Transaction& t) const {
+  AuditLogConfig::AuditEngine option = std::any_cast<AuditLogConfig::AuditEngine>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_audit_log_parts(Transaction& t) const {
+  const std::string& parts = std::any_cast<std::string>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_request_body_access(Transaction& t) const {
+  EngineConfig::Option option = std::any_cast<EngineConfig::Option>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_request_body_processor(Transaction& t) const {
-  t.setRequestBodyProcessor(std::any_cast<BodyProcessorType>(value_));
+  BodyProcessorType type = std::any_cast<BodyProcessorType>(value_);
+  t.setRequestBodyProcessor(type);
 }
 
 void Ctl::evaluate_rule_engine(Transaction& t) const {
+  EngineConfig::Option option = std::any_cast<EngineConfig::Option>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_by_id(Transaction& t) const {
+  uint64_t id = std::any_cast<uint64_t>(value_);
+  UNREACHABLE();
+  throw "Not implemented!";
+}
+
+void Ctl::evaluate_rule_remove_by_id_range(Transaction& t) const {
+  const std::pair<uint64_t, uint64_t>& id_range =
+      std::any_cast<std::pair<uint64_t, uint64_t>>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_by_tag(Transaction& t) const {
+  const std::string& tag = std::any_cast<std::string>(value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_target_by_id(Transaction& t) const {
+  const std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>&
+      id_and_variables =
+          std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+              value_);
   UNREACHABLE();
   throw "Not implemented!";
 }
 
 void Ctl::evaluate_rule_remove_target_by_tag(Transaction& t) const {
+  const std::pair<std::string,
+                  std::vector<std::shared_ptr<Variable::VariableBase>>>& tag_and_variables =
+      std::any_cast<std::pair<std::string, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+          value_);
   UNREACHABLE();
   throw "Not implemented!";
 }

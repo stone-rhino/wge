@@ -1,10 +1,15 @@
 #pragma once
 
 #include <any>
+#include <functional>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "action_base.h"
 
 #include "../macro/macro_base.h"
+#include "../variable/variable_base.h"
 
 namespace SrSecurity {
 namespace Action {
@@ -18,12 +23,13 @@ class Ctl : public ActionBase {
 
 public:
   enum class CtlType {
-    AuditEngine,
+    AuditEngine = 0,
     AuditLogParts,
     RequestBodyAccess,
     RequestBodyProcessor,
     RuleEngine,
     RuleRemoveById,
+    RuleRemoveByIdRange,
     RuleRemoveByTag,
     RuleRemoveTargetById,
     RuleRemoveTargetByTag
@@ -33,7 +39,7 @@ public:
   Ctl(CtlType type, std::any&& value);
 
 public:
-  void evaluate(Transaction& t) const override;
+  void evaluate(Transaction& t) const override { evaluate_func_(t); }
 
 private:
   void evaluate_audit_engine(Transaction& t) const;
@@ -42,6 +48,7 @@ private:
   void evaluate_request_body_processor(Transaction& t) const;
   void evaluate_rule_engine(Transaction& t) const;
   void evaluate_rule_remove_by_id(Transaction& t) const;
+  void evaluate_rule_remove_by_id_range(Transaction& t) const;
   void evaluate_rule_remove_by_tag(Transaction& t) const;
   void evaluate_rule_remove_target_by_id(Transaction& t) const;
   void evaluate_rule_remove_target_by_tag(Transaction& t) const;
@@ -49,6 +56,7 @@ private:
 private:
   CtlType type_;
   std::any value_;
+  std::function<void(Transaction&)> evaluate_func_;
 };
 } // namespace Action
 } // namespace SrSecurity

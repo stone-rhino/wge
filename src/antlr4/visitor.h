@@ -3,6 +3,8 @@
 #include "antlr4_gen/SecLangParserBaseVisitor.h"
 #include "parser.h"
 
+#include "../common/empty_string.h"
+
 namespace SrSecurity::Antlr4 {
 class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
 public:
@@ -777,24 +779,33 @@ private:
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
 
-  template <class VarT, class CtxT> void appendVariable(CtxT* ctx) {
+  template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
     if (ctx->STRING()) {
       sub_name = ctx->STRING()->getText();
     }
     bool is_not = ctx->NOT() != nullptr;
     bool is_counter = ctx->VAR_COUNT() != nullptr;
+
+    if (visit_variable_mode_ == VisitVariableMode::Ctl) {
+      // std::any is copyable, so we can't return a unique_ptr
+      return std::shared_ptr<Variable::VariableBase>(
+          new VarT(std::move(sub_name), is_not, is_counter));
+    }
+
     std::unique_ptr<Variable::VariableBase> variable(
         new VarT(std::move(sub_name), is_not, is_counter));
 
     // Remove the variable first if current mode is update rule
-    if (visit_variable_mode_ == VisitVariableMode::VisitVariableMode_SecUpdateTarget) {
+    if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
       Variable::VariableBase::FullName full_name{variable->fullName()};
       (*current_rule_iter_)->removeVariable(full_name);
     }
 
     // Append variable
     (*current_rule_iter_)->appendVariable(std::move(variable));
+
+    return EMPTY_STRING;
   }
 
 private:
@@ -802,14 +813,10 @@ private:
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
   bool chain_{false};
   std::unordered_multimap<std::string, std::string> action_map_;
-  enum class VisitVariableMode { VisitVariableMode_SecRule, VisitVariableMode_SecUpdateTarget };
-  enum class VisitActionMode {
-    VisitActionMode_SecRule,
-    VisitActionMode_SecRuleUpdateAction,
-    VisitActionMode_SecAction
-  };
-  VisitVariableMode visit_variable_mode_{VisitVariableMode::VisitVariableMode_SecRule};
-  VisitActionMode visit_action_mode_{VisitActionMode::VisitActionMode_SecRule};
+  enum class VisitVariableMode { SecRule, SecUpdateTarget, Ctl };
+  enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction };
+  VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
+  VisitActionMode visit_action_mode_{VisitActionMode::SecRule};
   bool should_visit_next_child_{true};
 };
 } // namespace SrSecurity::Antlr4

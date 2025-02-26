@@ -204,7 +204,6 @@ private:
 
   // Action Group: Non-disruptive
 private:
-  std::string ctl_;
   std::string exec_;
   std::string expire_var_;
   std::string init_col_;

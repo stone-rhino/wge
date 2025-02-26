@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "../action/actions_include.h"
-#include "../common/empty_string.h"
 #include "../common/try.h"
 #include "../common/variant.h"
 #include "../macro/macro_include.h"
@@ -137,7 +136,7 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
   // Add an empty rule, and sets actions by visitChildren
   current_rule_iter_ = parser_->secAction(line);
 
-  visit_action_mode_ = VisitActionMode::VisitActionMode_SecAction;
+  visit_action_mode_ = VisitActionMode::SecAction;
   std::string error;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
@@ -163,8 +162,8 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
 
   // Visit variables and operators and actions
   std::string error;
-  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecRule;
-  visit_action_mode_ = VisitActionMode::VisitActionMode_SecRule;
+  visit_variable_mode_ = VisitVariableMode::SecRule;
+  visit_action_mode_ = VisitActionMode::SecRule;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
     parser_->removeBackRule();
@@ -227,7 +226,7 @@ std::any Visitor::visitSec_rule_update_action_by_id(
     }
 
     // Visit actions
-    visit_action_mode_ = VisitActionMode::VisitActionMode_SecRuleUpdateAction;
+    visit_action_mode_ = VisitActionMode::SecRuleUpdateAction;
     std::string error;
     TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
     if (!error.empty()) {
@@ -246,7 +245,7 @@ std::any Visitor::visitSec_rule_update_target_by_id(
   if (current_rule_iter_ != parser_->rules().end()) {
     // Visit variables
     std::string error;
-    visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+    visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
     TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
     if (!error.empty()) {
       return error;
@@ -259,7 +258,7 @@ std::any Visitor::visitSec_rule_update_target_by_id(
 std::any Visitor::visitSec_rule_update_target_by_msg(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
   auto range = parser_->findRuleByMsg(ctx->STRING()->getText());
-  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+  visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
   for (auto iter = range.first; iter != range.second; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
@@ -276,7 +275,7 @@ std::any Visitor::visitSec_rule_update_target_by_msg(
 std::any Visitor::visitSec_rule_update_target_by_tag(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
   auto range = parser_->findRuleByTag(ctx->STRING()->getText());
-  visit_variable_mode_ = VisitVariableMode::VisitVariableMode_SecUpdateTarget;
+  visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
   for (auto iter = range.first; iter != range.second; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
@@ -296,496 +295,411 @@ std::any Visitor::visitSec_marker(Antlr4Gen::SecLangParser::Sec_markerContext* c
 }
 
 std::any Visitor::visitVariable_args(Antlr4Gen::SecLangParser::Variable_argsContext* ctx) {
-  appendVariable<Variable::Args>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Args>(ctx);
 };
 
 std::any Visitor::visitVariable_args_combined_size(
     Antlr4Gen::SecLangParser::Variable_args_combined_sizeContext* ctx) {
-  appendVariable<Variable::ArgsCombinedSize>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsCombinedSize>(ctx);
 };
 
 std::any Visitor::visitVariable_args_get(Antlr4Gen::SecLangParser::Variable_args_getContext* ctx) {
-  appendVariable<Variable::ArgsGet>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsGet>(ctx);
 };
 
 std::any Visitor::visitVariable_args_get_names(
     Antlr4Gen::SecLangParser::Variable_args_get_namesContext* ctx) {
-  appendVariable<Variable::ArgsGetNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsGetNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_args_names(Antlr4Gen::SecLangParser::Variable_args_namesContext* ctx) {
-  appendVariable<Variable::ArgsNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_args_post(Antlr4Gen::SecLangParser::Variable_args_postContext* ctx) {
-  appendVariable<Variable::ArgsPost>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsPost>(ctx);
 };
 
 std::any Visitor::visitVariable_args_post_names(
     Antlr4Gen::SecLangParser::Variable_args_post_namesContext* ctx) {
-  appendVariable<Variable::ArgsPostNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ArgsPostNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_auth_type(Antlr4Gen::SecLangParser::Variable_auth_typeContext* ctx) {
-  appendVariable<Variable::AuthType>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::AuthType>(ctx);
 };
 
 std::any Visitor::visitVariable_duration(Antlr4Gen::SecLangParser::Variable_durationContext* ctx) {
-  appendVariable<Variable::Duration>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Duration>(ctx);
 };
 
 std::any Visitor::visitVariable_env(Antlr4Gen::SecLangParser::Variable_envContext* ctx) {
-  appendVariable<Variable::Env>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Env>(ctx);
 };
 
 std::any Visitor::visitVariable_files(Antlr4Gen::SecLangParser::Variable_filesContext* ctx) {
-  appendVariable<Variable::Files>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Files>(ctx);
 };
 
 std::any Visitor::visitVariable_files_combined_size(
     Antlr4Gen::SecLangParser::Variable_files_combined_sizeContext* ctx) {
-  appendVariable<Variable::FilesCombinedSize>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FilesCombinedSize>(ctx);
 };
 
 std::any
 Visitor::visitVariable_files_names(Antlr4Gen::SecLangParser::Variable_files_namesContext* ctx) {
-  appendVariable<Variable::FilesNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FilesNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_full_request(Antlr4Gen::SecLangParser::Variable_full_requestContext* ctx) {
-  appendVariable<Variable::FullRequest>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FullRequest>(ctx);
 };
 
 std::any Visitor::visitVariable_full_request_length(
     Antlr4Gen::SecLangParser::Variable_full_request_lengthContext* ctx) {
-  appendVariable<Variable::FullRequestLength>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FullRequestLength>(ctx);
 };
 
 std::any
 Visitor::visitVariable_files_sizes(Antlr4Gen::SecLangParser::Variable_files_sizesContext* ctx) {
-  appendVariable<Variable::FilesSizes>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FilesSizes>(ctx);
 };
 
 std::any Visitor::visitVariable_files_tmpnames(
     Antlr4Gen::SecLangParser::Variable_files_tmpnamesContext* ctx) {
-  appendVariable<Variable::FilesTmpNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FilesTmpNames>(ctx);
 };
 
 std::any Visitor::visitVariable_files_tmp_content(
     Antlr4Gen::SecLangParser::Variable_files_tmp_contentContext* ctx) {
-  appendVariable<Variable::FilesTmpContent>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::FilesTmpContent>(ctx);
 };
 
 std::any Visitor::visitVariable_geo(Antlr4Gen::SecLangParser::Variable_geoContext* ctx) {
-  appendVariable<Variable::Geo>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Geo>(ctx);
 };
 
 std::any Visitor::visitVariable_highest_severity(
     Antlr4Gen::SecLangParser::Variable_highest_severityContext* ctx) {
-  appendVariable<Variable::HighestSeverity>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::HighestSeverity>(ctx);
 };
 
 std::any Visitor::visitVariable_inbound_data_error(
     Antlr4Gen::SecLangParser::Variable_inbound_data_errorContext* ctx) {
-  appendVariable<Variable::InboundDataError>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::InboundDataError>(ctx);
 };
 
 std::any
 Visitor::visitVariable_matched_var(Antlr4Gen::SecLangParser::Variable_matched_varContext* ctx) {
-  appendVariable<Variable::MatchedVar>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MatchedVar>(ctx);
 };
 
 std::any
 Visitor::visitVariable_matched_vars(Antlr4Gen::SecLangParser::Variable_matched_varsContext* ctx) {
-  appendVariable<Variable::MatchedVars>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MatchedVars>(ctx);
 };
 
 std::any Visitor::visitVariable_matched_var_name(
     Antlr4Gen::SecLangParser::Variable_matched_var_nameContext* ctx) {
-  appendVariable<Variable::MatchedVarName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MatchedVarName>(ctx);
 };
 
 std::any Visitor::visitVariable_matched_vars_names(
     Antlr4Gen::SecLangParser::Variable_matched_vars_namesContext* ctx) {
-  appendVariable<Variable::MatchedVarsNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MatchedVarsNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_modsec_build(Antlr4Gen::SecLangParser::Variable_modsec_buildContext* ctx) {
-  appendVariable<Variable::ModSecBuild>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ModSecBuild>(ctx);
 };
 
 std::any Visitor::visitVariable_msc_pcre_limits_exceeded(
     Antlr4Gen::SecLangParser::Variable_msc_pcre_limits_exceededContext* ctx) {
-  appendVariable<Variable::MscPcreLimitsExceeded>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MscPcreLimitsExceeded>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_crlf_lf_lines(
     Antlr4Gen::SecLangParser::Variable_multipart_crlf_lf_linesContext* ctx) {
-  appendVariable<Variable::MultipartCrlfLfLines>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartCrlfLfLines>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_filename(
     Antlr4Gen::SecLangParser::Variable_multipart_filenameContext* ctx) {
-  appendVariable<Variable::MultipartFileName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartFileName>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_name(
     Antlr4Gen::SecLangParser::Variable_multipart_nameContext* ctx) {
-  appendVariable<Variable::MultipartName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartName>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_part_headers(
     Antlr4Gen::SecLangParser::Variable_multipart_part_headersContext* ctx) {
-  appendVariable<Variable::MultipartPartHeaders>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartPartHeaders>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_strict_error(
     Antlr4Gen::SecLangParser::Variable_multipart_strict_errorContext* ctx) {
-  appendVariable<Variable::MultipartStrictError>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartStrictError>(ctx);
 };
 
 std::any Visitor::visitVariable_multipart_unmatched_boundary(
     Antlr4Gen::SecLangParser::Variable_multipart_unmatched_boundaryContext* ctx) {
-  appendVariable<Variable::MultipartUnmatchedBoundary>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::MultipartUnmatchedBoundary>(ctx);
 };
 
 std::any Visitor::visitVariable_outbound_data_error(
     Antlr4Gen::SecLangParser::Variable_outbound_data_errorContext* ctx) {
-  appendVariable<Variable::OutboundDataError>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::OutboundDataError>(ctx);
 };
 
 std::any
 Visitor::visitVariable_path_info(Antlr4Gen::SecLangParser::Variable_path_infoContext* ctx) {
-  appendVariable<Variable::PathInfo>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::PathInfo>(ctx);
 };
 
 std::any
 Visitor::visitVariable_query_string(Antlr4Gen::SecLangParser::Variable_query_stringContext* ctx) {
-  appendVariable<Variable::QueryString>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::QueryString>(ctx);
 };
 
 std::any
 Visitor::visitVariable_remote_addr(Antlr4Gen::SecLangParser::Variable_remote_addrContext* ctx) {
-  appendVariable<Variable::RemoteAddr>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RemoteAddr>(ctx);
 };
 
 std::any
 Visitor::visitVariable_remote_host(Antlr4Gen::SecLangParser::Variable_remote_hostContext* ctx) {
-  appendVariable<Variable::RemoteHost>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RemoteHost>(ctx);
 };
 
 std::any
 Visitor::visitVariable_remote_port(Antlr4Gen::SecLangParser::Variable_remote_portContext* ctx) {
-  appendVariable<Variable::RemotePort>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RemotePort>(ctx);
 };
 
 std::any
 Visitor::visitVariable_remote_user(Antlr4Gen::SecLangParser::Variable_remote_userContext* ctx) {
-  appendVariable<Variable::RemoteUser>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RemoteUser>(ctx);
 };
 
 std::any
 Visitor::visitVariable_reqbody_error(Antlr4Gen::SecLangParser::Variable_reqbody_errorContext* ctx) {
-  appendVariable<Variable::ReqBodyProcessor>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ReqBodyProcessor>(ctx);
 };
 
 std::any Visitor::visitVariable_reqbody_error_msg(
     Antlr4Gen::SecLangParser::Variable_reqbody_error_msgContext* ctx) {
-  appendVariable<Variable::ReqBodyErrorMsg>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ReqBodyErrorMsg>(ctx);
 };
 
 std::any Visitor::visitVariable_reqbody_processor(
     Antlr4Gen::SecLangParser::Variable_reqbody_processorContext* ctx) {
-  appendVariable<Variable::ReqBodyProcessor>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ReqBodyProcessor>(ctx);
 };
 
 std::any Visitor::visitVariable_request_basename(
     Antlr4Gen::SecLangParser::Variable_request_basenameContext* ctx) {
-  appendVariable<Variable::RequestBaseName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestBaseName>(ctx);
 };
 
 std::any
 Visitor::visitVariable_request_body(Antlr4Gen::SecLangParser::Variable_request_bodyContext* ctx) {
-  appendVariable<Variable::RequestBody>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestBody>(ctx);
 };
 
 std::any Visitor::visitVariable_request_body_length(
     Antlr4Gen::SecLangParser::Variable_request_body_lengthContext* ctx) {
-  appendVariable<Variable::RequestBodyLength>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestBodyLength>(ctx);
 };
 
 std::any Visitor::visitVariable_request_cookies(
     Antlr4Gen::SecLangParser::Variable_request_cookiesContext* ctx) {
-  appendVariable<Variable::RequestCookies>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestCookies>(ctx);
 };
 
 std::any Visitor::visitVariable_request_cookies_names(
     Antlr4Gen::SecLangParser::Variable_request_cookies_namesContext* ctx) {
-  appendVariable<Variable::RequestCookiesNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestCookiesNames>(ctx);
 };
 
 std::any Visitor::visitVariable_request_filename(
     Antlr4Gen::SecLangParser::Variable_request_filenameContext* ctx) {
-  appendVariable<Variable::RequestFileName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestFileName>(ctx);
 };
 
 std::any Visitor::visitVariable_request_headers(
     Antlr4Gen::SecLangParser::Variable_request_headersContext* ctx) {
-  appendVariable<Variable::RequestHeaders>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestHeaders>(ctx);
 };
 
 std::any Visitor::visitVariable_request_headers_names(
     Antlr4Gen::SecLangParser::Variable_request_headers_namesContext* ctx) {
-  appendVariable<Variable::RequestHeadersNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestHeadersNames>(ctx);
 };
 
 std::any
 Visitor::visitVariable_request_line(Antlr4Gen::SecLangParser::Variable_request_lineContext* ctx) {
-  appendVariable<Variable::RequestLine>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestLine>(ctx);
 };
 
 std::any Visitor::visitVariable_request_method(
     Antlr4Gen::SecLangParser::Variable_request_methodContext* ctx) {
-  appendVariable<Variable::RequestMothod>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestMothod>(ctx);
 };
 
 std::any Visitor::visitVariable_request_protocol(
     Antlr4Gen::SecLangParser::Variable_request_protocolContext* ctx) {
-  appendVariable<Variable::RequestProtocol>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestProtocol>(ctx);
 };
 
 std::any
 Visitor::visitVariable_request_uri(Antlr4Gen::SecLangParser::Variable_request_uriContext* ctx) {
-  appendVariable<Variable::RequestUri>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestUri>(ctx);
 };
 
 std::any Visitor::visitVariable_request_uri_raw(
     Antlr4Gen::SecLangParser::Variable_request_uri_rawContext* ctx) {
-  appendVariable<Variable::RequestUriRaw>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestUriRaw>(ctx);
 };
 
 std::any
 Visitor::visitVariable_response_body(Antlr4Gen::SecLangParser::Variable_response_bodyContext* ctx) {
-  appendVariable<Variable::RequestBody>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestBody>(ctx);
 };
 
 std::any Visitor::visitVariable_response_content_length(
     Antlr4Gen::SecLangParser::Variable_response_content_lengthContext* ctx) {
-  appendVariable<Variable::ResponseContentLength>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ResponseContentLength>(ctx);
 };
 
 std::any Visitor::visitVariable_response_content_type(
     Antlr4Gen::SecLangParser::Variable_response_content_typeContext* ctx) {
-  appendVariable<Variable::ResponseContentType>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ResponseContentType>(ctx);
 };
 
 std::any Visitor::visitVariable_response_headers(
     Antlr4Gen::SecLangParser::Variable_response_headersContext* ctx) {
-  appendVariable<Variable::RequestHeaders>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::RequestHeaders>(ctx);
 };
 
 std::any Visitor::visitVariable_response_headers_names(
     Antlr4Gen::SecLangParser::Variable_response_headers_namesContext* ctx) {
-  appendVariable<Variable::ResponseHeadersNames>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ResponseHeadersNames>(ctx);
 };
 
 std::any Visitor::visitVariable_response_protocol(
     Antlr4Gen::SecLangParser::Variable_response_protocolContext* ctx) {
-  appendVariable<Variable::ResponseProtocol>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ResponseProtocol>(ctx);
 };
 
 std::any Visitor::visitVariable_response_status(
     Antlr4Gen::SecLangParser::Variable_response_statusContext* ctx) {
-  appendVariable<Variable::ResponseStatus>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ResponseStatus>(ctx);
 };
 
 std::any Visitor::visitVariable_rule(Antlr4Gen::SecLangParser::Variable_ruleContext* ctx) {
-  appendVariable<Variable::Rule>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Rule>(ctx);
 };
 
 std::any
 Visitor::visitVariable_server_addr(Antlr4Gen::SecLangParser::Variable_server_addrContext* ctx) {
-  appendVariable<Variable::ServerAddr>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ServerAddr>(ctx);
 };
 
 std::any
 Visitor::visitVariable_server_name(Antlr4Gen::SecLangParser::Variable_server_nameContext* ctx) {
-  appendVariable<Variable::ServerName>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ServerName>(ctx);
 };
 
 std::any
 Visitor::visitVariable_server_port(Antlr4Gen::SecLangParser::Variable_server_portContext* ctx) {
-  appendVariable<Variable::ServerPort>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::ServerPort>(ctx);
 };
 
 std::any Visitor::visitVariable_session(Antlr4Gen::SecLangParser::Variable_sessionContext* ctx) {
-  appendVariable<Variable::Session>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Session>(ctx);
 };
 
 std::any
 Visitor::visitVariable_sessionid(Antlr4Gen::SecLangParser::Variable_sessionidContext* ctx) {
-  appendVariable<Variable::SessionId>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::SessionId>(ctx);
 };
 
 std::any
 Visitor::visitVariable_status_line(Antlr4Gen::SecLangParser::Variable_status_lineContext* ctx) {
-  appendVariable<Variable::StatusLine>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::StatusLine>(ctx);
 };
 
 std::any Visitor::visitVariable_time(Antlr4Gen::SecLangParser::Variable_timeContext* ctx) {
-  appendVariable<Variable::Time>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Time>(ctx);
 };
 
 std::any Visitor::visitVariable_time_day(Antlr4Gen::SecLangParser::Variable_time_dayContext* ctx) {
-  appendVariable<Variable::TimeDay>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeDay>(ctx);
 };
 
 std::any
 Visitor::visitVariable_time_epoch(Antlr4Gen::SecLangParser::Variable_time_epochContext* ctx) {
-  appendVariable<Variable::TimeEpoch>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeEpoch>(ctx);
 };
 
 std::any
 Visitor::visitVariable_time_hour(Antlr4Gen::SecLangParser::Variable_time_hourContext* ctx) {
-  appendVariable<Variable::TimeHour>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeHour>(ctx);
 };
 
 std::any Visitor::visitVariable_time_min(Antlr4Gen::SecLangParser::Variable_time_minContext* ctx) {
-  appendVariable<Variable::TimeMin>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeMin>(ctx);
 };
 
 std::any Visitor::visitVariable_time_mon(Antlr4Gen::SecLangParser::Variable_time_monContext* ctx) {
-  appendVariable<Variable::TimeMon>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeMon>(ctx);
 };
 
 std::any Visitor::visitVariable_time_sec(Antlr4Gen::SecLangParser::Variable_time_secContext* ctx) {
-  appendVariable<Variable::TimeSec>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeSec>(ctx);
 };
 
 std::any
 Visitor::visitVariable_time_wday(Antlr4Gen::SecLangParser::Variable_time_wdayContext* ctx) {
-  appendVariable<Variable::TimeWDay>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeWDay>(ctx);
 };
 
 std::any
 Visitor::visitVariable_time_year(Antlr4Gen::SecLangParser::Variable_time_yearContext* ctx) {
-  appendVariable<Variable::TimeYear>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::TimeYear>(ctx);
 };
 
 std::any Visitor::visitVariable_tx(Antlr4Gen::SecLangParser::Variable_txContext* ctx) {
-  appendVariable<Variable::Tx>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Tx>(ctx);
 };
 
 std::any
 Visitor::visitVariable_unique_id(Antlr4Gen::SecLangParser::Variable_unique_idContext* ctx) {
-  appendVariable<Variable::UniqueId>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::UniqueId>(ctx);
 };
 
 std::any Visitor::visitVariable_urlencoded_error(
     Antlr4Gen::SecLangParser::Variable_urlencoded_errorContext* ctx) {
-  appendVariable<Variable::UrlenCodedError>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::UrlenCodedError>(ctx);
 };
 
 std::any Visitor::visitVariable_userid(Antlr4Gen::SecLangParser::Variable_useridContext* ctx) {
-  appendVariable<Variable::UserId>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::UserId>(ctx);
 };
 
 std::any Visitor::visitVariable_webappid(Antlr4Gen::SecLangParser::Variable_webappidContext* ctx) {
-  appendVariable<Variable::WebAppId>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::WebAppId>(ctx);
 };
 
 std::any Visitor::visitVariable_xml(Antlr4Gen::SecLangParser::Variable_xmlContext* ctx) {
-  appendVariable<Variable::Xml>(ctx);
-  return EMPTY_STRING;
+  return appendVariable<Variable::Xml>(ctx);
 };
 
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
@@ -1045,7 +959,7 @@ Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idC
   }
 
   (*current_rule_iter_)->id(id);
-  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+  if (visit_action_mode_ == VisitActionMode::SecRule) {
     parser_->setRuleIdIndex(current_rule_iter_);
   }
   return EMPTY_STRING;
@@ -1079,7 +993,7 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
     }
   } else {
     (*current_rule_iter_)->msg(ctx->action_meta_data_msg_value()->STRING().front()->getText());
-    if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+    if (visit_action_mode_ == VisitActionMode::SecRule) {
       parser_->setRuleMsgIndex(current_rule_iter_);
     }
   }
@@ -1091,7 +1005,7 @@ std::any
 Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
   auto& tags = (*current_rule_iter_)->tags();
   auto result = tags.emplace(ctx->STRING()->getText());
-  if (visit_action_mode_ == VisitActionMode::VisitActionMode_SecRule) {
+  if (visit_action_mode_ == VisitActionMode::SecRule) {
     if (result.second) {
       parser_->setRuleTagIndex(current_rule_iter_, *result.first);
     }
@@ -1862,9 +1776,22 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_engine(
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_id(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_idContext* ctx) {
-  // uint64_t id = ::atoll(ctx->INT()->getText().c_str());
-  // auto& actions = (*current_rule_iter_)->actions();
-  // actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveById, id));
+  if (ctx->INT()) {
+    uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+    auto& actions = (*current_rule_iter_)->actions();
+    actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveById, id));
+  } else {
+    std::string id_range_str = ctx->INT_RANGE()->getText();
+    auto pos = id_range_str.find('-');
+    if (pos != std::string::npos) {
+      uint64_t first = ::atoll(id_range_str.substr(0, pos).c_str());
+      uint64_t last = ::atoll(id_range_str.substr(pos + 1).c_str());
+      auto& actions = (*current_rule_iter_)->actions();
+      actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByIdRange,
+                                                         std::make_pair(first, last)));
+    }
+  }
+
   return EMPTY_STRING;
 }
 
@@ -1872,20 +1799,73 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_tag(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_tagContext* ctx) {
   std::string tag = ctx->STRING()->getText();
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByTag, tag));
+  actions.emplace_back(
+      std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByTag, std::move(tag)));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_id(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_idContext* ctx) {
-  // TODO: implement
-  RETURN_ERROR("Not implemented!");
+  auto old_visit_variable_mode = visit_variable_mode_;
+
+  uint64_t id = ::atoll(ctx->INT()->getText().c_str());
+
+  auto variables = ctx->variables()->variable();
+  std::any visit_result;
+  try {
+    std::vector<std::shared_ptr<Variable::VariableBase>> variable_objects;
+
+    visit_variable_mode_ = VisitVariableMode::Ctl;
+    for (auto variable : variables) {
+      visit_result = visitChildren(variable);
+      auto var_obj = std::any_cast<std::shared_ptr<Variable::VariableBase>>(visit_result);
+      variable_objects.emplace_back(var_obj);
+    }
+
+    auto& actions = (*current_rule_iter_)->actions();
+    actions.emplace_back(
+        std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveTargetById,
+                                      std::make_pair(id, std::move(variable_objects))));
+  } catch (const std::bad_any_cast& ex) {
+    visit_variable_mode_ = old_visit_variable_mode;
+    return std::format("Expect a variable object, but not. return: {}",
+                       std::any_cast<std::string>(visit_result));
+  }
+
+  visit_variable_mode_ = old_visit_variable_mode;
+  return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_tag(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_target_by_tagContext* ctx) {
-  // TODO: implement
-  RETURN_ERROR("Not implemented!");
+  auto old_visit_variable_mode = visit_variable_mode_;
+
+  std::string tag = ctx->STRING()->getText();
+
+  auto variables = ctx->variables()->variable();
+  std::any visit_result;
+  try {
+    std::vector<std::shared_ptr<Variable::VariableBase>> variable_objects;
+
+    visit_variable_mode_ = VisitVariableMode::Ctl;
+    for (auto variable : variables) {
+      visit_result = visitChildren(variable);
+      auto var_obj = std::any_cast<std::shared_ptr<Variable::VariableBase>>(visit_result);
+      variable_objects.emplace_back(var_obj);
+    }
+
+    auto& actions = (*current_rule_iter_)->actions();
+    actions.emplace_back(
+        std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveTargetByTag,
+                                      std::make_pair(std::move(tag), std::move(variable_objects))));
+  } catch (const std::bad_any_cast& ex) {
+    visit_variable_mode_ = old_visit_variable_mode;
+    return std::format("Expect a variable object, but not. return: {}",
+                       std::any_cast<std::string>(visit_result));
+  }
+
+  visit_variable_mode_ = old_visit_variable_mode;
+  return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_audit_log(
