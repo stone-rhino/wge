@@ -1,5 +1,6 @@
 #include "engine.h"
 
+#include "action/ctl.h"
 #include "antlr4/parser.h"
 #include "common/assert.h"
 #include "common/log.h"
@@ -40,12 +41,12 @@ void Engine::init(spdlog::level::level_enum level, const std::string& log_file) 
 }
 
 const Rule* Engine::defaultActions(int phase) const {
-  assert(phase >= 1 && phase <= phase_total_);
+  assert(phase >= 1 && phase <= PHASE_TOTAL);
   return default_actions_[phase - 1];
 }
 
 const std::vector<const Rule*>& Engine::rules(int phase) const {
-  assert(phase >= 1 && phase <= phase_total_);
+  assert(phase >= 1 && phase <= PHASE_TOTAL);
   return rules_[phase - 1];
 }
 
@@ -53,10 +54,45 @@ TransactionPtr Engine::makeTransaction() const {
   return std::unique_ptr<Transaction>(new Transaction(*this));
 }
 
+const Rule* Engine::findRuleById(uint64_t id) const {
+  // An efficient and rational design should not call this method in the worker thread.
+  // This assert check that this method can only be called in the main thread
+  ASSERT_IS_MAIN_THREAD();
+
+  auto iter = parser_->findRuleById(id);
+  if (iter != parser_->rules().end()) {
+    return iter->get();
+  } else {
+    return nullptr;
+  }
+}
+
+void Engine::findRuleByTag(
+    const std::string& tag,
+    std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rule_set) const {
+  // An efficient and rational design should not call this method in the worker thread.
+  // This assert check that this method can only be called in the main thread
+  ASSERT_IS_MAIN_THREAD();
+
+  // Clear the rule set
+  for (auto& rules : rule_set) {
+    rules.clear();
+  }
+
+  auto range = parser_->findRuleByTag(tag);
+  for (auto iter = range.first; iter != range.second; ++iter) {
+    const int phase = (*iter->second)->phase();
+    assert(phase >= 1 && phase <= PHASE_TOTAL);
+    if (phase >= 1 || phase <= PHASE_TOTAL) {
+      rule_set[phase - 1].emplace((*iter->second).get());
+    }
+  }
+}
+
 std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,
                                                                        int phase) const {
-  assert(phase >= 1 && phase <= phase_total_);
-  if (phase < 1 || phase > phase_total_) {
+  assert(phase >= 1 && phase <= PHASE_TOTAL);
+  if (phase < 1 || phase > PHASE_TOTAL) {
     return {};
   }
 
@@ -78,8 +114,8 @@ void Engine::initDefaultActions() {
   // Sets the default actions for each phase
   for (auto& rule : rules) {
     auto phase = rule->phase();
-    assert(phase >= 1 && phase <= phase_total_);
-    if (phase < 1 || phase > phase_total_) {
+    assert(phase >= 1 && phase <= PHASE_TOTAL);
+    if (phase < 1 || phase > PHASE_TOTAL) {
       SRSECURITY_LOG_WARN("phase {} invalid.", phase);
       continue;
     }
@@ -90,11 +126,22 @@ void Engine::initDefaultActions() {
 void Engine::initRules() {
   auto& rules = parser_->rules();
 
+  // Initialize the rules ctl
+  for (auto& rule : rules) {
+    auto& actions = rule->actions();
+    for (auto& action : actions) {
+      if (::strncmp("ctl", action->name(), 3) == 0) {
+        auto ctl = dynamic_cast<Action::Ctl*>(action.get());
+        ctl->initRules(*this);
+      }
+    }
+  }
+
   // Sets the rules for each phase
   for (auto& rule : rules) {
     auto phase = rule->phase();
-    assert(phase >= 1 && phase <= phase_total_);
-    if (phase < 1 || phase > phase_total_) {
+    assert(phase >= 1 && phase <= PHASE_TOTAL);
+    if (phase < 1 || phase > PHASE_TOTAL) {
       SRSECURITY_LOG_WARN("phase {} invalid. rule id:{}", phase, rule->id());
       continue;
     }
@@ -108,7 +155,7 @@ void Engine::initMakers() {
   // Traverse the markers and find the rule that the marker points to
   for (auto& marker : markers) {
     // Traverse the rules in each phase
-    for (int i = 0; i < phase_total_; ++i) {
+    for (int i = 0; i < PHASE_TOTAL; ++i) {
       // Find the rule that the marker points to
       for (auto iter = rules_[i].begin(); iter != rules_[i].end(); ++iter) {
         if (*iter == marker.prevRule(i + 1)) {

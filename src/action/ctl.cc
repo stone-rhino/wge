@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "../common/assert.h"
+#include "../engine.h"
 
 namespace SrSecurity {
 namespace Action {
@@ -46,6 +47,62 @@ Ctl::Ctl(CtlType type, std::any&& value) : type_(type), value_(std::move(value))
   }
 }
 
+void Ctl::initRules(const Engine& engin) {
+  switch (type_) {
+  case CtlType::RuleRemoveById: {
+    uint64_t id = std::any_cast<uint64_t>(value_);
+    const Rule* rule = engin.findRuleById(id);
+    if (rule) {
+      const int phase = rule->phase();
+      assert(phase >= 1 && phase <= PHASE_TOTAL);
+      if (phase >= 1 || phase <= PHASE_TOTAL) {
+        rules_[phase - 1].emplace(rule);
+      }
+    }
+  } break;
+  case CtlType::RuleRemoveByIdRange: {
+    const std::pair<uint64_t, uint64_t>& id_range =
+        std::any_cast<std::pair<uint64_t, uint64_t>>(value_);
+    for (uint64_t id = id_range.first; id <= id_range.second; ++id) {
+      const Rule* rule = engin.findRuleById(id);
+      if (rule) {
+        const int phase = rule->phase();
+        assert(phase >= 1 && phase <= PHASE_TOTAL);
+        if (phase >= 1 || phase <= PHASE_TOTAL) {
+          rules_[phase - 1].emplace(rule);
+        }
+      }
+    }
+  } break;
+  case CtlType::RuleRemoveByTag: {
+    const std::string& tag = std::any_cast<std::string>(value_);
+    engin.findRuleByTag(tag, rules_);
+  } break;
+  case CtlType::RuleRemoveTargetById: {
+    const auto& id_and_variables =
+        std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+            value_);
+    const Rule* rule = engin.findRuleById(id_and_variables.first);
+    if (rule) {
+      const int phase = rule->phase();
+      assert(phase >= 1 && phase <= PHASE_TOTAL);
+      if (phase >= 1 || phase <= PHASE_TOTAL) {
+        rules_[phase - 1].emplace(rule);
+      }
+    }
+  } break;
+  case CtlType::RuleRemoveTargetByTag: {
+    const auto& tag_and_variables =
+        std::any_cast<std::pair<std::string, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+            value_);
+    engin.findRuleByTag(tag_and_variables.first, rules_);
+  } break;
+  default:
+    // The other types don't need to initialize the rules
+    break;
+  }
+}
+
 void Ctl::evaluate_audit_engine(Transaction& t) const {
   AuditLogConfig::AuditEngine option = std::any_cast<AuditLogConfig::AuditEngine>(value_);
   UNREACHABLE();
@@ -75,41 +132,31 @@ void Ctl::evaluate_rule_engine(Transaction& t) const {
   throw "Not implemented!";
 }
 
-void Ctl::evaluate_rule_remove_by_id(Transaction& t) const {
-  uint64_t id = std::any_cast<uint64_t>(value_);
-  UNREACHABLE();
-  throw "Not implemented!";
-}
+void Ctl::evaluate_rule_remove_by_id(Transaction& t) const { t.removeRule(rules_); }
 
 void Ctl::evaluate_rule_remove_by_id_range(Transaction& t) const {
   const std::pair<uint64_t, uint64_t>& id_range =
       std::any_cast<std::pair<uint64_t, uint64_t>>(value_);
-  UNREACHABLE();
-  throw "Not implemented!";
+  t.removeRule(rules_);
 }
 
 void Ctl::evaluate_rule_remove_by_tag(Transaction& t) const {
   const std::string& tag = std::any_cast<std::string>(value_);
-  UNREACHABLE();
-  throw "Not implemented!";
+  t.removeRule(rules_);
 }
 
 void Ctl::evaluate_rule_remove_target_by_id(Transaction& t) const {
-  const std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>&
-      id_and_variables =
-          std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
-              value_);
-  UNREACHABLE();
-  throw "Not implemented!";
+  const auto& id_and_variables =
+      std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+          value_);
+  t.removeRuleTarget(rules_, id_and_variables.second);
 }
 
 void Ctl::evaluate_rule_remove_target_by_tag(Transaction& t) const {
-  const std::pair<std::string,
-                  std::vector<std::shared_ptr<Variable::VariableBase>>>& tag_and_variables =
+  const auto& tag_and_variables =
       std::any_cast<std::pair<std::string, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
           value_);
-  UNREACHABLE();
-  throw "Not implemented!";
+  t.removeRuleTarget(rules_, tag_and_variables.second);
 }
 
 } // namespace Action

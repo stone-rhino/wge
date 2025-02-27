@@ -5,7 +5,18 @@
 #include <string>
 #include <vector>
 
+#include <stdint.h>
+
 namespace SrSecurity {
+// There are five phases in the ModSecurity engine
+// 1. Request headers are read
+// 2. Request body is read
+// 3. Response headers are read
+// 4. Response body is read
+// 5. Logging
+// We use an array to store the rules in each phase, and the index of the array is phase - 1.
+constexpr size_t PHASE_TOTAL = 5;
+
 /**
  * The configuration of the SrSecurity engine.
  */
@@ -201,7 +212,8 @@ struct MultipartStrictError : public std::bitset<16> {
   void set(ErrorType type) {
     std::bitset<16>::set(static_cast<size_t>(type));
     // MultipartStrictError will be set if any of the error is set.
-    std::bitset<16>::set(static_cast<size_t>(MultipartStrictError::ErrorType::MultipartStrictError));
+    std::bitset<16>::set(
+        static_cast<size_t>(MultipartStrictError::ErrorType::MultipartStrictError));
   }
 };
 } // namespace SrSecurity

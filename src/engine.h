@@ -71,8 +71,24 @@ public:
   /**
    * Get the parser
    * @return reference of parser
+   * FIXME(zhouyu, 2025-02-27): The parser should be private, and provide some method wrapper to
+   * access the parser.
    */
   const Antlr4::Parser& parser() const { return *parser_; }
+
+  /**
+   * Find the rule by id
+   * @param id the rule id
+   * @return pointer of rule if found, and nullptr otherwise
+   */
+  const Rule* findRuleById(uint64_t id) const;
+
+  /**
+   * Find the rule by tag
+   * @param tag the rule tag
+   */
+  void findRuleByTag(const std::string& tag,
+                     std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rule_set) const;
 
   std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name,
                                                                  int phase) const;
@@ -89,10 +105,19 @@ private:
   void initMakers();
 
 private:
-  constexpr static size_t phase_total_ = 5;
+  // The parser is used to parse the SecLang rule set.
   std::shared_ptr<Antlr4::Parser> parser_;
-  std::array<const Rule*, phase_total_> default_actions_{nullptr};
-  std::array<std::vector<const Rule*>, phase_total_> rules_;
+
+  // Default actions defined in the SecDefaultAction directive
+  // The default action is executed in the same phase as the rule that is matched and before
+  // evaluating the rule's actions.
+  std::array<const Rule*, PHASE_TOTAL> default_actions_{nullptr};
+
+  // Even though the parser parses the rule set and stores the parsed rules, the parser  is not used
+  // to evaluate the rules. Because each phase has a separate rule set, for performance reasons, we
+  // store the each phase's rule pointers in an array.
+  std::array<std::vector<const Rule*>, PHASE_TOTAL> rules_;
+
   std::unordered_map<std::string, Marker&> markers_;
   PersistentStorage::Storage storage_;
 };

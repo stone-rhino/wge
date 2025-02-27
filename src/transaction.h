@@ -5,6 +5,7 @@
 #include <optional>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <variant>
 #include <vector>
 
@@ -14,7 +15,13 @@
 
 namespace SrSecurity {
 class Engine;
+
 class Rule;
+
+namespace Variable {
+class VariableBase;
+} // namespace Variable
+
 class Transaction final {
   friend class Engine;
 
@@ -159,6 +166,24 @@ public:
    */
   const Engine& getEngine() const { return engin_; }
 
+  /**
+   * Remove the rule.
+   * The rule will be removed from the transaction instance, and the rule will not be evaluated. The
+   * other transaction instances running in parallel will be unaffected.
+   * @param rules the rules that will be removed.
+   */
+  void removeRule(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules);
+
+  /**
+   * Remove the rule's target.
+   * The rule's target will be removed from the transaction instance, and the rule will not be
+   * evaluated. The other transaction instances running in parallel will be unaffected.
+   * @param rule the rule that will be remove target.
+   * @param variables the variables that will be removed.
+   */
+  void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
+                        const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
+
 private:
   class RandomInitHelper {
   public:
@@ -169,6 +194,14 @@ private:
 
   inline void process(int phase);
 
+  /**
+   * Evaluate the rules.
+   * @param rules the rules that will be evaluated.
+   * @return true if the all of the rules evaluated over, false otherwise that means the rules have
+   * been reordered, we need call this method again.
+   */
+  inline bool evaluateRules(const std::vector<const Rule*>& rules);
+
 private:
   std::string unique_id_;
   HttpExtractor extractor_;
@@ -178,6 +211,20 @@ private:
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
 
+  // All of the transaction instances share the same rule instances, and each transaction instance
+  // may be removed or updated some different rules by the ctl action. So, we need to mark the rules
+  // that need to be removed or updated in local.
+  // The allocation memory behavior is lazy, and only the rules that need to be removed or updated
+  // will be allocated memory that is same as the engin.rules() size.
+  std::array<std::vector<bool>, PHASE_TOTAL> rule_remove_flags_;
+  std::array<const std::vector<std::shared_ptr<Variable::VariableBase>>, PHASE_TOTAL>
+      rule_remove_targets_;
+
+  // Current evaluation state
+  int current_phase_{1};
+  const std::vector<const Rule*>* current_rules_{nullptr};
+  size_t current_rule_index_{0};
+
   // ctl
 private:
   std::optional<AuditLogConfig::AuditEngine> audit_engine_;
@@ -185,8 +232,6 @@ private:
   std::optional<EngineConfig::Option> request_body_access_;
   std::optional<BodyProcessorType> request_body_processor_;
   std::optional<EngineConfig::Option> rule_engine_;
-  std::vector<uint64_t> rule_remove_by_id_;
-  std::vector<std::string> rule_remove_by_tag_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

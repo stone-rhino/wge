@@ -1,10 +1,11 @@
 #pragma once
 
 #include <any>
+#include <array>
 #include <functional>
 #include <map>
 #include <string>
-#include <vector>
+#include <unordered_set>
 
 #include "action_base.h"
 
@@ -41,6 +42,20 @@ public:
 public:
   void evaluate(Transaction& t) const override { evaluate_func_(t); }
 
+public:
+  /**
+   * Initialize the rules that will be removed or updated.
+   *
+   * Because the rules that will be removed or updated are stored in the Ctl instance, but
+   * the rules are may be not created yet when the Ctl instance is created. So, we need to
+   * initialize the rules before evaluating the Ctl instance and only initialize once in the life of
+   * the Ctl instance.
+   * Why don't we initialize the rules in the evaluate method? Because performance is important. We
+   * don't want to find the rules every time the Ctl instance is evaluated.
+   * @param engin the engine instance
+   */
+  void initRules(const Engine& engin);
+
 private:
   void evaluate_audit_engine(Transaction& t) const;
   void evaluate_audit_log_parts(Transaction& t) const;
@@ -57,6 +72,7 @@ private:
   CtlType type_;
   std::any value_;
   std::function<void(Transaction&)> evaluate_func_;
+  std::array<std::unordered_set<const Rule*>, PHASE_TOTAL> rules_;
 };
 } // namespace Action
 } // namespace SrSecurity

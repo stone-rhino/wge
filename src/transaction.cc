@@ -117,7 +117,49 @@ const std::string_view* Transaction::getMatched(size_t index) const {
   return nullptr;
 }
 
+void Transaction::removeRule(
+    const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules) {
+  // Sets the rule remove flags.
+  // Just remove the rules that not evaluate yet. It makes no sense to remove the rules that
+  // havebeen evaluated.
+  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+    auto& rule_set = rules[phase - 1];
+    if (rule_set.empty()) [[likely]] {
+      continue;
+    }
+
+    // For performance reasons, we use a flag array that is the same size as the rules array to mark
+    // the rules that need to be removed.
+    auto& rule_remove_flag = rule_remove_flags_[phase - 1];
+    if (rule_remove_flag.empty()) [[unlikely]] {
+      rule_remove_flag.resize(engin_.rules(phase).size());
+    }
+
+    // We record the current rule index, make sure that the rules that have been evaluated will not
+    // be removed. As above, it makes no sense to remove the rules that have been evaluated.
+    auto& rules = engin_.rules(phase);
+    auto begin = rules.begin();
+    if (phase == current_phase_) {
+      begin += current_rule_index_;
+    }
+
+    // Traverse the rules and mark the rules that need to be removed
+    for (auto iter = begin; iter != rules.end(); ++iter) {
+      if (rule_set.find(*iter) != rule_set.end()) {
+        rule_remove_flag[std::distance(begin, iter)] = true;
+      }
+    }
+  }
+}
+
+void Transaction::removeRuleTarget(
+    const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
+    const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {}
+
 void Transaction::initUniqueId() {
+  // Generate a unique id for the transaction.
+  // Implementation is to use a millisecond timestamp, followed by a dot character ('.'), followed
+  // by a random six-digit number.
   using namespace std::chrono;
   uint64_t timestamp =
       time_point_cast<std::chrono::milliseconds>(system_clock::now()).time_since_epoch().count();
@@ -130,12 +172,22 @@ inline void Transaction::process(int phase) {
   auto& rules = engin_.rules(phase);
 
   // Traverse the rules and evaluate them
-  for (auto iter = rules.begin(); iter != rules.end();) {
+  auto begin = rules.begin();
+  for (auto iter = begin; iter != rules.end();) {
+    current_rule_index_ = std::distance(begin, iter);
+
+    // Skip the rules that have been removed
+    auto& rule_remove_flag = rule_remove_flags_[phase - 1];
+    if (!rule_remove_flag.empty() && rule_remove_flag[std::distance(begin, iter)]) [[unlikely]] {
+      ++iter;
+      continue;
+    }
+
     // Evaluate the rule
     auto& rule = *iter;
     auto is_matched = rule->evaluate(*this, extractor_);
 
-    if (!is_matched) {
+    if (!is_matched) [[likely]] {
       ++iter;
       continue;
     }
@@ -173,5 +225,4 @@ inline void Transaction::process(int phase) {
     ++iter;
   }
 }
-
 } // namespace SrSecurity
