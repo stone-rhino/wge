@@ -8,17 +8,30 @@ namespace SrSecurity {
 namespace Macro {
 class Tx : public MacroBase {
 public:
-  Tx(std::string&& variable_name) : variable_name_(std::move(variable_name)) {}
+  Tx(std::string&& variable_name) : variable_name_(std::move(variable_name)) {
+    if (std::all_of(variable_name_.begin(), variable_name_.end(), ::isdigit)) {
+      matched_index_ = ::atoi(variable_name_.c_str());
+    }
+  }
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
-    SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
-                         VISTIT_VARIANT_AS_STRING(t.getVariable(variable_name_)));
-    return t.getVariable(variable_name_);
+
+    if (matched_index_ == 0xffffffff) {
+      SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
+                           VISTIT_VARIANT_AS_STRING(t.getVariable(variable_name_)));
+      return t.getVariable(variable_name_);
+    } else {
+      SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
+                           *t.getMatched(matched_index_));
+      evaluate_value_ = *t.getMatched(matched_index_);
+      return evaluate_value_;
+    }
   }
 
 private:
   std::string variable_name_;
+  size_t matched_index_{0xffffffff};
 };
 } // namespace Macro
 } // namespace SrSecurity
