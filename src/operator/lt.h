@@ -8,7 +8,7 @@ class Lt : public OperatorBase {
   DECLARE_OPERATOR_NAME(lt);
 
 public:
-  Lt(std::string&& literal_value) : OperatorBase(std::move(literal_value)) {
+  Lt(std::string&& literal_value, bool is_not) : OperatorBase(std::move(literal_value), is_not) {
     if (!macro_) {
       value_ = ::atoll(literal_value_.c_str());
     }
@@ -23,9 +23,9 @@ public:
     int64_t operand_value = std::get<int>(operand);
     if (macro_) {
       int64_t macro_value = std::get<int>(macro_->evaluate(t));
-      return macro_value < operand_value;
+      return is_not_ ? !(macro_value < operand_value) : macro_value < operand_value;
     } else {
-      return value_ < operand_value;
+      return is_not_ ? !(value_ < operand_value) : value_ < operand_value;
     }
   }
 

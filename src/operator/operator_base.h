@@ -21,7 +21,8 @@ namespace Operator {
  */
 class OperatorBase {
 public:
-  OperatorBase(std::string&& literal_value) : literal_value_(std::move(literal_value)) {
+  OperatorBase(std::string&& literal_value, bool is_not)
+      : literal_value_(std::move(literal_value)), is_not_(is_not) {
     macro_ = Macro::MacroFactory::createMacro(literal_value_);
   }
 
@@ -51,6 +52,7 @@ public:
 
 protected:
   std::string literal_value_;
+  bool is_not_;
   std::shared_ptr<Macro::MacroBase> macro_;
 };
 

@@ -289,10 +289,11 @@ ModeSecRuleVariableSubName_VAR_SUB_NAME:
 	~[ :!&|",\n]+ -> type(STRING), popMode;
 
 mode ModeSecRuleOperator;
+ModeSecRuleOperator_NOT: NOT -> type(NOT);
 AT: '@' -> popMode, pushMode(ModeSecRuleOperatorName);
 ModeSecRuleOperator_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
-RX_DEFUALT: (('\\"') | ~([" @])) (('\\"') | ~('"'))* -> type(STRING);
+RX_DEFUALT: (('\\"') | ~([" @!])) (('\\"') | ~('"'))* -> type(STRING);
 
 mode ModeSecRuleOperatorName;
 ModeSecRuleOperator_WS:

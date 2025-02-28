@@ -16,8 +16,8 @@ class Rx : public OperatorBase {
   DECLARE_OPERATOR_NAME(rx);
 
 public:
-  Rx(std::string&& literal_value)
-      : OperatorBase(std::move(literal_value)), pcre_(literalValue(), false) {}
+  Rx(std::string&& literal_value, bool is_not)
+      : OperatorBase(std::move(literal_value), is_not), pcre_(literalValue(), false) {}
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
@@ -52,7 +52,7 @@ public:
       UNREACHABLE();
     }
 
-    return !result.empty();
+    return is_not_ ? result.empty() : !result.empty();
   }
 
 public:
