@@ -4,6 +4,12 @@
 
 namespace SrSecurity {
 namespace Macro {
-class UserId : public MacroBase {};
+class UserId : public MacroBase {
+public:
+  const Common::Variant& evaluate(Transaction& t) {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+};
 } // namespace Macro
 } // namespace SrSecurity

@@ -1289,33 +1289,40 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_tx(
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_remote_addr(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_remote_addrContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::RemoteAddr>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_user_id(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_user_idContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::UserId>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_highest_severity(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_highest_severityContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::HighestSeverity>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_varContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MatchedVar>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_matched_var_name(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_var_nameContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MatchedVarName>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_strict_error(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
         ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
+      MultipartStrictError::ErrorType::MultipartStrictError);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_reqbody_processor_error(
@@ -1414,12 +1421,14 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_file_limit_e
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_rule(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::Rule>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_session(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) {
-  RETURN_ERROR("Not implemented!");
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::Session>();
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_reqbody_error_msg(

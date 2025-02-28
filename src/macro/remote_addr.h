@@ -4,6 +4,12 @@
 
 namespace SrSecurity {
 namespace Macro {
-class RemoteAddr : public MacroBase {};
+class RemoteAddr : public MacroBase {
+public:
+  const Common::Variant& evaluate(Transaction& t) {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+};
 } // namespace Macro
 } // namespace SrSecurity
