@@ -86,6 +86,11 @@ struct EngineConfig {
   // Configures the maximum number of ARGS that will be accepted for processing.
   // Default: 0 (unlimited)
   uint32_t arguments_limit_{0};
+
+  // SecArgumentSeparator
+  // Specifies which character to use as the separator for application/x-www-form-urlencoded
+  // content. Default: &
+  char argument_separator_{'&'};
 };
 
 /**

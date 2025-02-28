@@ -47,7 +47,8 @@ WS: (([ \t\r\n]+) | NL) -> skip;
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction' -> pushMode(ModeSecRuleAction);
-SecArgumentSeparator: 'SecArgumentSeparator';
+SecArgumentSeparator:
+	'SecArgumentSeparator' -> pushMode(ModeAuditLogString);
 SecArgumentsLimit: 'SecArgumentsLimit';
 SecAuditEngine: 'SecAuditEngine' -> pushMode(ModeAuditLog);
 SecAuditLog: 'SecAuditLog' -> pushMode(ModeAuditLogString);

@@ -52,6 +52,7 @@ public:
   void secResponseBodyLimit(uint64_t limit_bytes);
   void secResponseBodyLimitAction(EngineConfig::BodyLimitAction action);
   void secArgumentsLimit(uint32_t limit_bytes);
+  void secArgumentSeparator(char separator);
 
   // Engine action
   std::list<std::unique_ptr<Rule>>::iterator secAction(int line);

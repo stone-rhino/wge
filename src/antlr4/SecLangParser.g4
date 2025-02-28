@@ -31,7 +31,8 @@ engine_config:
 	| sec_response_body_action
 	| sec_tmp_dir
 	| sec_data_dir
-	| sec_arguments_limit;
+	| sec_arguments_limit
+	| sec_argument_separator;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
 sec_response_body_mime_type_clear:
@@ -53,6 +54,7 @@ sec_response_body_action:
 sec_tmp_dir: SecTmpDir STRING;
 sec_data_dir: SecDataDir STRING;
 sec_arguments_limit: SecArgumentsLimit INT;
+sec_argument_separator: SecArgumentSeparator STRING;
 
 engine_action: sec_action;
 sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;
@@ -402,8 +404,10 @@ op_unconditional_match: NOT? AT OP_UNCONDITIONAL_MATCH STRING;
 op_validate_byte_range: NOT? AT OP_VALIDATE_BYTE_RANGE STRING;
 op_validate_dtd: NOT? AT OP_VALIDATE_DTD STRING;
 op_validate_schema: NOT? AT OP_VALIDATE_SCHEMA STRING;
-op_validate_url_encoding: NOT? AT OP_VALIDATE_URL_ENCODING STRING;
-op_validate_utf8_encoding: NOT? AT OP_VALIDATE_UTF8_ENCODING STRING;
+op_validate_url_encoding:
+	NOT? AT OP_VALIDATE_URL_ENCODING STRING;
+op_validate_utf8_encoding:
+	NOT? AT OP_VALIDATE_UTF8_ENCODING STRING;
 op_verify_cc: NOT? AT OP_VERIFY_CC STRING;
 op_verify_cpf: NOT? AT OP_VERIFY_CPF STRING;
 op_verify_ssn: NOT? AT OP_VERIFY_SSN STRING;

@@ -65,6 +65,9 @@ public:
   std::any
   visitSec_arguments_limit(Antlr4Gen::SecLangParser::Sec_arguments_limitContext* ctx) override;
 
+  std::any visitSec_argument_separator(
+      Antlr4Gen::SecLangParser::Sec_argument_separatorContext* ctx) override;
+
   // Engine action
 public:
   std::any visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) override;

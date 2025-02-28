@@ -248,5 +248,18 @@ TEST_F(EngineConfigTest, ArgumentsLimit) {
   const auto& engine_config = parser.engineConfig();
   EXPECT_EQ(engine_config.arguments_limit_, 1024);
 }
+
+TEST_F(EngineConfigTest, ArgumentSeparator) {
+  const std::string directive = R"(# Test engine config
+  SecArgumentSeparator !
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  EXPECT_EQ(engine_config.argument_separator_, '!');
+}
 } // namespace Parsr
 } // namespace SrSecurity
