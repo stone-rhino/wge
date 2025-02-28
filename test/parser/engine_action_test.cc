@@ -8,6 +8,9 @@
 namespace SrSecurity {
 namespace Parsr {
 class EngineActionTest : public testing::Test {
+public:
+  EngineActionTest() : engine_(SrSecurity::Engine::singleton()) {}
+
 protected:
   Engine engine_;
 };

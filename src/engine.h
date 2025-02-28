@@ -17,9 +17,33 @@ class Parser;
 }
 
 namespace SrSecurity {
-class Engine {
-public:
+
+/**
+ * The engine is the core of the WAF.
+ * It is responsible for loading the rule set, parsing the rule set, and make a transaction to
+ * evaluate the rules. The engine is a singleton, and only one instance of the engine exists in the
+ * life of the program.
+ */
+class Engine final {
+private:
+  /**
+   * Construct the engine
+   * @note The constructor is private, and only the singleton method can create the engine instance.
+   */
   Engine();
+
+public:
+  /**
+   * Get the singleton instance of the engine
+   * @return reference of the engine
+   * @note The engine is a singleton, and only one instance of the engine exists in the life of the
+   * program. Because the engine use some thread_local variable, if multiple engine instances exist,
+   * the thread_local variable will be invalid.
+   */
+  static Engine& singleton() {
+    static Engine engine;
+    return engine;
+  }
 
 public:
   /**

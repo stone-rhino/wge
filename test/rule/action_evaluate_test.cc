@@ -7,7 +7,10 @@
 namespace SrSecurity {
 class ActionEvaluate : public testing::Test {
 public:
-  Engine engine_;
+  ActionEvaluate() : engine_(Engine::singleton()) {}
+
+public:
+  Engine& engine_;
 };
 
 TEST_F(ActionEvaluate, SetVar) {
