@@ -4,6 +4,12 @@
 
 namespace SrSecurity {
 namespace Macro {
-class MatchedVarName : public MacroBase {};
+class MatchedVarName : public MacroBase {
+public:
+  const Common::Variant& evaluate(Transaction& t) {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+};
 } // namespace Macro
 } // namespace SrSecurity
