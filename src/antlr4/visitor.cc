@@ -124,17 +124,26 @@ std::any Visitor::visitSec_response_body_action(
   return EMPTY_STRING;
 }
 
+std::any Visitor::visitSec_status_engine(Antlr4Gen::SecLangParser::Sec_status_engineContext* ctx) {
+  // Not supported in v3
+  SRSECURITY_LOG_WARN("SecStatusEngine is not supported yet.");
+  return EMPTY_STRING;
+}
+
 std::any Visitor::visitSec_tmp_dir(Antlr4Gen::SecLangParser::Sec_tmp_dirContext* ctx) {
+  // Not supported in v3
   SRSECURITY_LOG_WARN("SecTmpDir is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_data_dir(Antlr4Gen::SecLangParser::Sec_data_dirContext* ctx) {
+  // Not supported in v3
   SRSECURITY_LOG_WARN("SecDataDir is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_cookie_format(Antlr4Gen::SecLangParser::Sec_cookie_formatContext* ctx) {
+  // Not supported in v3
   SRSECURITY_LOG_WARN("SecCookieFormat is not supported yet.");
   return EMPTY_STRING;
 }

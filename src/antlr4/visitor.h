@@ -62,6 +62,8 @@ public:
   std::any visitSec_response_body_action(
       Antlr4Gen::SecLangParser::Sec_response_body_actionContext* ctx) override;
 
+  std::any visitSec_status_engine(Antlr4Gen::SecLangParser::Sec_status_engineContext* ctx) override;
+
   std::any visitSec_tmp_dir(Antlr4Gen::SecLangParser::Sec_tmp_dirContext* ctx) override;
 
   std::any visitSec_data_dir(Antlr4Gen::SecLangParser::Sec_data_dirContext* ctx) override;

@@ -106,6 +106,7 @@ SecRuleUpdateTargetByMsg:
 SecRuleUpdateTargetByTag:
 	'SecRuleUpdateTargetByTag' -> pushMode(ModeRuleUpdateTargetByMsg);
 SecRule: 'SecRule' -> pushMode(ModeSecRule);
+SecStatusEngine: 'SecStatusEngine';
 SecTmpDir: 'SecTmpDir' -> pushMode(ModeAuditLogString);
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
 SecUnicodeMapFile:
