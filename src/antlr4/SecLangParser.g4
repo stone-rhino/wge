@@ -497,6 +497,7 @@ action_non_disruptive:
 	| action_non_disruptive_log
 	| action_non_disruptive_no_audit_log
 	| action_non_disruptive_no_log
+	| action_non_disruptive_logdata
 	| action_non_disruptive_capture
 	| action_non_disruptive_multi_match
 	| action_non_disruptive_initcol;
@@ -558,7 +559,8 @@ action_non_disruptive_setvar_macro:
 	| action_non_disruptive_setvar_macro_multipart_invalid_header_folding
 	| action_non_disruptive_setvar_macro_multipart_file_limit_exceeded
 	| action_non_disruptive_setvar_macro_rule
-	| action_non_disruptive_setvar_macro_session;
+	| action_non_disruptive_setvar_macro_session
+	| action_non_disruptive_setvar_macro_reqbody_error_msg;
 action_non_disruptive_setvar_macro_tx: TX2 DOT STRING;
 action_non_disruptive_setvar_macro_remote_addr: REMOTE_ADDR;
 action_non_disruptive_setvar_macro_user_id: USERID;
@@ -595,6 +597,8 @@ action_non_disruptive_setvar_macro_multipart_file_limit_exceeded:
 	MULTIPART_FILE_LIMIT_EXCEEDED;
 action_non_disruptive_setvar_macro_rule: RULE DOT STRING;
 action_non_disruptive_setvar_macro_session: SESSION;
+action_non_disruptive_setvar_macro_reqbody_error_msg:
+	REQBODY_ERROR_MSG;
 
 action_non_disruptive_setenv:
 	Setenv COLON SINGLE_QUOTE VAR_NAME ASSIGN (
@@ -756,6 +760,8 @@ action_non_disruptive_audit_log: Auditlog;
 action_non_disruptive_log: Log;
 action_non_disruptive_no_audit_log: Noauditlog;
 action_non_disruptive_no_log: Nolog;
+action_non_disruptive_logdata:
+	Logdata COLON SINGLE_QUOTE action_meta_data_msg_value SINGLE_QUOTE;
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
 action_non_disruptive_initcol:

@@ -479,6 +479,8 @@ MULTIPART_FILE_LIMIT_EXCEEDED:
 		[eE][eE][dD][eE][dD];
 RULE: [rR][uU][lL][eE];
 SESSION: [sS][eE][sS][sS][iI][oO][nN];
+REQBODY_ERROR_MSG:
+	[rR][eE][qQ][bB][oO][dD][yY]'_' [eE][rR][rR][oO][rR]'_' [mM][sS][gG];
 
 mode ModeSecRuleActionMacroExpansionString;
 ModeSecRuleActionMacroExpansionString_STRING:

@@ -549,6 +549,9 @@ public:
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) override;
   std::any visitAction_non_disruptive_setvar_macro_session(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) override;
+  std::any visitAction_non_disruptive_setvar_macro_reqbody_error_msg(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_error_msgContext* ctx)
+      override;
 
   // setenv
   std::any visitAction_non_disruptive_setenv(
@@ -734,6 +737,9 @@ public:
 
   std::any visitAction_non_disruptive_no_log(
       Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) override;
+
+  std::any visitAction_non_disruptive_logdata(
+      Antlr4Gen::SecLangParser::Action_non_disruptive_logdataContext* ctx) override;
 
   std::any visitAction_non_disruptive_capture(
       Antlr4Gen::SecLangParser::Action_non_disruptive_captureContext* ctx) override;

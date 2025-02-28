@@ -6,6 +6,7 @@
 #include "multi_macro.h"
 #include "multipart_strict_error.h"
 #include "remote_addr.h"
+#include "reqbody_error_msg.h"
 #include "rule.h"
 #include "session.h"
 #include "tx.h"
