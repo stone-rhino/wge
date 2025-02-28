@@ -30,7 +30,7 @@ private:
    * Construct the engine
    * @note The constructor is private, and only the singleton method can create the engine instance.
    */
-  Engine();
+  Engine(spdlog::level::level_enum level = spdlog::level::info, const std::string& log_file = "");
 
 public:
   /**
@@ -40,8 +40,9 @@ public:
    * program. Because the engine use some thread_local variable, if multiple engine instances exist,
    * the thread_local variable will be invalid.
    */
-  static Engine& singleton() {
-    static Engine engine;
+  static Engine& singleton(spdlog::level::level_enum level = spdlog::level::info,
+                           const std::string& log_file = "") {
+    static Engine engine(level, log_file);
     return engine;
   }
 
@@ -67,8 +68,7 @@ public:
    * @note must call once before call makeTransaction, and only once in the life of the engine
    * instance.
    */
-  void init(spdlog::level::level_enum level = spdlog::level::info,
-            const std::string& log_file = "");
+  void init();
 
   /**
    * Get default actions
