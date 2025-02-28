@@ -1,6 +1,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include "common/duration.h"
 #include "modsecurity/modsecurity.h"
@@ -83,11 +84,18 @@ int main(int argc, char* argv[]) {
   modsecurity::RulesSet rules_set;
   engine.setServerLogCb(logCb, modsecurity::RuleMessageLogProperty |
                                    modsecurity::IncludeFullHighlightLogProperty);
-  int result = rules_set.loadFromUri(
-      "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
-  if (result == -1) {
-    std::cout << "Load rules error: " << rules_set.getParserError() << std::endl;
-    return 1;
+  int result;
+  std::vector<std::string> rule_files = {
+      "test/test_data/waf-conf/base/engin-setup.conf",
+      // "test/test_data/waf-conf/base/crs-setup.conf",
+      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
+  };
+  for (auto& rule_file : rule_files) {
+    result = rules_set.loadFromUri(rule_file.c_str());
+    if (result == -1) {
+      std::cout << "Load rules error: " << rules_set.getParserError() << std::endl;
+      return 1;
+    }
   }
 
   // Start benchmark

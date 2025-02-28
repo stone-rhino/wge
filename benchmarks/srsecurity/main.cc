@@ -1,6 +1,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include <unistd.h>
 
@@ -101,12 +102,20 @@ int main(int argc, char* argv[]) {
 
   // Load rules
   SrSecurity::Engine engine;
-  std::expected<bool, std::string> result = engine.loadFromFile(
-      "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
-  if (!result.has_value()) {
-    std::cout << "Load rules error: " << result.error() << std::endl;
-    return 1;
+  std::expected<bool, std::string> result;
+  std::vector<std::string> rule_files = {
+      "test/test_data/waf-conf/base/engin-setup.conf",
+      // "test/test_data/waf-conf/base/crs-setup.conf",
+      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
+  };
+  for (auto& rule_file : rule_files) {
+    result = engine.loadFromFile(rule_file);
+    if (!result.has_value()) {
+      std::cout << "Load rules error: " << "[" << rule_file << "] " << result.error() << std::endl;
+      return 1;
+    }
   }
+
   engine.init(spdlog::level::off);
 
   // Start benchmark
