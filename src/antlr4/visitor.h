@@ -84,6 +84,10 @@ public:
 
   std::any visitSec_pcre_match_limit_recursion(
       Antlr4Gen::SecLangParser::Sec_pcre_match_limit_recursionContext* ctx) override;
+
+  std::any visitSec_collection_timeout(
+      Antlr4Gen::SecLangParser::Sec_collection_timeoutContext* ctx) override;
+
   // Engine action
 public:
   std::any visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) override;

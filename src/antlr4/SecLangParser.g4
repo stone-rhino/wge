@@ -37,7 +37,8 @@ engine_config:
 	| sec_argument_separator
 	| sec_unicode_map_file
 	| sec_pcre_match_limit
-	| sec_pcre_match_limit_recursion;
+	| sec_pcre_match_limit_recursion
+	| sec_collection_timeout;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
 sec_response_body_mime_type: SecResponseBodyMimeType MIME_TYPES;
 sec_response_body_mime_type_clear:
@@ -65,6 +66,7 @@ sec_argument_separator: SecArgumentSeparator STRING;
 sec_unicode_map_file: SecUnicodeMapFile STRING INT;
 sec_pcre_match_limit: SecPcreMatchLimit INT;
 sec_pcre_match_limit_recursion: SecPcreMatchLimitRecursion INT;
+sec_collection_timeout: SecCollectionTimeout INT;
 
 engine_action: sec_action;
 sec_action: SecAction QUOTE action ( COMMA action)* QUOTE;

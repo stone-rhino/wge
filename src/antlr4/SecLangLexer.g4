@@ -65,6 +65,7 @@ SecAuditLogRelevantStatus:
 SecAuditLogStorageDir:
 	'SecAuditLogStorageDir' -> pushMode(ModeAuditLogString);
 SecAuditLogType: 'SecAuditLogType' -> pushMode(ModeAuditLog);
+SecCollectionTimeout: 'SecCollectionTimeout';
 SecComponentSignature:
 	'SecComponentSignature' -> pushMode(ModeAuditLogString);
 SecCookieFormat: 'SecCookieFormat';
