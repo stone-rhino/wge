@@ -29,6 +29,7 @@ engine_config:
 	| sec_request_body_action
 	| sec_response_body_limit
 	| sec_response_body_action
+	| sec_status_engine
 	| sec_tmp_dir
 	| sec_data_dir
 	| sec_cookie_format
@@ -53,6 +54,7 @@ sec_request_body_action:
 sec_response_body_limit: SecResponseBodyLimit INT;
 sec_response_body_action:
 	SecResponseBodyLimitAction BODY_LIMIT_ACTION;
+sec_status_engine: SecStatusEngine OPTION;
 sec_tmp_dir: SecTmpDir STRING;
 sec_data_dir: SecDataDir STRING;
 sec_cookie_format: SecCookieFormat INT;
