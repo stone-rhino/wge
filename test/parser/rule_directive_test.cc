@@ -16,6 +16,9 @@ namespace SrSecurity {
 namespace Parser {
 class RuleTest : public testing::Test {
 public:
+  RuleTest() : engine_(Engine::singleton()) {}
+
+public:
   const std::vector<std::unique_ptr<Variable::VariableBase>>&
   getRuleVariablePool(Rule& rule) const {
     return rule.variables();

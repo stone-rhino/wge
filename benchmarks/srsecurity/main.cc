@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Load rules
-  SrSecurity::Engine engine;
+  SrSecurity::Engine& engine = SrSecurity::Engine::singleton();
   std::expected<bool, std::string> result;
   std::vector<std::string> rule_files = {
       "test/test_data/waf-conf/base/engin-setup.conf",

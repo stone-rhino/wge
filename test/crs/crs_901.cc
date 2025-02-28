@@ -12,6 +12,9 @@
 namespace SrSecurity {
 class CrsTest : public testing::Test {
 public:
+  CrsTest() : engine_(SrSecurity::Engine::singleton()) {}
+
+public:
   static std::unordered_map<uint64_t, std::function<void(const SrSecurity::Rule&)>> rule_tests_;
 
 protected:

@@ -7,6 +7,9 @@
 namespace SrSecurity {
 class IntegrationTest : public testing::Test {
 public:
+  IntegrationTest() : engine_(Engine::singleton()) {}
+
+public:
   void SetUp() override {
     auto result = engine_.loadFromFile(
         "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
