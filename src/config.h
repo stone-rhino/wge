@@ -97,6 +97,10 @@ struct EngineConfig {
   // map Unicode code points during normalization and specifies the Code Point to use.
   std::string unicode_map_file_;
   uint32_t unicode_code_point_{20127};
+
+  // SecPcreMatchLimit
+  // Sets the PCRE match limit for executions of the @rx and @rxGlobal operators.
+  uint32_t pcre_match_limit_{0};
 };
 
 /**

@@ -76,6 +76,7 @@ SecGeoLookupDb: 'SecGeoLookupDb';
 SecHttpBlKey: 'SecHttpBlKey';
 SecMarker: 'SecMarker' -> pushMode(ModeAuditLogString);
 SecPcreMatchLimit: 'SecPcreMatchLimit';
+SecPcreMatchLimitRecursion: 'SecPcreMatchLimitRecursion';
 SecRemoteRules: 'SecRemoteRules';
 SecRemoteRulesFailAction: 'SecRemoteRulesFailAction';
 SecRequestBodyAccess: 'SecRequestBodyAccess';

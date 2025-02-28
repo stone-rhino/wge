@@ -275,5 +275,18 @@ TEST_F(EngineConfigTest, UnicodeMapFile) {
   EXPECT_EQ(engine_config.unicode_map_file_, "/aaa/bbb");
   EXPECT_EQ(engine_config.unicode_code_point_, 123456);
 }
+
+TEST_F(EngineConfigTest, PcreMatchLimit) {
+  const std::string directive = R"(# Test engine config
+  SecPcreMatchLimit 1024
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  EXPECT_EQ(engine_config.pcre_match_limit_, 1024);
+}
 } // namespace Parsr
 } // namespace SrSecurity

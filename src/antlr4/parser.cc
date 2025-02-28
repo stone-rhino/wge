@@ -197,6 +197,8 @@ void Parser::secUnicodeMapFile(std::string&& file_path, uint32_t code_point) {
   engine_config_.unicode_code_point_ = code_point;
 }
 
+void Parser::secPcreMatchLimit(uint32_t limit) { engine_config_.pcre_match_limit_ = limit; }
+
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
   rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());

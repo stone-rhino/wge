@@ -184,6 +184,19 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
   return EMPTY_STRING;
 }
 
+std::any
+Visitor::visitSec_pcre_match_limit(Antlr4Gen::SecLangParser::Sec_pcre_match_limitContext* ctx) {
+  parser_->secPcreMatchLimit(::atol(ctx->INT()->getText().c_str()));
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_pcre_match_limit_recursion(
+    Antlr4Gen::SecLangParser::Sec_pcre_match_limit_recursionContext* ctx) {
+  // Not supported in v3
+  SRSECURITY_LOG_WARN("SecCookieFormat is not supported yet.");
+  return EMPTY_STRING;
+}
+
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
   // Get line number
   int line = ctx->getStart()->getLine();
