@@ -132,7 +132,11 @@ OCTAL: '0' [0-9]+ -> popMode;
 mode ModeAuditLogString;
 ModeAuditLogString_WS: WS -> skip;
 ModeAuditLogString_QUOTE: QUOTE -> type(QUOTE);
-ModeAuditLogString_STRING: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING), popMode;
+ModeAuditLogString_STRING: (('\\"') | ~([" ])) (
+		('\\"')
+		| ('\\' '\r'? '\n')
+		| ~["\r\n]
+	)* -> type(STRING), popMode;
 
 mode ModeResponseBodyMimeType;
 ModeResponseBodyMimeType_WS: WS -> skip;

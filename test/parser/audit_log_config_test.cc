@@ -32,19 +32,21 @@ TEST_F(AuditLogConfigTest, AuditEngine) {
 TEST_F(AuditLogConfigTest, AuditLog) {
   Antlr4::Parser parser;
 
-  std::string directive = R"(SecAuditLog /root/foo/bar.log)";
+  std::string directive = R"(SecAuditLog /root/foo/bar1.log
+  SecAuditLog /root/foo/bar2.log)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().log_path_, "/root/foo/bar.log");
+  EXPECT_EQ(parser.auditLogConfig().log_path_, "/root/foo/bar2.log");
 }
 
 TEST_F(AuditLogConfigTest, AuditLog2) {
   Antlr4::Parser parser;
 
-  std::string directive = R"(SecAuditLog2 /root/foo/bar.log)";
+  std::string directive = R"(SecAuditLog2 /root/foo/bar1.log
+  SecAuditLog2 /root/foo/bar2.log)";
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.auditLogConfig().log_path2_, "/root/foo/bar.log");
+  EXPECT_EQ(parser.auditLogConfig().log_path2_, "/root/foo/bar2.log");
 }
 
 TEST_F(AuditLogConfigTest, AuditLogDirMode) {
