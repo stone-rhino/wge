@@ -11,7 +11,7 @@
 namespace SrSecurity {
 const Transaction::RandomInitHelper Transaction::random_init_helper_;
 
-Transaction::Transaction(const Engine& engin) : engin_(engin) {
+Transaction::Transaction(const Engine& engin) : engine_(engin) {
   initUniqueId();
   tx_.reserve(100);
 }
@@ -132,12 +132,12 @@ void Transaction::removeRule(
     // the rules that need to be removed.
     auto& rule_remove_flag = rule_remove_flags_[phase - 1];
     if (rule_remove_flag.empty()) [[unlikely]] {
-      rule_remove_flag.resize(engin_.rules(phase).size());
+      rule_remove_flag.resize(engine_.rules(phase).size());
     }
 
     // We record the current rule index, make sure that the rules that have been evaluated will not
     // be removed. As above, it makes no sense to remove the rules that have been evaluated.
-    auto& rules = engin_.rules(phase);
+    auto& rules = engine_.rules(phase);
     auto begin = rules.begin();
     if (phase == current_phase_) {
       begin += current_rule_index_ + 1;
@@ -168,8 +168,12 @@ void Transaction::initUniqueId() {
 }
 
 inline void Transaction::process(int phase) {
+  if (engine_.config().is_rule_engine_ == EngineConfig::Option::Off) [[unlikely]] {
+    return;
+  }
+
   // Get the rules in the given phase
-  auto& rules = engin_.rules(phase);
+  auto& rules = engine_.rules(phase);
 
   // Traverse the rules and evaluate them
   auto begin = rules.begin();
@@ -194,7 +198,7 @@ inline void Transaction::process(int phase) {
 
     // Log the matched rule
     if (log_callback_) [[likely]] {
-      const SrSecurity::Rule* default_action = engin_.defaultActions(rule->phase());
+      const SrSecurity::Rule* default_action = engine_.defaultActions(rule->phase());
       if (default_action) {
         if (rule->log().value_or(default_action->log().value_or(false))) {
           log_callback_(*rule);
@@ -214,7 +218,7 @@ inline void Transaction::process(int phase) {
     }
     const std::string& skip_after = rule->skipAfter();
     if (!skip_after.empty()) [[unlikely]] {
-      auto next_rule_iter = engin_.marker(skip_after, rule->phase());
+      auto next_rule_iter = engine_.marker(skip_after, rule->phase());
       if (next_rule_iter.has_value()) [[likely]] {
         iter = next_rule_iter.value();
         continue;

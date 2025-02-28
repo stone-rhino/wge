@@ -164,7 +164,7 @@ public:
    * Get the engine.
    * @return the engine.
    */
-  const Engine& getEngine() const { return engin_; }
+  const Engine& getEngine() const { return engine_; }
 
   /**
    * Remove the rule.
@@ -205,7 +205,7 @@ private:
 private:
   std::string unique_id_;
   HttpExtractor extractor_;
-  const Engine& engin_;
+  const Engine& engine_;
   std::unordered_map<std::string, Common::Variant> tx_;
   std::array<std::string_view, 100> matched_;
   static const RandomInitHelper random_init_helper_;
