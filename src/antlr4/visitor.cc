@@ -193,7 +193,14 @@ Visitor::visitSec_pcre_match_limit(Antlr4Gen::SecLangParser::Sec_pcre_match_limi
 std::any Visitor::visitSec_pcre_match_limit_recursion(
     Antlr4Gen::SecLangParser::Sec_pcre_match_limit_recursionContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecCookieFormat is not supported yet.");
+  SRSECURITY_LOG_WARN("SecPcreMatchLimitRecursion is not supported yet.");
+  return EMPTY_STRING;
+}
+
+std::any
+Visitor::visitSec_collection_timeout(Antlr4Gen::SecLangParser::Sec_collection_timeoutContext* ctx) {
+  // Not supported in v3
+  SRSECURITY_LOG_WARN("SecCollectionTimeout is not supported yet.");
   return EMPTY_STRING;
 }
 
