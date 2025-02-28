@@ -1018,8 +1018,7 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
 
       (*current_rule_iter_)->msg(multi_macro);
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     (*current_rule_iter_)->msg(ctx->action_meta_data_msg_value()->STRING().front()->getText());
@@ -1161,8 +1160,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
       }
 
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     std::string value_string =
@@ -1201,8 +1199,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
       actions.emplace_back(std::make_unique<Action::SetVar>(
           ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Increase));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
@@ -1224,8 +1221,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
       actions.emplace_back(std::make_unique<Action::SetVar>(
           ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Decrease));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
@@ -1275,80 +1271,95 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_strict_error
 std::any Visitor::visitAction_non_disruptive_setvar_macro_reqbody_processor_error(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_processor_errorContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::ReqbodyProcessorError);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_boundary_quoted(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_boundary_quotedContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::BoundaryQuoted);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_boundary_whitespace(
     Antlr4Gen::SecLangParser::
         Action_non_disruptive_setvar_macro_multipart_boundary_whitespaceContext* ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::BoundaryWhitespace);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_data_before(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_beforeContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataBefore);
+  std::shared_ptr<Macro::MacroBase> macro =
+      std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataBefore);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_data_after(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_afterContext* ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataAfter);
+  std::shared_ptr<Macro::MacroBase> macro =
+      std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::DataAfter);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_header_folding(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_header_foldingContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
-      MultipartStrictError::ErrorType::HeaderFolding);
+  std::shared_ptr<Macro::MacroBase> macro =
+      std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::HeaderFolding);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_lf_line(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_lf_lineContext* ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::LfLine);
+  std::shared_ptr<Macro::MacroBase> macro =
+      std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::LfLine);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_missing_semicolon(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_missing_semicolonContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::MissingSemicolon);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_quoting(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_quotingContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::InvalidQuoting);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_part(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_partContext*
         ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
-      MultipartStrictError::ErrorType::InvalidPart);
+  std::shared_ptr<Macro::MacroBase> macro =
+      std::make_shared<Macro::MultipartStrictError>(MultipartStrictError::ErrorType::InvalidPart);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_invalid_header_folding(
     Antlr4Gen::SecLangParser::
         Action_non_disruptive_setvar_macro_multipart_invalid_header_foldingContext* ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::InvalidHeaderFolding);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_multipart_file_limit_exceeded(
     Antlr4Gen::SecLangParser::
         Action_non_disruptive_setvar_macro_multipart_file_limit_exceededContext* ctx) {
-  return std::make_shared<Macro::MultipartStrictError>(
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::MultipartStrictError>(
       MultipartStrictError::ErrorType::FileLimitExceeded);
+  return macro;
 }
 
 std::any Visitor::visitAction_non_disruptive_setvar_macro_rule(
@@ -1372,8 +1383,7 @@ std::any Visitor::visitAction_non_disruptive_setenv(
           std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
       actions.emplace_back(std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), macro));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     actions.emplace_back(
@@ -1394,8 +1404,7 @@ std::any Visitor::visitAction_non_disruptive_setuid(
           std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
       actions.emplace_back(std::make_unique<Action::SetUid>(macro));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     actions.emplace_back(std::make_unique<Action::SetUid>(ctx->STRING()->getText()));
@@ -1415,8 +1424,7 @@ std::any Visitor::visitAction_non_disruptive_setrsc(
           std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
       actions.emplace_back(std::make_unique<Action::SetRsc>(macro));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     actions.emplace_back(std::make_unique<Action::SetRsc>(ctx->STRING()->getText()));
@@ -1436,8 +1444,7 @@ std::any Visitor::visitAction_non_disruptive_setsid(
           std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
       actions.emplace_back(std::make_unique<Action::SetSid>(macro));
     } catch (const std::bad_any_cast& ex) {
-      return std::format("Expect a macro object, but not. return: {}",
-                         std::any_cast<std::string>(visit_result));
+      RETURN_ERROR("Expect a macro object, but not.");
     }
   } else {
     actions.emplace_back(std::make_unique<Action::SetSid>(ctx->STRING()->getText()));
