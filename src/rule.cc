@@ -9,6 +9,7 @@
 
 namespace SrSecurity {
 thread_local std::string Rule::msg_macro_result_;
+thread_local std::string Rule::log_data_macro_result_;
 bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   bool matched = false;
 

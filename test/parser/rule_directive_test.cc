@@ -87,82 +87,6 @@ TEST_F(RuleTest, Rule) {
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
-TEST_F(RuleTest, RuleIdWithString) {
-  {
-    const std::string rule_directive =
-        R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'123abc',tag:'foo',msg:'bar'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
-
-    // id must be a number
-    ASSERT_FALSE(result.has_value());
-  }
-
-  const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'1',tag:'foo',msg:'bar'")";
-
-  Antlr4::Parser parser;
-  auto result = parser.load(rule_directive);
-  ASSERT_TRUE(result.has_value());
-
-  // Variables pool
-  EXPECT_EQ(parser.rules().size(), 1);
-  auto& rule_var_pool = getRuleVariablePool(*parser.rules().back());
-  ASSERT_EQ(rule_var_pool.size(), 4);
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
-  EXPECT_EQ(rule_var_pool[0]->subName(), "");
-  EXPECT_FALSE(rule_var_pool[0]->isCounter());
-  EXPECT_FALSE(rule_var_pool[0]->isNot());
-
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsPost*>(rule_var_pool[1].get()));
-  EXPECT_EQ(rule_var_pool[1]->subName(), "foo");
-  EXPECT_FALSE(rule_var_pool[1]->isCounter());
-  EXPECT_FALSE(rule_var_pool[1]->isNot());
-
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
-  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
-  EXPECT_FALSE(rule_var_pool[2]->isCounter());
-  EXPECT_TRUE(rule_var_pool[2]->isNot());
-
-  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
-  EXPECT_EQ(rule_var_pool[3]->subName(), "");
-  EXPECT_TRUE(rule_var_pool[3]->isCounter());
-  EXPECT_FALSE(rule_var_pool[3]->isNot());
-
-  // variables map
-  auto& rule_var_index = getRuleVariableIndex(*parser.rules().back());
-  {
-    auto iter = rule_var_index.find({"ARGS_GET", ""});
-    ASSERT_TRUE(iter != rule_var_index.end());
-    EXPECT_EQ(&iter->second, rule_var_pool[0].get());
-  }
-  {
-    auto iter = rule_var_index.find({"ARGS_POST", "foo"});
-    ASSERT_TRUE(iter != rule_var_index.end());
-    EXPECT_EQ(&iter->second, rule_var_pool[1].get());
-  }
-
-  // operator
-  auto& rule_operator = getRuleOperator(*parser.rules().back());
-  EXPECT_EQ(rule_operator->name(), std::string("rx"));
-  EXPECT_EQ(rule_operator->literalValue(), "bar");
-}
-
-TEST_F(RuleTest, RuleMsgWithMacro) {
-  const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'111',tag:'foo',msg:'foo: %{tx.foo} bar: %{tx.bar}'")";
-  Antlr4::Parser parser;
-  auto result = parser.load(rule_directive);
-
-  ASSERT_TRUE(result.has_value());
-
-  // If the msg contains macro, even the rule was not evaluated, the
-  // msg() may also be not empty. Because the msg() return a reference
-  // of the msg_macro_result_, which is a thread_local variable. That means the other rules that
-  // havebeen evaluated may change the value of msg_macro_result_.
-  // EXPECT_TRUE(parser.rules().back()->msg().empty());
-}
-
 TEST_F(RuleTest, RuleRemoveById) {
   const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1'"
   SecRule ARGS "bar" "id:2,tag:'tag2',tag:'tag3',msg:'msg2'"
@@ -1175,5 +1099,103 @@ TEST_F(RuleTest, ActionServerity) {
   }
 }
 
+TEST_F(RuleTest, ActionIdWithString) {
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'123abc',tag:'foo',msg:'bar'")";
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+
+    // id must be a number
+    ASSERT_FALSE(result.has_value());
+  }
+
+  const std::string rule_directive =
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'1',tag:'foo',msg:'bar'")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  // Variables pool
+  EXPECT_EQ(parser.rules().size(), 1);
+  auto& rule_var_pool = getRuleVariablePool(*parser.rules().back());
+  ASSERT_EQ(rule_var_pool.size(), 4);
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
+  EXPECT_EQ(rule_var_pool[0]->subName(), "");
+  EXPECT_FALSE(rule_var_pool[0]->isCounter());
+  EXPECT_FALSE(rule_var_pool[0]->isNot());
+
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsPost*>(rule_var_pool[1].get()));
+  EXPECT_EQ(rule_var_pool[1]->subName(), "foo");
+  EXPECT_FALSE(rule_var_pool[1]->isCounter());
+  EXPECT_FALSE(rule_var_pool[1]->isNot());
+
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
+  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
+  EXPECT_FALSE(rule_var_pool[2]->isCounter());
+  EXPECT_TRUE(rule_var_pool[2]->isNot());
+
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
+  EXPECT_EQ(rule_var_pool[3]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[3]->isCounter());
+  EXPECT_FALSE(rule_var_pool[3]->isNot());
+
+  // variables map
+  auto& rule_var_index = getRuleVariableIndex(*parser.rules().back());
+  {
+    auto iter = rule_var_index.find({"ARGS_GET", ""});
+    ASSERT_TRUE(iter != rule_var_index.end());
+    EXPECT_EQ(&iter->second, rule_var_pool[0].get());
+  }
+  {
+    auto iter = rule_var_index.find({"ARGS_POST", "foo"});
+    ASSERT_TRUE(iter != rule_var_index.end());
+    EXPECT_EQ(&iter->second, rule_var_pool[1].get());
+  }
+
+  // operator
+  auto& rule_operator = getRuleOperator(*parser.rules().back());
+  EXPECT_EQ(rule_operator->name(), std::string("rx"));
+  EXPECT_EQ(rule_operator->literalValue(), "bar");
+}
+
+TEST_F(RuleTest, ActionMsgWithMacro) {
+  const std::string rule_directive =
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'111',tag:'foo',msg:'foo: %{tx.foo} bar: %{tx.bar}'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+
+  ASSERT_TRUE(result.has_value());
+
+  // If the msg contains macro, even the rule was not evaluated, the
+  // msg() may also be not empty. Because the msg() return a reference
+  // of the msg_macro_result_, which is a thread_local variable. That means the other rules that
+  // havebeen evaluated may change the value of msg_macro_result_.
+  // EXPECT_TRUE(parser.rules().back()->msg().empty());
+}
+
+TEST_F(RuleTest, ActionLogData) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,logdata:'this is logdata',msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules().back()->logdata(), "this is logdata");
+}
+
+TEST_F(RuleTest, ActionLogDataWithMacro) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,logdata:'foo: %{tx.foo} bar: %{tx.bar}',msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  // If the logdata contains macro, even the rule was not evaluated, the
+  // logdata() may also be not empty. Because the logdata() return a reference
+  // of the log_data_macro_result_, which is a thread_local variable. That means the other rules that
+  // havebeen evaluated may change the value of log_data_macro_result_.
+  // EXPECT_TRUE(parser.rules().back()->logdata().empty());
+}
 } // namespace Parser
 } // namespace SrSecurity

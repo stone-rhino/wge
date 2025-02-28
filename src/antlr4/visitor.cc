@@ -1422,6 +1422,12 @@ std::any Visitor::visitAction_non_disruptive_setvar_macro_session(
   RETURN_ERROR("Not implemented!");
 }
 
+std::any Visitor::visitAction_non_disruptive_setvar_macro_reqbody_error_msg(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_error_msgContext* ctx) {
+  std::shared_ptr<Macro::MacroBase> macro = std::make_shared<Macro::ReqbodyErrorMsg>();
+  return macro;
+}
+
 std::any Visitor::visitAction_non_disruptive_setenv(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
@@ -1976,6 +1982,32 @@ std::any Visitor::visitAction_non_disruptive_no_audit_log(
 std::any Visitor::visitAction_non_disruptive_no_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) {
   (*current_rule_iter_)->log(false);
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitAction_non_disruptive_logdata(
+    Antlr4Gen::SecLangParser::Action_non_disruptive_logdataContext* ctx) {
+  auto macro_ctx_array = ctx->action_meta_data_msg_value()->action_non_disruptive_setvar_macro();
+  if (!macro_ctx_array.empty()) {
+    std::any visit_result;
+    try {
+      std::vector<std::shared_ptr<Macro::MacroBase>> macros;
+      for (auto& macro_ctx : macro_ctx_array) {
+        visit_result = visitChildren(macro_ctx);
+        macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
+      }
+
+      std::shared_ptr<Macro::MultiMacro> multi_macro = std::make_shared<Macro::MultiMacro>(
+          ctx->action_meta_data_msg_value()->getText(), std::move(macros));
+
+      (*current_rule_iter_)->logData(multi_macro);
+    } catch (const std::bad_any_cast& ex) {
+      RETURN_ERROR("Expect a macro object, but not.");
+    }
+  } else {
+    (*current_rule_iter_)->logData(ctx->action_meta_data_msg_value()->STRING().front()->getText());
+  }
+
   return EMPTY_STRING;
 }
 

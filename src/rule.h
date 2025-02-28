@@ -83,6 +83,11 @@ public:
   void auditLog(bool value) { audit_log_ = value; }
   std::optional<bool> log() const { return log_; }
   void log(bool value) { log_ = value; };
+  const std::string& logdata() const {
+    return log_data_macro_ ? log_data_macro_result_ : log_data_;
+  }
+  void logData(std::string&& value) { log_data_ = std::move(value); }
+  void logData(std::shared_ptr<Macro::MacroBase> macro) { log_data_macro_ = macro; }
   std::optional<bool> capture() const { return capture_; }
   void capture(bool value) { capture_ = value; }
   std::optional<bool> multiMatch() const { return multi_match_; }
@@ -208,6 +213,13 @@ private:
   std::string expire_var_;
   std::string init_col_;
   std::string log_data_;
+  std::shared_ptr<Macro::MacroBase> log_data_macro_;
+
+  // The result of the macro expansion
+  // All threads share the same rule object, so we need to use thread_local to
+  // avoid
+  static thread_local std::string log_data_macro_result_;
+
   std::optional<bool> audit_log_;
   std::optional<bool> log_;
   std::optional<bool> capture_;
