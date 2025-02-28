@@ -93,12 +93,16 @@ public:
   TransactionPtr makeTransaction() const;
 
   /**
-   * Get the parser
-   * @return reference of parser
-   * FIXME(zhouyu, 2025-02-27): The parser should be private, and provide some method wrapper to
-   * access the parser.
+   * Get the engine configuration
+   * @return reference of engine configuration
    */
-  const Antlr4::Parser& parser() const { return *parser_; }
+  const EngineConfig& config() const;
+
+  /**
+   * Get the audit log configuration
+   * @return reference of audit log configuration
+   */
+  const AuditLogConfig& auditLogConfig() const;
 
   /**
    * Find the rule by id

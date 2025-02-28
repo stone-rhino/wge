@@ -33,15 +33,21 @@ TEST_F(CrsTest, crs901) {
 
   engine_.init();
 
-  EXPECT_EQ(engine_.parser().auditLogConfig().component_signature_, "OWASP_CRS/4.3.0-dev");
+  EXPECT_EQ(engine_.auditLogConfig().component_signature_, "OWASP_CRS/4.3.0-dev");
 
-  auto& rules = engine_.parser().rules();
-  EXPECT_EQ(rules.size(), 29);
+  size_t rule_total = 0;
+  for (size_t i = 0; i < PHASE_TOTAL; i++) {
+    rule_total += engine_.rules(i + 1).size();
+  }
+  EXPECT_EQ(rule_total, 29);
 
-  for (auto& rule : rules) {
-    auto iter = rule_tests_.find(rule->id());
-    if (iter != rule_tests_.end()) {
-      iter->second(*rule);
+  for (size_t i = 1; i <= PHASE_TOTAL; i++) {
+    auto& rules = engine_.rules(i);
+    for (auto& rule : rules) {
+      auto iter = rule_tests_.find(rule->id());
+      if (iter != rule_tests_.end()) {
+        iter->second(*rule);
+      }
     }
   }
 }

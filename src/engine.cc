@@ -54,6 +54,10 @@ TransactionPtr Engine::makeTransaction() const {
   return std::unique_ptr<Transaction>(new Transaction(*this));
 }
 
+const EngineConfig& Engine::config() const { return parser_->engineConfig(); }
+
+const AuditLogConfig& Engine::auditLogConfig() const { return parser_->auditLogConfig(); }
+
 const Rule* Engine::findRuleById(uint64_t id) const {
   // An efficient and rational design should not call this method in the worker thread.
   // This assert check that this method can only be called in the main thread
