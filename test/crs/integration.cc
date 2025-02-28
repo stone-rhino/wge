@@ -7,7 +7,7 @@
 namespace SrSecurity {
 class IntegrationTest : public testing::Test {
 public:
-  IntegrationTest() : engine_(Engine::singleton()) {}
+  IntegrationTest() : engine_(Engine::singleton(spdlog::level::trace)) {}
 
 public:
   void SetUp() override {
@@ -18,7 +18,7 @@ public:
       std::cout << result.error() << std::endl;
     }
 
-    engine_.init(spdlog::level::trace);
+    engine_.init();
 
     conn_extractor_ = [&](std::string_view& downstream_ip, short& downstream_port,
                           std::string_view& upstream_ip, short& upstream_port) {

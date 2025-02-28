@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Load rules
-  SrSecurity::Engine& engine = SrSecurity::Engine::singleton();
+  SrSecurity::Engine& engine = SrSecurity::Engine::singleton(spdlog::level::info);
   std::expected<bool, std::string> result;
   std::vector<std::string> rule_files = {
       "test/test_data/waf-conf/base/engin-setup.conf",
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  engine.init(spdlog::level::off);
+  engine.init();
 
   // Start benchmark
   std::vector<std::thread> threads;
