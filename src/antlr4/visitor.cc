@@ -151,6 +151,12 @@ Visitor::visitSec_argument_separator(Antlr4Gen::SecLangParser::Sec_argument_sepa
   return EMPTY_STRING;
 }
 
+std::any
+Visitor::visitSec_unicode_map_file(Antlr4Gen::SecLangParser::Sec_unicode_map_fileContext* ctx) {
+  parser_->secUnicodeMapFile(ctx->STRING()->getText(), ::atoi(ctx->INT()->getText().c_str()));
+  return EMPTY_STRING;
+}
+
 std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) {
   // Get line number
   int line = ctx->getStart()->getLine();

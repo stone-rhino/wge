@@ -53,6 +53,7 @@ public:
   void secResponseBodyLimitAction(EngineConfig::BodyLimitAction action);
   void secArgumentsLimit(uint32_t limit_bytes);
   void secArgumentSeparator(char separator);
+  void secUnicodeMapFile(std::string&& file_path, uint32_t code_point);
 
   // Engine action
   std::list<std::unique_ptr<Rule>>::iterator secAction(int line);

@@ -74,6 +74,9 @@ public:
   std::any visitSec_argument_separator(
       Antlr4Gen::SecLangParser::Sec_argument_separatorContext* ctx) override;
 
+  std::any
+  visitSec_unicode_map_file(Antlr4Gen::SecLangParser::Sec_unicode_map_fileContext* ctx) override;
+
   // Engine action
 public:
   std::any visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) override;

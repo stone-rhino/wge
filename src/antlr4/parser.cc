@@ -192,6 +192,11 @@ void Parser::secArgumentSeparator(char separator) {
   engine_config_.argument_separator_ = separator;
 }
 
+void Parser::secUnicodeMapFile(std::string&& file_path, uint32_t code_point) {
+  engine_config_.unicode_map_file_ = std::move(file_path);
+  engine_config_.unicode_code_point_ = code_point;
+}
+
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
   rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
   return std::prev(rules_.end());

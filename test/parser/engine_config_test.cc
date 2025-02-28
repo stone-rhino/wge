@@ -261,5 +261,19 @@ TEST_F(EngineConfigTest, ArgumentSeparator) {
   const auto& engine_config = parser.engineConfig();
   EXPECT_EQ(engine_config.argument_separator_, '!');
 }
+
+TEST_F(EngineConfigTest, UnicodeMapFile) {
+  const std::string directive = R"(# Test engine config
+  SecUnicodeMapFile /aaa/bbb 123456
+  )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  const auto& engine_config = parser.engineConfig();
+  EXPECT_EQ(engine_config.unicode_map_file_, "/aaa/bbb");
+  EXPECT_EQ(engine_config.unicode_code_point_, 123456);
+}
 } // namespace Parsr
 } // namespace SrSecurity

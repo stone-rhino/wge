@@ -91,6 +91,12 @@ struct EngineConfig {
   // Specifies which character to use as the separator for application/x-www-form-urlencoded
   // content. Default: &
   char argument_separator_{'&'};
+
+  // SecUnicodeMapFile
+  // Defines the path to the file that will be used by the urlDecodeUni transformation function to
+  // map Unicode code points during normalization and specifies the Code Point to use.
+  std::string unicode_map_file_;
+  uint32_t unicode_code_point_{20127};
 };
 
 /**

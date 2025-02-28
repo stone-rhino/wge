@@ -108,7 +108,8 @@ SecRuleUpdateTargetByTag:
 SecRule: 'SecRule' -> pushMode(ModeSecRule);
 SecTmpDir: 'SecTmpDir' -> pushMode(ModeAuditLogString);
 SecTmpSaveUploadedFiles: 'SecTmpSaveUploadedFiles';
-SecUnicodeMapFile: 'SecUnicodeMapFile';
+SecUnicodeMapFile:
+	'SecUnicodeMapFile' -> pushMode(ModeAuditLogString);
 SecUploadDir: 'SecUploadDir';
 SecUploadFileLimit: 'SecUploadFileLimit';
 SecUploadFileMode: 'SecUploadFileMode';
@@ -137,7 +138,7 @@ ModeAuditLogString_QUOTE: QUOTE -> type(QUOTE);
 ModeAuditLogString_STRING: (('\\"') | ~([" ])) (
 		('\\"')
 		| ('\\' '\r'? '\n')
-		| ~["\r\n]
+		| ~["\r\n ]
 	)* -> type(STRING), popMode;
 
 mode ModeResponseBodyMimeType;
