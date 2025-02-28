@@ -140,13 +140,13 @@ void Transaction::removeRule(
     auto& rules = engin_.rules(phase);
     auto begin = rules.begin();
     if (phase == current_phase_) {
-      begin += current_rule_index_;
+      begin += current_rule_index_ + 1;
     }
 
     // Traverse the rules and mark the rules that need to be removed
     for (auto iter = begin; iter != rules.end(); ++iter) {
       if (rule_set.find(*iter) != rule_set.end()) {
-        rule_remove_flag[std::distance(begin, iter)] = true;
+        rule_remove_flag[std::distance(rules.begin(), iter)] = true;
       }
     }
   }
@@ -178,7 +178,7 @@ inline void Transaction::process(int phase) {
 
     // Skip the rules that have been removed
     auto& rule_remove_flag = rule_remove_flags_[phase - 1];
-    if (!rule_remove_flag.empty() && rule_remove_flag[std::distance(begin, iter)]) [[unlikely]] {
+    if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_]) [[unlikely]] {
       ++iter;
       continue;
     }
