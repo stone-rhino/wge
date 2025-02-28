@@ -62,6 +62,12 @@ public:
   std::any visitSec_response_body_action(
       Antlr4Gen::SecLangParser::Sec_response_body_actionContext* ctx) override;
 
+  std::any visitSec_tmp_dir(Antlr4Gen::SecLangParser::Sec_tmp_dirContext* ctx) override;
+
+  std::any visitSec_data_dir(Antlr4Gen::SecLangParser::Sec_data_dirContext* ctx) override;
+
+  std::any visitSec_cookie_format(Antlr4Gen::SecLangParser::Sec_cookie_formatContext* ctx) override;
+
   std::any
   visitSec_arguments_limit(Antlr4Gen::SecLangParser::Sec_arguments_limitContext* ctx) override;
 

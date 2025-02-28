@@ -31,6 +31,7 @@ engine_config:
 	| sec_response_body_action
 	| sec_tmp_dir
 	| sec_data_dir
+	| sec_cookie_format
 	| sec_arguments_limit
 	| sec_argument_separator;
 sec_reqeust_body_access: SecRequestBodyAccess OPTION;
@@ -53,6 +54,7 @@ sec_response_body_action:
 	SecResponseBodyLimitAction BODY_LIMIT_ACTION;
 sec_tmp_dir: SecTmpDir STRING;
 sec_data_dir: SecDataDir STRING;
+sec_cookie_format: SecCookieFormat INT;
 sec_arguments_limit: SecArgumentsLimit INT;
 sec_argument_separator: SecArgumentSeparator STRING;
 

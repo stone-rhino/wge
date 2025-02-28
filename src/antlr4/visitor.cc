@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "../action/actions_include.h"
+#include "../common/log.h"
 #include "../common/try.h"
 #include "../common/variant.h"
 #include "../macro/macro_include.h"
@@ -120,6 +121,21 @@ std::any Visitor::visitSec_response_body_action(
     Antlr4Gen::SecLangParser::Sec_response_body_actionContext* ctx) {
   parser_->secResponseBodyLimitAction(
       bodyLimitActionStr2EnumValue(ctx->BODY_LIMIT_ACTION()->getText()));
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_tmp_dir(Antlr4Gen::SecLangParser::Sec_tmp_dirContext* ctx) {
+  SRSECURITY_LOG_WARN("SecTmpDir is not supported yet.");
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_data_dir(Antlr4Gen::SecLangParser::Sec_data_dirContext* ctx) {
+  SRSECURITY_LOG_WARN("SecDataDir is not supported yet.");
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_cookie_format(Antlr4Gen::SecLangParser::Sec_cookie_formatContext* ctx) {
+  SRSECURITY_LOG_WARN("SecCookieFormat is not supported yet.");
   return EMPTY_STRING;
 }
 
