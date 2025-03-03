@@ -23,6 +23,14 @@ void logCb(void* data, const void* message) {
 void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
                  uint32_t max_test_count) {
   while (true) {
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      if (test_count >= max_test_count) {
+        break;
+      }
+      ++test_count;
+    }
+
     Request request;
     modsecurity::Transaction t(&engine, &rules_set, nullptr);
 
@@ -34,12 +42,6 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
       t.addRequestHeader(key, value);
     }
     t.processRequestHeaders();
-
-    std::lock_guard<std::mutex> lock(mutex);
-    ++test_count;
-    if (test_count >= max_test_count) {
-      break;
-    }
   }
 }
 

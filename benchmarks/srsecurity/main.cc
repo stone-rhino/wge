@@ -15,6 +15,14 @@ std::mutex mutex;
 
 void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
   while (true) {
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      if (test_count >= max_test_count) {
+        break;
+      }
+      ++test_count;
+    }
+
     Request request;
     SrSecurity::ConnectionExtractor conn_extractor =
         [&](std::string_view& downstream_ip, short& downstream_port, std::string_view& upstream_ip,
@@ -55,12 +63,6 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     t->processConnection(conn_extractor);
     t->processUri(uri_extractor);
     t->processRequestHeaders(request_header_extractor, nullptr);
-
-    std::lock_guard<std::mutex> lock(mutex);
-    ++test_count;
-    if (test_count >= max_test_count) {
-      break;
-    }
   }
 }
 
