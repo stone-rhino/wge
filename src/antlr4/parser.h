@@ -65,6 +65,7 @@ public:
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
   void secMarker(std::string&& name);
+  std::list<std::unique_ptr<Rule>>::iterator secDefaultAction(int line);
 
   // Audit log configurations
   void secAuditEngine(AuditLogConfig::AuditEngine option);
@@ -86,6 +87,7 @@ public:
   const std::list<Marker>& markers() const { return makers_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
   void removeBackRule();
+  void removeBackDefaultAction();
   void setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);

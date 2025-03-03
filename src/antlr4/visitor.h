@@ -91,6 +91,8 @@ public:
   // Engine action
 public:
   std::any visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* ctx) override;
+  std::any
+  visitSec_default_action(Antlr4Gen::SecLangParser::Sec_default_actionContext* ctx) override;
 
   // Rule directives
 public:
@@ -843,7 +845,7 @@ private:
   bool chain_{false};
   std::unordered_multimap<std::string, std::string> action_map_;
   enum class VisitVariableMode { SecRule, SecUpdateTarget, Ctl };
-  enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction };
+  enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction, SecDefaultAction };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
   VisitActionMode visit_action_mode_{VisitActionMode::SecRule};
   bool should_visit_next_child_{true};
