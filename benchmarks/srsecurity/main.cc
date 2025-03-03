@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
   std::vector<std::string> rule_files = {
       "test/test_data/waf-conf/base/engin-setup.conf",
       "test/test_data/waf-conf/base/crs-setup.conf",
-      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
   };
   for (auto& rule_file : rule_files) {
     result = engine.loadFromFile(rule_file);
