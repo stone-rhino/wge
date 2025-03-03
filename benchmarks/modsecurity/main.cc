@@ -36,10 +36,10 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
     t.processRequestHeaders();
 
     std::lock_guard<std::mutex> lock(mutex);
+    ++test_count;
     if (test_count >= max_test_count) {
       break;
     }
-    ++test_count;
   }
 }
 
