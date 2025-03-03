@@ -510,10 +510,20 @@ action_non_disruptive_setvar:
 	| action_non_disruptive_setvar_increase
 	| action_non_disruptive_setvar_decrease;
 action_non_disruptive_setvar_create:
-	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME SINGLE_QUOTE;
+	Setvar COLON (
+		(SINGLE_QUOTE TX DOT VAR_NAME SINGLE_QUOTE)
+		| (TX DOT VAR_NAME)
+	);
 action_non_disruptive_setvar_create_init:
-	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME ASSIGN action_non_disruptive_setvar_create_init_value
-		SINGLE_QUOTE;
+	Setvar COLON (
+		(
+			SINGLE_QUOTE TX DOT VAR_NAME ASSIGN action_non_disruptive_setvar_create_init_value
+				SINGLE_QUOTE
+		)
+		| (
+			TX DOT VAR_NAME ASSIGN action_non_disruptive_setvar_create_init_value
+		)
+	);
 action_non_disruptive_setvar_create_init_value: (
 		VAR_VALUE
 		| (
@@ -524,21 +534,48 @@ action_non_disruptive_setvar_create_init_value: (
 		)
 	);
 action_non_disruptive_setvar_remove:
-	Setvar COLON SINGLE_QUOTE NOT TX DOT VAR_NAME SINGLE_QUOTE;
+	Setvar COLON (
+		(SINGLE_QUOTE NOT TX DOT VAR_NAME SINGLE_QUOTE)
+		| (NOT TX DOT VAR_NAME)
+	);
 action_non_disruptive_setvar_increase:
-	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME ASSIGN PLUS (
-		VAR_VALUE
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+	Setvar COLON (
+		(
+			SINGLE_QUOTE TX DOT VAR_NAME ASSIGN PLUS (
+				VAR_VALUE
+				| (
+					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+				)
+			) SINGLE_QUOTE
 		)
-	) SINGLE_QUOTE;
+		| (
+			TX DOT VAR_NAME ASSIGN PLUS (
+				VAR_VALUE
+				| (
+					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+				)
+			)
+		)
+	);
 action_non_disruptive_setvar_decrease:
-	Setvar COLON SINGLE_QUOTE TX DOT VAR_NAME ASSIGN MINUS (
-		VAR_VALUE
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+	Setvar COLON (
+		(
+			SINGLE_QUOTE TX DOT VAR_NAME ASSIGN MINUS (
+				VAR_VALUE
+				| (
+					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+				)
+			) SINGLE_QUOTE
 		)
-	) SINGLE_QUOTE;
+		| (
+			TX DOT VAR_NAME ASSIGN MINUS (
+				VAR_VALUE
+				| (
+					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
+				)
+			)
+		)
+	);
 
 action_non_disruptive_setvar_macro:
 	action_non_disruptive_setvar_macro_tx

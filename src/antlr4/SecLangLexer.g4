@@ -407,26 +407,29 @@ mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;
 ModeSecRuleActionSetVar_COLON: COLON -> type(COLON);
 ModeSecRuleActionSetVar_SINGLE_QUOTE:
-	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleActionSetVarName);
-
-mode ModeSecRuleActionSetVarName;
+	SINGLE_QUOTE -> type(SINGLE_QUOTE);
 TX: ('t' | 'T') ('x' | 'X');
 ModeSecRuleActionSetVar_DOT: DOT -> type(DOT);
 ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
-ModeSecRuleActionSetVarName_SINGLE_QUOTE:
-	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+ModeSecRuleActionSetVar_COMMA: COMMA -> type(COMMA), popMode;
+ModeSecRuleActionSetVar_QUOTE:
+	QUOTE -> type(QUOTE), popMode, popMode;
 ModeSecRuleActionSetVarName_ASSIGN:
 	ASSIGN -> type(ASSIGN), popMode, pushMode(ModeSecRuleActionSetVarValue);
 VAR_NAME: [0-9a-zA-Z_][0-9a-zA-Z_]*;
 
 mode ModeSecRuleActionSetVarValue;
 ModeSecRuleActionSetVarValue_SINGLE_QUOTE:
-	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+	SINGLE_QUOTE -> type(SINGLE_QUOTE);
 ModeSecRuleActionSetVarValue_PLUS: PLUS -> type(PLUS);
 ModeSecRuleActionSetVarValue_MINUS: MINUS -> type(MINUS);
+ModeSecRuleActionSetVarValue_COMMA:
+	COMMA -> type(COMMA), popMode;
+ModeSecRuleActionSetVarValue_QUOTE:
+	QUOTE -> type(QUOTE), popMode, popMode;
 ModeSecRuleActionSetVarValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
-VAR_VALUE: ~[+\-%']~['%{}]*;
+VAR_VALUE: ~[+\-%'",]~[{}%'",]*;
 
 mode ModeSecRuleActionMacroExpansion;
 ModeSecRuleActionSetVar_LEFT_BRACKET:
