@@ -257,6 +257,11 @@ void Parser::secMarker(std::string&& name) {
   makers_.emplace_back(std::move(name), std::move(prev_rules));
 }
 
+std::list<std::unique_ptr<Rule>>::iterator Parser::secDefaultAction(int line) {
+  default_actions_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  return std::prev(default_actions_.end());
+}
+
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {
   audit_log_config_.audit_engine_ = option;
 }
@@ -343,6 +348,10 @@ void Parser::removeBackRule() {
 
   // remove rule
   rules_.erase(std::prev(rules_.end()));
+}
+
+void Parser::removeBackDefaultAction() {
+  default_actions_.erase(std::prev(default_actions_.end()));
 }
 
 void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {

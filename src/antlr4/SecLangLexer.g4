@@ -72,7 +72,8 @@ SecCookieFormat: 'SecCookieFormat';
 SecDataDir: 'SecDataDir' -> pushMode(ModeAuditLogString);
 SecDebugLog: 'SecDebugLog';
 SecDebugLogLevel: 'SecDebugLogLevel';
-SecDefaultAction: 'SecDefaultAction';
+SecDefaultAction:
+	'SecDefaultAction' -> pushMode(ModeSecRuleAction);
 SecGeoLookupDb: 'SecGeoLookupDb';
 SecHttpBlKey: 'SecHttpBlKey';
 SecMarker: 'SecMarker' -> pushMode(ModeAuditLogString);

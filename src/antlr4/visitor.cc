@@ -173,11 +173,32 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
   // Add an empty rule, and sets actions by visitChildren
   current_rule_iter_ = parser_->secAction(line);
 
+  // Visit actions
   visit_action_mode_ = VisitActionMode::SecAction;
   std::string error;
   TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
   if (!error.empty()) {
     parser_->removeBackRule();
+    return error;
+  }
+
+  return EMPTY_STRING;
+}
+
+std::any
+Visitor::visitSec_default_action(Antlr4Gen::SecLangParser::Sec_default_actionContext* ctx) {
+  // Get line number
+  int line = ctx->getStart()->getLine();
+
+  // Add an empty rule, and sets variable and operators and actions by visitChildren
+  current_rule_iter_ = parser_->secDefaultAction(line);
+
+  // Visit actions
+  std::string error;
+  visit_action_mode_ = VisitActionMode::SecDefaultAction;
+  TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+  if (!error.empty()) {
+    parser_->removeBackDefaultAction();
     return error;
   }
 

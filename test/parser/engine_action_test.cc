@@ -39,5 +39,24 @@ TEST_F(EngineActionTest, SecAction) {
   EXPECT_EQ(score, 100);
   EXPECT_EQ(score1, 100);
 }
+
+TEST_F(EngineActionTest, SecDefaultAction) {
+  auto t = engine_.makeTransaction();
+
+  const std::string directive =
+      R"(SecDefaultAction "phase:1,log,auditlog,pass"
+      SecDefaultAction "phase:2,log,auditlog,pass")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+  auto& rules = parser.defaultActions();
+  EXPECT_EQ(rules.size(), 2);
+  auto& rule = rules.front();
+  EXPECT_EQ(rule->phase(), 1);
+  EXPECT_TRUE(rule->log().value_or(false));
+  EXPECT_TRUE(rule->auditLog().value_or(false));
+  EXPECT_EQ(rule->disruptive(), Rule::Disruptive::PASS);
+}
 } // namespace Parsr
 } // namespace SrSecurity
