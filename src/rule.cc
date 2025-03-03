@@ -16,6 +16,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   // Check whether the rule is unconditional(SecAction)
   bool is_uncondition = operator_ == nullptr;
 
+  SRSECURITY_LOG_TRACE("------------------------------------");
   if (is_uncondition) [[unlikely]] {
     SRSECURITY_LOG_TRACE("evaluate SecAction. id: {}", id_);
     // Evaluate the actions

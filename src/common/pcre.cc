@@ -39,18 +39,12 @@ std::vector<std::pair<size_t, size_t>> Pcre::match(std::string_view subject,
                        reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
                        0, reinterpret_cast<pcre2_match_data_8*>(scratch.scratch_), nullptr);
   if (rc < 0) [[unlikely]] {
-    switch (rc) {
-    case PCRE2_ERROR_NOMATCH:
-      SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
-      break;
-    default:
-      break;
-    }
+    // No match
     return result;
   }
 
   if (rc == 0) {
-    SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
+    SRSECURITY_LOG_ERROR("Ovector was not big enough for captured substring", subject);
     return result;
   }
 
