@@ -57,10 +57,10 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     t->processRequestHeaders(request_header_extractor, nullptr);
 
     std::lock_guard<std::mutex> lock(mutex);
+    ++test_count;
     if (test_count >= max_test_count) {
       break;
     }
-    ++test_count;
   }
 }
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Load rules
-  SrSecurity::Engine& engine = SrSecurity::Engine::singleton(spdlog::level::info);
+  SrSecurity::Engine& engine = SrSecurity::Engine::singleton(spdlog::level::trace);
   std::expected<bool, std::string> result;
   std::vector<std::string> rule_files = {
       "test/test_data/waf-conf/base/engin-setup.conf",
