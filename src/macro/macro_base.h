@@ -23,17 +23,11 @@ public:
    * Evaluate the macro.
    * @param t the transaction.
    * @return the value of the macro.
-   * @note The result of the macro expansion is stored in a thread_local variable that all macro
-   * objects share. So we need to copy it to a local variable if we want to use it after the next
-   * macro object is evaluated.
+   * @note The result of the macro evaluation is stored in the transaction's evaluated buffer. In
+   * each transaction, all macros share the same evaluated buffer, so we need to copy it to a
+   * local variable if we want to use it after the next macro object is evaluated.
    */
   virtual const Common::Variant& evaluate(Transaction& t) = 0;
-
-protected:
-  // The result of the macro expansion
-  // All threads share the same rule object, that means all threads share the same macro object.
-  // So we need to use thread_local to avoid.
-  static thread_local Common::Variant evaluate_value_;
 };
 } // namespace Macro
 } // namespace SrSecurity

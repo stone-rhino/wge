@@ -8,8 +8,6 @@
 #include "engine.h"
 
 namespace SrSecurity {
-thread_local std::string Rule::msg_macro_result_;
-thread_local std::string Rule::log_data_macro_result_;
 bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
   bool matched = false;
 
@@ -116,7 +114,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
           Common::Variant& result = const_cast<Common::Variant&>(msg_macro_->evaluate(t));
           assert(IS_STRING_VARIANT(result));
           std::string& msg_macro_result = std::get<std::string>(result);
-          msg_macro_result_ = std::move(msg_macro_result);
+          t.evaluatedBuffer().msg_ = std::move(msg_macro_result);
           assert(std::get<std::string>(result).empty());
         }
 

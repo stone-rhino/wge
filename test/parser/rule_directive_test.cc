@@ -1310,11 +1310,7 @@ TEST_F(RuleTest, ActionMsgWithMacro) {
 
   ASSERT_TRUE(result.has_value());
 
-  // If the msg contains macro, even the rule was not evaluated, the
-  // msg() may also be not empty. Because the msg() return a reference
-  // of the msg_macro_result_, which is a thread_local variable. That means the other rules that
-  // havebeen evaluated may change the value of msg_macro_result_.
-  // EXPECT_TRUE(parser.rules().back()->msg().empty());
+  EXPECT_TRUE(parser.rules().back()->msg().empty());
 }
 
 TEST_F(RuleTest, ActionLogData) {
@@ -1333,11 +1329,7 @@ TEST_F(RuleTest, ActionLogDataWithMacro) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  // If the logdata contains macro, even the rule was not evaluated, the
-  // logdata() may also be not empty. Because the logdata() return a reference
-  // of the log_data_macro_result_, which is a thread_local variable. That means the other rules
-  // that havebeen evaluated may change the value of log_data_macro_result_.
-  // EXPECT_TRUE(parser.rules().back()->logdata().empty());
+  EXPECT_TRUE(parser.rules().back()->logdata().empty());
 }
 } // namespace Parser
 } // namespace SrSecurity

@@ -29,6 +29,27 @@ protected:
   Transaction(const Engine& engin);
 
 public:
+  // The evaluated buffer
+  // Each Common::Variant in the evaluated buffer is shared by variables, macros, and actions. So,
+  // we need to copy the value to a local variable if we want to use it after the next variable,
+  // macro, or action is evaluated.
+  struct EvaluatedBuffer {
+    // If the rule is evaluated, the variable evaluated result will be stored here.
+    Common::Variant variable_;
+
+    // If the rule is evaluated, the macro evaluated result will be stored here.
+    Common::Variant macro_;
+
+    // If the rule is matched, and the msg has a macro, the macro evaluated result will be stored
+    // here.
+    Common::Variant msg_;
+
+    // Same as the msg_. If the rule is matched, and the logdata has a macro, the macro evaluated
+    // result will be stored here.
+    Common::Variant log_data_;
+  };
+
+public:
   /**
    * Process the connection info.
    * @param conn_extractor the connection info extractor.
@@ -158,7 +179,7 @@ public:
    * Get the Unique ID of the transaction.
    * @return the Unique ID of the transaction.
    */
-  const std::string& getUniqueId() const { return unique_id_; }
+  const std::string_view getUniqueId() const { return unique_id_; }
 
   /**
    * Get the engine.
@@ -183,6 +204,8 @@ public:
    */
   void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
+
+  EvaluatedBuffer& evaluatedBuffer() { return evaluated_buffer_; }
 
 private:
   class RandomInitHelper {
@@ -224,6 +247,7 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
+  EvaluatedBuffer evaluated_buffer_;
 
   // ctl
 private:

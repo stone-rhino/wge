@@ -20,33 +20,35 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
-    std::string ev = variable_name_;
+    std::string eval = variable_name_;
     for (auto& macro : macros_) {
-      auto pos1 = ev.find("%{");
+      auto pos1 = eval.find("%{");
       assert(pos1 != std::string::npos);
-      if (pos1 != ev.npos) {
-        auto pos2 = ev.find('}', pos1);
+      if (pos1 != eval.npos) {
+        auto pos2 = eval.find('}', pos1);
         assert(pos2 != std::string::npos);
         auto& mv = macro->evaluate(t);
         if (IS_INT_VARIANT(mv)) {
-          ev = ev.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(mv)));
+          eval = eval.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(mv)));
         } else if (IS_STRING_VARIANT(mv)) {
-          ev = ev.replace(pos1, pos2 - pos1 + 1, std::get<std::string>(mv));
+          eval = eval.replace(pos1, pos2 - pos1 + 1, std::get<std::string>(mv));
         } else if (IS_STRING_VIEW_VARIANT(mv)) {
           auto& sv = std::get<std::string_view>(mv);
-          ev = ev.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
+          eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
         } else [[unlikely]] {
           UNREACHABLE();
-          ev = ev.replace(pos1, pos2 - pos1 + 1, "");
+          eval = eval.replace(pos1, pos2 - pos1 + 1, "");
         }
       }
     }
-    evaluate_value_ = ev;
+    auto& buffer = t.evaluatedBuffer().macro_;
+    buffer = std::move(eval);
+    assert(eval.empty());
 
     SRSECURITY_LOG_TRACE("macro {} expanded: {}", variable_name_,
-                         VISTIT_VARIANT_AS_STRING(evaluate_value_));
+                         VISTIT_VARIANT_AS_STRING(buffer));
 
-    return evaluate_value_;
+    return buffer;
   }
 
 private:

@@ -16,17 +16,18 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
-
+    auto& buffer = t.evaluatedBuffer().macro_;
     if (matched_index_ == 0xffffffff) {
       SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
                            VISTIT_VARIANT_AS_STRING(t.getVariable(variable_name_)));
-      return t.getVariable(variable_name_);
+      buffer = t.getVariable(variable_name_);
     } else {
       SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
                            *t.getMatched(matched_index_));
-      evaluate_value_ = *t.getMatched(matched_index_);
-      return evaluate_value_;
+      buffer = *t.getMatched(matched_index_);
     }
+
+    return buffer;
   }
 
 private:

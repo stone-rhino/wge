@@ -6,7 +6,7 @@ namespace SrSecurity {
 namespace Macro {
 class MatchedVar : public MacroBase {
 public:
-  const Common::Variant& evaluate(Transaction& t) {
+  const Common::Variant& evaluate(Transaction& t) override {
     UNREACHABLE();
     throw "Not implemented!";
   }

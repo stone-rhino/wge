@@ -19,11 +19,13 @@ public:
   const Common::Variant& evaluate(Transaction& t) const override {
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
+    auto& buffer = t.evaluatedBuffer().variable_;
     if (iter != body_processor_type_map_.end()) {
-      variant_value_ = iter->second;
-      return variant_value_;
+      buffer = iter->second;
+    } else {
+      buffer = EMPTY_VARIANT;
     }
-    return EMPTY_VARIANT;
+    return buffer;
   };
 
 private:

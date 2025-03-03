@@ -18,8 +18,9 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) const override {
-    variant_value_ = t.getUniqueId();
-    return variant_value_;
+    auto& buffer = t.evaluatedBuffer().variable_;
+    buffer = t.getUniqueId();
+    return buffer;
   };
 };
 } // namespace Variable

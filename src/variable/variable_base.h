@@ -68,9 +68,9 @@ public:
    * Evaluate the variable.
    * @param t the transaction.
    * @return the value of the variable.
-   * @note The result of the variable evaluation is stored in a thread_local variable that all
-   * variable objects share. So we need to copy it to a local variable if we want to use it after
-   * the next variable object is evaluated.
+   * @note The result of the variable evaluation is stored in the transaction's evaluated buffer. In
+   * each transaction, all variables share the same evaluated buffer, so we need to copy it to a
+   * local variable if we want to use it after the next variable object is evaluated.
    */
   virtual const Common::Variant& evaluate(Transaction& t) const = 0;
 
@@ -109,11 +109,6 @@ protected:
   std::string sub_name_;
   bool is_not_;
   bool is_counter_;
-
-  // The result of the variable evaluation
-  // All threads share the same rule object, that means all threads share the same variable object.
-  // So we need to use thread_local to avoid.
-  static thread_local Common::Variant variant_value_;
 };
 } // namespace Variable
 } // namespace SrSecurity

@@ -60,10 +60,7 @@ public:
   void phase(int value) { phase_ = value; }
   const Severity severity() const { return severity_; }
   void severity(Severity value) { severity_ = value; }
-  // Note: If the msg is a macro, then the msg() return a reference to the thread_local variable
-  // that all rule objects share. So we need to copy it to a local variable if we want to use it
-  // after the next rule object is evaluated.
-  const std::string& msg() const { return msg_macro_ ? msg_macro_result_ : msg_; }
+  const std::string& msg() const { return msg_; }
   void msg(std::string&& value) { msg_ = std::move(value); }
   void msg(std::shared_ptr<Macro::MacroBase> macro) { msg_macro_ = macro; }
   const std::unordered_set<std::string>& tags() const { return tags_; }
@@ -83,9 +80,7 @@ public:
   void auditLog(bool value) { audit_log_ = value; }
   std::optional<bool> log() const { return log_; }
   void log(bool value) { log_ = value; };
-  const std::string& logdata() const {
-    return log_data_macro_ ? log_data_macro_result_ : log_data_;
-  }
+  const std::string& logdata() const { return log_data_; }
   void logData(std::string&& value) { log_data_ = std::move(value); }
   void logData(std::shared_ptr<Macro::MacroBase> macro) { log_data_macro_ = macro; }
   std::optional<bool> capture() const { return capture_; }
@@ -182,11 +177,6 @@ private:
   std::string msg_;
   std::shared_ptr<Macro::MacroBase> msg_macro_;
 
-  // The result of the macro expansion
-  // All threads share the same rule object, so we need to use thread_local to
-  // avoid
-  static thread_local std::string msg_macro_result_;
-
   // Assigns a tag (category) to a rule or a chain.
   std::unordered_set<std::string> tags_;
 
@@ -214,11 +204,6 @@ private:
   std::string init_col_;
   std::string log_data_;
   std::shared_ptr<Macro::MacroBase> log_data_macro_;
-
-  // The result of the macro expansion
-  // All threads share the same rule object, so we need to use thread_local to
-  // avoid
-  static thread_local std::string log_data_macro_result_;
 
   std::optional<bool> audit_log_;
   std::optional<bool> log_;
