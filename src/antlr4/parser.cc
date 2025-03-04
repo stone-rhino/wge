@@ -3,6 +3,7 @@
 #include <array>
 #include <format>
 #include <fstream>
+#include <string_view>
 
 #include "antlr4_gen/SecLangLexer.h"
 #include "antlr4_gen/SecLangParser.h"
@@ -20,14 +21,25 @@
 namespace SrSecurity::Antlr4 {
 class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
+  ParserErrorListener(std::string_view file_path) : file_path_(file_path) {}
+
+public:
   void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line,
                    size_t charPositionInLine, const std::string& msg,
                    std::exception_ptr e) override {
-    error_msg = std::format("parser error. line {}:{} {}", line, charPositionInLine, msg);
+    if (file_path_.empty()) {
+      error_msg = std::format("parser error. [{}:{}] {}", line, charPositionInLine, msg);
+    } else {
+      error_msg =
+          std::format("parser error. [{}:{}:{}] {}", file_path_, line, charPositionInLine, msg);
+    }
   }
 
 public:
   std::string error_msg;
+
+private:
+  std::string_view file_path_;
 };
 
 class LexerErrorListener : public antlr4::BaseErrorListener {
@@ -51,7 +63,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   Antlr4Gen::SecLangParser parser(&tokens);
 
   // sets error listener
-  ParserErrorListener parser_error_listener;
+  ParserErrorListener parser_error_listener(file_path);
   LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
   parser.removeErrorListeners();
@@ -99,7 +111,7 @@ std::expected<bool, std::string> Parser::load(const std::string& directive) {
   Antlr4Gen::SecLangParser parser(&tokens);
 
   // sets error listener
-  ParserErrorListener parser_error_listener;
+  ParserErrorListener parser_error_listener("");
   LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
   parser.removeErrorListeners();
