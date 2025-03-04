@@ -201,103 +201,170 @@ ModeSecRuleVariable_WS:
 	WS -> skip, popMode, pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleVariableName;
-VAR_ARGS: 'ARGS';
-VAR_ARGS_COMBINED_SIZE: 'ARGS_COMBINED_SIZE';
-VAR_ARGS_GET: 'ARGS_GET';
-VAR_ARGS_GET_NAMES: 'ARGS_GET_NAMES';
-VAR_ARGS_NAMES: 'ARGS_NAMES';
-VAR_ARGS_POST: 'ARGS_POST';
-VAR_ARGS_POST_NAMES: 'ARGS_POST_NAMES';
-VAR_AUTH_TYPE: 'AUTH_TYPE';
-VAR_DURATION: 'DURATION';
-VAR_ENV: 'ENV';
-VAR_FILES: 'FILES';
-VAR_FILES_COMBINED_SIZE: 'FILES_COMBINED_SIZE';
-VAR_FILES_NAMES: 'FILES_NAMES';
-VAR_FULL_REQUEST: 'FULL_REQUEST';
-VAR_FULL_REQUEST_LENGTH: 'FULL_REQUEST_LENGTH';
-VAR_FILES_SIZES: 'FILES_SIZES';
-VAR_FILES_TMPNAMES: 'FILES_TMPNAMES';
-VAR_FILES_TMP_CONTENT: 'FILES_TMP_CONTENT';
-VAR_GEO: 'GEO';
-VAR_HIGHEST_SEVERITY: 'HIGHEST_SEVERITY';
-VAR_INBOUND_DATA_ERROR: 'INBOUND_DATA_ERROR';
-VAR_MATCHED_VAR: 'MATCHED_VAR';
-VAR_MATCHED_VARS: 'MATCHED_VARS';
-VAR_MATCHED_VAR_NAME: 'MATCHED_VAR_NAME';
-VAR_MATCHED_VARS_NAMES: 'MATCHED_VARS_NAMES';
-VAR_MODSEC_BUILD: 'MODSEC_BUILD';
-VAR_MSC_PCRE_LIMITS_EXCEEDED: 'MSC_PCRE_LIMITS_EXCEEDED';
-VAR_MULTIPART_CRLF_LF_LINES: 'MULTIPART_CRLF_LF_LINES';
-VAR_MULTIPART_FILENAME: 'MULTIPART_FILENAME';
-VAR_MULTIPART_NAME: 'MULTIPART_NAME';
-VAR_MULTIPART_PART_HEADERS: 'MULTIPART_PART_HEADERS';
-VAR_MULTIPART_STRICT_ERROR: 'MULTIPART_STRICT_ERROR';
+VAR_ARGS: [aA][rR][gG][sS];
+VAR_ARGS_COMBINED_SIZE:
+	[aA][rR][gG][sS]'_' [cC][oO][mM][bB][iI][nN][eE][dD]'_' [sS][iI][zZ][eE];
+VAR_ARGS_GET: [aA][rR][gG][sS]'_' [gG][eE][tT];
+VAR_ARGS_GET_NAMES:
+	[aA][rR][gG][sS]'_' [gG][eE][tT]'_' [nN][aA][mM][eE][sS];
+VAR_ARGS_NAMES:
+	[aA][rR][gG][sS]'_' [nN][aA][mM][eE][sS];
+VAR_ARGS_POST: [aA][rR][gG][sS]'_' [pP][oO][sS][tT];
+VAR_ARGS_POST_NAMES:
+	[aA][rR][gG][sS]'_' [pP][oO][sS][tT]'_' [nN][aA][mM][eE][sS];
+VAR_AUTH_TYPE: [aA][uU][tT][hH]'_' [tT][yY][pP][eE];
+VAR_DURATION: [dD][uU][rR][aA][tT][iI][oO][nN];
+VAR_ENV: [eE][nN][vV];
+VAR_FILES: [fF][iI][lL][eE][sS];
+VAR_FILES_COMBINED_SIZE:
+	[fF][iI][lL][eE][sS]'_' [cC][oO][mM][bB][iI][nN][eE][dD]'_' [sS][iI][zZ][eE];
+VAR_FILES_NAMES:
+	[fF][iI][lL][eE][sS]'_' [nN][aA][mM][eE][sS];
+VAR_FULL_REQUEST:
+	[fF][uU][lL][lL]'_' [rR][eE][qQ][uU][eE][sS][tT];
+VAR_FULL_REQUEST_LENGTH:
+	[fF][uU][lL][lL]'_' [rR][eE][qQ][uU][eE][sS][tT]'_' [lL][eE][nN][gG][tT][hH];
+VAR_FILES_SIZES:
+	[fF][iI][lL][eE][sS]'_' [sS][iI][zZ][eE][sS];
+VAR_FILES_TMPNAMES:
+	[fF][iI][lL][eE][sS]'_' [tT][mM][pP][nN][aA][mM][eE][sS];
+VAR_FILES_TMP_CONTENT:
+	[fF][iI][lL][eE][sS]'_' [tT][mM][pP]'_' [cC][oO][nN][tT][eE][nN][tT];
+VAR_GEO: [gG][eE][oO];
+VAR_HIGHEST_SEVERITY:
+	[hH][iI][gG][hH][eE][sS][tT]'_' [sS][eE][vV][eE][rR][iI][tT][yY];
+VAR_INBOUND_DATA_ERROR:
+	[iI][nN][bB][oO][uU][nN][dD]'_' [dD][aA][tT][aA]'_' [eE][rR][rR][oO][rR];
+VAR_MATCHED_VAR:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR];
+VAR_MATCHED_VARS:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR][sS];
+VAR_MATCHED_VAR_NAME:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR]'_' [nN][aA][mM][eE];
+VAR_MATCHED_VARS_NAMES:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR][sS]'_' [nN][aA][mM][eE][sS];
+VAR_MODSEC_BUILD:
+	[mM][oO][dD][sS][eE][cC]'_' [bB][uU][iI][lL][dD];
+VAR_MSC_PCRE_LIMITS_EXCEEDED:
+	[mM][sS][cC]'_' [pP][cC][rR][eE]'_' [lL][iI][mM][iI][tT][sS]'_' [eE][xX][cC][eE][eE][dD][eE][dD]
+		;
+VAR_MULTIPART_CRLF_LF_LINES:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [cC][rR][lL][fF]'_' [lL][fF]'_' [lL][iI][nN][eE][sS];
+VAR_MULTIPART_FILENAME:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [fF][iI][lL][eE][nN][aA][mM][eE];
+VAR_MULTIPART_NAME:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [nN][aA][mM][eE];
+VAR_MULTIPART_PART_HEADERS:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [pP][aA][rR][tT]'_' [hH][eE][aA][dD][eE][rR][sS];
+VAR_MULTIPART_STRICT_ERROR:
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [sS][tT][rR][iI][cC][tT]'_' [eE][rR][rR][oO][rR];
 VAR_MULTIPART_UNMATCHED_BOUNDARY:
-	'MULTIPART_UNMATCHED_BOUNDARY';
-VAR_OUTBOUND_DATA_ERROR: 'OUTBOUND_DATA_ERROR';
-VAR_PATH_INFO: 'PATH_INFO';
-VAR_QUERY_STRING: 'QUERY_STRING';
-VAR_REMOTE_ADDR: 'REMOTE_ADDR';
-VAR_REMOTE_HOST: 'REMOTE_HOST';
-VAR_REMOTE_PORT: 'REMOTE_PORT';
-VAR_REMOTE_USER: 'REMOTE_USER';
-VAR_REQBODY_ERROR: 'REQBODY_ERROR';
-VAR_REQBODY_ERROR_MSG: 'REQBODY_ERROR_MSG';
-VAR_REQBODY_PROCESSOR: 'REQBODY_PROCESSOR';
-VAR_REQUEST_BASENAME: 'REQUEST_BASENAME';
-VAR_REQUEST_BODY: 'REQUEST_BODY';
-VAR_REQUEST_BODY_LENGTH: 'REQUEST_BODY_LENGTH';
-VAR_REQUEST_COOKIES: 'REQUEST_COOKIES';
-VAR_REQUEST_COOKIES_NAMES: 'REQUEST_COOKIES_NAMES';
-VAR_REQUEST_FILENAME: 'REQUEST_FILENAME';
-VAR_REQUEST_HEADERS: 'REQUEST_HEADERS';
-VAR_REQUEST_HEADERS_NAMES: 'REQUEST_HEADERS_NAMES';
-VAR_REQUEST_LINE: 'REQUEST_LINE';
-VAR_REQUEST_METHOD: 'REQUEST_METHOD';
-VAR_REQUEST_PROTOCOL: 'REQUEST_PROTOCOL';
-VAR_REQUEST_URI: 'REQUEST_URI';
-VAR_REQUEST_URI_RAW: 'REQUEST_URI_RAW';
-VAR_RESPONSE_BODY: 'RESPONSE_BODY';
-VAR_RESPONSE_CONTENT_LENGTH: 'RESPONSE_CONTENT_LENGTH';
-VAR_RESPONSE_CONTENT_TYPE: 'RESPONSE_CONTENT_TYPE';
-VAR_RESPONSE_HEADERS: 'RESPONSE_HEADERS';
-VAR_RESPONSE_HEADERS_NAMES: 'RESPONSE_HEADERS_NAMES';
-VAR_RESPONSE_PROTOCOL: 'RESPONSE_PROTOCOL';
-VAR_RESPONSE_STATUS: 'RESPONSE_STATUS';
-VAR_RULE: 'RULE';
-VAR_SERVER_ADDR: 'SERVER_ADDR';
-VAR_SERVER_NAME: 'SERVER_NAME';
-VAR_SERVER_PORT: 'SERVER_PORT';
-VAR_SESSION: 'SESSION';
-VAR_SESSIONID: 'SESSIONID';
-VAR_STATUS_LINE: 'STATUS_LINE';
-VAR_TIME: 'TIME';
-VAR_TIME_DAY: 'TIME_DAY';
-VAR_TIME_EPOCH: 'TIME_EPOCH';
-VAR_TIME_HOUR: 'TIME_HOUR';
-VAR_TIME_MIN: 'TIME_MIN';
-VAR_TIME_MON: 'TIME_MON';
-VAR_TIME_SEC: 'TIME_SEC';
-VAR_TIME_WDAY: 'TIME_WDAY';
-VAR_TIME_YEAR: 'TIME_YEAR';
-VAR_TX: 'TX';
-VAR_UNIQUE_ID: 'UNIQUE_ID';
-VAR_URLENCODED_ERROR: 'URLENCODED_ERROR';
-VAR_USERID: 'USERID';
-VAR_WEBAPPID: 'WEBAPPID';
-VAR_XML: 'XML';
+	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [uU][nN][mM][aA][tT][cC][hH][eE][dD]'_' [bB][oO][uU][nN]
+		[dD][aA][rR][yY];
+VAR_OUTBOUND_DATA_ERROR:
+	[oO][uU][tT][bB][oO][uU][nN][dD]'_' [dD][aA][tT][aA]'_' [eE][rR][rR][oO][rR];
+VAR_PATH_INFO: [pP][aA][tT][hH]'_' [iI][nN][fF][oO];
+VAR_QUERY_STRING:
+	[qQ][uU][eE][rR][yY]'_' [sS][tT][rR][iI][nN][gG];
+VAR_REMOTE_ADDR:
+	[rR][eE][mM][oO][tT][eE]'_' [aA][dD][dD][rR];
+VAR_REMOTE_HOST:
+	[rR][eE][mM][oO][tT][eE]'_' [hH][oO][sS][tT];
+VAR_REMOTE_PORT:
+	[rR][eE][mM][oO][tT][eE]'_' [pP][oO][rR][tT];
+VAR_REMOTE_USER:
+	[rR][eE][mM][oO][tT][eE]'_' [uU][sS][eE][rR];
+VAR_REQBODY_ERROR:
+	[rR][eE][qQ][bB][oO][dD][yY]'_' [eE][rR][rR][oO][rR];
+VAR_REQBODY_ERROR_MSG:
+	[rR][eE][qQ][bB][oO][dD][yY]'_' [eE][rR][rR][oO][rR]'_' [mM][sS][gG];
+VAR_REQBODY_PROCESSOR:
+	[rR][eE][qQ][bB][oO][dD][yY]'_' [pP][rR][oO][cC][eE][sS][sS][oO][rR];
+VAR_REQUEST_BASENAME:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [bB][aA][sS][eE][nN][aA][mM][eE];
+VAR_REQUEST_BODY:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [bB][oO][dD][yY];
+VAR_REQUEST_BODY_LENGTH:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [bB][oO][dD][yY]'_' [lL][eE][nN][gG][tT][hH];
+VAR_REQUEST_COOKIES:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [cC][oO][oO][kK][iI][eE][sS];
+VAR_REQUEST_COOKIES_NAMES:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [cC][oO][oO][kK][iI][eE][sS]'_' [nN][aA][mM][eE][sS];
+VAR_REQUEST_FILENAME:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [fF][iI][lL][eE][nN][aA][mM][eE];
+VAR_REQUEST_HEADERS:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [hH][eE][aA][dD][eE][rR][sS];
+VAR_REQUEST_HEADERS_NAMES:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [hH][eE][aA][dD][eE][rR][sS]'_' [nN][aA][mM][eE][sS];
+VAR_REQUEST_LINE:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [lL][iI][nN][eE];
+VAR_REQUEST_METHOD:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [mM][eE][tT][hH][oO][dD];
+VAR_REQUEST_PROTOCOL:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [pP][rR][oO][tT][oO][cC][oO][lL];
+VAR_REQUEST_URI:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [uU][rR][iI];
+VAR_REQUEST_URI_RAW:
+	[rR][eE][qQ][uU][eE][sS][tT]'_' [uU][rR][iI]'_' [rR][aA][wW];
+VAR_RESPONSE_BODY:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [bB][oO][dD][yY];
+VAR_RESPONSE_CONTENT_LENGTH:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [cC][oO][nN][tT][eE][nN][tT]'_' [lL][eE][nN][gG][tT][hH];
+VAR_RESPONSE_CONTENT_TYPE:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [cC][oO][nN][tT][eE][nN][tT]'_' [tT][yY][pP][eE];
+VAR_RESPONSE_HEADERS:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [hH][eE][aA][dD][eE][rR][sS];
+VAR_RESPONSE_HEADERS_NAMES:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [hH][eE][aA][dD][eE][rR][sS]'_' [nN][aA][mM][eE][sS];
+VAR_RESPONSE_PROTOCOL:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [pP][rR][oO][tT][oO][cC][oO][lL];
+VAR_RESPONSE_STATUS:
+	[rR][eE][sS][pP][oO][nN][sS][eE]'_' [sS][tT][aA][tT][uU][sS];
+VAR_RULE: [rR][uU][lL][eE];
+VAR_SERVER_ADDR:
+	[sS][eE][rR][vV][eE][rR]'_' [aA][dD][dD][rR];
+VAR_SERVER_NAME:
+	[sS][eE][rR][vV][eE][rR]'_' [nN][aA][mM][eE];
+VAR_SERVER_PORT:
+	[sS][eE][rR][vV][eE][rR]'_' [pP][oO][rR][tT];
+VAR_SESSION: [sS][eE][sS][sS][iI][oO][nN];
+VAR_SESSIONID: [sS][eE][sS][sS][iI][oO][nN][iI][dD];
+VAR_STATUS_LINE:
+	[sS][tT][aA][tT][uU][sS]'_' [lL][iI][nN][eE];
+VAR_TIME: [tT][iI][mM][eE];
+VAR_TIME_DAY: [tT][iI][mM][eE]'_' [dD][aA][yY];
+VAR_TIME_EPOCH:
+	[tT][iI][mM][eE]'_' [eE][pP][oO][cC][hH];
+VAR_TIME_HOUR: [tT][iI][mM][eE]'_' [hH][oO][uU][rR];
+VAR_TIME_MIN: [tT][iI][mM][eE]'_' [mM][iI][nN];
+VAR_TIME_MON: [tT][iI][mM][eE]'_' [mM][oO][nN];
+VAR_TIME_SEC: [tT][iI][mM][eE]'_' [sS][eE][cC];
+VAR_TIME_WDAY: [tT][iI][mM][eE]'_' [wW][dD][aA][yY];
+VAR_TIME_YEAR: [tT][iI][mM][eE]'_' [yY][eE][aA][rR];
+VAR_TX: [tT][xX];
+VAR_UNIQUE_ID: [uU][nN][iI][qQ][uU][eE]'_' [iI][dD];
+VAR_URLENCODED_ERROR:
+	[uU][rR][lL][eE][nN][cC][oO][dD][eE][dD]'_' [eE][rR][rR][oO][rR];
+VAR_USERID: [uU][sS][eE][rR][iI][dD];
+VAR_WEBAPPID: [wW][eE][bB][aA][pP][pP][iI][dD];
+VAR_XML: [xX][mM][lL];
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
 ModeSecRuleVariableName_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubName);
+ModeSecRuleVariableName_DOT:
+	DOT -> type(DOT), pushMode(ModeSecRuleVariableSubName);
 ModeSecRuleVariableName_VAR_COUNT: '&' -> type(VAR_COUNT);
 ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
+ModeSecRuleVariableName_LEFT_BRACKET:
+	LEFT_BRACKET -> type(LEFT_BRACKET);
+ModeSecRuleVariableName_RIGHT_BRACKET:
+	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
 
 mode ModeSecRuleVariableSubName;
 ModeSecRuleVariableSubName_VAR_SUB_NAME:
-	~[ :!&|",\n]+ -> type(STRING), popMode;
+	~[ :!&|",%{}\n]+ -> type(STRING), popMode;
 
 mode ModeSecRuleOperator;
 ModeSecRuleOperator_NOT: NOT -> type(NOT);
@@ -411,7 +478,7 @@ ModeSecRuleActionSetVar_WS: WS -> skip;
 ModeSecRuleActionSetVar_COLON: COLON -> type(COLON);
 ModeSecRuleActionSetVar_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE);
-TX: ('t' | 'T') ('x' | 'X');
+TX: [tT][xX];
 ModeSecRuleActionSetVar_DOT: DOT -> type(DOT);
 ModeSecRuleActionSetVar_NOT: NOT -> type(NOT);
 ModeSecRuleActionSetVar_COMMA: COMMA -> type(COMMA), popMode;
@@ -420,7 +487,7 @@ ModeSecRuleActionSetVar_QUOTE:
 ModeSecRuleActionSetVarName_ASSIGN:
 	ASSIGN -> type(ASSIGN), popMode, pushMode(ModeSecRuleActionSetVarValue);
 ModeSecRuleActionSetVarName_PER_CENT:
-	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 VAR_NAME: [0-9a-zA-Z_][0-9a-zA-Z_]*;
 
 mode ModeSecRuleActionSetVarValue;
@@ -433,67 +500,8 @@ ModeSecRuleActionSetVarValue_COMMA:
 ModeSecRuleActionSetVarValue_QUOTE:
 	QUOTE -> type(QUOTE), popMode, popMode;
 ModeSecRuleActionSetVarValue_PER_CENT:
-	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 VAR_VALUE: ~[+\-%'",]~[{}%'",]*;
-
-mode ModeSecRuleActionMacroExpansion;
-ModeSecRuleActionSetVar_LEFT_BRACKET:
-	LEFT_BRACKET -> type(LEFT_BRACKET);
-ModeSecRuleActionSetVar_RIGHT_BRACKET:
-	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
-TX2: [tT][xX];
-ModeSecRuleActionMacroExpansion_DOT:
-	DOT -> type(DOT), pushMode(ModeSecRuleActionMacroExpansionString);
-REMOTE_ADDR:
-	[rR][eE][mM][oO][tT][eE]'_' [aA][dD][dD][rR];
-USERID: [uU][sS][eE][rR][iI][dD];
-HIGHEST_SEVERITY:
-	[hH][iI][gG][hH][eE][sS][tT]'_' [sS][eE][vV][eE][rR][iI][tT][yY];
-MATCHED_VAR:
-	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR];
-MATCHED_VAR_NAME:
-	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][aA][rR]'_' [nN][aA][mM][eE];
-MULTIPART_STRICT_ERROR:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [sS][tT][rR][iI][cC][tT]'_' [eE][rR][rR][oO][rR];
-REQBODY_PROCESSOR_ERROR:
-	[rR][eE][qQ][bB][oO][dD][yY]'_' [pP][rR][oO][cC][eE][sS][sS][oO][rR]'_' [eE][rR][rR][oO][rR];
-MULTIPART_BOUNDARY_QUOTED:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [bB][oO][uU][nN][dD][aA][rR][yY]'_' [qQ][uU][oO][tT][eE]
-		[dD];
-MULTIPART_BOUNDARY_WHITESPACE:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [bB][oO][uU][nN][dD][aA][rR][yY]'_' [wW][hH][iI][tT][eE]
-		[sS][pP][aA][cC][eE];
-MULTIPART_DATA_AFTER:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [dD][aA][tT][aA]'_' [aA][fF][tT][eE][rR];
-MULTIPART_DATA_BEFORE:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [dD][aA][tT][aA]'_' [bB][eE][fF][oO][rR][eE];
-MULTIPART_HEADER_FOLDING:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [hH][eE][aA][dD][eE][rR]'_' [fF][oO][lL][dD][iI][nN][gG]
-		;
-MULTIPART_LF_LINE:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [lL][fF]'_' [lL][iI][nN][eE];
-MULTIPART_MISSING_SEMICOLON:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [mM][iI][sS][sS][iI][nN][gG]'_' [sS][eE][mM][iI][cC][oO]
-		[lL][oO][nN];
-MULTIPART_INVALID_QUOTING:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [qQ][uU][oO][tT][iI][nN]
-		[gG];
-MULTIPART_INVALID_PART:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [pP] [aA][rR][tT];
-MULTIPART_INVALID_HEADER_FOLDING:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [iI][nN][vV][aA][lL][iI][dD]'_' [hH][eE][aA][dD][eE][rR]
-		'_' [fF][oO][lL][dD][iI][nN][gG];
-MULTIPART_FILE_LIMIT_EXCEEDED:
-	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [fF][iI][lL][eE]'_' [lL][iI][mM][iI][tT]'_' [eE][xX][cC]
-		[eE][eE][dD][eE][dD];
-RULE: [rR][uU][lL][eE];
-SESSION: [sS][eE][sS][sS][iI][oO][nN];
-REQBODY_ERROR_MSG:
-	[rR][eE][qQ][bB][oO][dD][yY]'_' [eE][rR][rR][oO][rR]'_' [mM][sS][gG];
-
-mode ModeSecRuleActionMacroExpansionString;
-ModeSecRuleActionMacroExpansionString_STRING:
-	[0-9a-zA-Z_]+ -> type(STRING), popMode;
 
 mode ModeSecRuleActionString;
 ModeSecRuleActionSetVarString_SINGLE_QUOTE:
@@ -504,11 +512,11 @@ ModeSecRuleActionSetVarString_STRING: (
 		| ('%' ~[{])
 	) ('\\\'' | ~['%] | ('%' ~[{]))* -> type(STRING);
 ModeSecRuleActionString_PER_CENT:
-	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleActionSetUid;
 ModeSecRuleActionSetUid_PER_CENT:
-	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 ModeSecRuleActionSetUid_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
 ModeSecRuleActionSetUid_QUOTE: QUOTE -> type(QUOTE), popMode;

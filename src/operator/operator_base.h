@@ -4,7 +4,6 @@
 
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
-#include "../macro/macro_factory.h"
 #include "../transaction.h"
 
 #define DECLARE_OPERATOR_NAME(n)                                                                   \
@@ -22,9 +21,7 @@ namespace Operator {
 class OperatorBase {
 public:
   OperatorBase(std::string&& literal_value, bool is_not)
-      : literal_value_(std::move(literal_value)), is_not_(is_not) {
-    macro_ = Macro::MacroFactory::createMacro(literal_value_);
-  }
+      : literal_value_(std::move(literal_value)), is_not_(is_not) {}
 
   virtual ~OperatorBase() = default;
 

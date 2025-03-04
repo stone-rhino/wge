@@ -17,6 +17,7 @@ namespace Macro {
 class MacroBase {
 public:
   MacroBase() {}
+  virtual ~MacroBase() = default;
 
 public:
   /**

@@ -4,6 +4,7 @@
 #include "parser.h"
 
 #include "../common/empty_string.h"
+#include "../macro/macro_include.h"
 
 namespace SrSecurity::Antlr4 {
 class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
@@ -495,70 +496,6 @@ public:
   std::any visitAction_non_disruptive_setvar_decrease(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) override;
 
-  // setvar macro expansion
-  std::any visitAction_non_disruptive_setvar_macro_tx(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_txContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_remote_addr(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_remote_addrContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_user_id(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_user_idContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_highest_severity(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_highest_severityContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_matched_var(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_varContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_matched_var_name(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_matched_var_nameContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_strict_error(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_strict_errorContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_reqbody_processor_error(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_processor_errorContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_boundary_quoted(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_boundary_quotedContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_boundary_whitespace(
-      Antlr4Gen::SecLangParser::
-          Action_non_disruptive_setvar_macro_multipart_boundary_whitespaceContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_data_before(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_beforeContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_data_after(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_data_afterContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_header_folding(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_header_foldingContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_lf_line(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_lf_lineContext* ctx)
-      override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_missing_semicolon(
-      Antlr4Gen::SecLangParser::
-          Action_non_disruptive_setvar_macro_multipart_missing_semicolonContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_quoting(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_quotingContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_part(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_multipart_invalid_partContext*
-          ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_invalid_header_folding(
-      Antlr4Gen::SecLangParser::
-          Action_non_disruptive_setvar_macro_multipart_invalid_header_foldingContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_multipart_file_limit_exceeded(
-      Antlr4Gen::SecLangParser::
-          Action_non_disruptive_setvar_macro_multipart_file_limit_exceededContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_rule(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_ruleContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_session(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_sessionContext* ctx) override;
-  std::any visitAction_non_disruptive_setvar_macro_reqbody_error_msg(
-      Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macro_reqbody_error_msgContext* ctx)
-      override;
-
   // setenv
   std::any visitAction_non_disruptive_setenv(
       Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) override;
@@ -809,12 +746,11 @@ public:
 private:
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> getMacro(
-      std::string&& text,
-      const std::vector<
-          SrSecurity::Antlr4::Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macroContext*>&
-          macro_ctx_array,
-      bool is_only_macro);
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string>
+  getMacro(std::string&& text,
+           const std::vector<SrSecurity::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
+               macro_ctx_array,
+           bool is_only_macro);
 
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
@@ -828,21 +764,24 @@ private:
       // std::any is copyable, so we can't return a unique_ptr
       return std::shared_ptr<Variable::VariableBase>(
           new VarT(std::move(sub_name), is_not, is_counter));
+    } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
+      std::shared_ptr<Variable::VariableBase> variable(new VarT(std::move(sub_name), false, false));
+      return std::shared_ptr<Macro::MacroBase>(new Macro::VariableMacro(variable));
+    } else {
+      std::unique_ptr<Variable::VariableBase> variable(
+          new VarT(std::move(sub_name), is_not, is_counter));
+
+      // Remove the variable first if current mode is update rule
+      if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
+        Variable::VariableBase::FullName full_name{variable->fullName()};
+        (*current_rule_iter_)->removeVariable(full_name);
+      }
+
+      // Append variable
+      (*current_rule_iter_)->appendVariable(std::move(variable));
+
+      return EMPTY_STRING;
     }
-
-    std::unique_ptr<Variable::VariableBase> variable(
-        new VarT(std::move(sub_name), is_not, is_counter));
-
-    // Remove the variable first if current mode is update rule
-    if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
-      Variable::VariableBase::FullName full_name{variable->fullName()};
-      (*current_rule_iter_)->removeVariable(full_name);
-    }
-
-    // Append variable
-    (*current_rule_iter_)->appendVariable(std::move(variable));
-
-    return EMPTY_STRING;
   }
 
 private:
@@ -850,7 +789,7 @@ private:
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
   bool chain_{false};
   std::unordered_multimap<std::string, std::string> action_map_;
-  enum class VisitVariableMode { SecRule, SecUpdateTarget, Ctl };
+  enum class VisitVariableMode { SecRule, SecUpdateTarget, Ctl, Macro };
   enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction, SecDefaultAction };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
   VisitActionMode visit_action_mode_{VisitActionMode::SecRule};

@@ -190,161 +190,197 @@ variable:
 	| variable_userid
 	| variable_webappid
 	| variable_xml;
-variable_args: NOT? VAR_COUNT? VAR_ARGS (COLON STRING)?;
+variable_args: NOT? VAR_COUNT? VAR_ARGS ((COLON | DOT) STRING)?;
 variable_args_combined_size:
-	NOT? VAR_COUNT? VAR_ARGS_COMBINED_SIZE (COLON STRING)?;
-variable_args_get: NOT? VAR_COUNT? VAR_ARGS_GET (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_ARGS_COMBINED_SIZE ((COLON | DOT) STRING)?;
+variable_args_get:
+	NOT? VAR_COUNT? VAR_ARGS_GET ((COLON | DOT) STRING)?;
 variable_args_get_names:
-	NOT? VAR_COUNT? VAR_ARGS_GET_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_ARGS_GET_NAMES ((COLON | DOT) STRING)?;
 variable_args_names:
-	NOT? VAR_COUNT? VAR_ARGS_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_ARGS_NAMES ((COLON | DOT) STRING)?;
 variable_args_post:
-	NOT? VAR_COUNT? VAR_ARGS_POST (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_ARGS_POST ((COLON | DOT) STRING)?;
 variable_args_post_names:
-	NOT? VAR_COUNT? VAR_ARGS_POST_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_ARGS_POST_NAMES ((COLON | DOT) STRING)?;
 variable_auth_type:
-	NOT? VAR_COUNT? VAR_AUTH_TYPE (COLON STRING)?;
-variable_duration: NOT? VAR_COUNT? VAR_DURATION (COLON STRING)?;
-variable_env: NOT? VAR_COUNT? VAR_ENV (COLON STRING)?;
-variable_files: NOT? VAR_COUNT? VAR_FILES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_AUTH_TYPE ((COLON | DOT) STRING)?;
+variable_duration:
+	NOT? VAR_COUNT? VAR_DURATION ((COLON | DOT) STRING)?;
+variable_env: NOT? VAR_COUNT? VAR_ENV ((COLON | DOT) STRING)?;
+variable_files:
+	NOT? VAR_COUNT? VAR_FILES ((COLON | DOT) STRING)?;
 variable_files_combined_size:
-	NOT? VAR_COUNT? VAR_FILES_COMBINED_SIZE (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FILES_COMBINED_SIZE (
+		(COLON | DOT) STRING
+	)?;
 variable_files_names:
-	NOT? VAR_COUNT? VAR_FILES_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FILES_NAMES ((COLON | DOT) STRING)?;
 variable_full_request:
-	NOT? VAR_COUNT? VAR_FULL_REQUEST (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FULL_REQUEST ((COLON | DOT) STRING)?;
 variable_full_request_length:
-	NOT? VAR_COUNT? VAR_FULL_REQUEST_LENGTH (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FULL_REQUEST_LENGTH (
+		(COLON | DOT) STRING
+	)?;
 variable_files_sizes:
-	NOT? VAR_COUNT? VAR_FILES_SIZES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FILES_SIZES ((COLON | DOT) STRING)?;
 variable_files_tmpnames:
-	NOT? VAR_COUNT? VAR_FILES_TMPNAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FILES_TMPNAMES ((COLON | DOT) STRING)?;
 variable_files_tmp_content:
-	NOT? VAR_COUNT? VAR_FILES_TMP_CONTENT (COLON STRING)?;
-variable_geo: NOT? VAR_COUNT? VAR_GEO (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_FILES_TMP_CONTENT ((COLON | DOT) STRING)?;
+variable_geo: NOT? VAR_COUNT? VAR_GEO ((COLON | DOT) STRING)?;
 variable_highest_severity:
-	NOT? VAR_COUNT? VAR_HIGHEST_SEVERITY (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_HIGHEST_SEVERITY ((COLON | DOT) STRING)?;
 variable_inbound_data_error:
-	NOT? VAR_COUNT? VAR_INBOUND_DATA_ERROR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_INBOUND_DATA_ERROR ((COLON | DOT) STRING)?;
 variable_matched_var:
-	NOT? VAR_COUNT? VAR_MATCHED_VAR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MATCHED_VAR ((COLON | DOT) STRING)?;
 variable_matched_vars:
-	NOT? VAR_COUNT? VAR_MATCHED_VARS (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MATCHED_VARS ((COLON | DOT) STRING)?;
 variable_matched_var_name:
-	NOT? VAR_COUNT? VAR_MATCHED_VAR_NAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MATCHED_VAR_NAME ((COLON | DOT) STRING)?;
 variable_matched_vars_names:
-	NOT? VAR_COUNT? VAR_MATCHED_VARS_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MATCHED_VARS_NAMES ((COLON | DOT) STRING)?;
 variable_modsec_build:
-	NOT? VAR_COUNT? VAR_MODSEC_BUILD (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MODSEC_BUILD ((COLON | DOT) STRING)?;
 variable_msc_pcre_limits_exceeded:
-	NOT? VAR_COUNT? VAR_MSC_PCRE_LIMITS_EXCEEDED (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MSC_PCRE_LIMITS_EXCEEDED (
+		(COLON | DOT) STRING
+	)?;
 variable_multipart_crlf_lf_lines:
-	NOT? VAR_COUNT? VAR_MULTIPART_CRLF_LF_LINES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MULTIPART_CRLF_LF_LINES (
+		(COLON | DOT) STRING
+	)?;
 variable_multipart_filename:
-	NOT? VAR_COUNT? VAR_MULTIPART_FILENAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MULTIPART_FILENAME ((COLON | DOT) STRING)?;
 variable_multipart_name:
-	NOT? VAR_COUNT? VAR_MULTIPART_NAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MULTIPART_NAME ((COLON | DOT) STRING)?;
 variable_multipart_part_headers:
-	NOT? VAR_COUNT? VAR_MULTIPART_PART_HEADERS (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MULTIPART_PART_HEADERS (
+		(COLON | DOT) STRING
+	)?;
 variable_multipart_strict_error:
-	NOT? VAR_COUNT? VAR_MULTIPART_STRICT_ERROR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_MULTIPART_STRICT_ERROR (
+		(COLON | DOT) STRING
+	)?;
 variable_multipart_unmatched_boundary:
 	NOT? VAR_COUNT? VAR_MULTIPART_UNMATCHED_BOUNDARY (
-		COLON STRING
+		(COLON | DOT) STRING
 	)?;
 variable_outbound_data_error:
-	NOT? VAR_COUNT? VAR_OUTBOUND_DATA_ERROR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_OUTBOUND_DATA_ERROR (
+		(COLON | DOT) STRING
+	)?;
 variable_path_info:
-	NOT? VAR_COUNT? VAR_PATH_INFO (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_PATH_INFO ((COLON | DOT) STRING)?;
 variable_query_string:
-	NOT? VAR_COUNT? VAR_QUERY_STRING (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_QUERY_STRING ((COLON | DOT) STRING)?;
 variable_remote_addr:
-	NOT? VAR_COUNT? VAR_REMOTE_ADDR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REMOTE_ADDR ((COLON | DOT) STRING)?;
 variable_remote_host:
-	NOT? VAR_COUNT? VAR_REMOTE_HOST (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REMOTE_HOST ((COLON | DOT) STRING)?;
 variable_remote_port:
-	NOT? VAR_COUNT? VAR_REMOTE_PORT (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REMOTE_PORT ((COLON | DOT) STRING)?;
 variable_remote_user:
-	NOT? VAR_COUNT? VAR_REMOTE_USER (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REMOTE_USER ((COLON | DOT) STRING)?;
 variable_reqbody_error:
-	NOT? VAR_COUNT? VAR_REQBODY_ERROR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQBODY_ERROR ((COLON | DOT) STRING)?;
 variable_reqbody_error_msg:
-	NOT? VAR_COUNT? VAR_REQBODY_ERROR_MSG (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQBODY_ERROR_MSG ((COLON | DOT) STRING)?;
 variable_reqbody_processor:
-	NOT? VAR_COUNT? VAR_REQBODY_PROCESSOR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQBODY_PROCESSOR ((COLON | DOT) STRING)?;
 variable_request_basename:
-	NOT? VAR_COUNT? VAR_REQUEST_BASENAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_BASENAME ((COLON | DOT) STRING)?;
 variable_request_body:
-	NOT? VAR_COUNT? VAR_REQUEST_BODY (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_BODY ((COLON | DOT) STRING)?;
 variable_request_body_length:
-	NOT? VAR_COUNT? VAR_REQUEST_BODY_LENGTH (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_BODY_LENGTH (
+		(COLON | DOT) STRING
+	)?;
 variable_request_cookies:
-	NOT? VAR_COUNT? VAR_REQUEST_COOKIES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_COOKIES ((COLON | DOT) STRING)?;
 variable_request_cookies_names:
-	NOT? VAR_COUNT? VAR_REQUEST_COOKIES_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_COOKIES_NAMES (
+		(COLON | DOT) STRING
+	)?;
 variable_request_filename:
-	NOT? VAR_COUNT? VAR_REQUEST_FILENAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_FILENAME ((COLON | DOT) STRING)?;
 variable_request_headers:
-	NOT? VAR_COUNT? VAR_REQUEST_HEADERS (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_HEADERS ((COLON | DOT) STRING)?;
 variable_request_headers_names:
-	NOT? VAR_COUNT? VAR_REQUEST_HEADERS_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_HEADERS_NAMES (
+		(COLON | DOT) STRING
+	)?;
 variable_request_line:
-	NOT? VAR_COUNT? VAR_REQUEST_LINE (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_LINE ((COLON | DOT) STRING)?;
 variable_request_method:
-	NOT? VAR_COUNT? VAR_REQUEST_METHOD (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_METHOD ((COLON | DOT) STRING)?;
 variable_request_protocol:
-	NOT? VAR_COUNT? VAR_REQUEST_PROTOCOL (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_PROTOCOL ((COLON | DOT) STRING)?;
 variable_request_uri:
-	NOT? VAR_COUNT? VAR_REQUEST_URI (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_URI ((COLON | DOT) STRING)?;
 variable_request_uri_raw:
-	NOT? VAR_COUNT? VAR_REQUEST_URI_RAW (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_REQUEST_URI_RAW ((COLON | DOT) STRING)?;
 variable_response_body:
-	NOT? VAR_COUNT? VAR_RESPONSE_BODY (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_BODY ((COLON | DOT) STRING)?;
 variable_response_content_length:
-	NOT? VAR_COUNT? VAR_RESPONSE_CONTENT_LENGTH (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_CONTENT_LENGTH (
+		(COLON | DOT) STRING
+	)?;
 variable_response_content_type:
-	NOT? VAR_COUNT? VAR_RESPONSE_CONTENT_TYPE (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_CONTENT_TYPE (
+		(COLON | DOT) STRING
+	)?;
 variable_response_headers:
-	NOT? VAR_COUNT? VAR_RESPONSE_HEADERS (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_HEADERS ((COLON | DOT) STRING)?;
 variable_response_headers_names:
-	NOT? VAR_COUNT? VAR_RESPONSE_HEADERS_NAMES (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_HEADERS_NAMES (
+		(COLON | DOT) STRING
+	)?;
 variable_response_protocol:
-	NOT? VAR_COUNT? VAR_RESPONSE_PROTOCOL (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_PROTOCOL ((COLON | DOT) STRING)?;
 variable_response_status:
-	NOT? VAR_COUNT? VAR_RESPONSE_STATUS (COLON STRING)?;
-variable_rule: NOT? VAR_COUNT? VAR_RULE (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_RESPONSE_STATUS ((COLON | DOT) STRING)?;
+variable_rule: NOT? VAR_COUNT? VAR_RULE ((COLON | DOT) STRING)?;
 variable_server_addr:
-	NOT? VAR_COUNT? VAR_SERVER_ADDR (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_SERVER_ADDR ((COLON | DOT) STRING)?;
 variable_server_name:
-	NOT? VAR_COUNT? VAR_SERVER_NAME (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_SERVER_NAME ((COLON | DOT) STRING)?;
 variable_server_port:
-	NOT? VAR_COUNT? VAR_SERVER_PORT (COLON STRING)?;
-variable_session: NOT? VAR_COUNT? VAR_SESSION (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_SERVER_PORT ((COLON | DOT) STRING)?;
+variable_session:
+	NOT? VAR_COUNT? VAR_SESSION ((COLON | DOT) STRING)?;
 variable_sessionid:
-	NOT? VAR_COUNT? VAR_SESSIONID (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_SESSIONID ((COLON | DOT) STRING)?;
 variable_status_line:
-	NOT? VAR_COUNT? VAR_STATUS_LINE (COLON STRING)?;
-variable_time: NOT? VAR_COUNT? VAR_TIME (COLON STRING)?;
-variable_time_day: NOT? VAR_COUNT? VAR_TIME_DAY (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_STATUS_LINE ((COLON | DOT) STRING)?;
+variable_time: NOT? VAR_COUNT? VAR_TIME ((COLON | DOT) STRING)?;
+variable_time_day:
+	NOT? VAR_COUNT? VAR_TIME_DAY ((COLON | DOT) STRING)?;
 variable_time_epoch:
-	NOT? VAR_COUNT? VAR_TIME_EPOCH (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_TIME_EPOCH ((COLON | DOT) STRING)?;
 variable_time_hour:
-	NOT? VAR_COUNT? VAR_TIME_HOUR (COLON STRING)?;
-variable_time_min: NOT? VAR_COUNT? VAR_TIME_MIN (COLON STRING)?;
-variable_time_mon: NOT? VAR_COUNT? VAR_TIME_MON (COLON STRING)?;
-variable_time_sec: NOT? VAR_COUNT? VAR_TIME_SEC (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_TIME_HOUR ((COLON | DOT) STRING)?;
+variable_time_min:
+	NOT? VAR_COUNT? VAR_TIME_MIN ((COLON | DOT) STRING)?;
+variable_time_mon:
+	NOT? VAR_COUNT? VAR_TIME_MON ((COLON | DOT) STRING)?;
+variable_time_sec:
+	NOT? VAR_COUNT? VAR_TIME_SEC ((COLON | DOT) STRING)?;
 variable_time_wday:
-	NOT? VAR_COUNT? VAR_TIME_WDAY (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_TIME_WDAY ((COLON | DOT) STRING)?;
 variable_time_year:
-	NOT? VAR_COUNT? VAR_TIME_YEAR (COLON STRING)?;
-variable_tx: NOT? VAR_COUNT? VAR_TX (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_TIME_YEAR ((COLON | DOT) STRING)?;
+variable_tx: NOT? VAR_COUNT? VAR_TX ((COLON | DOT) STRING)?;
 variable_unique_id:
-	NOT? VAR_COUNT? VAR_UNIQUE_ID (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_UNIQUE_ID ((COLON | DOT) STRING)?;
 variable_urlencoded_error:
-	NOT? VAR_COUNT? VAR_URLENCODED_ERROR (COLON STRING)?;
-variable_userid: NOT? VAR_COUNT? VAR_USERID (COLON STRING)?;
-variable_webappid: NOT? VAR_COUNT? VAR_WEBAPPID (COLON STRING)?;
-variable_xml: NOT? VAR_COUNT? VAR_XML (COLON STRING)?;
+	NOT? VAR_COUNT? VAR_URLENCODED_ERROR ((COLON | DOT) STRING)?;
+variable_userid:
+	NOT? VAR_COUNT? VAR_USERID ((COLON | DOT) STRING)?;
+variable_webappid:
+	NOT? VAR_COUNT? VAR_WEBAPPID ((COLON | DOT) STRING)?;
+variable_xml: NOT? VAR_COUNT? VAR_XML ((COLON | DOT) STRING)?;
 
 operator:
 	op_begins_with
@@ -465,7 +501,7 @@ action_meta_data_msg:
 action_meta_data_msg_value:
 	STRING
 	| (
-		STRING? PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET STRING?
+		STRING? PER_CENT LEFT_BRACKET variable RIGHT_BRACKET STRING?
 	)+;
 action_meta_data_tag:
 	Tag COLON SINGLE_QUOTE STRING SINGLE_QUOTE;
@@ -518,8 +554,7 @@ action_non_disruptive_setvar_varname: (
 		VAR_NAME
 		| (
 			(
-				VAR_NAME? PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-					VAR_NAME?
+				VAR_NAME? PER_CENT LEFT_BRACKET variable RIGHT_BRACKET VAR_NAME?
 			)+
 		)
 	);
@@ -538,8 +573,7 @@ action_non_disruptive_setvar_create_init_value: (
 		VAR_VALUE
 		| (
 			(
-				VAR_VALUE? PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-					VAR_VALUE?
+				VAR_VALUE? PER_CENT LEFT_BRACKET variable RIGHT_BRACKET VAR_VALUE?
 			)+
 		)
 	);
@@ -555,17 +589,13 @@ action_non_disruptive_setvar_increase:
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname ASSIGN PLUS (
 				VAR_VALUE
-				| (
-					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-				)
+				| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 			) SINGLE_QUOTE
 		)
 		| (
 			TX DOT action_non_disruptive_setvar_varname ASSIGN PLUS (
 				VAR_VALUE
-				| (
-					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-				)
+				| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 			)
 		)
 	);
@@ -574,111 +604,37 @@ action_non_disruptive_setvar_decrease:
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname ASSIGN MINUS (
 				VAR_VALUE
-				| (
-					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-				)
+				| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 			) SINGLE_QUOTE
 		)
 		| (
 			TX DOT action_non_disruptive_setvar_varname ASSIGN MINUS (
 				VAR_VALUE
-				| (
-					PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-				)
+				| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 			)
 		)
 	);
 
-action_non_disruptive_setvar_macro:
-	action_non_disruptive_setvar_macro_tx
-	| action_non_disruptive_setvar_macro_remote_addr
-	| action_non_disruptive_setvar_macro_user_id
-	| action_non_disruptive_setvar_macro_highest_severity
-	| action_non_disruptive_setvar_macro_matched_var
-	| action_non_disruptive_setvar_macro_matched_var_name
-	| action_non_disruptive_setvar_macro_multipart_strict_error
-	| action_non_disruptive_setvar_macro_reqbody_processor_error
-	| action_non_disruptive_setvar_macro_multipart_boundary_quoted
-	| action_non_disruptive_setvar_macro_multipart_boundary_whitespace
-	| action_non_disruptive_setvar_macro_multipart_data_before
-	| action_non_disruptive_setvar_macro_multipart_data_after
-	| action_non_disruptive_setvar_macro_multipart_header_folding
-	| action_non_disruptive_setvar_macro_multipart_lf_line
-	| action_non_disruptive_setvar_macro_multipart_missing_semicolon
-	| action_non_disruptive_setvar_macro_multipart_invalid_quoting
-	| action_non_disruptive_setvar_macro_multipart_invalid_part
-	| action_non_disruptive_setvar_macro_multipart_invalid_header_folding
-	| action_non_disruptive_setvar_macro_multipart_file_limit_exceeded
-	| action_non_disruptive_setvar_macro_rule
-	| action_non_disruptive_setvar_macro_session
-	| action_non_disruptive_setvar_macro_reqbody_error_msg;
-action_non_disruptive_setvar_macro_tx: TX2 DOT STRING;
-action_non_disruptive_setvar_macro_remote_addr: REMOTE_ADDR;
-action_non_disruptive_setvar_macro_user_id: USERID;
-action_non_disruptive_setvar_macro_highest_severity:
-	HIGHEST_SEVERITY;
-action_non_disruptive_setvar_macro_matched_var: MATCHED_VAR;
-action_non_disruptive_setvar_macro_matched_var_name:
-	MATCHED_VAR_NAME;
-action_non_disruptive_setvar_macro_multipart_strict_error:
-	MULTIPART_STRICT_ERROR;
-action_non_disruptive_setvar_macro_reqbody_processor_error:
-	REQBODY_PROCESSOR_ERROR;
-action_non_disruptive_setvar_macro_multipart_boundary_quoted:
-	MULTIPART_BOUNDARY_QUOTED;
-action_non_disruptive_setvar_macro_multipart_boundary_whitespace:
-	MULTIPART_BOUNDARY_WHITESPACE;
-action_non_disruptive_setvar_macro_multipart_data_before:
-	MULTIPART_DATA_BEFORE;
-action_non_disruptive_setvar_macro_multipart_data_after:
-	MULTIPART_DATA_AFTER;
-action_non_disruptive_setvar_macro_multipart_header_folding:
-	MULTIPART_HEADER_FOLDING;
-action_non_disruptive_setvar_macro_multipart_lf_line:
-	MULTIPART_LF_LINE;
-action_non_disruptive_setvar_macro_multipart_missing_semicolon:
-	MULTIPART_MISSING_SEMICOLON;
-action_non_disruptive_setvar_macro_multipart_invalid_quoting:
-	MULTIPART_INVALID_QUOTING;
-action_non_disruptive_setvar_macro_multipart_invalid_part:
-	MULTIPART_INVALID_PART;
-action_non_disruptive_setvar_macro_multipart_invalid_header_folding:
-	MULTIPART_INVALID_HEADER_FOLDING;
-action_non_disruptive_setvar_macro_multipart_file_limit_exceeded:
-	MULTIPART_FILE_LIMIT_EXCEEDED;
-action_non_disruptive_setvar_macro_rule: RULE DOT STRING;
-action_non_disruptive_setvar_macro_session: SESSION;
-action_non_disruptive_setvar_macro_reqbody_error_msg:
-	REQBODY_ERROR_MSG;
-
 action_non_disruptive_setenv:
 	Setenv COLON SINGLE_QUOTE VAR_NAME ASSIGN (
 		VAR_VALUE
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-		)
+		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	) SINGLE_QUOTE;
 
 action_non_disruptive_setuid:
 	Setuid COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-		)
+		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
 action_non_disruptive_setrsc:
 	Setrsc COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-		)
+		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
 action_non_disruptive_setsid:
 	Setsid COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
-		| (
-			PER_CENT LEFT_BRACKET action_non_disruptive_setvar_macro RIGHT_BRACKET
-		)
+		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
 action_non_disruptive_t:
 	T COLON (

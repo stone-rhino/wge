@@ -81,8 +81,8 @@ public:
   virtual FullName fullName() const = 0;
 
   /**
-   * Get the main name of the variable.
-   * @return the main name of the variable.
+   * Get the main(collection) name of the variable.
+   * @return the main(collection) name of the variable.
    */
   virtual const char* mainName() const = 0;
 
