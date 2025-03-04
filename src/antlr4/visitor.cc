@@ -1202,56 +1202,82 @@ std::any Visitor::visitAction_meta_data_severity_number(
 
 std::any Visitor::visitAction_non_disruptive_setvar_create(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+      getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
+               ctx->action_non_disruptive_setvar_varname()->action_non_disruptive_setvar_macro(),
+               ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
+
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::SetVar>(
-      ctx->VAR_NAME()->getText(), Common::Variant(), Action::SetVar::EvaluateType::Create));
+  if (key_macro.has_value()) {
+    if (key_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(key_macro.value(), Common::Variant(),
+                                                            Action::SetVar::EvaluateType::Create));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), Common::Variant(),
+          Action::SetVar::EvaluateType::Create));
+    }
+  } else {
+    RETURN_ERROR(key_macro.error());
+  }
+
   return EMPTY_STRING;
 };
 
 std::any Visitor::visitAction_non_disruptive_setvar_create_init(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+      getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
+               ctx->action_non_disruptive_setvar_varname()->action_non_disruptive_setvar_macro(),
+               ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  auto macro_ctx_array =
-      ctx->action_non_disruptive_setvar_create_init_value()->action_non_disruptive_setvar_macro();
-  if (!macro_ctx_array.empty()) {
-    std::any visit_result;
-    try {
-      if (macro_ctx_array.size() == 1) {
-        visit_result = visitChildren(macro_ctx_array.front());
-        std::shared_ptr<Macro::MacroBase> macro =
-            std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
-        actions.emplace_back(std::make_unique<Action::SetVar>(
-            ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::CreateAndInit));
-      } else {
-        std::vector<std::shared_ptr<Macro::MacroBase>> macros;
-        for (auto& macro_ctx : macro_ctx_array) {
-          visit_result = visitChildren(macro_ctx);
-          macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
-        }
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro = getMacro(
+      ctx->action_non_disruptive_setvar_create_init_value()->getText(),
+      ctx->action_non_disruptive_setvar_create_init_value()->action_non_disruptive_setvar_macro(),
+      ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().empty());
 
-        std::shared_ptr<Macro::MultiMacro> multi_macro = std::make_shared<Macro::MultiMacro>(
-            ctx->action_non_disruptive_setvar_create_init_value()->getText(), std::move(macros));
+  if (!key_macro.has_value()) {
+    RETURN_ERROR(key_macro.error());
+  }
 
-        actions.emplace_back(std::make_unique<Action::SetVar>(
-            ctx->VAR_NAME()->getText(), multi_macro, Action::SetVar::EvaluateType::CreateAndInit));
-      }
+  if (!value_macro.has_value()) {
+    RETURN_ERROR(value_macro.error());
+  }
 
-    } catch (const std::bad_any_cast& ex) {
-      RETURN_ERROR("Expect a macro object, but not.");
-    }
-  } else {
+  // If the value is all of digits, then convert the value_variant to int. Otherwise, convert the
+  // value_variant to string.
+  Common::Variant value_variant;
+  if (!value_macro.value()) {
     std::string value_string =
         ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText();
     Common::Variant variant;
     if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
-      variant = ::atoi(value_string.c_str());
+      value_variant = ::atoi(value_string.c_str());
     } else {
-      variant = value_string;
+      value_variant = value_string;
     }
-    actions.emplace_back(
-        std::make_unique<Action::SetVar>(ctx->VAR_NAME()->getText(), std::move(variant),
-                                         Action::SetVar::EvaluateType::CreateAndInit));
+  }
+
+  if (key_macro.value()) {
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::CreateAndInit));
+    } else {
+      actions.emplace_back(
+          std::make_unique<Action::SetVar>(key_macro.value(), std::move(value_variant),
+                                           Action::SetVar::EvaluateType::CreateAndInit));
+    }
+  } else {
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), value_macro.value(),
+          Action::SetVar::EvaluateType::CreateAndInit));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), std::move(value_variant),
+          Action::SetVar::EvaluateType::CreateAndInit));
+    }
   }
 
   return EMPTY_STRING;
@@ -1259,53 +1285,141 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
 
 std::any Visitor::visitAction_non_disruptive_setvar_remove(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_removeContext* ctx) {
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+      getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
+               ctx->action_non_disruptive_setvar_varname()->action_non_disruptive_setvar_macro(),
+               ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
+
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::SetVar>(
-      ctx->VAR_NAME()->getText(), Common::Variant(), Action::SetVar::EvaluateType::Remove));
+  if (key_macro.has_value()) {
+    if (key_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(key_macro.value(), Common::Variant(),
+                                                            Action::SetVar::EvaluateType::Remove));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), Common::Variant(),
+          Action::SetVar::EvaluateType::Remove));
+    }
+  } else {
+    RETURN_ERROR(key_macro.error());
+  }
+
   return EMPTY_STRING;
-};
+}
 
 std::any Visitor::visitAction_non_disruptive_setvar_increase(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+      getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
+               ctx->action_non_disruptive_setvar_varname()->action_non_disruptive_setvar_macro(),
+               ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  if (ctx->action_non_disruptive_setvar_macro()) {
-    std::any visit_result = visitChildren(ctx->action_non_disruptive_setvar_macro());
-    try {
-      std::shared_ptr<Macro::MacroBase> macro =
-          std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+      ctx->action_non_disruptive_setvar_macro()
+          ? getMacro(ctx->action_non_disruptive_setvar_macro()->getText(),
+                     {ctx->action_non_disruptive_setvar_macro()}, true)
+          : nullptr;
+
+  if (!key_macro.has_value()) {
+    RETURN_ERROR(key_macro.error());
+  }
+
+  if (!value_macro.has_value()) {
+    RETURN_ERROR(value_macro.error());
+  }
+
+  // If the value is all of digits, then convert the value_variant to int. Otherwise, convert the
+  // value_variant to string.
+  Common::Variant value_variant;
+  if (!value_macro.value()) {
+    std::string value_string = ctx->VAR_VALUE()->getText();
+    Common::Variant variant;
+    if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
+      value_variant = ::atoi(value_string.c_str());
+    } else {
+      value_variant = value_string;
+    }
+  }
+
+  if (key_macro.value()) {
+    if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Increase));
-    } catch (const std::bad_any_cast& ex) {
-      RETURN_ERROR("Expect a macro object, but not.");
+          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::Increase));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          key_macro.value(), std::move(value_variant), Action::SetVar::EvaluateType::Increase));
     }
   } else {
-    Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        ctx->VAR_NAME()->getText(), std::move(variant), Action::SetVar::EvaluateType::Increase));
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), value_macro.value(),
+          Action::SetVar::EvaluateType::Increase));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), std::move(value_variant),
+          Action::SetVar::EvaluateType::Increase));
+    }
   }
+
   return EMPTY_STRING;
 };
 
 std::any Visitor::visitAction_non_disruptive_setvar_decrease(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+      getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
+               ctx->action_non_disruptive_setvar_varname()->action_non_disruptive_setvar_macro(),
+               ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  if (ctx->action_non_disruptive_setvar_macro()) {
-    std::any visit_result = visitChildren(ctx->action_non_disruptive_setvar_macro());
-    try {
-      std::shared_ptr<Macro::MacroBase> macro =
-          std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+      ctx->action_non_disruptive_setvar_macro()
+          ? getMacro(ctx->action_non_disruptive_setvar_macro()->getText(),
+                     {ctx->action_non_disruptive_setvar_macro()}, true)
+          : nullptr;
+
+  if (!key_macro.has_value()) {
+    RETURN_ERROR(key_macro.error());
+  }
+
+  if (!value_macro.has_value()) {
+    RETURN_ERROR(value_macro.error());
+  }
+
+  // If the value is all of digits, then convert the value_variant to int. Otherwise, convert the
+  // value_variant to string.
+  Common::Variant value_variant;
+  if (!value_macro.value()) {
+    std::string value_string = ctx->VAR_VALUE()->getText();
+    Common::Variant variant;
+    if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
+      value_variant = ::atoi(value_string.c_str());
+    } else {
+      value_variant = value_string;
+    }
+  }
+
+  if (key_macro.value()) {
+    if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          ctx->VAR_NAME()->getText(), macro, Action::SetVar::EvaluateType::Decrease));
-    } catch (const std::bad_any_cast& ex) {
-      RETURN_ERROR("Expect a macro object, but not.");
+          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::Decrease));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          key_macro.value(), std::move(value_variant), Action::SetVar::EvaluateType::Decrease));
     }
   } else {
-    Common::Variant variant(::atoi(ctx->VAR_VALUE()->getText().c_str()));
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        ctx->VAR_NAME()->getText(), std::move(variant), Action::SetVar::EvaluateType::Decrease));
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), value_macro.value(),
+          Action::SetVar::EvaluateType::Decrease));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          ctx->action_non_disruptive_setvar_varname()->getText(), std::move(value_variant),
+          Action::SetVar::EvaluateType::Decrease));
+    }
   }
+
   return EMPTY_STRING;
 };
 
@@ -2246,5 +2360,35 @@ EngineConfig::BodyLimitAction Visitor::bodyLimitActionStr2EnumValue(const std::s
     action = EngineConfig::BodyLimitAction::Reject;
   }
   return action;
+}
+
+std::expected<std::shared_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
+    std::string&& text,
+    const std::vector<
+        SrSecurity::Antlr4::Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macroContext*>&
+        macro_ctx_array,
+    bool is_only_macro) {
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> result;
+
+  try {
+    if (!macro_ctx_array.empty()) {
+      if (is_only_macro) {
+        std::any visit_result = visitChildren(macro_ctx_array.front());
+        result = std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
+      } else {
+        std::vector<std::shared_ptr<Macro::MacroBase>> macros;
+        for (auto& macro_ctx : macro_ctx_array) {
+          std::any visit_result = visitChildren(macro_ctx);
+          macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
+        }
+        result = std::shared_ptr<Macro::MacroBase>(
+            new Macro::MultiMacro(std::move(text), std::move(macros)));
+      }
+    }
+  } catch (const std::bad_any_cast& ex) {
+    result = std::unexpected("Expect a macro object, but not.");
+  }
+
+  return result;
 }
 } // namespace SrSecurity::Antlr4

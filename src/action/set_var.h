@@ -27,8 +27,11 @@ public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(std::string&& key, Common::Variant&&, EvaluateType type);
-  SetVar(std::string&& key, std::shared_ptr<Macro::MacroBase> macro, EvaluateType type);
+  SetVar(std::string&& key, Common::Variant&& value, EvaluateType type);
+  SetVar(std::string&& key, const std::shared_ptr<Macro::MacroBase> value, EvaluateType type);
+  SetVar(const std::shared_ptr<Macro::MacroBase> key, Common::Variant&& value, EvaluateType type);
+  SetVar(const std::shared_ptr<Macro::MacroBase> key, const std::shared_ptr<Macro::MacroBase> value,
+         EvaluateType type);
 
 public:
   void evaluate(Transaction& t) const override;
@@ -41,7 +44,8 @@ private:
   std::string key_;
   const Common::Variant value_;
   EvaluateType type_;
-  std::shared_ptr<Macro::MacroBase> macro_;
+  const std::shared_ptr<Macro::MacroBase> key_macro_;
+  const std::shared_ptr<Macro::MacroBase> value_macro_;
 };
 } // namespace Action
 } // namespace SrSecurity

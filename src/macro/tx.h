@@ -16,18 +16,20 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
-    auto& buffer = t.evaluatedBuffer().macro_;
+    Common::Variant* buffer = &t.evaluatedBuffer().macro_;
     if (matched_index_ == 0xffffffff) {
       SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
                            VISTIT_VARIANT_AS_STRING(t.getVariable(variable_name_)));
-      buffer = t.getVariable(variable_name_);
+      // Avoiding copy of the variant, return a reference to the variant
+      buffer = &const_cast<Common::Variant&>(t.getVariable(variable_name_));
     } else {
       SRSECURITY_LOG_TRACE("macro %{{TX.{}}} expanded: {}", variable_name_,
                            *t.getMatched(matched_index_));
-      buffer = *t.getMatched(matched_index_);
+      // Although the variant is copied, it is a string_view, so it is cheap to copy
+      *buffer = *t.getMatched(matched_index_);
     }
 
-    return buffer;
+    return *buffer;
   }
 
 private:

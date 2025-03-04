@@ -809,6 +809,12 @@ public:
 private:
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> getMacro(
+      std::string&& text,
+      const std::vector<
+          SrSecurity::Antlr4::Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_macroContext*>&
+          macro_ctx_array,
+      bool is_only_macro);
 
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;

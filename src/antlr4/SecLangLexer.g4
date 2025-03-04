@@ -417,6 +417,8 @@ ModeSecRuleActionSetVar_QUOTE:
 	QUOTE -> type(QUOTE), popMode, popMode;
 ModeSecRuleActionSetVarName_ASSIGN:
 	ASSIGN -> type(ASSIGN), popMode, pushMode(ModeSecRuleActionSetVarValue);
+ModeSecRuleActionSetVarName_PER_CENT:
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleActionMacroExpansion);
 VAR_NAME: [0-9a-zA-Z_][0-9a-zA-Z_]*;
 
 mode ModeSecRuleActionSetVarValue;
