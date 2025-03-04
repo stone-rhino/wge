@@ -340,8 +340,10 @@ OP_UNCONDITIONAL_MATCH: 'unconditionalMatch';
 OP_VALIDATE_BYTE_RANGE: 'validateByteRange';
 OP_VALIDATE_DTD: 'validateDTD';
 OP_VALIDATE_SCHEMA: 'validateSchema';
-OP_VALIDATE_URL_ENCODING: 'validateUrlEncoding';
-OP_VALIDATE_UTF8_ENCODING: 'validateUtf8Encoding';
+OP_VALIDATE_URL_ENCODING:
+	'validateUrlEncoding' -> popMode, pushMode(ModeSecRuleOperatorValue);
+OP_VALIDATE_UTF8_ENCODING:
+	'validateUtf8Encoding' -> popMode, pushMode(ModeSecRuleOperatorValue);
 OP_VERIFY_CC: 'verifyCC';
 OP_VERIFY_CPF: 'verifyCPF';
 OP_VERIFY_SSN: 'verifySSN';

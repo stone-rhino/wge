@@ -416,10 +416,8 @@ op_unconditional_match: NOT? AT OP_UNCONDITIONAL_MATCH STRING;
 op_validate_byte_range: NOT? AT OP_VALIDATE_BYTE_RANGE STRING;
 op_validate_dtd: NOT? AT OP_VALIDATE_DTD STRING;
 op_validate_schema: NOT? AT OP_VALIDATE_SCHEMA STRING;
-op_validate_url_encoding:
-	NOT? AT OP_VALIDATE_URL_ENCODING STRING;
-op_validate_utf8_encoding:
-	NOT? AT OP_VALIDATE_UTF8_ENCODING STRING;
+op_validate_url_encoding: NOT? AT OP_VALIDATE_URL_ENCODING;
+op_validate_utf8_encoding: NOT? AT OP_VALIDATE_UTF8_ENCODING;
 op_verify_cc: NOT? AT OP_VERIFY_CC STRING;
 op_verify_cpf: NOT? AT OP_VERIFY_CPF STRING;
 op_verify_ssn: NOT? AT OP_VERIFY_SSN STRING;

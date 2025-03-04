@@ -1004,7 +1004,7 @@ Visitor::visitOp_validate_schema(Antlr4Gen::SecLangParser::Op_validate_schemaCon
 std::any Visitor::visitOp_validate_url_encoding(
     Antlr4Gen::SecLangParser::Op_validate_url_encodingContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateUrlEncoding(ctx->STRING()->getText(), ctx->NOT() != nullptr));
+      new Operator::ValidateUrlEncoding(std::string(), ctx->NOT() != nullptr));
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
@@ -1012,7 +1012,7 @@ std::any Visitor::visitOp_validate_url_encoding(
 std::any Visitor::visitOp_validate_utf8_encoding(
     Antlr4Gen::SecLangParser::Op_validate_utf8_encodingContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateUtf8Encoding(ctx->STRING()->getText(), ctx->NOT() != nullptr));
+      new Operator::ValidateUtf8Encoding(std::string(), ctx->NOT() != nullptr));
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
