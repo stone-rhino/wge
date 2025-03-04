@@ -16,7 +16,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
 
   SRSECURITY_LOG_TRACE("------------------------------------");
   if (is_uncondition) [[unlikely]] {
-    SRSECURITY_LOG_TRACE("evaluate SecAction. id: {}", id_);
+    SRSECURITY_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
     // Evaluate the actions
     for (auto& action : actions_) {
       action->evaluate(t);
@@ -24,7 +24,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
     matched = true;
 
   } else [[likely]] {
-    SRSECURITY_LOG_TRACE("evaluate SecRule. id: {}", id_);
+    SRSECURITY_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
 
     Common::Variant transform_data;
 
