@@ -8,7 +8,9 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
 endif()
 
 # Enable logging
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 add_definitions(-DSRSECURITY_LOG_ACTIVE_LEVEL=1)
+endif()
 
 add_subdirectory(src)
 add_subdirectory(test)
