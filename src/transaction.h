@@ -148,14 +148,14 @@ public:
    * @param index the index of the matched string.the range is [0, 99].
    * @param value the reference of the matched string.
    */
-  void setMatched(size_t index, const std::string_view& value);
+  void setMatched(size_t index, std::string_view value);
 
   /**
    * Get the matched string that is captured by the operator.
    * @param index the index of the matched string.the range is [0, 99].
-   * @return the matched string.if the matched string does not exist, return nullptr.
+   * @return the matched value. if the matched string does not exist, return empty variant.
    */
-  const std::string_view* getMatched(size_t index) const;
+  const Common::Variant& getMatched(size_t index) const;
 
   /**
    * Get the HTTP extractor.
@@ -230,7 +230,7 @@ private:
   HttpExtractor extractor_;
   const Engine& engine_;
   std::unordered_map<std::string, Common::Variant> tx_;
-  std::array<std::string_view, 100> matched_;
+  std::array<Common::Variant, 100> matched_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
 

@@ -101,20 +101,20 @@ void Transaction::setVariable(const std::string& name, int value) {
 
 bool Transaction::hasVariable(const std::string& name) const { return tx_.find(name) != tx_.end(); }
 
-void Transaction::setMatched(size_t index, const std::string_view& value) {
+void Transaction::setMatched(size_t index, std::string_view value) {
   assert(index < matched_.size());
   if (index < matched_.size()) {
     matched_[index] = value;
   }
 }
 
-const std::string_view* Transaction::getMatched(size_t index) const {
+const Common::Variant& Transaction::getMatched(size_t index) const {
   assert(index < matched_.size());
   if (index < matched_.size()) {
-    return &matched_[index];
+    return matched_[index];
   }
 
-  return nullptr;
+  return EMPTY_VARIANT;
 }
 
 void Transaction::removeRule(
