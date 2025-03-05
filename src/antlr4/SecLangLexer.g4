@@ -461,7 +461,8 @@ ModeSecRuleOperatorValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleAction;
-ModeSecRuleAction_WS: WS -> skip;
+ModeSecRuleAction_WS: (([ \t]+) | NL) -> skip;
+ModeSecRuleAction_END: '\r'? '\n' -> skip, popMode;
 ModeSecRuleAction_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleActionName);
 

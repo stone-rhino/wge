@@ -98,9 +98,9 @@ sec_rule_update_target_by_tag:
 sec_marker: SecMarker ((QUOTE STRING QUOTE) | STRING);
 
 sec_rule:
-	SecRule variables QUOTE operator QUOTE QUOTE action (
+	SecRule variables QUOTE operator QUOTE (QUOTE action (
 		COMMA? action
-	)* QUOTE;
+	)* QUOTE)?;
 
 variables: variable (PIPE variable)*;
 

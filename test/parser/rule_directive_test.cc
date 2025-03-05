@@ -416,6 +416,20 @@ SecMarker "Hi")";
   EXPECT_EQ(markers.size(), 1);
 }
 
+TEST_F(RuleTest, NoAction) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo"
+      SecRule ARGS:aaa|ARGS:bbb "bar")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_EQ(parser.rules().size(), 2);
+  EXPECT_EQ(parser.rules().front()->actions().size(), 0);
+  EXPECT_EQ(parser.rules().back()->actions().size(), 0);
+}
+
 TEST_F(RuleTest, ActionSetVar) {
   auto t = engine_.makeTransaction();
 
