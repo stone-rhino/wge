@@ -25,26 +25,14 @@ namespace SrSecurity {
  * life of the program.
  */
 class Engine final {
-private:
-  /**
-   * Construct the engine
-   * @note The constructor is private, and only the singleton method can create the engine instance.
-   */
-  Engine(spdlog::level::level_enum level = spdlog::level::info, const std::string& log_file = "");
-
 public:
   /**
-   * Get the singleton instance of the engine
-   * @return reference of the engine
-   * @note The engine is a singleton, and only one instance of the engine exists in the life of the
-   * program. Because the engine use some thread_local variable, if multiple engine instances exist,
-   * the thread_local variable will be invalid.
+   * Construct the engine
+   * @param level the debug log level. if the SRSECURITY_LOG_ACTIVE_LEVEL compile-time macro is not
+   * defined, the debug log will be disabled. and the log level will be ignored.
+   * @param log_file the log file path. If it is empty, the log will be output to the console
    */
-  static Engine& singleton(spdlog::level::level_enum level = spdlog::level::info,
-                           const std::string& log_file = "") {
-    static Engine engine(level, log_file);
-    return engine;
-  }
+  Engine(spdlog::level::level_enum level = spdlog::level::info, const std::string& log_file = "");
 
 public:
   /**

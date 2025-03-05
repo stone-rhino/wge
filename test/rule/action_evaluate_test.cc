@@ -8,10 +8,10 @@
 namespace SrSecurity {
 class ActionEvaluate : public testing::Test {
 public:
-  ActionEvaluate() : engine_(Engine::singleton()) {}
+  ActionEvaluate() : engine_(spdlog::level::trace) {}
 
 public:
-  Engine& engine_;
+  Engine engine_;
 };
 
 TEST_F(ActionEvaluate, SetVar) {

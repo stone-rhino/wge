@@ -7,7 +7,7 @@
 namespace SrSecurity {
 class IntegrationTest : public testing::Test {
 public:
-  IntegrationTest() : engine_(Engine::singleton(spdlog::level::trace)) {}
+  IntegrationTest() : engine_(spdlog::level::trace) {}
 
 public:
   void SetUp() override {

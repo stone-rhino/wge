@@ -9,7 +9,7 @@ namespace SrSecurity {
 namespace Parsr {
 class EngineActionTest : public testing::Test {
 public:
-  EngineActionTest() : engine_(SrSecurity::Engine::singleton()) {}
+  EngineActionTest() : engine_(spdlog::level::trace) {}
 
 protected:
   Engine engine_;

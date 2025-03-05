@@ -16,7 +16,7 @@ namespace SrSecurity {
 namespace Parser {
 class RuleTest : public testing::Test {
 public:
-  RuleTest() : engine_(Engine::singleton()) {}
+  RuleTest() : engine_(spdlog::level::trace) {}
 
 public:
   Engine engine_;
