@@ -6,6 +6,11 @@
 #include "../common/empty_string.h"
 #include "../macro/macro_include.h"
 
+#define RETURN_ERROR(msg)                                                                          \
+  should_visit_next_child_ = false;                                                                \
+  return std::format("[{}:{}:{}] {}", parser_->currLoadFile(), ctx->getStart()->getLine(),         \
+                     ctx->getStart()->getCharPositionInLine(), msg);
+
 namespace SrSecurity::Antlr4 {
 class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
 public:
@@ -798,14 +803,35 @@ private:
 
     if (visit_variable_mode_ == VisitVariableMode::Ctl) {
       // std::any is copyable, so we can't return a unique_ptr
-      return std::shared_ptr<Variable::VariableBase>(
+      std::shared_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter));
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      return variable;
     } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
       std::shared_ptr<Variable::VariableBase> variable(new VarT(std::move(sub_name), false, false));
+
+      // Only accept xxx.yyy format
+      if (ctx->COLON()) {
+        RETURN_ERROR(std::format("Variable name cannot contain ':': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
       return std::shared_ptr<Macro::MacroBase>(new Macro::VariableMacro(variable));
     } else {
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter));
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
 
       // Remove the variable first if current mode is update rule
       if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {

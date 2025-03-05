@@ -12,11 +12,6 @@
 #include "../transformation/transform_include.h"
 #include "../variable/variables_include.h"
 
-#define RETURN_ERROR(msg)                                                                          \
-  should_visit_next_child_ = false;                                                                \
-  return std::format("[{}:{}:{}] {}", parser_->currLoadFile(), ctx->getStart()->getLine(),         \
-                     ctx->getStart()->getCharPositionInLine(), msg);
-
 namespace SrSecurity::Antlr4 {
 
 std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
