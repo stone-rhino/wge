@@ -2,7 +2,8 @@
 
 #include "action/set_var.h"
 #include "engine.h"
-#include "macro/tx.h"
+#include "macro/macro_include.h"
+#include "variable/variables_include.h"
 
 namespace SrSecurity {
 class ActionEvaluate : public testing::Test {
@@ -56,7 +57,9 @@ TEST_F(ActionEvaluate, SetVarMacroTx) {
   EXPECT_EQ(score, 100);
 
   {
-    Action::SetVar set_var("score2", std::make_shared<Macro::Tx>("score"),
+    std::shared_ptr<Variable::VariableBase> var =
+        std::make_shared<Variable::Tx>("score", false, false);
+    Action::SetVar set_var("score2", std::make_shared<Macro::VariableMacro>(var),
                            Action::SetVar::EvaluateType::CreateAndInit);
     set_var.evaluate(*t);
     int score = std::get<int>(t->getVariable("score2"));
