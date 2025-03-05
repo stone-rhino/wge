@@ -479,44 +479,48 @@ operator:
 	| op_verify_ssn
 	| op_within
 	| op_rx_default;
-op_begins_with: NOT? AT OP_BEGINS_WITH STRING;
-op_contains: NOT? AT OP_CONTAINS STRING;
-op_contains_word: NOT? AT OP_CONTAINS_WORD STRING;
+op_begins_with: NOT? AT OP_BEGINS_WITH string_with_macro;
+op_contains: NOT? AT OP_CONTAINS string_with_macro;
+op_contains_word: NOT? AT OP_CONTAINS_WORD string_with_macro;
 op_detect_sqli: NOT? AT OP_DETECT_SQLI;
 op_detect_xss: NOT? AT OP_DETECT_XSS;
-op_ends_with: NOT? AT OP_ENDS_WITH STRING;
-op_fuzzy_hash: NOT? AT OP_FUZZY_HASH STRING;
-op_eq: NOT? AT OP_EQ STRING;
-op_ge: NOT? AT OP_GE STRING;
-op_geo_lookup: NOT? AT OP_GEO_LOOKUP STRING;
-op_gt: NOT? AT OP_GT STRING;
-op_inspect_file: NOT? AT OP_INSPECT_FILE STRING;
-op_ip_match: NOT? AT OP_IP_MATCH STRING;
-op_ip_match_f: NOT? AT OP_IP_MATCH_F STRING;
-op_ip_match_from_file: NOT? AT OP_IP_MATCH_FROM_FILE STRING;
-op_le: NOT? AT OP_LE STRING;
-op_lt: NOT? AT OP_LT STRING;
-op_no_match: NOT? AT OP_NO_MATCH STRING;
-op_pm: NOT? AT OP_PM STRING;
-op_pmf: NOT? AT OP_PMF STRING;
-op_pm_from_file: NOT? AT OP_PM_FROM_FILE STRING;
-op_rbl: NOT? AT OP_RBL STRING;
-op_rsub: NOT? AT OP_RSUB STRING;
-op_rx: NOT? AT OP_RX STRING;
-op_rx_global: NOT? AT OP_RX_GLOBAL STRING;
-op_streq: NOT? AT OP_STREQ STRING;
-op_strmatch: NOT? AT OP_STRMATCH STRING;
-op_unconditional_match: NOT? AT OP_UNCONDITIONAL_MATCH STRING;
-op_validate_byte_range: NOT? AT OP_VALIDATE_BYTE_RANGE STRING;
-op_validate_dtd: NOT? AT OP_VALIDATE_DTD STRING;
-op_validate_schema: NOT? AT OP_VALIDATE_SCHEMA STRING;
+op_ends_with: NOT? AT OP_ENDS_WITH string_with_macro;
+op_fuzzy_hash: NOT? AT OP_FUZZY_HASH string_with_macro;
+op_eq: NOT? AT OP_EQ string_with_macro;
+op_ge: NOT? AT OP_GE string_with_macro;
+op_geo_lookup: NOT? AT OP_GEO_LOOKUP string_with_macro;
+op_gt: NOT? AT OP_GT string_with_macro;
+op_inspect_file: NOT? AT OP_INSPECT_FILE string_with_macro;
+op_ip_match: NOT? AT OP_IP_MATCH string_with_macro;
+op_ip_match_f: NOT? AT OP_IP_MATCH_F string_with_macro;
+op_ip_match_from_file:
+	NOT? AT OP_IP_MATCH_FROM_FILE string_with_macro;
+op_le: NOT? AT OP_LE string_with_macro;
+op_lt: NOT? AT OP_LT string_with_macro;
+op_no_match: NOT? AT OP_NO_MATCH string_with_macro;
+op_pm: NOT? AT OP_PM string_with_macro;
+op_pmf: NOT? AT OP_PMF string_with_macro;
+op_pm_from_file: NOT? AT OP_PM_FROM_FILE string_with_macro;
+op_rbl: NOT? AT OP_RBL string_with_macro;
+op_rsub: NOT? AT OP_RSUB string_with_macro;
+op_rx: NOT? AT OP_RX string_with_macro;
+op_rx_global: NOT? AT OP_RX_GLOBAL string_with_macro;
+op_streq: NOT? AT OP_STREQ string_with_macro;
+op_strmatch: NOT? AT OP_STRMATCH string_with_macro;
+op_unconditional_match:
+	NOT? AT OP_UNCONDITIONAL_MATCH string_with_macro;
+op_validate_byte_range:
+	NOT? AT OP_VALIDATE_BYTE_RANGE string_with_macro;
+op_validate_dtd: NOT? AT OP_VALIDATE_DTD string_with_macro;
+op_validate_schema:
+	NOT? AT OP_VALIDATE_SCHEMA string_with_macro;
 op_validate_url_encoding: NOT? AT OP_VALIDATE_URL_ENCODING;
 op_validate_utf8_encoding: NOT? AT OP_VALIDATE_UTF8_ENCODING;
-op_verify_cc: NOT? AT OP_VERIFY_CC STRING;
-op_verify_cpf: NOT? AT OP_VERIFY_CPF STRING;
-op_verify_ssn: NOT? AT OP_VERIFY_SSN STRING;
-op_within: NOT? AT OP_WITHIN STRING;
-op_rx_default: STRING;
+op_verify_cc: NOT? AT OP_VERIFY_CC string_with_macro;
+op_verify_cpf: NOT? AT OP_VERIFY_CPF string_with_macro;
+op_verify_ssn: NOT? AT OP_VERIFY_SSN string_with_macro;
+op_within: NOT? AT OP_WITHIN string_with_macro;
+op_rx_default: string_with_macro;
 
 action:
 	action_meta_data
@@ -555,8 +559,8 @@ action_meta_data_severity:
 		| action_meta_data_severity_number
 	);
 action_meta_data_msg:
-	Msg COLON SINGLE_QUOTE action_meta_data_msg_value SINGLE_QUOTE;
-action_meta_data_msg_value:
+	Msg COLON SINGLE_QUOTE string_with_macro SINGLE_QUOTE;
+string_with_macro:
 	STRING
 	| (
 		STRING? PER_CENT LEFT_BRACKET variable RIGHT_BRACKET STRING?
@@ -826,7 +830,7 @@ action_non_disruptive_log: Log;
 action_non_disruptive_no_audit_log: Noauditlog;
 action_non_disruptive_no_log: Nolog;
 action_non_disruptive_logdata:
-	Logdata COLON SINGLE_QUOTE action_meta_data_msg_value SINGLE_QUOTE;
+	Logdata COLON SINGLE_QUOTE string_with_macro SINGLE_QUOTE;
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
 action_non_disruptive_initcol:

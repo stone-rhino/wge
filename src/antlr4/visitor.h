@@ -846,6 +846,26 @@ private:
     }
   }
 
+  template <class VarT, class CtxT> std::any setOprator(CtxT* ctx) {
+    auto macro = getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+                          ctx->string_with_macro()->STRING().empty());
+
+    if (!macro.has_value()) {
+      RETURN_ERROR(macro.error());
+    }
+
+    std::unique_ptr<Operator::OperatorBase> op;
+    if (macro.value()) {
+      op = std::unique_ptr<Operator::OperatorBase>(new VarT(macro.value(), ctx->NOT() != nullptr));
+    } else {
+      op = std::unique_ptr<Operator::OperatorBase>(
+          new VarT(ctx->string_with_macro()->getText(), ctx->NOT() != nullptr));
+    }
+
+    (*current_rule_iter_)->setOperator(std::move(op));
+    return EMPTY_STRING;
+  }
+
 private:
   Parser* parser_;
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;

@@ -23,6 +23,9 @@ public:
   OperatorBase(std::string&& literal_value, bool is_not)
       : literal_value_(std::move(literal_value)), is_not_(is_not) {}
 
+  OperatorBase(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+      : macro_(macro), is_not_(is_not) {}
+
   virtual ~OperatorBase() = default;
 
 public:
@@ -31,6 +34,12 @@ public:
    * @return the literal value of the operator.
    */
   const std::string& literalValue() const { return literal_value_; }
+
+  /**
+   * Get the macro of the operator.
+   * @return the macro of the operator.
+   */
+  const std::shared_ptr<Macro::MacroBase> macro() const { return macro_; }
 
 public:
   /**
@@ -50,7 +59,7 @@ public:
 protected:
   std::string literal_value_;
   bool is_not_;
-  std::shared_ptr<Macro::MacroBase> macro_;
+  const std::shared_ptr<Macro::MacroBase> macro_;
 };
 
 } // namespace Operator

@@ -8,11 +8,15 @@ class Rsub : public OperatorBase {
   DECLARE_OPERATOR_NAME(rsub);
 
 public:
-  Rsub(std::string&& literal_value, bool is_not)
-      : OperatorBase(std::move(literal_value), is_not) {}
+  Rsub(std::string&& literal_value, bool is_not) : OperatorBase(std::move(literal_value), is_not) {}
+
+  Rsub(const std::shared_ptr<Macro::MacroBase> macro, bool is_not) : OperatorBase(macro, is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override { assert(false); throw "Not implemented!"; }
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+    assert(false);
+    throw "Not implemented!";
+  }
 };
 } // namespace Operator
 } // namespace SrSecurity

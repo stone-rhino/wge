@@ -87,6 +87,40 @@ TEST_F(RuleTest, Rule) {
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
+TEST_F(RuleTest, OperatorBeginWith) {
+  const std::string rule_directive =
+      R"(SecRule ARGS "@beginsWith hello" "id:1,tag:'foo',msg:'bar'")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& op = parser.rules().back()->getOperator();
+  EXPECT_EQ(op->name(), std::string("beginsWith"));
+  EXPECT_EQ(op->literalValue(), "hello");
+
+  // Macro expansion
+  {
+    auto t = engine_.makeTransaction();
+    const std::string rule_directive =
+        R"(SecAction "setvar:tx.foo=bar"
+        SecRule ARGS "@beginsWith %{tx.foo}" "id:1,tag:'foo',msg:'bar'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    parser.rules().front()->actions().front()->evaluate(*t);
+    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+
+    auto& op = parser.rules().back()->getOperator();
+    EXPECT_EQ(op->name(), std::string("beginsWith"));
+    EXPECT_TRUE(op->literalValue().empty());
+    auto macro = op->macro();
+    EXPECT_EQ(std::get<std::string>(macro->evaluate(*t)), "bar");
+  }
+}
+
 TEST_F(RuleTest, RuleRemoveById) {
   const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1'"
   SecRule ARGS "bar" "id:2,tag:'tag2',tag:'tag3',msg:'msg2'"

@@ -837,272 +837,174 @@ std::any Visitor::visitVariable_multipart_file_limit_exceeded(
 }
 
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::BeginsWith(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::BeginsWith>(ctx);
 }
 
 std::any Visitor::visitOp_contains(Antlr4Gen::SecLangParser::Op_containsContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Contains(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Contains>(ctx);
 }
 
 std::any Visitor::visitOp_contains_word(Antlr4Gen::SecLangParser::Op_contains_wordContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ContainsWord(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::ContainsWord>(ctx);
 }
 
 std::any Visitor::visitOp_detect_sqli(Antlr4Gen::SecLangParser::Op_detect_sqliContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::DetectSqli(std::string(), ctx->NOT() != nullptr));
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::DetectSqli>(std::string(), ctx->NOT() != nullptr);
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_detect_xss(Antlr4Gen::SecLangParser::Op_detect_xssContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::DetectXSS(std::string(), ctx->NOT() != nullptr));
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::DetectXSS>(std::string(), ctx->NOT() != nullptr);
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_ends_with(Antlr4Gen::SecLangParser::Op_ends_withContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::EndsWith(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::EndsWith>(ctx);
 }
 
 std::any Visitor::visitOp_fuzzy_hash(Antlr4Gen::SecLangParser::Op_fuzzy_hashContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::FuzzyHash(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::FuzzyHash>(ctx);
 }
 
 std::any Visitor::visitOp_eq(Antlr4Gen::SecLangParser::Op_eqContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Eq(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Eq>(ctx);
 }
 
 std::any Visitor::visitOp_ge(Antlr4Gen::SecLangParser::Op_geContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Ge(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Ge>(ctx);
 }
 
 std::any Visitor::visitOp_geo_lookup(Antlr4Gen::SecLangParser::Op_geo_lookupContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::GeoLookup(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::GeoLookup>(ctx);
 }
 
 std::any Visitor::visitOp_gt(Antlr4Gen::SecLangParser::Op_gtContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Gt(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Gt>(ctx);
 }
 
 std::any Visitor::visitOp_inspect_file(Antlr4Gen::SecLangParser::Op_inspect_fileContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::InspectFile(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::InspectFile>(ctx);
 }
 
 std::any Visitor::visitOp_ip_match(Antlr4Gen::SecLangParser::Op_ip_matchContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::IpMatch(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::IpMatch>(ctx);
 }
 
 std::any Visitor::visitOp_ip_match_f(Antlr4Gen::SecLangParser::Op_ip_match_fContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::IpMatchFromFile(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::IpMatchFromFile>(ctx);
 }
 
 std::any
 Visitor::visitOp_ip_match_from_file(Antlr4Gen::SecLangParser::Op_ip_match_from_fileContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::IpMatchFromFile(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::IpMatchFromFile>(ctx);
 }
 
 std::any Visitor::visitOp_le(Antlr4Gen::SecLangParser::Op_leContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Le(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Le>(ctx);
 }
 
 std::any Visitor::visitOp_lt(Antlr4Gen::SecLangParser::Op_ltContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Lt(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Lt>(ctx);
 }
 
 std::any Visitor::visitOp_no_match(Antlr4Gen::SecLangParser::Op_no_matchContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::NoMatch(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::NoMatch>(ctx);
 }
 
 std::any Visitor::visitOp_pm(Antlr4Gen::SecLangParser::Op_pmContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Pm(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Pm>(ctx);
 }
 
 std::any Visitor::visitOp_pmf(Antlr4Gen::SecLangParser::Op_pmfContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::PmFromFile(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::PmFromFile>(ctx);
 }
 
 std::any Visitor::visitOp_pm_from_file(Antlr4Gen::SecLangParser::Op_pm_from_fileContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::PmFromFile(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::PmFromFile>(ctx);
 }
 
 std::any Visitor::visitOp_rbl(Antlr4Gen::SecLangParser::Op_rblContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Rbl(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Rbl>(ctx);
 }
 
 std::any Visitor::visitOp_rsub(Antlr4Gen::SecLangParser::Op_rsubContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Rsub(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Rsub>(ctx);
 }
 
 std::any Visitor::visitOp_rx(Antlr4Gen::SecLangParser::Op_rxContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Rx(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Rx>(ctx);
 }
 
 std::any Visitor::visitOp_rx_global(Antlr4Gen::SecLangParser::Op_rx_globalContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::RxGlobal(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::RxGlobal>(ctx);
 }
 
 std::any Visitor::visitOp_streq(Antlr4Gen::SecLangParser::Op_streqContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Streq(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Streq>(ctx);
 }
 
 std::any Visitor::visitOp_strmatch(Antlr4Gen::SecLangParser::Op_strmatchContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Strmatch(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Strmatch>(ctx);
 }
 
 std::any
 Visitor::visitOp_unconditional_match(Antlr4Gen::SecLangParser::Op_unconditional_matchContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::UnconditionalMatch(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::UnconditionalMatch>(ctx);
 }
 
 std::any
 Visitor::visitOp_validate_byte_range(Antlr4Gen::SecLangParser::Op_validate_byte_rangeContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateByteRange(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::ValidateByteRange>(ctx);
 }
 
 std::any Visitor::visitOp_validate_dtd(Antlr4Gen::SecLangParser::Op_validate_dtdContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateDTD(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::ValidateDTD>(ctx);
 }
 
 std::any
 Visitor::visitOp_validate_schema(Antlr4Gen::SecLangParser::Op_validate_schemaContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateSchema(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::ValidateSchema>(ctx);
 }
 
 std::any Visitor::visitOp_validate_url_encoding(
     Antlr4Gen::SecLangParser::Op_validate_url_encodingContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateUrlEncoding(std::string(), ctx->NOT() != nullptr));
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::ValidateUrlEncoding>(std::string(), ctx->NOT() != nullptr);
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_validate_utf8_encoding(
     Antlr4Gen::SecLangParser::Op_validate_utf8_encodingContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::ValidateUtf8Encoding(std::string(), ctx->NOT() != nullptr));
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::ValidateUtf8Encoding>(std::string(), ctx->NOT() != nullptr);
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_verify_cc(Antlr4Gen::SecLangParser::Op_verify_ccContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::VerifyCC(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::VerifyCC>(ctx);
 }
 
 std::any Visitor::visitOp_verify_cpf(Antlr4Gen::SecLangParser::Op_verify_cpfContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::VerifyCPF(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::VerifyCPF>(ctx);
 }
 
 std::any Visitor::visitOp_verify_ssn(Antlr4Gen::SecLangParser::Op_verify_ssnContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::VerifySSN(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::VerifySSN>(ctx);
 }
 
 std::any Visitor::visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::Within(ctx->STRING()->getText(), ctx->NOT() != nullptr));
-  (*current_rule_iter_)->setOperator(std::move(op));
-  return EMPTY_STRING;
+  return setOprator<Operator::Within>(ctx);
 }
 
 std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op(new Operator::Rx(ctx->STRING()->getText(), false));
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::Rx>(ctx->string_with_macro()->getText(), false);
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
@@ -1137,9 +1039,9 @@ Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_
 
 std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro = getMacro(
-      ctx->action_meta_data_msg_value()->getText(), ctx->action_meta_data_msg_value()->variable(),
-      ctx->action_meta_data_msg_value()->STRING().empty());
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+      getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+               ctx->string_with_macro()->STRING().empty());
 
   if (!macro.has_value()) {
     RETURN_ERROR(macro.error());
@@ -1148,7 +1050,7 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
   if (macro.value()) {
     (*current_rule_iter_)->msg(macro.value());
   } else {
-    (*current_rule_iter_)->msg(ctx->action_meta_data_msg_value()->getText());
+    (*current_rule_iter_)->msg(ctx->string_with_macro()->getText());
     if (visit_action_mode_ == VisitActionMode::SecRule) {
       parser_->setRuleMsgIndex(current_rule_iter_);
     }
@@ -2022,9 +1924,9 @@ std::any Visitor::visitAction_non_disruptive_no_log(
 
 std::any Visitor::visitAction_non_disruptive_logdata(
     Antlr4Gen::SecLangParser::Action_non_disruptive_logdataContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro = getMacro(
-      ctx->action_meta_data_msg_value()->getText(), ctx->action_meta_data_msg_value()->variable(),
-      ctx->action_meta_data_msg_value()->STRING().empty());
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+      getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+               ctx->string_with_macro()->STRING().empty());
 
   if (!macro.has_value()) {
     RETURN_ERROR(macro.error());
@@ -2033,7 +1935,7 @@ std::any Visitor::visitAction_non_disruptive_logdata(
   if (macro.value()) {
     (*current_rule_iter_)->logData(macro.value());
   } else {
-    (*current_rule_iter_)->logData(ctx->action_meta_data_msg_value()->getText());
+    (*current_rule_iter_)->logData(ctx->string_with_macro()->getText());
   }
 
   return EMPTY_STRING;

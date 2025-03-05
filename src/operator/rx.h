@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "operator_base.h"
 
 #include "../common/assert.h"
@@ -17,11 +19,20 @@ class Rx : public OperatorBase {
 
 public:
   Rx(std::string&& literal_value, bool is_not)
-      : OperatorBase(std::move(literal_value), is_not), pcre_(literalValue(), false) {}
+      : OperatorBase(std::move(literal_value), is_not),
+        pcre_(std::make_unique<Common::Pcre>(literalValue(), false)) {}
+
+  Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not) : OperatorBase(macro, is_not) {}
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
     if (IS_EMPTY_VARIANT(operand)) [[unlikely]] {
+      return false;
+    }
+
+    if (!pcre_) [[unlikely]] {
+      // TODO(zhouyu 20250305): Initialize the pcre_ object with macro evaluated value. And use a
+      // hash table to store the pcre_ object to avoid recompiling the same pattern.
       return false;
     }
 
@@ -30,7 +41,7 @@ public:
     // Match the operand with the pattern.
     if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
       const std::string_view& operand_str = std::get<std::string_view>(operand);
-      result = pcre_.match(operand_str, per_thread_pcre_scratch_);
+      result = pcre_->match(operand_str, per_thread_pcre_scratch_);
 
       // Ignore capture_ and set the match result directly, because we need to capture the
       // matched string for %{MATCHED_VAR} in the rule action.
@@ -40,7 +51,7 @@ public:
       }
     } else if (IS_STRING_VARIANT(operand)) [[unlikely]] {
       const std::string& operand_str = std::get<std::string>(operand);
-      result = pcre_.match(operand_str, per_thread_pcre_scratch_);
+      result = pcre_->match(operand_str, per_thread_pcre_scratch_);
 
       // Ignore capture_ and set the match result directly, because we need to capture the
       // matched string for %{MATCHED_VAR} in the rule action.
@@ -69,7 +80,7 @@ public:
   bool getCapture() const { return capture_; }
 
 private:
-  Common::Pcre pcre_;
+  std::unique_ptr<Common::Pcre> pcre_;
   bool capture_{false};
 
   // The result of the regular expression match.

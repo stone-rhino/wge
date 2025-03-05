@@ -452,7 +452,13 @@ OP_WITHIN: 'within';
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
-OPERATOR_VALUE2: (('\\"') | ~([" ])) (('\\"') | ~('"'))* -> type(STRING);
+ModeSecRuleOperatorValue_STRING: ('\\"' | ~["%] | ('%' ~[{])) (
+		'\\"'
+		| ~["%]
+		| ('%' ~[{])
+	)* -> type(STRING);
+ModeSecRuleOperatorValue_PER_CENT:
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleAction;
 ModeSecRuleAction_WS: WS -> skip;

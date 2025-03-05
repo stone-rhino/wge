@@ -9,10 +9,10 @@ class Lt : public OperatorBase {
 
 public:
   Lt(std::string&& literal_value, bool is_not) : OperatorBase(std::move(literal_value), is_not) {
-    if (!macro_) {
-      value_ = ::atoll(literal_value_.c_str());
-    }
+    value_ = ::atoll(literal_value_.c_str());
   }
+
+  Lt(const std::shared_ptr<Macro::MacroBase> macro, bool is_not) : OperatorBase(macro, is_not) {}
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {

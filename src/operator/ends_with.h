@@ -11,6 +11,9 @@ public:
   EndsWith(std::string&& literal_value, bool is_not)
       : OperatorBase(std::move(literal_value), is_not) {}
 
+  EndsWith(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+      : OperatorBase(macro, is_not) {}
+
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
     assert(false);
