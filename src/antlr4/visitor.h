@@ -361,6 +361,42 @@ public:
   std::any visitVariable_webappid(Antlr4Gen::SecLangParser::Variable_webappidContext* ctx) override;
 
   std::any visitVariable_xml(Antlr4Gen::SecLangParser::Variable_xmlContext* ctx) override;
+
+  std::any visitVariable_reqbody_processor_error(
+      Antlr4Gen::SecLangParser::Variable_reqbody_processor_errorContext* ctx) override;
+
+  std::any visitVariable_multipart_boundary_quoted(
+      Antlr4Gen::SecLangParser::Variable_multipart_boundary_quotedContext* ctx) override;
+
+  std::any visitVariable_multipart_boundary_whitespace(
+      Antlr4Gen::SecLangParser::Variable_multipart_boundary_whitespaceContext* ctx) override;
+
+  std::any visitVariable_multipart_data_before(
+      Antlr4Gen::SecLangParser::Variable_multipart_data_beforeContext* ctx) override;
+
+  std::any visitVariable_multipart_data_after(
+      Antlr4Gen::SecLangParser::Variable_multipart_data_afterContext* ctx) override;
+
+  std::any visitVariable_multipart_header_folding(
+      Antlr4Gen::SecLangParser::Variable_multipart_header_foldingContext* ctx) override;
+
+  std::any visitVariable_multipart_lf_line(
+      Antlr4Gen::SecLangParser::Variable_multipart_lf_lineContext* ctx) override;
+
+  std::any visitVariable_multipart_missing_semicolon(
+      Antlr4Gen::SecLangParser::Variable_multipart_missing_semicolonContext* ctx) override;
+
+  std::any visitVariable_multipart_invalid_quoting(
+      Antlr4Gen::SecLangParser::Variable_multipart_invalid_quotingContext* ctx) override;
+
+  std::any visitVariable_multipart_invalid_part(
+      Antlr4Gen::SecLangParser::Variable_multipart_invalid_partContext* ctx) override;
+
+  std::any visitVariable_multipart_invalid_header_folding(
+      Antlr4Gen::SecLangParser::Variable_multipart_invalid_header_foldingContext* ctx) override;
+
+  std::any visitVariable_multipart_file_limit_exceeded(
+      Antlr4Gen::SecLangParser::Variable_multipart_file_limit_exceededContext* ctx) override;
   // SecRule operators
 public:
   std::any visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) override;

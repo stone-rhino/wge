@@ -189,7 +189,19 @@ variable:
 	| variable_urlencoded_error
 	| variable_userid
 	| variable_webappid
-	| variable_xml;
+	| variable_xml
+	| variable_reqbody_processor_error
+	| variable_multipart_boundary_quoted
+	| variable_multipart_boundary_whitespace
+	| variable_multipart_data_before
+	| variable_multipart_data_after
+	| variable_multipart_header_folding
+	| variable_multipart_lf_line
+	| variable_multipart_missing_semicolon
+	| variable_multipart_invalid_quoting
+	| variable_multipart_invalid_part
+	| variable_multipart_invalid_header_folding
+	| variable_multipart_file_limit_exceeded;
 variable_args: NOT? VAR_COUNT? VAR_ARGS ((COLON | DOT) STRING)?;
 variable_args_combined_size:
 	NOT? VAR_COUNT? VAR_ARGS_COMBINED_SIZE ((COLON | DOT) STRING)?;
@@ -381,6 +393,52 @@ variable_userid:
 variable_webappid:
 	NOT? VAR_COUNT? VAR_WEBAPPID ((COLON | DOT) STRING)?;
 variable_xml: NOT? VAR_COUNT? VAR_XML ((COLON | DOT) STRING)?;
+variable_reqbody_processor_error:
+	NOT? VAR_COUNT? VAR_REQBODY_PROCESSOR_ERROR (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_boundary_quoted:
+	NOT? VAR_COUNT? VAR_MULTIPART_BOUNDARY_QUOTED (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_boundary_whitespace:
+	NOT? VAR_COUNT? VAR_MULTIPART_BOUNDARY_WHITESPACE (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_data_before:
+	NOT? VAR_COUNT? VAR_MULTIPART_DATA_BEFORE (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_data_after:
+	NOT? VAR_COUNT? VAR_MULTIPART_DATA_AFTER (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_header_folding:
+	NOT? VAR_COUNT? VAR_MULTIPART_HEADER_FOLDING (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_lf_line:
+	NOT? VAR_COUNT? VAR_MULTIPART_LF_LINE ((COLON | DOT) STRING)?;
+variable_multipart_missing_semicolon:
+	NOT? VAR_COUNT? VAR_MULTIPART_MISSING_SEMICOLON (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_invalid_quoting:
+	NOT? VAR_COUNT? VAR_MULTIPART_INVALID_QUOTING (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_invalid_part:
+	NOT? VAR_COUNT? VAR_MULTIPART_INVALID_PART (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_invalid_header_folding:
+	NOT? VAR_COUNT? VAR_MULTIPART_INVALID_HEADER_FOLDING (
+		(COLON | DOT) STRING
+	)?;
+variable_multipart_file_limit_exceeded:
+	NOT? VAR_COUNT? VAR_MULTIPART_FILE_LIMIT_EXCEEDED (
+		(COLON | DOT) STRING
+	)?;
 
 operator:
 	op_begins_with

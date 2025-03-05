@@ -781,6 +781,66 @@ std::any Visitor::visitVariable_xml(Antlr4Gen::SecLangParser::Variable_xmlContex
   return appendVariable<Variable::Xml>(ctx);
 };
 
+std::any Visitor::visitVariable_reqbody_processor_error(
+    Antlr4Gen::SecLangParser::Variable_reqbody_processor_errorContext* ctx) {
+  return appendVariable<Variable::ReqbodyProcessorError>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_boundary_quoted(
+    Antlr4Gen::SecLangParser::Variable_multipart_boundary_quotedContext* ctx) {
+  return appendVariable<Variable::MultipartBoundaryQuoted>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_boundary_whitespace(
+    Antlr4Gen::SecLangParser::Variable_multipart_boundary_whitespaceContext* ctx) {
+  return appendVariable<Variable::MultipartBoundaryWhitespace>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_data_before(
+    Antlr4Gen::SecLangParser::Variable_multipart_data_beforeContext* ctx) {
+  return appendVariable<Variable::MultipartDataBefore>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_data_after(
+    Antlr4Gen::SecLangParser::Variable_multipart_data_afterContext* ctx) {
+  return appendVariable<Variable::MultipartDataAfter>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_header_folding(
+    Antlr4Gen::SecLangParser::Variable_multipart_header_foldingContext* ctx) {
+  return appendVariable<Variable::MultipartHeaderFolding>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_lf_line(
+    Antlr4Gen::SecLangParser::Variable_multipart_lf_lineContext* ctx) {
+  return appendVariable<Variable::MultipartLfLine>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_missing_semicolon(
+    Antlr4Gen::SecLangParser::Variable_multipart_missing_semicolonContext* ctx) {
+  return appendVariable<Variable::MultipartMissingSemicolon>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_invalid_quoting(
+    Antlr4Gen::SecLangParser::Variable_multipart_invalid_quotingContext* ctx) {
+  return appendVariable<Variable::MultipartInvalidQuoting>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_invalid_part(
+    Antlr4Gen::SecLangParser::Variable_multipart_invalid_partContext* ctx) {
+  return appendVariable<Variable::MultipartInvalidPart>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_invalid_header_folding(
+    Antlr4Gen::SecLangParser::Variable_multipart_invalid_header_foldingContext* ctx) {
+  return appendVariable<Variable::MultipartInvalidHeaderFolding>(ctx);
+}
+
+std::any Visitor::visitVariable_multipart_file_limit_exceeded(
+    Antlr4Gen::SecLangParser::Variable_multipart_file_limit_exceededContext* ctx) {
+  return appendVariable<Variable::MultipartFileLimitExceeded>(ctx);
+}
+
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(
       new Operator::BeginsWith(ctx->STRING()->getText(), ctx->NOT() != nullptr));

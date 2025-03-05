@@ -5,6 +5,7 @@
 
 #include <string.h>
 
+#include "../common/assert.h"
 #include "../common/variant.h"
 #include "../http_extractor.h"
 #include "../transaction.h"
