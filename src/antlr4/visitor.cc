@@ -2194,15 +2194,18 @@ Visitor::getMacro(std::string&& text,
   VisitVariableMode old_visit_variable_mode = visit_variable_mode_;
   visit_variable_mode_ = VisitVariableMode::Macro;
 
+  std::string macro_name;
   try {
     if (!macro_ctx_array.empty()) {
       if (is_only_macro) {
         std::any visit_result = visitChildren(macro_ctx_array.front());
+        macro_name = macro_ctx_array.front()->getText();
         result = std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
       } else {
         std::vector<std::shared_ptr<Macro::MacroBase>> macros;
         for (auto& macro_ctx : macro_ctx_array) {
           std::any visit_result = visitChildren(macro_ctx);
+          macro_name = macro_ctx->getText();
           macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
         }
         result = std::shared_ptr<Macro::MacroBase>(
@@ -2210,7 +2213,7 @@ Visitor::getMacro(std::string&& text,
       }
     }
   } catch (const std::bad_any_cast& ex) {
-    result = std::unexpected("Expect a macro object, but not.");
+    result = std::unexpected(std::format("Expect a macro object: %{{{}}}, but not.", macro_name));
   }
 
   visit_variable_mode_ = old_visit_variable_mode;

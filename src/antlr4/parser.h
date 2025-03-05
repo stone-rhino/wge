@@ -106,6 +106,7 @@ public:
             std::unordered_multimap<std::string_view,
                                     std::list<std::unique_ptr<Rule>>::iterator>::iterator>
   findRuleByTag(const std::string& tag);
+  std::string_view currLoadFile() const { return curr_load_file_; }
 
 private:
   EngineConfig engine_config_;
