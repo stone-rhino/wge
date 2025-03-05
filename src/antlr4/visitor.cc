@@ -859,14 +859,14 @@ std::any Visitor::visitOp_contains_word(Antlr4Gen::SecLangParser::Op_contains_wo
 
 std::any Visitor::visitOp_detect_sqli(Antlr4Gen::SecLangParser::Op_detect_sqliContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::DetectSqli(ctx->STRING()->getText(), ctx->NOT() != nullptr));
+      new Operator::DetectSqli(std::string(), ctx->NOT() != nullptr));
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_detect_xss(Antlr4Gen::SecLangParser::Op_detect_xssContext* ctx) {
   std::unique_ptr<Operator::OperatorBase> op(
-      new Operator::DetectXSS(ctx->STRING()->getText(), ctx->NOT() != nullptr));
+      new Operator::DetectXSS(std::string(), ctx->NOT() != nullptr));
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }

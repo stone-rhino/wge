@@ -410,8 +410,10 @@ ModeSecRuleOperator_WS:
 OP_BEGINS_WITH: 'beginsWith';
 OP_CONTAINS: 'contains';
 OP_CONTAINS_WORD: 'containsWord';
-OP_DETECT_SQLI: 'detectSQLi';
-OP_DETECT_XSS: 'detectXSS';
+OP_DETECT_SQLI:
+	'detectSQLi' -> popMode, pushMode(ModeSecRuleOperatorValue);
+OP_DETECT_XSS:
+	'detectXSS' -> popMode, pushMode(ModeSecRuleOperatorValue);
 OP_ENDS_WITH: 'endsWith';
 OP_FUZZY_HASH: 'fuzzyHash';
 OP_EQ: 'eq';

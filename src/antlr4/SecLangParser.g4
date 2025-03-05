@@ -482,8 +482,8 @@ operator:
 op_begins_with: NOT? AT OP_BEGINS_WITH STRING;
 op_contains: NOT? AT OP_CONTAINS STRING;
 op_contains_word: NOT? AT OP_CONTAINS_WORD STRING;
-op_detect_sqli: NOT? AT OP_DETECT_SQLI STRING;
-op_detect_xss: NOT? AT OP_DETECT_XSS STRING;
+op_detect_sqli: NOT? AT OP_DETECT_SQLI;
+op_detect_xss: NOT? AT OP_DETECT_XSS;
 op_ends_with: NOT? AT OP_ENDS_WITH STRING;
 op_fuzzy_hash: NOT? AT OP_FUZZY_HASH STRING;
 op_eq: NOT? AT OP_EQ STRING;
