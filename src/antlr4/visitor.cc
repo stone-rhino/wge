@@ -14,7 +14,8 @@
 
 #define RETURN_ERROR(msg)                                                                          \
   should_visit_next_child_ = false;                                                                \
-  return std::format("{} line: {}", msg, ctx->getStart()->getLine());
+  return std::format("[{}:{}:{}] {}", parser_->currLoadFile(), ctx->getStart()->getLine(),         \
+                     ctx->getStart()->getCharPositionInLine(), msg);
 
 namespace SrSecurity::Antlr4 {
 
