@@ -1,7 +1,9 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "action_base.h"
 
@@ -27,8 +29,9 @@ public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(std::string&& key, Common::Variant&& value, EvaluateType type);
-  SetVar(std::string&& key, const std::shared_ptr<Macro::MacroBase> value, EvaluateType type);
+  SetVar(std::string&& key, size_t index, Common::Variant&& value, EvaluateType type);
+  SetVar(std::string&& key, size_t index, const std::shared_ptr<Macro::MacroBase> value,
+         EvaluateType type);
   SetVar(const std::shared_ptr<Macro::MacroBase> key, Common::Variant&& value, EvaluateType type);
   SetVar(const std::shared_ptr<Macro::MacroBase> key, const std::shared_ptr<Macro::MacroBase> value,
          EvaluateType type);
@@ -39,9 +42,11 @@ public:
 public:
   const std::string& key() const { return key_; }
   const Common::Variant& value() const { return value_; }
+  size_t index() const { return index_; }
 
 private:
   std::string key_;
+  size_t index_;
   const Common::Variant value_;
   EvaluateType type_;
   const std::shared_ptr<Macro::MacroBase> key_macro_;

@@ -41,6 +41,8 @@ void Engine::init() {
   initDefaultActions();
   initRules();
   initMakers();
+
+  is_init_ = true;
 }
 
 const Rule* Engine::defaultActions(int phase) const {
@@ -54,7 +56,8 @@ const std::vector<const Rule*>& Engine::rules(int phase) const {
 }
 
 TransactionPtr Engine::makeTransaction() const {
-  return std::unique_ptr<Transaction>(new Transaction(*this));
+  assert(is_init_);
+  return std::unique_ptr<Transaction>(new Transaction(*this, parser_->getTxVariableIndexSize()));
 }
 
 const EngineConfig& Engine::config() const { return parser_->engineConfig(); }
@@ -94,6 +97,10 @@ void Engine::findRuleByTag(
       rule_set[phase - 1].emplace((*iter->second).get());
     }
   }
+}
+
+std::optional<size_t> Engine::getTxVariableIndex(const std::string& name) const {
+  return parser_->getTxVariableIndex(name, false);
 }
 
 std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,

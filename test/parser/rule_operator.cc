@@ -36,22 +36,24 @@ TEST_F(RuleOperatorTest, OperatorBeginWith) {
 
   // Macro expansion
   {
-    auto t = engine_.makeTransaction();
     const std::string rule_directive =
-        R"(SecAction "setvar:tx.foo=bar"
-        SecRule ARGS "@beginsWith %{tx.foo}" "id:1,tag:'foo',msg:'bar'")";
+        R"(SecAction "phase:1,setvar:tx.foo=bar"
+        SecRule ARGS "@beginsWith %{tx.foo}" "id:1,phase:1,tag:'foo',msg:'bar'")";
 
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    parser.rules().front()->actions().front()->evaluate(*t);
+    engine.rules(1).front()->actions().front()->evaluate(*t);
     EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
 
-    auto& op = parser.rules().back()->getOperator();
+    auto& op = engine.rules(1).back()->getOperator();
     EXPECT_EQ(op->name(), std::string("beginsWith"));
     EXPECT_TRUE(op->literalValue().empty());
     auto macro = op->macro();
+    ASSERT_NE(macro, nullptr);
     EXPECT_EQ(std::get<std::string>(macro->evaluate(*t)), "bar");
   }
 }

@@ -14,13 +14,7 @@
 
 namespace SrSecurity {
 namespace Parser {
-class RuleActionTest : public testing::Test {
-public:
-  RuleActionTest() : engine_(spdlog::level::trace) {}
-
-public:
-  Engine engine_;
-};
+class RuleActionTest : public testing::Test {};
 
 TEST_F(RuleActionTest, NoAction) {
   const std::string rule_directive =
@@ -37,16 +31,18 @@ TEST_F(RuleActionTest, NoAction) {
 }
 
 TEST_F(RuleActionTest, ActionSetVar) {
-  auto t = engine_.makeTransaction();
-
   // Create
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setvar:'tx.score',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+
+    auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int score = std::get<int>(t->getVariable("score"));
@@ -56,17 +52,20 @@ TEST_F(RuleActionTest, ActionSetVar) {
   // Create (Macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:'tx.foo=bar',msg:'aaa'"
-        SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:'tx.%{tx.foo}score',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.foo=bar',msg:'aaa'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.%{tx.foo}score',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions1 = parser.rules().front()->actions();
-    auto& actions2 = parser.rules().back()->actions();
-    EXPECT_EQ(actions1.size(), 1);
-    EXPECT_EQ(actions2.size(), 1);
-    actions1.back()->evaluate(*t);
-    actions2.back()->evaluate(*t);
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
     EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
     int score = std::get<int>(t->getVariable("barscore"));
     EXPECT_EQ(score, 1);
@@ -75,11 +74,15 @@ TEST_F(RuleActionTest, ActionSetVar) {
   // Create and init
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:'tx.score2=100',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score2=100',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+
+    auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int score = std::get<int>(t->getVariable("score2"));
@@ -89,13 +92,21 @@ TEST_F(RuleActionTest, ActionSetVar) {
   // Create and init (Macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score_%{tx.foo}=%{tx.score2}',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.foo=bar',msg:'aaa'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score2=100',msg:'aaa'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:'tx.score_%{tx.foo}=%{tx.score2}',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
     int score2 = std::get<int>(t->getVariable("score2"));
     int score_bar = std::get<int>(t->getVariable("score_bar"));
     EXPECT_EQ(score2, score_bar);
@@ -104,13 +115,20 @@ TEST_F(RuleActionTest, ActionSetVar) {
   // Create and init (Multi macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:6,setvar:'tx.foo2=%{tx.score2}_%{tx.score}',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score',setvar:'tx.score2=100',msg:'aaa'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.foo2=%{tx.score2}_%{tx.score}',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
     int score2 = std::get<int>(t->getVariable("score2"));
     int score = std::get<int>(t->getVariable("score"));
     const std::string& foo = std::get<std::string>(t->getVariable("foo2"));
@@ -119,122 +137,221 @@ TEST_F(RuleActionTest, ActionSetVar) {
 
   // Remove
   {
-    EXPECT_FALSE(IS_EMPTY_VARIANT(t->getVariable("score2")));
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:7,setvar:'!tx.score2',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score2',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'!tx.score2',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_TRUE(IS_EMPTY_VARIANT(t->getVariable("score2")));
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    EXPECT_EQ(actions1.size(), 1);
+    actions1.back()->evaluate(*t);
+    EXPECT_EQ(std::get<int>(t->getVariable("score2")), 1);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    auto& actions2 = engine.rules(1).back()->actions();
+    EXPECT_EQ(actions2.size(), 1);
+    actions2.back()->evaluate(*t);
+    EXPECT_FALSE(t->hasVariable("score2"));
   }
 
   // Remove (Macro expansion)
   {
-    EXPECT_FALSE(IS_EMPTY_VARIANT(t->getVariable("score_bar")));
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:8,setvar:'!tx.score_%{tx.foo}',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.foo=bar',setvar:'tx.score_bar',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'!tx.score_%{tx.foo}',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_TRUE(IS_EMPTY_VARIANT(t->getVariable("score_bar")));
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_FALSE(t->hasVariable("score_bar"));
   }
 
   // Increase
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:9,setvar:'tx.score1=100',msg:'aaa'"
-        SecRule ARGS:aaa|ARGS:bbb "bar" "id:10,setvar:'tx.score1=+100',msg:'aaa'"
-        SecRule ARGS:aaa|ARGS:bbb "bar" "id:11,setvar:'tx.score200=200',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score1=100',msg:'aaa'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score1=+100',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    for (auto& rule : parser.rules()) {
+
+    for (auto& rule : engine.rules(1)) {
       auto& actions = rule->actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
     EXPECT_EQ(std::get<int>(t->getVariable("score1")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
   }
 
   // Increase (value macro expansion)
   {
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:12,setvar:'tx.score%{tx.score200}=+%{tx.score1}',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score200=200',setvar:'tx.score=100',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=+%{tx.score}',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 400);
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 300);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
   }
 
   // Decrease
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:13,setvar:'tx.score2=350',msg:'aaa'"
-        SecRule ARGS:aaa|ARGS:bbb "bar" "id:14,setvar:'tx.score2=-50',msg:'aaa'"
-        SecRule ARGS:aaa|ARGS:bbb "bar" "id:15,setvar:'tx.score300=300',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score1=100',msg:'aaa'"
+    SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score1=-50',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    for (auto& rule : parser.rules()) {
+
+    for (auto& rule : engine.rules(1)) {
       auto& actions = rule->actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score2")), 300);
-    EXPECT_EQ(std::get<int>(t->getVariable("score300")), 300);
+    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 50);
   }
 
   // Decrease (value macro expansion)
   {
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:'tx.score%{tx.score300}=-%{tx.score1}',msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score200=200',setvar:'tx.score=100',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=-%{tx.score}',msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score300")), 100);
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 100);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
   }
 }
 
 TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
-  auto t = engine_.makeTransaction();
-
   // Create
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setvar:tx.score,msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+
+    auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int score = std::get<int>(t->getVariable("score"));
     EXPECT_EQ(score, 1);
   }
 
+  // Create (Macro expansion)
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.foo=bar,msg:'aaa'"
+          SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.%{tx.foo}score,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
+    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    int score = std::get<int>(t->getVariable("barscore"));
+    EXPECT_EQ(score, 1);
+  }
+
   // Create and init
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score2=100,msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score2=100,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    ;
-    auto& actions = parser.rules().back()->actions();
+
+    auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int score = std::get<int>(t->getVariable("score2"));
@@ -244,134 +361,237 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
   // Create and init (Macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.score3=%{tx.score2},msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.foo=bar,msg:'aaa'"
+          SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score2=100,msg:'aaa'"
+          SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:tx.score_%{tx.foo}=%{tx.score2},msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
     int score2 = std::get<int>(t->getVariable("score2"));
-    int score3 = std::get<int>(t->getVariable("score3"));
-    EXPECT_EQ(score2, score3);
+    int score_bar = std::get<int>(t->getVariable("score_bar"));
+    EXPECT_EQ(score2, score_bar);
   }
 
   // Create and init (Multi macro expansion)
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,setvar:tx.foo=%{tx.score2}_%{tx.score},msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score,setvar:tx.score2=100,msg:'aaa'"
+          SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.foo2=%{tx.score2}_%{tx.score},msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
+
+    for (auto rule : engine.rules(1)) {
+      for (auto& action : rule->actions()) {
+        action->evaluate(*t);
+      }
+    }
     int score2 = std::get<int>(t->getVariable("score2"));
     int score = std::get<int>(t->getVariable("score"));
-    const std::string& foo = std::get<std::string>(t->getVariable("foo"));
+    const std::string& foo = std::get<std::string>(t->getVariable("foo2"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
   // Remove
   {
-    EXPECT_FALSE(IS_EMPTY_VARIANT(t->getVariable("score2")));
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,setvar:!tx.score2,msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score2,msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:!tx.score2,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_TRUE(IS_EMPTY_VARIANT(t->getVariable("score2")));
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    EXPECT_EQ(actions1.size(), 1);
+    actions1.back()->evaluate(*t);
+    EXPECT_EQ(std::get<int>(t->getVariable("score2")), 1);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    auto& actions2 = engine.rules(1).back()->actions();
+    EXPECT_EQ(actions2.size(), 1);
+    actions2.back()->evaluate(*t);
+    EXPECT_FALSE(t->hasVariable("score2"));
+  }
+
+  // Remove (Macro expansion)
+  {
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.foo=bar',setvar:tx.score_bar,msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:!tx.score_%{tx.foo},msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_FALSE(t->hasVariable("score_bar"));
   }
 
   // Increase
   {
-    int old_score = std::get<int>(t->getVariable("score"));
-    EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+100,msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score1=100,msg:'aaa'"
+          SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score1=+100,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    int new_score = std::get<int>(t->getVariable("score"));
-    EXPECT_EQ(new_score, old_score + 100);
+
+    for (auto& rule : engine.rules(1)) {
+      auto& actions = rule->actions();
+      EXPECT_EQ(actions.size(), 1);
+      actions.back()->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 200);
   }
 
-  // Increase (Macro expansion)
+  // Increase (value macro expansion)
   {
-    int old_score = std::get<int>(t->getVariable("score"));
-    EXPECT_NE(old_score, 0);
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:4,setvar:tx.score=+%{tx.score},msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score200=200,setvar:'tx.score=100',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score%{tx.score200}=+%{tx.score},msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    int new_score = std::get<int>(t->getVariable("score"));
-    EXPECT_EQ(old_score, new_score - old_score);
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 300);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
   }
 
   // Decrease
   {
-    int old_score = std::get<int>(t->getVariable("score"));
-    EXPECT_NE(old_score, 0);
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-50,msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score1=100,msg:'aaa'"
+      SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score1=-50,msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    int new_score = std::get<int>(t->getVariable("score"));
-    EXPECT_EQ(old_score, new_score + 50);
+
+    for (auto& rule : engine.rules(1)) {
+      auto& actions = rule->actions();
+      EXPECT_EQ(actions.size(), 1);
+      actions.back()->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 50);
   }
 
-  // Decrease (Macro expansion)
+  // Decrease (value macro expansion)
   {
-    int old_score = std::get<int>(t->getVariable("score"));
-    EXPECT_NE(old_score, 0);
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:5,setvar:tx.score=-%{tx.score},msg:'aaa'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score200=200,setvar:'tx.score=100',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score%{tx.score200}=-%{tx.score},msg:'aaa'")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    int new_score = std::get<int>(t->getVariable("score"));
-    EXPECT_EQ(old_score, new_score + old_score);
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 100);
+    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
   }
 }
 
 TEST_F(RuleActionTest, ActionSetEnv) {
-  auto t = engine_.makeTransaction();
-  {
-    const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setenv:'var1=hello',msg:'aaa bbb'")";
-    Antlr4::Parser parser;
-    auto result = parser.load(rule_directive);
-    ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
-    EXPECT_EQ(actions.size(), 1);
-    actions.back()->evaluate(*t);
-    EXPECT_EQ(std::string("hello"), ::getenv("var1"));
-  }
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setenv:'var1=hello',msg:'aaa bbb'")";
+
+  Engine engine(spdlog::level::trace);
+  auto result = engine.load(rule_directive);
+  engine.init();
+  auto t = engine.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  auto& actions = engine.rules(1).back()->actions();
+  EXPECT_EQ(actions.size(), 1);
+  actions.back()->evaluate(*t);
+  EXPECT_EQ(std::string("hello"), ::getenv("var1"));
 }
 
 TEST_F(RuleActionTest, ActionSetRsc) {
   {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:'this is rsc',msg:'aaa'")";
+
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
     ASSERT_TRUE(result.has_value());
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
@@ -381,9 +601,11 @@ TEST_F(RuleActionTest, ActionSetRsc) {
   {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:%{tx.0},msg:'aaa'")";
+
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
+
     auto& actions = parser.rules().back()->actions();
     EXPECT_EQ(actions.size(), 1);
   }

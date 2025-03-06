@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include "antlr4/parser.h"
 #include "engine.h"
 
 namespace SrSecurity {
@@ -16,15 +15,15 @@ protected:
 };
 
 TEST_F(EngineActionTest, SecAction) {
-  auto t = engine_.makeTransaction();
-
   const std::string directive =
       R"(SecAction "id:1,phase:2,setvar:'tx.score=100',setvar:'tx.score1=%{tx.score}'")";
 
-  Antlr4::Parser parser;
-  auto result = parser.load(directive);
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
-  auto& rules = parser.rules();
+
+  auto& rules = engine_.rules(2);
   EXPECT_EQ(rules.size(), 1);
   auto& rule = rules.front();
   EXPECT_EQ(rule->id(), 1);
@@ -41,22 +40,27 @@ TEST_F(EngineActionTest, SecAction) {
 }
 
 TEST_F(EngineActionTest, SecDefaultAction) {
-  auto t = engine_.makeTransaction();
-
   const std::string directive =
       R"(SecDefaultAction "phase:1,log,auditlog,pass"
       SecDefaultAction "phase:2,log,auditlog,pass")";
 
-  Antlr4::Parser parser;
-  auto result = parser.load(directive);
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
-  auto& rules = parser.defaultActions();
-  EXPECT_EQ(rules.size(), 2);
-  auto& rule = rules.front();
-  EXPECT_EQ(rule->phase(), 1);
-  EXPECT_TRUE(rule->log().value_or(false));
-  EXPECT_TRUE(rule->auditLog().value_or(false));
-  EXPECT_EQ(rule->disruptive(), Rule::Disruptive::PASS);
+
+  auto rule1 = engine_.defaultActions(1);
+  auto rule2 = engine_.defaultActions(2);
+  EXPECT_NE(rule1, nullptr);
+  EXPECT_NE(rule2, nullptr);
+  EXPECT_EQ(rule1->phase(), 1);
+  EXPECT_EQ(rule2->phase(), 2);
+  EXPECT_TRUE(rule1->log().value_or(false));
+  EXPECT_TRUE(rule1->auditLog().value_or(false));
+  EXPECT_EQ(rule1->disruptive(), Rule::Disruptive::PASS);
+  EXPECT_TRUE(rule2->log().value_or(false));
+  EXPECT_TRUE(rule2->auditLog().value_or(false));
+  EXPECT_EQ(rule2->disruptive(), Rule::Disruptive::PASS);
 }
 } // namespace Parsr
 } // namespace SrSecurity

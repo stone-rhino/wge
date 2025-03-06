@@ -108,6 +108,9 @@ public:
   findRuleByTag(const std::string& tag);
   std::string_view currLoadFile() const { return curr_load_file_; }
 
+  size_t getTxVariableIndexSize() const { return tx_variable_index_.size(); }
+  std::optional<size_t> getTxVariableIndex(const std::string& name, bool force);
+
 private:
   EngineConfig engine_config_;
   AuditLogConfig audit_log_config_;
@@ -122,5 +125,8 @@ private:
 
   std::set<std::string> loaded_file_paths_;
   std::string_view curr_load_file_;
+
+  // Used to store the tx variable index of the vector tx_vec_.
+  std::unordered_map<std::string, size_t> tx_variable_index_;
 };
 } // namespace SrSecurity::Antlr4

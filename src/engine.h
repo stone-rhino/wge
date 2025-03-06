@@ -106,6 +106,14 @@ public:
   void findRuleByTag(const std::string& tag,
                      std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rule_set) const;
 
+  /**
+   * Get the transaction variable index
+   * @param name the variable name
+   * @param force if true, insert a new index if the variable is not found
+   * @return the index of the variable if found, and std::nullopt otherwise
+   */
+  std::optional<size_t> getTxVariableIndex(const std::string& name) const;
+
   std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name,
                                                                  int phase) const;
 
@@ -121,6 +129,9 @@ private:
   void initMakers();
 
 private:
+  // Is the engine initialized
+  bool is_init_{false};
+
   // The parser is used to parse the SecLang rule set.
   std::shared_ptr<Antlr4::Parser> parser_;
 

@@ -9,6 +9,7 @@
 #include "antlr4_gen/SecLangParser.h"
 #include "visitor.h"
 
+#include "../common/assert.h"
 #include "../common/try.h"
 #include "../operator/begins_with.h"
 #include "../operator/contains.h"
@@ -435,5 +436,20 @@ std::pair<
     std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
 Parser::findRuleByTag(const std::string& tag) {
   return rules_index_tag_.equal_range(tag);
+}
+
+std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool force) {
+  auto iter = tx_variable_index_.find(name);
+  if (iter != tx_variable_index_.end()) {
+    return iter->second;
+  } else {
+    if (force) {
+      ASSERT_IS_MAIN_THREAD();
+      tx_variable_index_[name] = tx_variable_index_.size();
+      return tx_variable_index_.size() - 1;
+    }
+  }
+
+  return std::nullopt;
 }
 } // namespace SrSecurity::Antlr4

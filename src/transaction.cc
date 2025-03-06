@@ -3,6 +3,8 @@
 #include <chrono>
 #include <format>
 
+#include "action/set_var.h"
+#include "common/assert.h"
 #include "common/empty_string.h"
 #include "common/log.h"
 #include "common/try.h"
@@ -11,9 +13,17 @@
 namespace SrSecurity {
 const Transaction::RandomInitHelper Transaction::random_init_helper_;
 
-Transaction::Transaction(const Engine& engin) : engine_(engin) {
+// To avoid the dynamic memory allocation, we allocate the memory for the variable vector in
+// advance. We assume that the count of variable that the key of varabile contains macro is less
+// than variable_key_with_macro_size.
+constexpr size_t variable_key_with_macro_size = 100;
+
+Transaction::Transaction(const Engine& engin, size_t literal_key_size)
+    : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
+      literal_key_size_(literal_key_size) {
   initUniqueId();
-  tx_.reserve(100);
+  tx_variables_.resize(literal_key_size);
+  assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
 void Transaction::processConnection(ConnectionExtractor conn_extractor) {
@@ -58,48 +68,106 @@ void Transaction::processResponseBody(BodyExtractor body_extractor,
   process(4);
 }
 
-void Transaction::createVariable(std::string&& name, Common::Variant&& value) {
-  auto iter = tx_.find(name);
-  if (iter == tx_.end()) {
-    tx_.emplace(std::move(name), std::move(value));
-  } else {
-    iter->second = std::move(value);
+void Transaction::createVariable(size_t index, Common::Variant&& value) {
+  assert(index < tx_variables_.size());
+  if (index < tx_variables_.size()) {
+    tx_variables_[index] = std::move(value);
   }
 }
 
-void Transaction::removeVariable(const std::string& name) { tx_.erase(name); }
+void Transaction::createVariable(std::string&& name, Common::Variant&& value) {
+  auto index = engine_.getTxVariableIndex(name);
+  if (index.has_value()) [[likely]] {
+    createVariable(index.value(), std::move(value));
+  } else {
+    auto local_index = getLocalVariableIndex(name, true);
+    assert(local_index.has_value());
+    if (local_index.has_value()) [[likely]] {
+      createVariable(local_index.value(), std::move(value));
+    }
+  }
+}
+
+void Transaction::removeVariable(size_t index) {
+  assert(index < tx_variables_.size());
+  if (index < tx_variables_.size()) {
+    assert(!IS_EMPTY_VARIANT(tx_variables_[index]));
+    tx_variables_[index] = EMPTY_VARIANT;
+  }
+}
+
+void Transaction::removeVariable(const std::string& name) {
+  auto index = engine_.getTxVariableIndex(name);
+  if (index.has_value()) {
+    removeVariable(index.value());
+  } else {
+    auto local_index = getLocalVariableIndex(name, false);
+    assert(local_index.has_value());
+    if (local_index.has_value()) [[likely]] {
+      removeVariable(local_index.value());
+    }
+  }
+}
+
+void Transaction::increaseVariable(size_t index, int value) {
+  assert(index < tx_variables_.size());
+  if (index < tx_variables_.size()) {
+    auto& variant = tx_variables_[index];
+    assert(IS_INT_VARIANT(variant));
+    if (IS_INT_VARIANT(variant)) {
+      variant = std::get<int>(variant) + value;
+    }
+  }
+}
 
 void Transaction::increaseVariable(const std::string& name, int value) {
-  auto iter = tx_.find(name);
-  if (iter != tx_.end()) {
-    iter->second = std::get<int>(iter->second) + value;
+  auto index = engine_.getTxVariableIndex(name);
+  assert(index.has_value());
+  if (index.has_value()) {
+    increaseVariable(index.value(), value);
+  } else {
+    auto local_index = getLocalVariableIndex(name, true);
+    assert(local_index.has_value());
+    if (local_index.has_value()) [[likely]] {
+      increaseVariable(local_index.value(), value);
+    }
   }
 }
 
-const Common::Variant& Transaction::getVariable(const std::string& name) const {
-  auto iter = tx_.find(name);
-  if (iter != tx_.end()) {
-    return iter->second;
+const Common::Variant& Transaction::getVariable(size_t index) const {
+  assert(index < tx_variables_.size());
+  if (index < tx_variables_.size()) {
+    return tx_variables_[index];
   }
 
   return EMPTY_VARIANT;
 }
 
-void Transaction::setVariable(const std::string& name, std::string&& value) {
-  auto iter = tx_.find(name);
-  if (iter != tx_.end()) {
-    iter->second = std::move(value);
+const Common::Variant& Transaction::getVariable(const std::string& name) {
+  auto index = engine_.getTxVariableIndex(name);
+  if (index.has_value()) {
+    return getVariable(index.value());
+  } else {
+    auto local_index = getLocalVariableIndex(name, false);
+    assert(local_index.has_value());
+    if (local_index.has_value()) [[likely]] {
+      return getVariable(local_index.value());
+    }
   }
+
+  return EMPTY_VARIANT;
 }
 
-void Transaction::setVariable(const std::string& name, int value) {
-  auto iter = tx_.find(name);
-  if (iter != tx_.end()) {
-    iter->second = value;
-  }
+bool Transaction::hasVariable(size_t index) const {
+  assert(index < tx_variables_.size());
+  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index]);
 }
 
-bool Transaction::hasVariable(const std::string& name) const { return tx_.find(name) != tx_.end(); }
+bool Transaction::hasVariable(const std::string& name) const {
+  auto index = engine_.getTxVariableIndex(name);
+  assert(index.has_value());
+  return index.has_value() && hasVariable(index.value());
+}
 
 void Transaction::setMatched(size_t index, std::string_view value) {
   assert(index < matched_.size());
@@ -228,5 +296,21 @@ inline void Transaction::process(int phase) {
     // If skip and skipAfter are not set, then continue to the next rule
     ++iter;
   }
+}
+
+inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::string& key,
+                                                                bool force_create) {
+  auto iter = local_tx_variable_index_.find(key);
+  if (iter == local_tx_variable_index_.end()) [[unlikely]] {
+    if (force_create) [[likely]] {
+      local_tx_variable_index_[key] = tx_variables_.size();
+      tx_variables_.emplace_back(EMPTY_VARIANT);
+      return tx_variables_.size() - 1;
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  return iter->second;
 }
 } // namespace SrSecurity

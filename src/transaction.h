@@ -26,7 +26,7 @@ class Transaction final {
   friend class Engine;
 
 protected:
-  Transaction(const Engine& engin);
+  Transaction(const Engine& engin, size_t literal_key_size);
 
 public:
   // The evaluated buffer
@@ -96,7 +96,26 @@ public:
 
 public:
   /**
-   * Create a variable in the transient transaction collection
+   * Create a variable in the transient transaction collection.
+   *
+   * Used for create a variable that the key of the variable can be evaluated at parse time. E.g.
+   * tx.foo=1. In the Example, the key is literal string "foo", and we can calculate the index of
+   * the variable by the order of the key in the collection. This solution is more efficient than
+   * the other solution that the key is a macro that only can be evaluated at runtime. Because we
+   * must calculate the hash value of the key every time when we want to get the variable.
+   * @param index the index of the variable.
+   * @param value the value of the variable.
+   */
+  void createVariable(size_t index, Common::Variant&& value);
+
+  /**
+   * Create a variable in the transient transaction collection.
+   *
+   * Used for create a variable that the key of the variable can't be evaluated at parse time.
+   * Such as tx.%{tx.foo}=1. In the Example, the key is a macro that only can be evaluated at
+   * runtime. Because we must calculate the hash value of the key every time when we want to get the
+   * variable, this solution is less efficient than the other solution that the key is a literal
+   * string.
    * @param name the name of the variable.
    * @param value the value of the variable.
    */
@@ -104,12 +123,39 @@ public:
 
   /**
    * Remove a variable from the transient transaction collection
+   *
+   * Used for remove a variable that the key of the variable can be evaluated at parse time.
+   * Please refer to the createVariable method for more details.
+   * @param index the index of the variable.
+   */
+  void removeVariable(size_t index);
+
+  /**
+   * Remove a variable from the transient transaction collection
+   *
+   * Used for remove a variable that the key of the variable can't be evaluated at parse time.
+   * Please refer to the createVariable method for more details.
    * @param name the name of the variable.
+   * @note This method only used in the test. An efficient and rational design should not call this
+   * method in the worker thread.
    */
   void removeVariable(const std::string& name);
 
   /**
    * Increase the value of a variable in the transient transaction collection
+   *
+   * Used for increase the value of a variable that the key of the variable can be evaluated at
+   * parse time. Please refer to the createVariable method for more details.
+   * @param index the index of the variable.
+   * @param value the int value to increase.
+   */
+  void increaseVariable(size_t index, int value = 1);
+
+  /**
+   * Increase the value of a variable in the transient transaction collection
+   *
+   * Used for increase the value of a variable that the key of the variable can't be evaluated at
+   * parse time. Please refer to the createVariable method for more details.
    * @param name the name of the variable.
    * @param value the int value to increase.
    */
@@ -117,27 +163,39 @@ public:
 
   /**
    * Get the value of a variable in the transient transaction collection
+   *
+   * Used for get the value of a variable that the key of the variable can be evaluated at parse
+   * time. Please refer to the createVariable method for more details.
+   * @param index the index of the variable.
+   * @return the value of the variable. if the variable does not exist, return an empty variant.
+   */
+  const Common::Variant& getVariable(size_t index) const;
+
+  /**
+   * Get the value of a variable in the transient transaction collection
+   *
+   * Used for get the value of a variable that the key of the variable can't be evaluated at parse
+   * time. Please refer to the createVariable method for more details.
    * @param name the name of the variable.
    * @return the value of the variable. if the variable does not exist, return an empty variant.
    */
-  const Common::Variant& getVariable(const std::string& name) const;
-
-  /**
-   * Set the string value of a variable in the transient transaction collection
-   * @param name the name of the variable.
-   * @param value the string value of the variable.
-   */
-  void setVariable(const std::string& name, std::string&& value);
-
-  /**
-   * Set the int value of a variable in the transient transaction collection
-   * @param name the name of the variable.
-   * @param value the int value of the variable.
-   */
-  void setVariable(const std::string& name, int value);
+  const Common::Variant& getVariable(const std::string& name);
 
   /**
    * Check if the variable exists in the transient transaction collection
+   *
+   * Used for check if the variable exists that the key of the variable can be evaluated at parse
+   * time. Please refer to the createVariable method for more details.
+   * @param index the index of the variable.
+   * @return true if the variable exists, false otherwise.
+   */
+  bool hasVariable(size_t index) const;
+
+  /**
+   * Check if the variable exists in the transient transaction collection
+   *
+   * Used for check if the variable exists that the key of the variable can't be evaluated at
+   * parse time. Please refer to the createVariable method for more details.
    * @param name the name of the variable.
    * @return true if the variable exists, false otherwise.
    */
@@ -217,19 +275,15 @@ private:
 
   inline void process(int phase);
 
-  /**
-   * Evaluate the rules.
-   * @param rules the rules that will be evaluated.
-   * @return true if the all of the rules evaluated over, false otherwise that means the rules have
-   * been reordered, we need call this method again.
-   */
-  inline bool evaluateRules(const std::vector<const Rule*>& rules);
+  inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
 
 private:
   std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engine_;
-  std::unordered_map<std::string, Common::Variant> tx_;
+  std::vector<Common::Variant> tx_variables_;
+  std::unordered_map<std::string, size_t> local_tx_variable_index_;
+  const size_t literal_key_size_;
   std::array<Common::Variant, 100> matched_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
