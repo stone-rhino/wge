@@ -12,7 +12,11 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  const Common::Variant& evaluate(Transaction& t) const override { assert(false); throw "Not implemented!"; };
+  const Common::Variant& evaluate(Transaction& t) const override {
+    auto& buffer = t.evaluatedBuffer().variable_;
+    buffer = t.getConnectionInfo().downstream_ip_;
+    return buffer;
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity
