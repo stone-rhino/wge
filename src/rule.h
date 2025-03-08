@@ -27,7 +27,7 @@ public:
    * Evaluate the rule
    * @return True if intervening
    */
-  bool evaluate(Transaction& t, const HttpExtractor& extractor) const;
+  bool evaluate(Transaction& t) const;
 
 public:
   enum class Severity { EMERGENCY = 0, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG };
