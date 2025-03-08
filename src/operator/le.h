@@ -23,9 +23,9 @@ public:
     int64_t operand_value = std::get<int>(operand);
     if (macro_) {
       int64_t macro_value = std::get<int>(macro_->evaluate(t));
-      return is_not_ ? !(macro_value <= operand_value) : macro_value <= operand_value;
+      return is_not_ ^ (macro_value <= operand_value);
     } else {
-      return is_not_ ? !(value_ <= operand_value) : value_ <= operand_value;
+      return is_not_ ^ (value_ <= operand_value);
     }
   }
 
