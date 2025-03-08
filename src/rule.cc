@@ -8,7 +8,7 @@
 #include "engine.h"
 
 namespace SrSecurity {
-bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
+bool Rule::evaluate(Transaction& t) const {
   bool matched = false;
 
   // Check whether the rule is unconditional(SecAction)
@@ -93,7 +93,7 @@ bool Rule::evaluate(Transaction& t, const HttpExtractor& extractor) const {
       if (matched && !chain_.empty()) [[unlikely]] {
         for (auto& rule : chain_) {
           SRSECURITY_LOG_TRACE("evaluate chained rule. id: {}", rule->id());
-          matched = rule->evaluate(t, extractor);
+          matched = rule->evaluate(t);
           if (!matched) {
             break;
           }

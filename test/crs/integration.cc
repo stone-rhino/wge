@@ -11,30 +11,46 @@ public:
 
 public:
   void SetUp() override {
-    auto result = engine_.loadFromFile(
-        "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf");
-    EXPECT_TRUE(result.has_value());
-    if (!result.has_value()) {
-      std::cout << result.error() << std::endl;
+    std::expected<bool, std::string> result;
+    std::vector<std::string> rule_files = {
+        "test/test_data/waf-conf/base/engin-setup.conf",
+        "test/test_data/waf-conf/base/crs-setup.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-905-COMMON-EXCEPTIONS.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-911-METHOD-ENFORCEMENT.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-913-SCANNER-DETECTION.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-921-PROTOCOL-ATTACK.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-922-MULTIPART-ATTACK.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-931-APPLICATION-ATTACK-RFI.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-934-APPLICATION-ATTACK-GENERIC.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+        "test/test_data/waf-conf/coreruleset/rules/"
+        "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf",
+        "test/test_data/waf-conf/coreruleset/rules/REQUEST-949-BLOCKING-EVALUATION.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-950-DATA-LEAKAGES.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-955-DATA-LEAKAGES-APACHE.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
+        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
+    };
+    for (auto& rule_file : rule_files) {
+      result = engine_.loadFromFile(rule_file);
+      if (!result.has_value()) {
+        std::cout << "Load rules error: " << result.error() << std::endl;
+        return;
+      }
     }
 
     engine_.init();
-
-    conn_extractor_ = [&](std::string_view& downstream_ip, short& downstream_port,
-                          std::string_view& upstream_ip, short& upstream_port) {
-      downstream_ip = downstream_ip_;
-      downstream_port = downstream_port_;
-      upstream_ip = upstream_ip_;
-      upstream_port = upstream_port_;
-    };
-
-    uri_extractor_ = [&](std::string_view& method, std::string_view& path,
-                         std::string_view& protocol, std::string_view& version) {
-      method = method_;
-      path = path_;
-      protocol = protocol_;
-      version = version_;
-    };
 
     request_header_extractor_ = [&](const std::string& key) {
       std::vector<std::string_view> result;
@@ -57,23 +73,18 @@ public:
 
 protected:
   Engine engine_;
-  ConnectionExtractor conn_extractor_;
-  UriExtractor uri_extractor_;
   HeaderExtractor request_header_extractor_;
   BodyExtractor request_body_extractor_;
   HeaderExtractor response_header_extractor_;
   BodyExtractor response_body_extractor_;
 
-private:
+protected:
   std::string downstream_ip_{"192.168.1.100"};
   short downstream_port_{20000};
   std::string upstream_ip_{"192.168.1.200"};
   short upstream_port_{80};
 
-  std::string method_{"Get"};
-  std::string path_{"/"};
-  std::string protocol_{"HTTP"};
-  std::string version_{"1.1"};
+  std::string uri_{"GET / HTTP/1.1"};
 
   std::unordered_multimap<std::string, std::string> request_headers_{
       {"host", "localhost:80"},
@@ -90,8 +101,8 @@ private:
 
 TEST_F(IntegrationTest, crs) {
   auto t = engine_.makeTransaction();
-  t->processConnection(conn_extractor_);
-  t->processUri(uri_extractor_);
+  t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
+  t->processUri(uri_);
   t->processRequestHeaders(request_header_extractor_, nullptr);
 }
 } // namespace SrSecurity

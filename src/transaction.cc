@@ -295,7 +295,7 @@ inline void Transaction::process(int phase) {
 
     // Evaluate the rule
     auto& rule = *iter;
-    auto is_matched = rule->evaluate(*this, extractor_);
+    auto is_matched = rule->evaluate(*this);
 
     if (!is_matched) [[likely]] {
       ++iter;
