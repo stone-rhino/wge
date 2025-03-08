@@ -24,24 +24,6 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     }
 
     Request request;
-    SrSecurity::ConnectionExtractor conn_extractor =
-        [&](std::string_view& downstream_ip, short& downstream_port, std::string_view& upstream_ip,
-            short& upstream_port) {
-          downstream_ip = request.downstream_ip_;
-          downstream_port = request.downstream_port_;
-          upstream_ip = request.upstream_ip_;
-          upstream_port = request.upstream_port_;
-        };
-
-    SrSecurity::UriExtractor uri_extractor = [&](std::string_view& method, std::string_view& path,
-                                                 std::string_view& protocol,
-                                                 std::string_view& version) {
-      method = request.method_;
-      path = request.path_;
-      protocol = request.protocol_;
-      version = request.version_;
-    };
-
     SrSecurity::HeaderExtractor request_header_extractor = [&](const std::string& key) {
       std::vector<std::string_view> result;
       auto range = request.request_headers_.equal_range(key);
@@ -60,8 +42,9 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
         [&]() -> const std::vector<std::string_view>& { return request.request_body_; };
 
     auto t = engine.makeTransaction();
-    t->processConnection(conn_extractor);
-    t->processUri(uri_extractor);
+    t->processConnection(request.downstream_ip_, request.downstream_port_, request.upstream_ip_,
+                         request.upstream_port_);
+    t->processUri(request.uri_);
     t->processRequestHeaders(request_header_extractor, nullptr);
   }
 }

@@ -49,18 +49,43 @@ public:
     Common::Variant log_data_;
   };
 
+  // The connection info
+  // At the ProcessConnection method, we store the downstream ip, downstream port, upstream ip, and
+  // upstream port.
+  struct ConnectionInfo {
+    std::string_view downstream_ip_;
+    short downstream_port_;
+    std::string_view upstream_ip_;
+    short upstream_port_;
+  };
+
+  // The URI info
+  // At the ProcessUri method, we will parse the uri and store the method, path, query, protocol,
+  // and version.
+  struct UriInfo {
+    std::string method_;
+    std::string_view path_;
+    std::string_view query_;
+    std::string protocol_;
+    std::string version_;
+  };
+
 public:
   /**
    * Process the connection info.
-   * @param conn_extractor the connection info extractor.
+   * @param downstream_ip the downstream ip.
+   * @param downstream_port the downstream port.
+   * @param upstream_ip the upstream ip.
+   * @param upstream_port the upstream port.
    */
-  void processConnection(ConnectionExtractor conn_extractor);
+  void processConnection(std::string_view downstream_ip, short downstream_port,
+                         std::string_view upstream_ip, short upstream_port);
 
   /**
    * Process the uri info.
-   * @param uri_extractor the uri info extractor.
+   * @param uri the uri info. include method, path, query, protocol, version. E.g. GET / HTTP/1.1
    */
-  void processUri(UriExtractor uri_extractor);
+  void processUri(std::string_view uri);
 
   /**
    * Process the request headers.
@@ -265,6 +290,12 @@ public:
 
   EvaluatedBuffer& evaluatedBuffer() { return evaluated_buffer_; }
 
+  const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
+
+  std::string_view getUri() const { return uri_; }
+
+  const UriInfo& getUriInfo() const { return uri_info_; }
+
 private:
   class RandomInitHelper {
   public:
@@ -310,6 +341,12 @@ private:
   std::optional<EngineConfig::Option> request_body_access_;
   std::optional<BodyProcessorType> request_body_processor_;
   std::optional<EngineConfig::Option> rule_engine_;
+
+  // The http info
+private:
+  ConnectionInfo connection_info_;
+  std::string_view uri_;
+  UriInfo uri_info_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

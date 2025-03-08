@@ -26,14 +26,52 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
-void Transaction::processConnection(ConnectionExtractor conn_extractor) {
+void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
+                                    std::string_view upstream_ip, short upstream_port) {
   SRSECURITY_LOG_TRACE("====process connection====");
-  extractor_.connection_extractor_ = std::move(conn_extractor);
+  connection_info_.downstream_ip_ = downstream_ip;
+  connection_info_.downstream_port_ = downstream_port;
+  connection_info_.upstream_ip_ = upstream_ip;
+  connection_info_.upstream_port_ = upstream_port;
 }
 
-void Transaction::processUri(UriExtractor uri_extractor) {
+void Transaction::processUri(std::string_view uri) {
   SRSECURITY_LOG_TRACE("====process uri====");
-  extractor_.uri_extractor_ = std::move(uri_extractor);
+
+  // parse the uri
+  uri_ = uri;
+  auto pos = uri.find(' ');
+  if (pos != std::string_view::npos) {
+    // parse the method
+    uri_info_.method_ = uri.substr(0, pos);
+
+    // parse the path
+    uri.remove_prefix(pos + 1);
+    pos = uri.find(' ');
+    if (pos != std::string_view::npos) {
+      uri_info_.path_ = uri.substr(0, pos);
+    }
+
+    // parse the query
+    auto pos_question = uri_info_.path_.find('?');
+    if (pos_question != std::string_view::npos) {
+      uri_info_.query_ = uri_info_.path_.substr(pos_question + 1);
+      uri_info_.path_.remove_suffix(uri_info_.path_.size() - pos_question);
+    }
+
+    // parse the protocol and verison
+    uri.remove_prefix(pos + 1);
+    pos = uri.find('/');
+    if (pos != std::string_view::npos) {
+      uri_info_.protocol_ = uri.substr(0, pos);
+      uri.remove_prefix(pos + 1);
+      uri_info_.version_ = uri;
+    }
+
+    SRSECURITY_LOG_TRACE("method: {}, path: {}, query: {}, protocol: {}, version: {}",
+                         uri_info_.method_, uri_info_.path_, uri_info_.query_, uri_info_.protocol_,
+                         uri_info_.version_);
+  }
 }
 
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor,
