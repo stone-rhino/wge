@@ -13,9 +13,8 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) const override {
-    auto& buffer = t.evaluatedBuffer().variable_;
-    buffer = t.getConnectionInfo().downstream_ip_;
-    return buffer;
+    return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable)
+        .set(t.getConnectionInfo().downstream_ip_);
   };
 };
 } // namespace Variable

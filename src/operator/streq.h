@@ -17,8 +17,6 @@ public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
     if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
       return is_not_ ^ (literal_value_ == std::get<std::string_view>(operand));
-    } else if (IS_STRING_VARIANT(operand)) {
-      return is_not_ ^ (literal_value_ == std::get<std::string>(operand));
     } else {
       return false;
     }

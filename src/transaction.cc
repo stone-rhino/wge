@@ -20,10 +20,13 @@ constexpr size_t variable_key_with_macro_size = 100;
 
 Transaction::Transaction(const Engine& engin, size_t literal_key_size)
     : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
+      tx_variables_buffer_(literal_key_size + variable_key_with_macro_size),
       literal_key_size_(literal_key_size) {
   initUniqueId();
   tx_variables_.resize(literal_key_size);
+  tx_variables_buffer_.resize(literal_key_size);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
+  assert(tx_variables_buffer_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
 void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
@@ -106,22 +109,40 @@ void Transaction::processResponseBody(BodyExtractor body_extractor,
   process(4);
 }
 
-void Transaction::createVariable(size_t index, Common::Variant&& value) {
+void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    tx_variables_[index] = std::move(value);
+    if (IS_INT_VARIANT(value)) [[likely]] {
+      tx_variables_[index] = std::get<int>(value);
+    } else if (IS_STRING_VIEW_VARIANT(value)) {
+      // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid if
+      // it's reference is invalid. So we copy the value to the tx_variables_buffer_. The
+      // tx_variables_buffer_ store the value as a string, and it will be valid until the
+      // transaction is destroyed. Why we don't let the Common::Variant store the value as a
+      // std::string? If we do it, it seems that we don't need the tx_variables_buffer_ anymore. But
+      // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
+      // std::monostate, int, std::string_view. If we add a new std::sting type, we must process the
+      // variant in repeat places when we want to get the value as a string. So we choose to store
+      // the value as a std::string_view in the Common::Variant, and copy the value to the
+      // tx_variables_buffer_ when we want to store the value as a string. It's a trade-off between
+      // the code maintainability and the performance.
+      tx_variables_buffer_[index] = std::get<std::string_view>(value);
+      tx_variables_[index] = tx_variables_buffer_[index];
+    } else {
+      UNREACHABLE();
+    }
   }
 }
 
-void Transaction::createVariable(std::string&& name, Common::Variant&& value) {
+void Transaction::setVariable(std::string&& name, const Common::Variant& value) {
   auto index = engine_.getTxVariableIndex(name);
   if (index.has_value()) [[likely]] {
-    createVariable(index.value(), std::move(value));
+    setVariable(index.value(), value);
   } else {
     auto local_index = getLocalVariableIndex(name, true);
     assert(local_index.has_value());
     if (local_index.has_value()) [[likely]] {
-      createVariable(local_index.value(), std::move(value));
+      setVariable(local_index.value(), value);
     }
   }
 }
@@ -343,6 +364,7 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
     if (force_create) [[likely]] {
       local_tx_variable_index_[key] = tx_variables_.size();
       tx_variables_.emplace_back(EMPTY_VARIANT);
+      tx_variables_buffer_.emplace_back();
       return tx_variables_.size() - 1;
     } else {
       return std::nullopt;

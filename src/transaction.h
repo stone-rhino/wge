@@ -30,24 +30,42 @@ protected:
 
 public:
   // The evaluated buffer
-  // Each Common::Variant in the evaluated buffer is shared by variables, macros, and actions. So,
-  // we need to copy the value to a local variable if we want to use it after the next variable,
-  // macro, or action is evaluated.
-  struct EvaluatedBuffer {
-    // If the rule is evaluated, the variable evaluated result will be stored here.
-    Common::Variant variable_;
+  // Each variable, macro, and action will be evaluated in the transaction. The result of the
+  // evaluation will be stored in the evaluated buffer.
+  class EvaluatedBuffer {
+  public:
+    EvaluatedBuffer() = default;
+    EvaluatedBuffer(const EvaluatedBuffer&) = delete;
 
-    // If the rule is evaluated, the macro evaluated result will be stored here.
-    Common::Variant macro_;
+  public:
+    const Common::Variant& set() {
+      variant_ = EMPTY_VARIANT;
+      return variant_;
+    }
 
-    // If the rule is matched, and the msg has a macro, the macro evaluated result will be stored
-    // here.
-    Common::Variant msg_;
+    const Common::Variant& set(int value) {
+      variant_ = value;
+      return variant_;
+    }
 
-    // Same as the msg_. If the rule is matched, and the logdata has a macro, the macro evaluated
-    // result will be stored here.
-    Common::Variant log_data_;
+    const Common::Variant& set(std::string_view value) {
+      string_buffer_ = value;
+      variant_ = string_buffer_;
+      return variant_;
+    }
+
+    const Common::Variant& set(std::string&& value) {
+      string_buffer_ = std::move(value);
+      variant_ = string_buffer_;
+      return variant_;
+    }
+
+  private:
+    Common::Variant variant_;
+    std::string string_buffer_;
   };
+
+  enum class EvaluatedBufferType { Variable = 0, Macro, Msg, LogData, EvaluatedBufferTypeTotal };
 
   // The connection info
   // At the ProcessConnection method, we store the downstream ip, downstream port, upstream ip, and
@@ -121,7 +139,7 @@ public:
 
 public:
   /**
-   * Create a variable in the transient transaction collection.
+   * Create or update a variable in the transient transaction collection.
    *
    * Used for create a variable that the key of the variable can be evaluated at parse time. E.g.
    * tx.foo=1. In the Example, the key is literal string "foo", and we can calculate the index of
@@ -131,10 +149,10 @@ public:
    * @param index the index of the variable.
    * @param value the value of the variable.
    */
-  void createVariable(size_t index, Common::Variant&& value);
+  void setVariable(size_t index, const Common::Variant& value);
 
   /**
-   * Create a variable in the transient transaction collection.
+   * Create or update a variable in the transient transaction collection.
    *
    * Used for create a variable that the key of the variable can't be evaluated at parse time.
    * Such as tx.%{tx.foo}=1. In the Example, the key is a macro that only can be evaluated at
@@ -144,7 +162,7 @@ public:
    * @param name the name of the variable.
    * @param value the value of the variable.
    */
-  void createVariable(std::string&& name, Common::Variant&& value);
+  void setVariable(std::string&& name, const Common::Variant& value);
 
   /**
    * Remove a variable from the transient transaction collection
@@ -288,7 +306,9 @@ public:
   void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
 
-  EvaluatedBuffer& evaluatedBuffer() { return evaluated_buffer_; }
+  EvaluatedBuffer& getEvaluatedBuffer(EvaluatedBufferType type) {
+    return evaluated_buffers_[static_cast<size_t>(type)];
+  }
 
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
 
@@ -313,6 +333,7 @@ private:
   HttpExtractor extractor_;
   const Engine& engine_;
   std::vector<Common::Variant> tx_variables_;
+  std::vector<std::string> tx_variables_buffer_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   const size_t literal_key_size_;
   std::array<Common::Variant, 100> matched_;
@@ -332,7 +353,10 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
-  EvaluatedBuffer evaluated_buffer_;
+  // The evaluated buffer is shared by variables,macros, and actions. So, we need to copy the value
+  // to a local variable if we want to use it
+  std::array<EvaluatedBuffer, static_cast<size_t>(EvaluatedBufferType::EvaluatedBufferTypeTotal)>
+      evaluated_buffers_;
 
   // ctl
 private:

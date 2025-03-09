@@ -47,14 +47,14 @@ TEST_F(RuleOperatorTest, OperatorBeginWith) {
     ASSERT_TRUE(result.has_value());
 
     engine.rules(1).front()->actions().front()->evaluate(*t);
-    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
 
     auto& op = engine.rules(1).back()->getOperator();
     EXPECT_EQ(op->name(), std::string("beginsWith"));
     EXPECT_TRUE(op->literalValue().empty());
     auto macro = op->macro();
     ASSERT_NE(macro, nullptr);
-    EXPECT_EQ(std::get<std::string>(macro->evaluate(*t)), "bar");
+    EXPECT_EQ(std::get<std::string_view>(macro->evaluate(*t)), "bar");
   }
 }
 

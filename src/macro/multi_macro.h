@@ -30,8 +30,6 @@ public:
         auto& mv = macro->evaluate(t);
         if (IS_INT_VARIANT(mv)) {
           eval = eval.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(mv)));
-        } else if (IS_STRING_VARIANT(mv)) {
-          eval = eval.replace(pos1, pos2 - pos1 + 1, std::get<std::string>(mv));
         } else if (IS_STRING_VIEW_VARIANT(mv)) {
           auto& sv = std::get<std::string_view>(mv);
           eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
@@ -41,12 +39,11 @@ public:
         }
       }
     }
-    auto& buffer = t.evaluatedBuffer().macro_;
-    buffer = std::move(eval);
+    auto& buffer =
+        t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro).set(std::move(eval));
     assert(eval.empty());
 
-    SRSECURITY_LOG_TRACE("macro {} expanded: {}", variable_name_,
-                         VISTIT_VARIANT_AS_STRING(buffer));
+    SRSECURITY_LOG_TRACE("macro {} expanded: {}", variable_name_, VISTIT_VARIANT_AS_STRING(buffer));
 
     return buffer;
   }

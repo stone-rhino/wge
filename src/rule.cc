@@ -43,11 +43,7 @@ bool Rule::evaluate(Transaction& t) const {
           for (auto& transform : default_action->transforms()) {
             SRSECURITY_LOG_TRACE("evaluate default transformation: {}", transform->name());
             if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
-              const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
-              transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
-              var_value = &transform_data;
-            } else if (IS_STRING_VARIANT(*var_value)) [[unlikely]] {
-              const std::string& var_value_str = std::get<std::string>(*var_value);
+              std::string_view var_value_str = std::get<std::string_view>(*var_value);
               transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
               var_value = &transform_data;
             } else {
@@ -61,11 +57,7 @@ bool Rule::evaluate(Transaction& t) const {
       for (auto& transform : transforms_) {
         SRSECURITY_LOG_TRACE("evaluate action defined transformation: {}", transform->name());
         if (IS_STRING_VIEW_VARIANT(*var_value)) [[likely]] {
-          const std::string_view& var_value_str = std::get<std::string_view>(*var_value);
-          transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
-          var_value = &transform_data;
-        } else if (IS_STRING_VARIANT(*var_value)) [[unlikely]] {
-          const std::string& var_value_str = std::get<std::string>(*var_value);
+          std::string_view var_value_str = std::get<std::string_view>(*var_value);
           transform_data = transform->evaluate(var_value_str.data(), var_value_str.size());
           var_value = &transform_data;
         } else {
@@ -112,10 +104,9 @@ bool Rule::evaluate(Transaction& t) const {
         // Macro expansion
         if (msg_macro_) {
           Common::Variant& result = const_cast<Common::Variant&>(msg_macro_->evaluate(t));
-          assert(IS_STRING_VARIANT(result));
-          std::string& msg_macro_result = std::get<std::string>(result);
-          t.evaluatedBuffer().msg_ = std::move(msg_macro_result);
-          assert(std::get<std::string>(result).empty());
+          assert(IS_STRING_VIEW_VARIANT(result));
+          t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Msg)
+              .set(std::get<std::string_view>(result));
         }
 
         // Evaluate the default actions

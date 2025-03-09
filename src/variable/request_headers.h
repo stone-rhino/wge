@@ -13,9 +13,8 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) const override {
-    auto& buffer = t.evaluatedBuffer().variable_;
-    buffer = t.httpExtractor().request_header_extractor_(sub_name_);
-    return buffer;
+    return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable)
+        .set(t.httpExtractor().request_header_extractor_(sub_name_));
   };
 };
 } // namespace Variable

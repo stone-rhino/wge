@@ -49,16 +49,6 @@ public:
       for (const auto& [from, to] : result) {
         t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
       }
-    } else if (IS_STRING_VARIANT(operand)) [[unlikely]] {
-      const std::string& operand_str = std::get<std::string>(operand);
-      result = pcre_->match(operand_str, per_thread_pcre_scratch_);
-
-      // Ignore capture_ and set the match result directly, because we need to capture the
-      // matched string for %{MATCHED_VAR} in the rule action.
-      size_t index = 0;
-      for (const auto& [from, to] : result) {
-        t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
-      }
     } else {
       UNREACHABLE();
     }

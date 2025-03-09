@@ -18,9 +18,7 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) const override {
-    auto& buffer = t.evaluatedBuffer().variable_;
-    buffer = t.getUniqueId();
-    return buffer;
+    return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable).set(t.getUniqueId());
   };
 };
 } // namespace Variable

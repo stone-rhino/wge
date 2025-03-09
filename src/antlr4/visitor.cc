@@ -1256,9 +1256,10 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
 
   // If the value is all of digits, then convert the value_variant to int. Otherwise, convert the
   // value_variant to string.
+  std::string value_string;
   Common::Variant value_variant;
   if (!value_macro.value()) {
-    std::string value_string =
+    value_string =
         ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText();
     Common::Variant variant;
     if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {

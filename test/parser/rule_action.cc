@@ -66,7 +66,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         action->evaluate(*t);
       }
     }
-    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
     int score = std::get<int>(t->getVariable("barscore"));
     EXPECT_EQ(score, 1);
   }
@@ -131,7 +131,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     }
     int score2 = std::get<int>(t->getVariable("score2"));
     int score = std::get<int>(t->getVariable("score"));
-    const std::string& foo = std::get<std::string>(t->getVariable("foo2"));
+    auto foo = std::get<std::string_view>(t->getVariable("foo2"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
@@ -180,7 +180,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
     EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
 
     result = engine.load(rule_directive2);
@@ -335,7 +335,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         action->evaluate(*t);
       }
     }
-    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
     int score = std::get<int>(t->getVariable("barscore"));
     EXPECT_EQ(score, 1);
   }
@@ -400,7 +400,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     }
     int score2 = std::get<int>(t->getVariable("score2"));
     int score = std::get<int>(t->getVariable("score"));
-    const std::string& foo = std::get<std::string>(t->getVariable("foo2"));
+    auto foo = std::get<std::string_view>(t->getVariable("foo2"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
 
@@ -449,7 +449,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<std::string>(t->getVariable("foo")), "bar");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
     EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
 
     result = engine.load(rule_directive2);

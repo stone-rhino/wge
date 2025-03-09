@@ -48,6 +48,7 @@ private:
   std::string key_;
   size_t index_;
   const Common::Variant value_;
+  const std::string value_buffer_;
   EvaluateType type_;
   const std::shared_ptr<Macro::MacroBase> key_macro_;
   const std::shared_ptr<Macro::MacroBase> value_macro_;
