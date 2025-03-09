@@ -10,7 +10,8 @@ namespace SrSecurity {
 namespace Macro {
 class VariableMacro : public MacroBase {
 public:
-  VariableMacro(const std::shared_ptr<Variable::VariableBase> variable) : variable_(variable) {}
+  VariableMacro(std::string&& literal_value, const std::shared_ptr<Variable::VariableBase> variable)
+      : MacroBase(std::move(literal_value)), variable_(variable) {}
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {

@@ -153,7 +153,7 @@ private:
   // Action Group: Meta-data
 private:
   // Assigns a unique, numeric ID to the rule or chain in which it appears.
-  uint64_t id_;
+  uint64_t id_{0};
 
   // Places the rule or chain into one of five available processing phases. It can also be used in
   // SecDefaultAction to establish the rule defaults for that phase.
