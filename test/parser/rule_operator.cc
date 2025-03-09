@@ -18,45 +18,45 @@ class RuleOperatorTest : public testing::Test {
 public:
   RuleOperatorTest() : engine_(spdlog::level::trace) {}
 
+  void SetUp() override {
+    std::string directiv = R"(SecRuleEngine On)";
+    engine_.load(directiv);
+  }
+
 public:
   Engine engine_;
 };
 
-TEST_F(RuleOperatorTest, OperatorBeginWith) {
+TEST_F(RuleOperatorTest, beginsWith) {
   const std::string rule_directive =
-      R"(SecRule ARGS "@beginsWith hello" "id:1,tag:'foo',msg:'bar'")";
+      R"(SecAction "phase:1,setvar:tx.foo=bar"
+      SecRule TX:foo "@beginsWith ba" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'"
+      SecRule TX:foo "@beginsWith ar" "id:1,phase:2,setvar:'tx.v2',tag:'foo',msg:'bar'")";
 
-  Antlr4::Parser parser;
-  auto result = parser.load(rule_directive);
+  auto result = engine_.load(rule_directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  auto& op = parser.rules().back()->getOperator();
-  EXPECT_EQ(op->name(), std::string("beginsWith"));
-  EXPECT_EQ(op->literalValue(), "hello");
-
-  // Macro expansion
-  {
-    const std::string rule_directive =
-        R"(SecAction "phase:1,setvar:tx.foo=bar"
-        SecRule ARGS "@beginsWith %{tx.foo}" "id:1,phase:1,tag:'foo',msg:'bar'")";
-
-    Engine engine(spdlog::level::trace);
-    auto result = engine.load(rule_directive);
-    engine.init();
-    auto t = engine.makeTransaction();
-    ASSERT_TRUE(result.has_value());
-
-    engine.rules(1).front()->actions().front()->evaluate(*t);
-    EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
-
-    auto& op = engine.rules(1).back()->getOperator();
-    EXPECT_EQ(op->name(), std::string("beginsWith"));
-    EXPECT_TRUE(op->literalValue().empty());
-    auto macro = op->macro();
-    ASSERT_NE(macro, nullptr);
-    EXPECT_EQ(std::get<std::string_view>(macro->evaluate(*t)), "bar");
-  }
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("v1"));
+  EXPECT_FALSE(t->hasVariable("v2"));
 }
 
+TEST_F(RuleOperatorTest, beginsWithMacro) {
+  const std::string rule_directive =
+      R"(SecAction "phase:1,setvar:tx.foo=bar,setvar:tx.bar=bar,setvar:tx.bar1=bar1"
+  SecRule TX:foo "@beginsWith %{tx.bar}" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'"
+  SecRule TX:foo "@beginsWith %{tx.bar1}" "id:2,phase:1,setvar:'tx.v2',tag:'foo',msg:'bar'")";
+
+  auto result = engine_.load(rule_directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("v1"));
+  EXPECT_FALSE(t->hasVariable("v2"));
+}
 } // namespace Parser
 } // namespace SrSecurity
