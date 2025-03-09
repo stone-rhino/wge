@@ -16,8 +16,15 @@ namespace Macro {
  */
 class MacroBase {
 public:
-  MacroBase() {}
+  MacroBase(std::string&& literal_value) : literal_value_(std::move(literal_value)) {}
   virtual ~MacroBase() = default;
+
+public:
+  /**
+   * Get the literal value of the macro.
+   * @return the literal value of the macro.
+   */
+  const std::string& literalValue() const { return literal_value_; }
 
 public:
   /**
@@ -29,6 +36,9 @@ public:
    * local variable if we want to use it after the next macro object is evaluated.
    */
   virtual const Common::Variant& evaluate(Transaction& t) = 0;
+
+protected:
+  std::string literal_value_;
 };
 } // namespace Macro
 } // namespace SrSecurity

@@ -15,12 +15,12 @@ namespace SrSecurity {
 namespace Macro {
 class MultiMacro : public MacroBase {
 public:
-  MultiMacro(std::string&& variable_name, std::vector<std::shared_ptr<MacroBase>>&& macros)
-      : variable_name_(std::move(variable_name)), macros_(std::move(macros)) {}
+  MultiMacro(std::string&& literal_value, std::vector<std::shared_ptr<MacroBase>>&& macros)
+      : MacroBase(std::move(literal_value)), macros_(std::move(macros)) {}
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
-    std::string eval = variable_name_;
+    std::string eval = literal_value_;
     for (auto& macro : macros_) {
       auto pos1 = eval.find("%{");
       assert(pos1 != std::string::npos);
@@ -43,13 +43,12 @@ public:
         t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro).set(std::move(eval));
     assert(eval.empty());
 
-    SRSECURITY_LOG_TRACE("macro {} expanded: {}", variable_name_, VISTIT_VARIANT_AS_STRING(buffer));
+    SRSECURITY_LOG_TRACE("macro {} expanded: {}", literal_value_, VISTIT_VARIANT_AS_STRING(buffer));
 
     return buffer;
   }
 
 private:
-  std::string variable_name_;
   std::vector<std::shared_ptr<MacroBase>> macros_;
 };
 } // namespace Macro

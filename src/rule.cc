@@ -79,7 +79,10 @@ bool Rule::evaluate(Transaction& t) const {
       // Evaluate the operator
       matched = operator_->evaluate(t, *var_value);
       SRSECURITY_LOG_TRACE("evaluate operator: {} {} {} = {}", VISTIT_VARIANT_AS_STRING(*var_value),
-                           operator_->name(), operator_->literalValue(), matched);
+                           operator_->name(),
+                           operator_->macro() ? operator_->macro()->literalValue()
+                                              : operator_->literalValue(),
+                           matched);
 
       // Evaluate the chained rules
       if (matched && !chain_.empty()) [[unlikely]] {

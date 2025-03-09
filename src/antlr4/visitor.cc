@@ -783,7 +783,14 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
                                variable->subName()));
     }
 
-    return std::shared_ptr<Macro::MacroBase>(new Macro::VariableMacro(variable));
+    std::string letera_value;
+    if (variable->subName().empty()) {
+      letera_value = std::format("%{{}}", variable->mainName());
+    } else {
+      letera_value = std::format("%{{{}:{}}}", variable->mainName(), variable->subName());
+    }
+    return std::shared_ptr<Macro::MacroBase>(
+        new Macro::VariableMacro(std::move(letera_value), variable));
   } else {
     std::unique_ptr<Variable::VariableBase> variable(
         new Variable::Tx(std::move(sub_name), index, is_not, is_counter));
