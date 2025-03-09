@@ -15,9 +15,29 @@ public:
 
 public:
   const Common::Variant& evaluate(Transaction& t) override {
+    // Save the old variable buffer to restore it after the variable is evaluated to avoid
+    // overwriting the variable buffer.
+    SrSecurity::Transaction::EvaluatedBuffer old_variable_buffer =
+        std::move(t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable));
+
     SRSECURITY_LOG_TRACE("macro %{{{}}} expanded: {}", makeVariableName(),
                          VISTIT_VARIANT_AS_STRING(variable_->evaluate(t)));
-    return variable_->evaluate(t);
+
+    auto& result = variable_->evaluate(t);
+
+    // Restore the old variable buffer.
+    t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable) =
+        std::move(old_variable_buffer);
+
+    if (IS_STRING_VIEW_VARIANT(result)) {
+      return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro)
+          .set(std::get<std::string_view>(result));
+    } else if (IS_INT_VARIANT(result)) {
+      return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro)
+          .set(std::get<int>(result));
+    } else {
+      return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro).set();
+    }
   }
 
 private:

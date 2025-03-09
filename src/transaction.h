@@ -36,6 +36,21 @@ public:
   public:
     EvaluatedBuffer() = default;
     EvaluatedBuffer(const EvaluatedBuffer&) = delete;
+    void operator=(const EvaluatedBuffer&) = delete;
+    void operator=(EvaluatedBuffer&& buffer) {
+      variant_ = std::move(buffer.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_)) {
+        string_buffer_ = std::move(buffer.string_buffer_);
+        variant_ = string_buffer_;
+      }
+    }
+    EvaluatedBuffer(EvaluatedBuffer&& buffer) {
+      variant_ = std::move(buffer.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_)) {
+        string_buffer_ = std::move(buffer.string_buffer_);
+        variant_ = string_buffer_;
+      }
+    }
 
   public:
     const Common::Variant& set() {
