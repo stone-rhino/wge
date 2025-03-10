@@ -51,37 +51,61 @@ public:
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
     if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
-      return match(std::string(std::get<std::string_view>(operand)));
-    } else if (IS_STRING_VARIANT(operand)) {
-      return match(std::get<std::string>(operand));
+      // Copy the operand to a null-terminated string for inet_pton
+      std::string ip;
+      ip = std::get<std::string_view>(operand);
+
+      // Match the IP address
+      // FIXME(zhouyu 2025-03-10): To avoid call inet_pton every time, may be we can add a
+      // std::array<uint32_t, 4> type that store the ip address into the Common::Variant and
+      // initialize it when Transaction::processConnection is called. But this will decrease the
+      // maintainability of the code. I don't think it is worth it.
+      if (!mask_.has_value()) {
+        return is_not_ ^ (literal_value_ == ip);
+      } else {
+        if (!ipv6_.has_value()) {
+          uint32_t ip_value;
+          ::inet_pton(AF_INET, ip.data(), &ip_value);
+          return is_not_ ^
+                 (applyMask4(ip_value, mask_.value()) == applyMask4(ipv4_, mask_.value()));
+        } else {
+          std::array<uint32_t, 4> ip_value;
+          const uint32_t* tt = ip_value.data();
+          ::inet_pton(AF_INET6, ip.data(), ip_value.data());
+          return is_not_ ^
+                 (applyMask6(ip_value, mask_.value()) == applyMask6(ipv6_.value(), mask_.value()));
+        }
+      }
     } else {
       return false;
     }
   }
 
 private:
-  bool match(const std::string& ip) const {
-    if (!mask_.has_value()) {
-      return literal_value_ == ip;
-    } else {
-      if (!ipv6_.has_value()) {
-        uint32_t ip_value;
-        ::inet_pton(AF_INET, ip.data(), &ip_value);
-        return (ipv4_ >> (32 - mask_.value())) == (ip_value >> (32 - mask_.value()));
+  uint32_t applyMask4(uint32_t ip, uint32_t mask) const {
+    return ip & htonl(0xFFFFFFFF << (32 - mask));
+  }
+
+  std::array<uint32_t, 4> applyMask6(const std::array<uint32_t, 4>& ip, uint32_t mask) const {
+    std::array<uint32_t, 4> masked_ip = ip;
+    uint32_t full_blocks = (128 - mask) / 32;
+    uint32_t remaining_bits = (128 - mask) % 32;
+
+    for (size_t i = 0; i < 4; ++i) {
+      if (i < full_blocks) {
+        // Full mask
+        masked_ip[i] &= 0xFFFFFFFF;
+      } else if (i == full_blocks) {
+        // Partial mask
+        masked_ip[i] &= htonl(0xFFFFFFFF << (32 - remaining_bits));
       } else {
-        std::array<uint32_t, 4> ip_value;
-        ::inet_pton(AF_INET6, ip.data(), ip_value.data());
-        return (ipv6_.value()[0] >> (128 - mask_.value())) ==
-                   (ip_value[0] >> (128 - mask_.value())) &&
-               (ipv6_.value()[1] >> (128 - mask_.value())) ==
-                   (ip_value[1] >> (128 - mask_.value())) &&
-               (ipv6_.value()[2] >> (128 - mask_.value())) ==
-                   (ip_value[2] >> (128 - mask_.value())) &&
-               (ipv6_.value()[3] >> (128 - mask_.value())) ==
-                   (ip_value[3] >> (128 - mask_.value()));
+        // No mask
+        masked_ip[i] = 0;
       }
     }
-  }
+
+    return masked_ip;
+  };
 
 private:
   uint32_t ipv4_;
