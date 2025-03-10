@@ -29,59 +29,6 @@ protected:
   Transaction(const Engine& engin, size_t literal_key_size);
 
 public:
-  // The evaluated buffer
-  // Each variable, macro, and action will be evaluated in the transaction. The result of the
-  // evaluation will be stored in the evaluated buffer.
-  class EvaluatedBuffer {
-  public:
-    EvaluatedBuffer() = default;
-    EvaluatedBuffer(const EvaluatedBuffer&) = delete;
-    void operator=(const EvaluatedBuffer&) = delete;
-    void operator=(EvaluatedBuffer&& buffer) {
-      variant_ = std::move(buffer.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_)) {
-        string_buffer_ = std::move(buffer.string_buffer_);
-        variant_ = string_buffer_;
-      }
-    }
-    EvaluatedBuffer(EvaluatedBuffer&& buffer) {
-      variant_ = std::move(buffer.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_)) {
-        string_buffer_ = std::move(buffer.string_buffer_);
-        variant_ = string_buffer_;
-      }
-    }
-
-  public:
-    const Common::Variant& set() {
-      variant_ = EMPTY_VARIANT;
-      return variant_;
-    }
-
-    const Common::Variant& set(int value) {
-      variant_ = value;
-      return variant_;
-    }
-
-    const Common::Variant& set(std::string_view value) {
-      string_buffer_ = value;
-      variant_ = string_buffer_;
-      return variant_;
-    }
-
-    const Common::Variant& set(std::string&& value) {
-      string_buffer_ = std::move(value);
-      variant_ = string_buffer_;
-      return variant_;
-    }
-
-  private:
-    Common::Variant variant_;
-    std::string string_buffer_;
-  };
-
-  enum class EvaluatedBufferType { Variable = 0, Macro, Msg, LogData, EvaluatedBufferTypeTotal };
-
   // The connection info
   // At the ProcessConnection method, we store the downstream ip, downstream port, upstream ip, and
   // upstream port.
@@ -321,8 +268,16 @@ public:
   void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
 
-  EvaluatedBuffer& getEvaluatedBuffer(EvaluatedBufferType type) {
-    return evaluated_buffers_[static_cast<size_t>(type)];
+  const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_; }
+
+  const std::string& getLogDataMacroExpanded() const { return log_data_macro_expanded_; }
+
+  void setMsgMacroExpanded(std::string&& msg_macro_expanded) {
+    msg_macro_expanded_ = std::move(msg_macro_expanded);
+  }
+
+  void setLogDataMacroExpanded(std::string&& log_data_macro_expanded) {
+    log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
@@ -368,10 +323,8 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
-  // The evaluated buffer is shared by variables,macros, and actions. So, we need to copy the value
-  // to a local variable if we want to use it
-  std::array<EvaluatedBuffer, static_cast<size_t>(EvaluatedBufferType::EvaluatedBufferTypeTotal)>
-      evaluated_buffers_;
+  std::string msg_macro_expanded_;
+  std::string log_data_macro_expanded_;
 
   // ctl
 private:

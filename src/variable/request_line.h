@@ -12,8 +12,8 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  const Common::Variant& evaluate(Transaction& t) const override {
-    return t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Variable).set(t.getUri());
+  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+    result.set(t.getUri());
   };
 };
 } // namespace Variable

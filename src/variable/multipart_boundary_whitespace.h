@@ -12,7 +12,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  const Common::Variant& evaluate(Transaction& t) const override {
+  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
     UNREACHABLE();
     throw "Not implemented!";
   };
