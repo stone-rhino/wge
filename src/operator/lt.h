@@ -21,13 +21,11 @@ public:
     }
 
     int64_t operand_value = std::get<int>(operand);
-    if (macro_) {
-      Common::EvaluateResult result;
-      macro_->evaluate(t, result);
-      int64_t macro_value = std::get<int>(result.get());
-      return is_not_ ^ (macro_value < operand_value);
-    } else {
+    if (!macro_) [[likely]] {
       return is_not_ ^ (value_ < operand_value);
+    } else {
+      MACRO_EXPAND_INT(macro_value);
+      return is_not_ ^ (macro_value < operand_value);
     }
   }
 
