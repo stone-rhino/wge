@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../common/assert.h"
+#include "../common/evaluate_result.h"
 #include "../common/variant.h"
 #include "../transaction.h"
 
@@ -30,12 +31,9 @@ public:
   /**
    * Evaluate the macro.
    * @param t the transaction.
-   * @return the value of the macro.
-   * @note The result of the macro evaluation is stored in the transaction's evaluated buffer. In
-   * each transaction, all macros share the same evaluated buffer, so we need to copy it to a
-   * local variable if we want to use it after the next macro object is evaluated.
+   * @param result the result of the evaluation.
    */
-  virtual const Common::Variant& evaluate(Transaction& t) = 0;
+  virtual void evaluate(Transaction& t, Common::EvaluateResult& result) = 0;
 
 protected:
   std::string literal_value_;

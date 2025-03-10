@@ -22,11 +22,12 @@ SetEnv::SetEnv(std::string&& key, std::shared_ptr<Macro::MacroBase> macro)
 
 void SetEnv::evaluate(Transaction& t) const {
   if (macro_) {
-    Common::Variant value = macro_->evaluate(t);
-    if (IS_INT_VARIANT(value)) {
-      ::setenv(key_.c_str(), std::to_string(std::get<int>(value)).c_str(), 1);
-    } else if (IS_STRING_VIEW_VARIANT(value)) {
-      std::string value_str(std::get<std::string_view>(value));
+    Common::EvaluateResult result;
+    macro_->evaluate(t, result);
+    if (IS_INT_VARIANT(result.get())) {
+      ::setenv(key_.c_str(), std::to_string(std::get<int>(result.get())).c_str(), 1);
+    } else if (IS_STRING_VIEW_VARIANT(result.get())) {
+      std::string value_str(std::get<std::string_view>(result.get()));
       ::setenv(key_.c_str(), value_str.c_str(), 1);
     } else {
       UNREACHABLE();

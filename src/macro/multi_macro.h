@@ -19,7 +19,7 @@ public:
       : MacroBase(std::move(literal_value)), macros_(std::move(macros)) {}
 
 public:
-  const Common::Variant& evaluate(Transaction& t) override {
+  void evaluate(Transaction& t, Common::EvaluateResult& result) override {
     std::string eval = literal_value_;
     for (auto& macro : macros_) {
       auto pos1 = eval.find("%{");
@@ -27,11 +27,11 @@ public:
       if (pos1 != eval.npos) {
         auto pos2 = eval.find('}', pos1);
         assert(pos2 != std::string::npos);
-        auto& mv = macro->evaluate(t);
-        if (IS_INT_VARIANT(mv)) {
-          eval = eval.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(mv)));
-        } else if (IS_STRING_VIEW_VARIANT(mv)) {
-          auto& sv = std::get<std::string_view>(mv);
+        macro->evaluate(t, result);
+        if (IS_INT_VARIANT(result.get())) {
+          eval = eval.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(result.get())));
+        } else if (IS_STRING_VIEW_VARIANT(result.get())) {
+          auto& sv = std::get<std::string_view>(result.get());
           eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
         } else [[unlikely]] {
           UNREACHABLE();
@@ -39,13 +39,11 @@ public:
         }
       }
     }
-    auto& buffer =
-        t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Macro).set(std::move(eval));
+    result.set(std::move(eval));
     assert(eval.empty());
 
-    SRSECURITY_LOG_TRACE("macro {} expanded: {}", literal_value_, VISTIT_VARIANT_AS_STRING(buffer));
-
-    return buffer;
+    SRSECURITY_LOG_TRACE("macro {} expanded: {}", literal_value_,
+                         VISTIT_VARIANT_AS_STRING(result.get()));
   }
 
 private:

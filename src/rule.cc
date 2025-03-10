@@ -30,7 +30,9 @@ bool Rule::evaluate(Transaction& t) const {
 
     // Evaluate the variables
     for (auto& var : variables_) {
-      const Common::Variant* var_value = &var->evaluate(t);
+      Common::EvaluateResult result;
+      var->evaluate(t, result);
+      const Common::Variant* var_value = &result.get();
       SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
                            var->isCounter() ? "&" : "", var->mainName(),
                            var->subName().empty() ? "" : "." + var->subName(),
@@ -106,10 +108,9 @@ bool Rule::evaluate(Transaction& t) const {
 
         // Macro expansion
         if (msg_macro_) {
-          Common::Variant& result = const_cast<Common::Variant&>(msg_macro_->evaluate(t));
-          assert(IS_STRING_VIEW_VARIANT(result));
-          t.getEvaluatedBuffer(Transaction::EvaluatedBufferType::Msg)
-              .set(std::get<std::string_view>(result));
+          Common::EvaluateResult msg_result;
+          msg_macro_->evaluate(t, msg_result);
+          t.setMsgMacroExpanded(msg_result.move());
         }
 
         // Evaluate the default actions

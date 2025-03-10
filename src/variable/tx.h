@@ -18,29 +18,27 @@ public:
   }
 
 public:
-  const Common::Variant& evaluate(Transaction& t) const override {
+  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
     if (matched_index_ == 0xffffffff) [[likely]] {
       if (is_counter_) {
         if (index_.has_value()) [[likely]] {
-          return t.hasVariable(index_.value()) ? number_one_ : number_zero_;
+          t.hasVariable(index_.value()) ? result.set(1) : result.set(0);
         } else {
-          return t.hasVariable(sub_name_) ? number_one_ : number_zero_;
+          t.hasVariable(sub_name_) ? result.set(1) : result.set(0);
         }
       } else {
         if (index_.has_value()) [[likely]] {
-          return t.getVariable(index_.value());
+          result.set(t.getVariable(index_.value()));
         } else {
-          return t.getVariable(sub_name_);
+          result.set(t.getVariable(sub_name_));
         }
       }
     } else {
-      return t.getMatched(matched_index_);
+      result.set(t.getMatched(matched_index_));
     }
   }
 
 private:
-  static constexpr Common::Variant number_zero_{0};
-  static constexpr Common::Variant number_one_{1};
   std::optional<size_t> index_;
   size_t matched_index_{0xffffffff};
 };

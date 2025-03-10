@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../common/assert.h"
+#include "../common/evaluate_result.h"
 #include "../common/variant.h"
 #include "../http_extractor.h"
 #include "../transaction.h"
@@ -68,12 +69,9 @@ public:
   /**
    * Evaluate the variable.
    * @param t the transaction.
-   * @return the value of the variable.
-   * @note The result of the variable evaluation is stored in the transaction's evaluated buffer. In
-   * each transaction, all variables share the same evaluated buffer, so we need to copy it to a
-   * local variable if we want to use it after the next variable object is evaluated.
+   * @param result the result of the evaluation.
    */
-  virtual const Common::Variant& evaluate(Transaction& t) const = 0;
+  virtual void evaluate(Transaction& t, Common::EvaluateResult& result) const = 0;
 
   /**
    * Get the full name of the variable.
