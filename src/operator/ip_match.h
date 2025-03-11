@@ -21,7 +21,7 @@ class IpMatch : public OperatorBase {
   DECLARE_OPERATOR_NAME(ipMatch);
 
 public:
-  IpMatch(std::string&& literal_value, bool is_not)
+  IpMatch(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {
     auto pos = literal_value_.find('/');
     if (pos == std::string::npos) {
@@ -45,7 +45,8 @@ public:
     }
   }
 
-  IpMatch(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+  IpMatch(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+          std::string_view curr_rule_file_path)
       : OperatorBase(macro, is_not) {
     // Not supported macro expansion
     UNREACHABLE();

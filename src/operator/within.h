@@ -11,13 +11,14 @@ class Within : public OperatorBase {
   DECLARE_OPERATOR_NAME(within);
 
 public:
-  Within(std::string&& literal_value, bool is_not)
+  Within(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {
     // Split the literal value into tokens.
     tokens_ = SplitTokens(literal_value_);
   }
 
-  Within(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+  Within(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+         std::string_view curr_rule_file_path)
       : OperatorBase(macro, is_not) {}
 
 public:

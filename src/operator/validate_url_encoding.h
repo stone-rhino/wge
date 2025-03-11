@@ -8,10 +8,12 @@ class ValidateUrlEncoding : public OperatorBase {
   DECLARE_OPERATOR_NAME(validateUrlEncoding);
 
 public:
-  ValidateUrlEncoding(std::string&& literal_value, bool is_not)
+  ValidateUrlEncoding(std::string&& literal_value, bool is_not,
+                      std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {}
 
-  ValidateUrlEncoding(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+  ValidateUrlEncoding(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+                      std::string_view curr_rule_file_path)
       : OperatorBase(macro, is_not) {}
 
 public:

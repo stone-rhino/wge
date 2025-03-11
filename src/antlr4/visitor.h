@@ -863,10 +863,11 @@ private:
 
     std::unique_ptr<Operator::OperatorBase> op;
     if (macro.value()) {
-      op = std::unique_ptr<Operator::OperatorBase>(new VarT(macro.value(), ctx->NOT() != nullptr));
-    } else {
       op = std::unique_ptr<Operator::OperatorBase>(
-          new VarT(ctx->string_with_macro()->getText(), ctx->NOT() != nullptr));
+          new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+    } else {
+      op = std::unique_ptr<Operator::OperatorBase>(new VarT(
+          ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
     }
 
     (*current_rule_iter_)->setOperator(std::move(op));

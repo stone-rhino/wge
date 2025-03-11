@@ -12,10 +12,11 @@ class BeginsWith : public OperatorBase {
   DECLARE_OPERATOR_NAME(beginsWith);
 
 public:
-  BeginsWith(std::string&& literal_value, bool is_not)
+  BeginsWith(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {}
 
-  BeginsWith(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+  BeginsWith(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+             std::string_view curr_rule_file_path)
       : OperatorBase(macro, is_not) {}
 
 public:

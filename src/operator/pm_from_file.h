@@ -7,6 +7,7 @@
 
 #include "operator_base.h"
 
+#include "../common/file.h"
 #include "../common/hyperscan/scanner.h"
 #include "../common/log.h"
 
@@ -22,27 +23,31 @@ class PmFromFile : public OperatorBase {
   DECLARE_OPERATOR_NAME(pmFromFile);
 
 public:
-  PmFromFile(std::string&& literal_value, bool is_not)
+  PmFromFile(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {
+    // Make the file path absolute.
+    std::string file_path = Common::File::makeFilePath(curr_rule_file_path, literal_value_);
+
     // Load the hyperscan database.
     // We cache the hyperscan database to avoid loading(complie) the same database multiple times.
-    auto iter = database_cache_.find(literal_value_);
+    auto iter = database_cache_.find(file_path);
     if (iter == database_cache_.end()) {
-      std::ifstream ifs(literal_value_);
+      std::ifstream ifs(file_path);
       if (!ifs.is_open()) {
-        SRSECURITY_LOG_ERROR("Failed to open hyperscan database file: {}", literal_value_);
+        SRSECURITY_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
         return;
       }
 
       auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, false);
       database_ = hs_db;
-      database_cache_.emplace(literal_value_, hs_db);
+      database_cache_.emplace(file_path, hs_db);
     } else {
       database_ = iter->second;
     }
   }
 
-  PmFromFile(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
+  PmFromFile(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+             std::string_view curr_rule_file_path)
       : OperatorBase(macro, is_not) {
     // Not supported macro expansion
     UNREACHABLE();

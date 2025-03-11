@@ -913,15 +913,15 @@ std::any Visitor::visitOp_contains_word(Antlr4Gen::SecLangParser::Op_contains_wo
 }
 
 std::any Visitor::visitOp_detect_sqli(Antlr4Gen::SecLangParser::Op_detect_sqliContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op =
-      std::make_unique<Operator::DetectSqli>(std::string(), ctx->NOT() != nullptr);
+  std::unique_ptr<Operator::OperatorBase> op = std::make_unique<Operator::DetectSqli>(
+      std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_detect_xss(Antlr4Gen::SecLangParser::Op_detect_xssContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op =
-      std::make_unique<Operator::DetectXSS>(std::string(), ctx->NOT() != nullptr);
+  std::unique_ptr<Operator::OperatorBase> op = std::make_unique<Operator::DetectXSS>(
+      std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
@@ -1036,16 +1036,16 @@ Visitor::visitOp_validate_schema(Antlr4Gen::SecLangParser::Op_validate_schemaCon
 
 std::any Visitor::visitOp_validate_url_encoding(
     Antlr4Gen::SecLangParser::Op_validate_url_encodingContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op =
-      std::make_unique<Operator::ValidateUrlEncoding>(std::string(), ctx->NOT() != nullptr);
+  std::unique_ptr<Operator::OperatorBase> op = std::make_unique<Operator::ValidateUrlEncoding>(
+      std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_validate_utf8_encoding(
     Antlr4Gen::SecLangParser::Op_validate_utf8_encodingContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op =
-      std::make_unique<Operator::ValidateUtf8Encoding>(std::string(), ctx->NOT() != nullptr);
+  std::unique_ptr<Operator::OperatorBase> op = std::make_unique<Operator::ValidateUtf8Encoding>(
+      std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }
@@ -1076,10 +1076,11 @@ std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultCont
 
   std::unique_ptr<Operator::OperatorBase> op;
   if (macro.value()) {
-    op = std::unique_ptr<Operator::OperatorBase>(new Operator::Rx(macro.value(), false));
+    op = std::unique_ptr<Operator::OperatorBase>(
+        new Operator::Rx(macro.value(), false, parser_->currLoadFile()));
   } else {
     op = std::unique_ptr<Operator::OperatorBase>(
-        new Operator::Rx(ctx->string_with_macro()->getText(), false));
+        new Operator::Rx(ctx->string_with_macro()->getText(), false, parser_->currLoadFile()));
   }
 
   (*current_rule_iter_)->setOperator(std::move(op));

@@ -21,11 +21,13 @@ class Rx : public OperatorBase {
   DECLARE_OPERATOR_NAME(rx);
 
 public:
-  Rx(std::string&& literal_value, bool is_not)
+  Rx(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not),
         pcre_(std::make_unique<Common::Pcre::Scanner>(literalValue(), false)) {}
 
-  Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not) : OperatorBase(macro, is_not) {}
+  Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+     std::string_view curr_rule_file_path)
+      : OperatorBase(macro, is_not) {}
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
