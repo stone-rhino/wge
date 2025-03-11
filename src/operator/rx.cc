@@ -2,6 +2,8 @@
 
 namespace SrSecurity {
 namespace Operator {
-thread_local Common::Pcre::Scratch Rx::per_thread_pcre_scratch_(99);
-}
+std::forward_list<std::string> Rx::macro_value_cache_;
+std::unordered_map<std::string_view, std::unique_ptr<Common::Pcre::Scanner>> Rx::macro_pcre_cache_;
+std::mutex Rx::macro_chche_mutex_;
+} // namespace Operator
 } // namespace SrSecurity

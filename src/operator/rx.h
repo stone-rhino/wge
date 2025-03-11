@@ -1,11 +1,14 @@
 #pragma once
 
+#include <forward_list>
 #include <memory>
+#include <mutex>
+#include <unordered_map>
 
 #include "operator_base.h"
 
 #include "../common/assert.h"
-#include "../common/pcre.h"
+#include "../common/pcre/scanner.h"
 #include "../transaction.h"
 
 namespace SrSecurity {
@@ -20,7 +23,7 @@ class Rx : public OperatorBase {
 public:
   Rx(std::string&& literal_value, bool is_not)
       : OperatorBase(std::move(literal_value), is_not),
-        pcre_(std::make_unique<Common::Pcre>(literalValue(), false)) {}
+        pcre_(std::make_unique<Common::Pcre::Scanner>(literalValue(), false)) {}
 
   Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not) : OperatorBase(macro, is_not) {}
 
@@ -30,10 +33,30 @@ public:
       return false;
     }
 
-    if (!pcre_) [[unlikely]] {
-      // TODO(zhouyu 20250305): Initialize the pcre_ object with macro evaluated value. And use a
-      // hash table to store the pcre_ object to avoid recompiling the same pattern.
-      return false;
+    Common::Pcre::Scanner* scanner = pcre_.get();
+
+    // If there is a macro, expand it and create or reuse a scanner.
+    if (macro_) [[unlikely]] {
+      MACRO_EXPAND_STRING_VIEW(macro_value);
+
+      // All the threads will try to access the macro_pcre_cache_ at the same time, so we need to
+      // lock the macro_chche_mutex_.
+      // May be we can use thread local storage to store the scanner, to avoid the lock. But the
+      // probablity of the macro expansion is very low, so we use the lock here.
+      std::lock_guard<std::mutex> lock(macro_chche_mutex_);
+
+      auto iter = macro_pcre_cache_.find(macro_value);
+      if (iter == macro_pcre_cache_.end()) {
+        // To avoid copying the macro value when we find scanner in the macro_pcre_cache_ by
+        // std::string type key, we use std::string_view type key to find scanner in the
+        // macro_pcre_cache_, And store the macro value in the macro_value_cache_.
+        macro_value_cache_.emplace_front(macro_value);
+        auto macro_scanner = std::make_unique<Common::Pcre::Scanner>(macro_value, false);
+        scanner = macro_scanner.get();
+        macro_pcre_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner));
+      } else {
+        scanner = iter->second.get();
+      }
     }
 
     std::vector<std::pair<size_t, size_t>> result;
@@ -41,7 +64,7 @@ public:
     // Match the operand with the pattern.
     if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
       const std::string_view& operand_str = std::get<std::string_view>(operand);
-      result = pcre_->match(operand_str, per_thread_pcre_scratch_);
+      scanner->match(operand_str, result);
 
       // Ignore capture_ and set the match result directly, because we need to capture the
       // matched string for %{MATCHED_VAR} in the rule action.
@@ -53,7 +76,7 @@ public:
       UNREACHABLE();
     }
 
-    return is_not_ ? result.empty() : !result.empty();
+    return is_not_ ^ (!result.empty());
   }
 
 public:
@@ -70,13 +93,12 @@ public:
   bool getCapture() const { return capture_; }
 
 private:
-  std::unique_ptr<Common::Pcre> pcre_;
+  std::unique_ptr<Common::Pcre::Scanner> pcre_;
   bool capture_{false};
-
-  // The result of the regular expression match.
-  // All threads share the same rule object, that means all threads share the same operator object.
-  // So we need to use thread_local to avoid.
-  static thread_local Common::Pcre::Scratch per_thread_pcre_scratch_;
+  static std::forward_list<std::string> macro_value_cache_;
+  static std::unordered_map<std::string_view, std::unique_ptr<Common::Pcre::Scanner>>
+      macro_pcre_cache_;
+  static std::mutex macro_chche_mutex_;
 };
 } // namespace Operator
 } // namespace SrSecurity
