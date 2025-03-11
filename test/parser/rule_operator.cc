@@ -180,5 +180,21 @@ TEST_F(RuleOperatorTest, rxWithMacro) {
   EXPECT_FALSE(t->hasVariable("false"));
 }
 
+TEST_F(RuleOperatorTest, pmFromFile) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=com.autoregister_verbose,setvar:tx.bar=helloworld"
+      SecRule TX:foo "@pmFromFile test/test_data/pmf_test.data" "id:1,phase:1,setvar:'tx.true'"
+      SecRule TX:bar "@pmFromFile test/test_data/pmf_test.data" "id:1,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
+
 } // namespace Parser
 } // namespace SrSecurity

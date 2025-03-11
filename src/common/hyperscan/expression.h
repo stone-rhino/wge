@@ -70,14 +70,14 @@ public:
 
 private:
   void initRawData() {
-    if (!init_raw_data_) {
+    if (!inited_raw_data_) {
       expr_pointers_.reserve(exprs_.size());
       for (const auto& expr : exprs_) {
         expr_pointers_.emplace_back(expr.c_str());
         expr_lens_.emplace_back(expr.length());
       }
 
-      init_raw_data_ = true;
+      inited_raw_data_ = true;
     }
   }
 
@@ -91,7 +91,7 @@ private:
   std::vector<uint64_t> real_ids_;
   std::unordered_map<uint64_t, unsigned int> logic_id_map_;
   Pcre::PatternList pcre_pattern_list_;
-  bool init_raw_data_{false};
+  bool inited_raw_data_{false};
 };
 } // namespace Hyperscan
 } // namespace Common

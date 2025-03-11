@@ -28,6 +28,15 @@ Scanner::Scanner(const std::string_view pattern, bool case_less)
 
 Scanner::Scanner(const PatternList* pattern_list) : pattern_list_(pattern_list) {}
 
+const Pattern* Scanner::getPattern(uint64_t id) {
+  assert(pattern_list_);
+  if (!pattern_list_) [[unlikely]] {
+    return nullptr;
+  }
+
+  return pattern_list_->get(id);
+}
+
 void Scanner::match(std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);

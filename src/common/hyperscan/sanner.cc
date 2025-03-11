@@ -9,7 +9,7 @@ thread_local std::unique_ptr<Scratch> Scanner::worker_scratch_;
 
 Scanner::Scanner(const std::shared_ptr<HsDataBase> hs_db) : hs_db_(hs_db) {
   // clone the main scratch space
-  if (!worker_scratch_) {
+  if (!worker_scratch_) [[unlikely]] {
     worker_scratch_ = std::make_unique<Scratch>(hs_db->mainScratch());
   }
 

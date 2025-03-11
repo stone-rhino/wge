@@ -20,7 +20,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
   unsigned int flag = 0;
   flag |= HS_FLAG_CASELESS;
 
-  if (utf8) {
+  if (utf8 && !literal_) {
     flag |= HS_FLAG_UTF8;
   }
 
@@ -28,7 +28,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
     flag |= HS_FLAG_SOM_LEFTMOST;
   }
 
-  if (multi_line) {
+  if (multi_line && !literal_) {
     flag |= HS_FLAG_MULTILINE;
   }
 
@@ -57,7 +57,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
   }
 
   // We need to reinitialize the raw data
-  init_raw_data_ = false;
+  inited_raw_data_ = false;
 
   return true;
 }
@@ -71,12 +71,15 @@ void ExpressionList::add(Expression&& exp) {
     // transform the expressions so it can be processed. E.g the pattern (?<=hello)world may be
     // transform to \w+world. After the hyperscan matched the pattern, we use pcre to scan again
     // exactly.
-    bool is_pre_filter = isPcre(exp.exp_);
-    unsigned int local_flag = exp.flag_;
-    if (is_pre_filter) {
-      // the HS_FLAG_PREFILTER flag can't be used in combination whit HS_FLAG_SOM_LEFTMOST.
-      local_flag &= ~HS_FLAG_SOM_LEFTMOST;
-      local_flag |= HS_FLAG_PREFILTER;
+    bool is_pre_filter = false;
+    if (!literal_) {
+      is_pre_filter = isPcre(exp.exp_);
+      unsigned int local_flag = exp.flag_;
+      if (is_pre_filter) {
+        // the HS_FLAG_PREFILTER flag can't be used in combination whit HS_FLAG_SOM_LEFTMOST.
+        local_flag &= ~HS_FLAG_SOM_LEFTMOST;
+        local_flag |= HS_FLAG_PREFILTER;
+      }
     }
 
     exprs_.emplace_back(std::move(exp.exp_));
@@ -89,7 +92,7 @@ void ExpressionList::add(Expression&& exp) {
     }
 
     // We need to reinitialize the raw data
-    init_raw_data_ = false;
+    inited_raw_data_ = false;
   }
 
   assert(exprs_.size() == flags_.size());

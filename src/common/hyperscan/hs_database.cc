@@ -11,9 +11,12 @@ namespace Hyperscan {
 Scratch HsDataBase::main_scratch_;
 
 HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmost) : db_(literal) {
-  unsigned int flag = HS_FLAG_CASELESS | HS_FLAG_UTF8;
+  unsigned int flag = HS_FLAG_CASELESS;
   if (som_leftmost) {
     flag |= HS_FLAG_SOM_LEFTMOST;
+  }
+  if (!db_.expressions_.literal()) {
+    flag |= HS_FLAG_UTF8;
   }
   db_.expressions_.add({pattern, flag, 0});
   compile();

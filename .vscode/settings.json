@@ -83,7 +83,8 @@
         "rope": "cpp",
         "valarray": "cpp",
         "strstream": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "multi": "cpp"
     },
     "cmake.debugConfig": {
         "cwd": "${workspaceFolder}",
