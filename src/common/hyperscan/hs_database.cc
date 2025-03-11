@@ -18,7 +18,7 @@ HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmo
   if (!db_.expressions_.literal()) {
     flag |= HS_FLAG_UTF8;
   }
-  db_.expressions_.add({pattern, flag, 0});
+  db_.expressions_.add({pattern, flag, 0}, true);
   compile();
 }
 
