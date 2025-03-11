@@ -13,7 +13,11 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
-    result.set(t.getUri());
+    if (!is_counter_) [[likely]] {
+      result.set(t.getUri());
+    } else {
+      result.set(t.getUri().empty() ? 0 : 1);
+    }
   };
 };
 } // namespace Variable

@@ -90,6 +90,7 @@ bool Rule::evaluate(Transaction& t) const {
       if (matched && !chain_.empty()) [[unlikely]] {
         for (auto& rule : chain_) {
           SRSECURITY_LOG_TRACE("evaluate chained rule. id: {}", rule->id());
+          SRSECURITY_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
           matched = rule->evaluate(t);
           if (!matched) {
             break;

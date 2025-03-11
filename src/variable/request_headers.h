@@ -13,7 +13,11 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
-    result.set(t.httpExtractor().request_header_extractor_(sub_name_));
+    if (!is_counter_) [[likely]] {
+      result.set(t.httpExtractor().request_header_extractor_(sub_name_));
+    } else {
+      result.set(t.httpExtractor().request_header_extractor_(sub_name_).empty() ? 0 : 1);
+    }
   };
 };
 } // namespace Variable

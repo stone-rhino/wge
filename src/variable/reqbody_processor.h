@@ -20,9 +20,17 @@ public:
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
     if (iter != body_processor_type_map_.end()) {
-      result.set(iter->second);
+      if (!is_counter_) [[likely]] {
+        result.set(iter->second);
+      } else {
+        result.set(1);
+      }
     } else {
-      result.clear();
+      if (!is_counter_) [[likely]] {
+        result.clear();
+      } else {
+        result.set(0);
+      }
     }
   };
 

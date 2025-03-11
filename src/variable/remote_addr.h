@@ -13,7 +13,11 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
-    result.set(t.getConnectionInfo().downstream_ip_);
+    if (!is_counter_) [[likely]] {
+      result.set(t.getConnectionInfo().downstream_ip_);
+    } else {
+      result.set(t.getConnectionInfo().downstream_ip_.empty() ? 0 : 1);
+    }
   };
 };
 } // namespace Variable

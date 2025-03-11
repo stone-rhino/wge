@@ -18,7 +18,11 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
-    result.set(t.getUniqueId());
+    if (!is_counter_) [[likely]] {
+      result.set(t.getUniqueId());
+    } else {
+      result.set(t.getUniqueId().empty() ? 0 : 1);
+    }
   };
 };
 } // namespace Variable

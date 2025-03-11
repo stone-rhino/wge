@@ -19,7 +19,7 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (IS_EMPTY_VARIANT(operand)) [[unlikely]] {
+    if (!IS_INT_VARIANT(operand)) [[unlikely]] {
       return false;
     }
 
