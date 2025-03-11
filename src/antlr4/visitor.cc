@@ -1067,8 +1067,21 @@ std::any Visitor::visitOp_within(Antlr4Gen::SecLangParser::Op_withinContext* ctx
 }
 
 std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) {
-  std::unique_ptr<Operator::OperatorBase> op =
-      std::make_unique<Operator::Rx>(ctx->string_with_macro()->getText(), false);
+  auto macro = getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+                        ctx->string_with_macro()->STRING().empty());
+
+  if (!macro.has_value()) {
+    RETURN_ERROR(macro.error());
+  }
+
+  std::unique_ptr<Operator::OperatorBase> op;
+  if (macro.value()) {
+    op = std::unique_ptr<Operator::OperatorBase>(new Operator::Rx(macro.value(), false));
+  } else {
+    op = std::unique_ptr<Operator::OperatorBase>(
+        new Operator::Rx(ctx->string_with_macro()->getText(), false));
+  }
+
   (*current_rule_iter_)->setOperator(std::move(op));
   return EMPTY_STRING;
 }

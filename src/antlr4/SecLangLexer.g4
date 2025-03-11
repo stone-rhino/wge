@@ -402,7 +402,13 @@ ModeSecRuleOperator_NOT: NOT -> type(NOT);
 AT: '@' -> popMode, pushMode(ModeSecRuleOperatorName);
 ModeSecRuleOperator_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
-RX_DEFUALT: (('\\"') | ~([" @!])) (('\\"') | ~('"'))* -> type(STRING);
+RX_DEFUALT: ('\\"' | ~[" @!%] | ('%' ~[{])) (
+		'\\"'
+		| ~["%]
+		| ('%' ~[{])
+	)* -> type(STRING);
+ModeSecRuleOperator_PER_CENT:
+	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleOperatorName;
 ModeSecRuleOperator_WS:
