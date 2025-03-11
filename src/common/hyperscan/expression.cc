@@ -53,17 +53,17 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
       continue;
     }
 
-    add({std::move(buffer), flag, id});
+    add({std::move(buffer), flag, id}, false);
     ++id;
   }
 
-  // We need to reinitialize the raw data
-  inited_raw_data_ = false;
+  // Must call initRawData() for the list to get raw data. It same as at last call add() with true.
+  initRawData();
 
   return true;
 }
 
-void ExpressionList::add(Expression&& exp) {
+void ExpressionList::add(Expression&& exp, bool init_raw_data) {
   auto iter = logic_id_map_.find(exp.id_);
   if (iter == logic_id_map_.end()) {
     // The hyperscan not supported complete pcre syntax, that means it can't process some
@@ -92,8 +92,9 @@ void ExpressionList::add(Expression&& exp) {
       pcre_pattern_list_.add(exprs_.back(), (exp.flag_ & HS_FLAG_CASELESS) != 0, exp.id_);
     }
 
-    // We need to reinitialize the raw data
-    inited_raw_data_ = false;
+    if (init_raw_data) {
+      initRawData();
+    }
   }
 
   assert(exprs_.size() == flags_.size());

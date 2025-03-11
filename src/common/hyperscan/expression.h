@@ -42,19 +42,22 @@ public:
    */
   bool load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool multi_line);
 
-  // Add a expression
-  void add(Expression&& exp);
+  /**
+   * Add a pattern to the list
+   * @param exp the pattern
+   * @param init_raw_data whether init raw data now. we must specify true at last call add() for the
+   * list to get raw data.
+   */
+  void add(Expression&& exp, bool init_raw_data);
   size_t size() const;
   void clear();
   bool literal() const { return literal_; }
 
   // Get raw data of array
   const char** exprRawData() {
-    initRawData();
     return expr_pointers_.data();
   }
   const size_t* exprLenRawData() {
-    initRawData();
     return expr_lens_.data();
   }
   const unsigned int* flagsRawData() { return flags_.data(); }
@@ -70,14 +73,11 @@ public:
 
 private:
   void initRawData() {
-    if (!inited_raw_data_) {
-      expr_pointers_.reserve(exprs_.size());
-      for (const auto& expr : exprs_) {
-        expr_pointers_.emplace_back(expr.c_str());
-        expr_lens_.emplace_back(expr.length());
-      }
-
-      inited_raw_data_ = true;
+    expr_pointers_.reserve(exprs_.size());
+    expr_lens_.reserve(exprs_.size());
+    for (const auto& expr : exprs_) {
+      expr_pointers_.emplace_back(expr.c_str());
+      expr_lens_.emplace_back(expr.length());
     }
   }
 
@@ -91,7 +91,6 @@ private:
   std::vector<uint64_t> real_ids_;
   std::unordered_map<uint64_t, unsigned int> logic_id_map_;
   Pcre::PatternList pcre_pattern_list_;
-  bool inited_raw_data_{false};
 };
 } // namespace Hyperscan
 } // namespace Common
