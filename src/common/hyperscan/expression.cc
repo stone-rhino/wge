@@ -45,10 +45,11 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
       continue;
     }
 
-    if (buffer.at(0) == '#') {
-      if (buffer.at(1) == '#') {
-        break;
-      }
+    if (buffer == "##") {
+      break;
+    }
+
+    if (buffer.starts_with("#")) {
       continue;
     }
 

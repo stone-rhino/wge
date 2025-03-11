@@ -31,6 +31,8 @@ HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost) : db
 void HsDataBase::compile() {
   ASSERT_IS_MAIN_THREAD();
 
+  assert(db_.expressions_.size());
+
   // compile block mode
   auto block_compiler = std::async([&]() {
     hs_compile_error_t* compile_err;

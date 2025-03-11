@@ -37,8 +37,8 @@ public:
    * @param som_leftmost whether the pattern is som_leftmost
    * @param multi_line whether the pattern is multi_line
    * @note:
-   * Starts whit charactor '#' means comment this line
-   * Starts whit double charactor '#' means comment all of follow
+   * Starts with charactor '#' means comment this line
+   * Starts with double charactor '#' means comment all of follow
    */
   bool load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool multi_line);
 
