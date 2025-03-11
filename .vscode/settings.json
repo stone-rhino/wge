@@ -79,7 +79,11 @@
         "regex": "cpp",
         "*.ipp": "cpp",
         "cfenv": "cpp",
-        "stdfloat": "cpp"
+        "stdfloat": "cpp",
+        "rope": "cpp",
+        "valarray": "cpp",
+        "strstream": "cpp",
+        "future": "cpp"
     },
     "cmake.debugConfig": {
         "cwd": "${workspaceFolder}",

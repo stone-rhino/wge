@@ -138,5 +138,47 @@ TEST_F(RuleOperatorTest, withinWithMacro) {
   EXPECT_FALSE(t->hasVariable("false1"));
   EXPECT_FALSE(t->hasVariable("false2"));
 }
+
+TEST_F(RuleOperatorTest, rx) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld123helloworld"
+  SecRule TX:foo "@rx ^\w+\d+\w+$" "id:1,phase:1,setvar:'tx.true1'"
+  SecRule TX:foo "^\w+\d+\w+$" "id:1,phase:1,setvar:'tx.true2'"
+  SecRule TX:foo "@rx ^\d+$" "id:1,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true1"));
+  EXPECT_TRUE(t->hasVariable("true2"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
+
+TEST_F(RuleOperatorTest, rxWithMacro) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld123helloworld"
+  SecAction "phase:1,setvar:tx.pattern=^\w+\d+\w+$"
+  SecAction "phase:1,setvar:tx.pattern_w=\w"
+  SecAction "phase:1,setvar:tx.pattern_d=\d"
+  SecRule TX:foo "@rx %{tx.pattern}" "id:1,phase:1,setvar:'tx.true1'"
+  SecRule TX:foo "%{tx.pattern}" "id:2,phase:1,setvar:'tx.true2'"
+  SecRule TX:foo "^%{tx.pattern_w}+%{tx.pattern_d}+%{tx.pattern_w}+$" "id:3,phase:1,setvar:'tx.true3'"
+  SecRule TX:foo "@rx ^\d+$" "id:1,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true1"));
+  EXPECT_TRUE(t->hasVariable("true2"));
+  EXPECT_TRUE(t->hasVariable("true3"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
+
 } // namespace Parser
 } // namespace SrSecurity

@@ -46,7 +46,10 @@ public:
   }
 
   IpMatch(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
-      : OperatorBase(macro, is_not) {}
+      : OperatorBase(macro, is_not) {
+    // Not supported macro expansion
+    UNREACHABLE();
+  }
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {

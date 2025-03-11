@@ -15,3 +15,9 @@ target_link_libraries(test PRIVATE spdlog::spdlog_header_only)
 
 find_package(pcre2 CONFIG REQUIRED)
 target_link_libraries(test PRIVATE PCRE2::8BIT)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(HYPERSCAN REQUIRED libhs)
+target_include_directories(test PRIVATE ${HYPERSCAN_INCLUDE_DIRS})
+target_link_directories(test PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
+target_link_libraries(test PRIVATE ${HYPERSCAN_LIBRARIES})

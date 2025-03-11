@@ -4,6 +4,7 @@
     "spdlog",
     "gtest",
     "pcre2",
-    "gperftools"
+    "gperftools",
+    "hyperscan"
   ]
 }
