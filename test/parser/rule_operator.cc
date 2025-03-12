@@ -227,5 +227,21 @@ TEST_F(RuleOperatorTest, streqWithMacro) {
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
+
+TEST_F(RuleOperatorTest, validateUrlEncoding) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=/asdf%20%ab,setvar:tx.bar=/asdf%20%ag"
+  SecRule TX:foo "@validateUrlEncoding" "id:1,phase:1,setvar:'tx.true'"
+  SecRule TX:bar "@validateUrlEncoding" "id:2,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
 } // namespace Parser
 } // namespace SrSecurity
