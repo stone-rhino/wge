@@ -3,6 +3,7 @@
 #include "operator_base.h"
 
 #include "../common/hyperscan/scanner.h"
+#include "../common/lru_cache.hpp"
 
 namespace SrSecurity {
 namespace Operator {
@@ -20,18 +21,20 @@ public:
     std::vector<std::string_view> tokens = SplitTokens(literal_value_);
 
     // Calculate the order independent hash value of all tokens.
-    size_t hash = calcOrderIndependentHash(tokens);
+    int64_t hash = calcOrderIndependentHash(tokens);
 
     // Load the hyperscan database and create a scanner.
     // We cache the hyperscan database to avoid loading(complie) the same database multiple times.
-    auto iter = database_cache_.find(hash);
-    if (iter == database_cache_.end()) {
-      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false);
-      scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-      database_cache_.emplace(hash, hs_db);
-    } else {
-      scanner_ = std::make_unique<Common::Hyperscan::Scanner>(iter->second);
-    }
+    database_cache_.access(
+        hash,
+        [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
+          scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+        },
+        [&]() {
+          auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false);
+          scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+          return hs_db;
+        });
   }
 
   Within(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
@@ -55,24 +58,21 @@ public:
       std::vector<std::string_view> tokens = SplitTokens(macro_value);
 
       // Calculate the order independent hash value of all tokens.
-      size_t hash = calcOrderIndependentHash(tokens);
+      int64_t hash = calcOrderIndependentHash(tokens);
 
-      // All the threads will try to access the database_cache_ at the same time, so we need to
-      // lock the database_cache_mutex_.
-      // May be we can use thread local storage to store the database, to avoid the lock. But the
-      // probablity of the macro expansion is very low, so we use the lock here.
-      std::lock_guard<std::mutex> lock(database_cache_mutex_);
-
-      auto iter = database_cache_.find(hash);
-      if (iter == database_cache_.end()) {
-        auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false);
-        macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-        scanner = macro_scanner.get();
-        database_cache_.emplace(hash, hs_db);
-      } else {
-        macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(iter->second);
-        scanner = macro_scanner.get();
-      }
+      // Load the hyperscan database and create a scanner.
+      // We cache the hyperscan database to avoid loading(complie) the same database multiple times.
+      database_cache_.access(
+          hash,
+          [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
+            macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+            scanner = macro_scanner.get();
+          },
+          [&]() {
+            auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false);
+            macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+            return hs_db;
+          });
     }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
@@ -113,8 +113,8 @@ private:
     return tokens;
   }
 
-  size_t calcOrderIndependentHash(const std::vector<std::string_view>& tokens) const {
-    size_t hash = 0;
+  int64_t calcOrderIndependentHash(const std::vector<std::string_view>& tokens) const {
+    int64_t hash = 0;
     std::vector<size_t> token_hashes;
     for (auto token : tokens) {
       token_hashes.emplace_back(std::hash<std::string_view>{}(token));
@@ -132,8 +132,8 @@ private:
   // Cache the hyperscan database
   // key: order independent hash value of all tokens
   // value: hyperscan database
-  static std::unordered_map<size_t, std::shared_ptr<Common::Hyperscan::HsDataBase>> database_cache_;
-  static std::mutex database_cache_mutex_;
+  static Common::LruCache<int64_t, std::shared_ptr<Common::Hyperscan::HsDataBase>, 101>
+      database_cache_;
 };
 } // namespace Operator
 } // namespace SrSecurity

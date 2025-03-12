@@ -2,7 +2,7 @@
 
 namespace SrSecurity {
 namespace Operator {
-std::unordered_map<size_t, std::shared_ptr<Common::Hyperscan::HsDataBase>> Within::database_cache_;
-std::mutex Within::database_cache_mutex_;
+Common::LruCache<int64_t, std::shared_ptr<Common::Hyperscan::HsDataBase>, 101>
+    Within::database_cache_(32);
 } // namespace Operator
 } // namespace SrSecurity
