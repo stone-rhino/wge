@@ -22,6 +22,25 @@ HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmo
   compile();
 }
 
+HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool literal,
+                       bool som_leftmost)
+    : db_(literal) {
+  unsigned int flag = HS_FLAG_CASELESS;
+  if (som_leftmost) {
+    flag |= HS_FLAG_SOM_LEFTMOST;
+  }
+  if (!literal) {
+    flag |= HS_FLAG_UTF8;
+  }
+  size_t i = 0;
+  for (; i < patterns.size() - 1; ++i) {
+    db_.expressions_.add({std::string(patterns[i]), flag, i}, false);
+  }
+  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, i}, true);
+
+  compile();
+}
+
 HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost) : db_(literal) {
   if (db_.expressions_.load(ifs, true, som_leftmost, false)) {
     compile();

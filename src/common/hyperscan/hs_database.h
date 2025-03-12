@@ -20,12 +20,20 @@ namespace Hyperscan {
 class HsDataBase {
 public:
   /**
-   * Load patterns from the pattern
+   * Load a pattern from a string.
    * @param pattern the pattern
    * @param literal whether the pattern is literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
    */
   HsDataBase(const std::string& pattern, bool literal, bool som_leftmost);
+
+  /**
+   * Load patterns form a vector of string_view.
+   * @param patterns the patterns
+   * @param literal whether the patterns are literal
+   * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   */
+  HsDataBase(const std::vector<std::string_view>& patterns, bool literal, bool som_leftmost);
 
   /**
    * Load patterns from the specified file.
