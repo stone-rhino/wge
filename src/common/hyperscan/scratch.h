@@ -55,12 +55,29 @@ public:
   }
 
 public:
-  hs_scratch_t* blockNative() const { return block_scratch_; }
-  hs_scratch_t* streamNative() const { return stream_scratch_; }
+  /**
+   * Callback function for hyperscan match
+   * @param id the pattern id
+   * @param from the start offset of the match
+   * @param to the end offset of the match
+   * @param flags the flags
+   * @param user_data the user data
+   * @return 0 to continue, non-zero to stop
+   */
+  using MatchCallback = int (*)(uint64_t id, unsigned long long from, unsigned long long to,
+                                unsigned int flags, void* user_data);
+  using PcreRemoveDuplicateCallbak = bool (*)(uint64_t id, unsigned long long to, void* user_data);
 
-private:
+public:
   hs_scratch_t* block_scratch_{nullptr};
   hs_scratch_t* stream_scratch_{nullptr};
+  hs_stream_t* stream_id_{nullptr};
+  std::string_view curr_match_data_;
+
+  MatchCallback match_cb_{nullptr};
+  void* match_cb_user_data_;
+  PcreRemoveDuplicateCallbak pcre_remove_duplicate_cb_{nullptr};
+  void* pcre_remove_duplicate_cb_user_data_;
 };
 } // namespace Hyperscan
 } // namespace Common

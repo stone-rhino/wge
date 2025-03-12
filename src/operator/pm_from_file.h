@@ -28,7 +28,7 @@ public:
     // Make the file path absolute.
     std::string file_path = Common::File::makeFilePath(curr_rule_file_path, literal_value_);
 
-    // Load the hyperscan database.
+    // Load the hyperscan database and create a scanner.
     // We cache the hyperscan database to avoid loading(complie) the same database multiple times.
     auto iter = database_cache_.find(file_path);
     if (iter == database_cache_.end()) {
@@ -39,10 +39,10 @@ public:
       }
 
       auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, false);
-      database_ = hs_db;
+      scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
       database_cache_.emplace(file_path, hs_db);
     } else {
-      database_ = iter->second;
+      scanner_ = std::make_unique<Common::Hyperscan::Scanner>(iter->second);
     }
   }
 
@@ -55,7 +55,7 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!database_) [[unlikely]] {
+    if (!scanner_) [[unlikely]] {
       return false;
     }
 
@@ -63,12 +63,11 @@ public:
       return false;
     }
 
-    // The Common::Hyperscan::Scanner::blockScan() method is stateful, so we need to create a new
-    // scanner for each evaluation. Luckily, the hyperscan database is cached, so the cost of
-    // creating a new scanner is minimal.
-    Common::Hyperscan::Scanner scanner(database_);
+    // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
+    // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
+    // scratch space for each transaction.
     bool matched = false;
-    scanner.registMatchCallback(
+    scanner_->registMatchCallback(
         [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
            void* user_data) -> int {
           bool* matched = static_cast<bool*>(user_data);
@@ -76,14 +75,13 @@ public:
           return 1;
         },
         &matched);
-
-    scanner.blockScan(std::get<std::string_view>(operand));
+    scanner_->blockScan(std::get<std::string_view>(operand));
 
     return is_not_ ^ matched;
   }
 
 private:
-  std::shared_ptr<Common::Hyperscan::HsDataBase> database_;
+  std::unique_ptr<Common::Hyperscan::Scanner> scanner_;
 
   // Cache the hyperscan database
   static std::unordered_map<std::string, std::shared_ptr<Common::Hyperscan::HsDataBase>>
