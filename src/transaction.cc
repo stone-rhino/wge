@@ -63,6 +63,20 @@ void Transaction::processUri(std::string_view uri) {
       uri_info_.path_.remove_suffix(uri_info_.path_.size() - pos_question);
     }
 
+    // parse the relative path
+    uri_info_.relative_path_ = uri_info_.path_;
+    if (uri_info_.relative_path_.starts_with("http://")) {
+      auto pos = uri_info_.relative_path_.find('/', 7);
+      if (pos != std::string_view::npos) {
+        uri_info_.relative_path_.remove_prefix(pos);
+      }
+    } else if (uri_info_.relative_path_.starts_with("https://")) {
+      auto pos = uri_info_.relative_path_.find('/', 8);
+      if (pos != std::string_view::npos) {
+        uri_info_.relative_path_.remove_prefix(pos);
+      }
+    }
+
     // parse the protocol and verison
     uri.remove_prefix(pos + 1);
     pos = uri.find('/');
