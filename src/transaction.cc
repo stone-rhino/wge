@@ -53,6 +53,7 @@ void Transaction::processUri(std::string_view uri) {
     pos = uri.find(' ');
     if (pos != std::string_view::npos) {
       uri_info_.path_ = uri.substr(0, pos);
+      uri_info_.path_and_query_ = uri_info_.path_;
     }
 
     // parse the query

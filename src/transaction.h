@@ -44,6 +44,7 @@ public:
   // and version.
   struct UriInfo {
     std::string method_;
+    std::string_view path_and_query_;
     std::string_view path_;
     std::string_view query_;
     std::string protocol_;
