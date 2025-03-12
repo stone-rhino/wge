@@ -66,7 +66,7 @@ void Transaction::processUri(std::string_view uri) {
     uri.remove_prefix(pos + 1);
     pos = uri.find('/');
     if (pos != std::string_view::npos) {
-      uri_info_.protocol_ = uri.substr(0, pos);
+      uri_info_.protocol_ = uri;
       uri.remove_prefix(pos + 1);
       uri_info_.version_ = uri;
     }
