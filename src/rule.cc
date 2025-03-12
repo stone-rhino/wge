@@ -109,10 +109,15 @@ bool Rule::evaluate(Transaction& t) const {
         SRSECURITY_LOG_TRACE("Rule is matched. id: {}", id_);
 
         // Macro expansion
-        if (msg_macro_) {
+        if (msg_macro_) [[unlikely]] {
           Common::EvaluateResult msg_result;
           msg_macro_->evaluate(t, msg_result);
           t.setMsgMacroExpanded(msg_result.moveString(0));
+        }
+        if (log_data_macro_) [[unlikely]] {
+          Common::EvaluateResult log_data_result;
+          log_data_macro_->evaluate(t, log_data_result);
+          t.setLogDataMacroExpanded(log_data_result.moveString(0));
         }
 
         // Evaluate the default actions
