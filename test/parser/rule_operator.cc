@@ -196,5 +196,36 @@ TEST_F(RuleOperatorTest, pmFromFile) {
   EXPECT_FALSE(t->hasVariable("false"));
 }
 
+TEST_F(RuleOperatorTest, streq) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld"
+  SecRule TX:foo "@streq helloworld" "id:1,phase:1,setvar:'tx.true'"
+  SecRule TX:foo "@streq helloworld1" "id:2,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
+
+TEST_F(RuleOperatorTest, streqWithMacro) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld,setvar:tx.bar=helloword1"
+  SecRule TX:foo "@streq %{tx.foo}" "id:1,phase:1,setvar:'tx.true'"
+  SecRule TX:foo "@streq %{tx.bar}" "id:2,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
 } // namespace Parser
 } // namespace SrSecurity
