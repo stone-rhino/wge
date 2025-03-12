@@ -12,7 +12,18 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override { assert(false); throw "Not implemented!"; };
+  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+    if (!is_counter_) [[likely]] {
+      auto pos = t.getUriInfo().path_.rfind('/');
+      if (pos == std::string_view::npos) {
+        result.set(t.getUriInfo().path_);
+      } else {
+        result.set(t.getUriInfo().path_.substr(pos + 1));
+      }
+    } else {
+      result.set(t.getUriInfo().path_.empty() ? 0 : 1);
+    }
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity
