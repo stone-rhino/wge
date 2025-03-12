@@ -51,6 +51,12 @@ public:
    */
   const std::shared_ptr<Macro::MacroBase> macro() const { return macro_; }
 
+  /**
+   * Check if the operator is a NOT operator.
+   * @return true if the operator is a NOT operator, false otherwise.
+   */
+  bool isNot() const { return is_not_; }
+
 public:
   /**
    * Evaluate the operator.

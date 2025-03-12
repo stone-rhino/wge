@@ -219,7 +219,8 @@ Rule::evaluateActionTransform(Transaction& t, const Common::Variant& var_value,
 inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
   bool matched = operator_->evaluate(t, var_value);
   SRSECURITY_LOG_TRACE(
-      "evaluate operator: {} {} {} = {}", VISTIT_VARIANT_AS_STRING(var_value), operator_->name(),
+      "evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
+      operator_->isNot() ? "!" : "", operator_->name(),
       operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(), matched);
   return matched;
 }
