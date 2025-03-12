@@ -84,7 +84,7 @@ public:
   void logData(std::string&& value) { log_data_ = std::move(value); }
   void logData(std::shared_ptr<Macro::MacroBase> macro) { log_data_macro_ = macro; }
   std::optional<bool> capture() const { return capture_; }
-  void capture(bool value) { capture_ = value; }
+  void capture(bool value);
   std::optional<bool> multiMatch() const { return multi_match_; }
   void multiMatch(bool value) { multi_match_ = value; }
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {

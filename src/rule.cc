@@ -6,6 +6,7 @@
 #include "common/log.h"
 #include "common/try.h"
 #include "engine.h"
+#include "operator/rx.h"
 
 namespace SrSecurity {
 bool Rule::evaluate(Transaction& t) const {
@@ -154,6 +155,14 @@ void Rule::removeVariable(const Variable::VariableBase::FullName& full_name) {
       return false;
     });
   }
+}
+
+void Rule::capture(bool value) {
+  Operator::Rx* rx = dynamic_cast<Operator::Rx*>(operator_.get());
+  if (rx) {
+    rx->capture(value);
+  }
+  capture_ = value;
 }
 
 void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) { operator_ = std::move(op); }

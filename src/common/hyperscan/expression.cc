@@ -89,7 +89,7 @@ void ExpressionList::add(Expression&& exp, bool init_raw_data) {
     real_ids_.emplace_back(exp.id_);
     logic_id_map_.insert({exp.id_, ids_.size()});
     if (is_pre_filter) {
-      pcre_pattern_list_.add(exprs_.back(), (exp.flag_ & HS_FLAG_CASELESS) != 0, exp.id_);
+      pcre_pattern_list_.add(exprs_.back(), (exp.flag_ & HS_FLAG_CASELESS) != 0, false, exp.id_);
     }
 
     if (init_raw_data) {

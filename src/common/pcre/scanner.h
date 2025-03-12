@@ -15,8 +15,8 @@ namespace Common {
 namespace Pcre {
 class Scanner {
 public:
-  Scanner(const std::string& pattern, bool case_less);
-  Scanner(std::string_view pattern, bool case_less);
+  Scanner(const std::string& pattern, bool case_less, bool captrue);
+  Scanner(std::string_view pattern, bool case_less, bool captrue);
   Scanner(const PatternList* pattern_list);
 
 public:

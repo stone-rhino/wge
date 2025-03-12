@@ -23,7 +23,7 @@ class Rx : public OperatorBase {
 public:
   Rx(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not),
-        pcre_(std::make_unique<Common::Pcre::Scanner>(literalValue(), false)) {}
+        pcre_(std::make_unique<Common::Pcre::Scanner>(literalValue(), false, capture_)) {}
 
   Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
      std::string_view curr_rule_file_path)
@@ -53,7 +53,7 @@ public:
         // std::string type key, we use std::string_view type key to find scanner in the
         // macro_pcre_cache_, And store the macro value in the macro_value_cache_.
         macro_value_cache_.emplace_front(macro_value);
-        auto macro_scanner = std::make_unique<Common::Pcre::Scanner>(macro_value, false);
+        auto macro_scanner = std::make_unique<Common::Pcre::Scanner>(macro_value, false, capture_);
         scanner = macro_scanner.get();
         macro_pcre_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner));
       } else {
@@ -68,8 +68,6 @@ public:
       const std::string_view& operand_str = std::get<std::string_view>(operand);
       scanner->match(operand_str, result);
 
-      // Ignore capture_ and set the match result directly, because we need to capture the
-      // matched string for %{MATCHED_VAR} in the rule action.
       size_t index = 0;
       for (const auto& [from, to] : result) {
         t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
@@ -86,13 +84,20 @@ public:
    * Set whether to capture the matched string.
    * @param capture true to capture, false not to capture.
    */
-  void setCapture(bool capture) { capture_ = capture; }
+  void capture(bool capture) {
+    ASSERT_IS_MAIN_THREAD();
+
+    if (capture != capture_) {
+      pcre_ = std::make_unique<Common::Pcre::Scanner>(literalValue(), false, capture);
+      capture_ = capture;
+    }
+  }
 
   /**
    * Get whether to capture the matched string.
    * @return true to capture, false not to capture.
    */
-  bool getCapture() const { return capture_; }
+  bool capture() const { return capture_; }
 
 private:
   std::unique_ptr<Common::Pcre::Scanner> pcre_;

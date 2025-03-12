@@ -20,11 +20,11 @@ namespace Common {
 namespace Pcre {
 thread_local Scratch Scanner::per_thread_scratch_(99);
 
-Scanner::Scanner(const std::string& pattern, bool case_less)
-    : pattern_(std::make_unique<Pattern>(pattern, case_less)) {}
+Scanner::Scanner(const std::string& pattern, bool case_less, bool captrue)
+    : pattern_(std::make_unique<Pattern>(pattern, case_less, captrue)) {}
 
-Scanner::Scanner(const std::string_view pattern, bool case_less)
-    : pattern_(std::make_unique<Pattern>(pattern, case_less)) {}
+Scanner::Scanner(const std::string_view pattern, bool case_less, bool captrue)
+    : pattern_(std::make_unique<Pattern>(pattern, case_less, captrue)) {}
 
 Scanner::Scanner(const PatternList* pattern_list) : pattern_list_(pattern_list) {}
 
