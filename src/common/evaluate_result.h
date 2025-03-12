@@ -12,10 +12,10 @@ namespace Common {
 // Use for the variable and macro to return the result
 class EvaluateResult {
 public:
-  EvaluateResult() {
-    // Although the count of the result is almost 1, we reserve 8 to avoid the reallocation when
-    // some variable return multiple results.
-    results_.reserve(8);
+  EvaluateResult(size_t reserve_size = 1) {
+    // Although the count of the result is almost 1, but we shoud reserve more space for the result
+    // when evaluate the variable that return multiple values to avoid the memory reallocation.
+    results_.reserve(reserve_size);
   }
   EvaluateResult(const EvaluateResult&) = delete;
   void operator=(const EvaluateResult&) = delete;

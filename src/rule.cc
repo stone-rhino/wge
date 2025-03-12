@@ -27,7 +27,7 @@ bool Rule::evaluate(Transaction& t) const {
 
   // Evaluate the variables
   for (auto& var : variables_) {
-    Common::EvaluateResult variable_result;
+    Common::EvaluateResult variable_result(8);
     evaluateVariable(t, var, variable_result);
 
     // Evaluate each variable result
