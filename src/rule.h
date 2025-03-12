@@ -114,6 +114,10 @@ public:
 public:
   std::list<std::unique_ptr<Rule>>::iterator appendChainRule(int line) {
     chain_.emplace_back(std::make_unique<Rule>(file_path_, line));
+
+    // The chained rule inherits the phase of the parent rule.
+    chain_.back()->phase(phase_);
+
     return std::prev(chain_.end());
   }
   void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
