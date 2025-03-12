@@ -14,9 +14,9 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
     if (!is_counter_) [[likely]] {
-      result.set(t.getUri());
+      result.append(t.getUri());
     } else {
-      result.set(t.getUri().empty() ? 0 : 1);
+      result.append(t.getUri().empty() ? 0 : 1);
     }
   };
 };

@@ -22,19 +22,19 @@ public:
     if (matched_index_ == 0xffffffff) [[likely]] {
       if (is_counter_) {
         if (index_.has_value()) [[likely]] {
-          t.hasVariable(index_.value()) ? result.set(1) : result.set(0);
+          t.hasVariable(index_.value()) ? result.append(1) : result.append(0);
         } else {
-          t.hasVariable(sub_name_) ? result.set(1) : result.set(0);
+          t.hasVariable(sub_name_) ? result.append(1) : result.append(0);
         }
       } else {
         if (index_.has_value()) [[likely]] {
-          result.set(t.getVariable(index_.value()));
+          result.append(t.getVariable(index_.value()));
         } else {
-          result.set(t.getVariable(sub_name_));
+          result.append(t.getVariable(sub_name_));
         }
       }
     } else {
-      result.set(t.getMatched(matched_index_));
+      result.append(t.getMatched(matched_index_));
     }
   }
 

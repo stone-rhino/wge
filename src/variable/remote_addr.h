@@ -14,9 +14,9 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
     if (!is_counter_) [[likely]] {
-      result.set(t.getConnectionInfo().downstream_ip_);
+      result.append(t.getConnectionInfo().downstream_ip_);
     } else {
-      result.set(t.getConnectionInfo().downstream_ip_.empty() ? 0 : 1);
+      result.append(t.getConnectionInfo().downstream_ip_.empty() ? 0 : 1);
     }
   };
 };

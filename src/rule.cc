@@ -33,7 +33,7 @@ bool Rule::evaluate(Transaction& t) const {
     for (auto& var : variables_) {
       Common::EvaluateResult result;
       var->evaluate(t, result);
-      const Common::Variant* var_value = &result.get();
+      const Common::Variant* var_value = &result.front();
       SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
                            var->isCounter() ? "&" : "", var->mainName(),
                            var->subName().empty() ? "" : "." + var->subName(),
@@ -112,7 +112,7 @@ bool Rule::evaluate(Transaction& t) const {
         if (msg_macro_) {
           Common::EvaluateResult msg_result;
           msg_macro_->evaluate(t, msg_result);
-          t.setMsgMacroExpanded(msg_result.move());
+          t.setMsgMacroExpanded(msg_result.moveString(0));
         }
 
         // Evaluate the default actions

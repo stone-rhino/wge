@@ -16,12 +16,12 @@ private:                                                                        
 #define MACRO_EXPAND_STRING_VIEW(var)                                                              \
   Common::EvaluateResult result;                                                                   \
   macro_->evaluate(t, result);                                                                     \
-  std::string_view var = std::get<std::string_view>(result.get());
+  std::string_view var = std::get<std::string_view>(result.front());
 
 #define MACRO_EXPAND_INT(var)                                                                      \
   Common::EvaluateResult result;                                                                   \
   macro_->evaluate(t, result);                                                                     \
-  int var = std::get<int>(result.get());
+  int var = std::get<int>(result.front());
 
 namespace SrSecurity {
 namespace Operator {

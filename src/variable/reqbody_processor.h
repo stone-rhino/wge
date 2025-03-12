@@ -21,15 +21,15 @@ public:
     auto iter = body_processor_type_map_.find(body_processor_type);
     if (iter != body_processor_type_map_.end()) {
       if (!is_counter_) [[likely]] {
-        result.set(iter->second);
+        result.append(iter->second);
       } else {
-        result.set(1);
+        result.append(1);
       }
     } else {
       if (!is_counter_) [[likely]] {
         result.clear();
       } else {
-        result.set(0);
+        result.append(0);
       }
     }
   };

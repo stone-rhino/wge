@@ -16,12 +16,12 @@ public:
     if (!is_counter_) [[likely]] {
       auto pos = t.getUriInfo().path_.rfind('/');
       if (pos == std::string_view::npos) {
-        result.set(t.getUriInfo().path_);
+        result.append(t.getUriInfo().path_);
       } else {
-        result.set(t.getUriInfo().path_.substr(pos + 1));
+        result.append(t.getUriInfo().path_.substr(pos + 1));
       }
     } else {
-      result.set(t.getUriInfo().path_.empty() ? 0 : 1);
+      result.append(t.getUriInfo().path_.empty() ? 0 : 1);
     }
   };
 };
