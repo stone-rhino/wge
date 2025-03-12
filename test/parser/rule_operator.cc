@@ -88,6 +88,28 @@ TEST_F(RuleOperatorTest, ipMatch) {
   EXPECT_FALSE(t->hasVariable("ipv6_mask_false"));
 }
 
+TEST_F(RuleOperatorTest, pm) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld"
+      SecRule TX:foo "@pm hello" "id:1,phase:1,setvar:'tx.true1'"
+      SecRule TX:foo "@pm hello " "id:2,phase:1,setvar:'tx.true2'"
+      SecRule TX:foo "@pm hello1 world" "id:3,phase:1,setvar:'tx.true3'"
+      SecRule TX:foo "@pm hello1" "id:4,phase:1,setvar:'tx.false1'"
+      SecRule TX:foo "@pm hello1 world1" "id:5,phase:1,setvar:'tx.false2'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("true1"));
+  EXPECT_TRUE(t->hasVariable("true2"));
+  EXPECT_TRUE(t->hasVariable("true3"));
+  EXPECT_FALSE(t->hasVariable("false1"));
+  EXPECT_FALSE(t->hasVariable("false2"));
+}
+
 TEST_F(RuleOperatorTest, within) {
   const std::string directive =
       R"(SecAction "phase:1,setvar:tx.foo=helloworld"
