@@ -547,7 +547,7 @@ ModeSecRuleActionSetVarValue_QUOTE:
 	QUOTE -> type(QUOTE), popMode, popMode;
 ModeSecRuleActionSetVarValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
-VAR_VALUE: ~[+\-%'",]~[{}%'",]*;
+VAR_VALUE: ~[+\-'",](~[{}%'",] | ('%' ~[{]))*;
 
 mode ModeSecRuleActionString;
 ModeSecRuleActionSetVarString_SINGLE_QUOTE:
