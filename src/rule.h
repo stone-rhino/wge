@@ -144,6 +144,25 @@ public:
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
   const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
 
+  // Evaluate the rule
+private:
+  inline void evaluateVariable(Transaction& t,
+                               const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                               Common::EvaluateResult& result) const;
+  inline bool
+  evaluateDefalutTransform(Transaction& t, const Common::Variant& var_value,
+                           const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                           Common::EvaluateResult& result) const;
+  inline bool
+  evaluateActionTransform(Transaction& t, const Common::Variant& var_value,
+                          const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                          Common::EvaluateResult& result) const;
+  inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
+  inline bool evaluateChain(Transaction& t) const;
+  inline void evaluateMsgMacro(Transaction& t) const;
+  inline void evaluateLogDataMacro(Transaction& t) const;
+  inline void evaluateActions(Transaction& t) const;
+
 private:
   std::string_view file_path_;
   int line_;
