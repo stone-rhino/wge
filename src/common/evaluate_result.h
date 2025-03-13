@@ -1,26 +1,29 @@
 #pragma once
 
+#include <array>
 #include <vector>
 
+#include "assert.h"
 #include "empty_string.h"
 #include "variant.h"
 
 namespace SrSecurity {
 namespace Common {
-
-// The evaluate result
-// Use for the variable and macro to return the result
+// The evaluate result.Use for the variable and macro to return the result.
+// It is used similar to the SBO(Short Buffer Optimization) to store the result. But it is a little
+// different from the traditional SBO. It will try to store the result in the stack first. If the
+// result is too big, it will store the result in the heap, but will not move the result from the
+// stack to the heap. It use the stack and heap at the same time.
 class EvaluateResult {
+private:
+  // The size of the stack result. About how to set the size of the stack result, we can run the
+  // benchmark to get the best size of the stack result. Currnetly, we set the size of the stack
+  // result to 1, may be it is not the best size.
+  static constexpr size_t stack_result_size = 1;
+
 public:
-  EvaluateResult(size_t reserve_size = 1) {
-    // Although the count of the result is almost 1, but we shoud reserve more space for the result
-    // when evaluate the variable that return multiple values to avoid the memory reallocation.
-    results_.reserve(reserve_size);
-  }
+  EvaluateResult() = default;
   EvaluateResult(const EvaluateResult&) = delete;
-  void operator=(const EvaluateResult&) = delete;
-  void operator=(EvaluateResult&& buffer) { results_ = std::move(buffer.results_); }
-  EvaluateResult(EvaluateResult&& buffer) { results_ = std::move(buffer.results_); }
 
 public:
   /**
@@ -28,8 +31,8 @@ public:
    * @return the front value of the result.
    */
   const Common::Variant& front() const {
-    if (!results_.empty()) [[likely]] {
-      return results_.front().variant_;
+    if (size_ != 0) [[likely]] {
+      return stack_results_.front().variant_;
     }
     return EMPTY_VARIANT;
   }
@@ -40,9 +43,12 @@ public:
    * @return the value of the result.
    */
   const Common::Variant& get(size_t index) const {
-    assert(index < results_.size());
-    if (index < results_.size()) [[likely]] {
-      return results_[index].variant_;
+    assert(index < size_);
+    if (index < size_) [[likely]] {
+      if (index < stack_result_size) [[likely]] {
+        return stack_results_[index].variant_;
+      }
+      return heap_results_[index - stack_result_size].variant_;
     }
     return EMPTY_VARIANT;
   }
@@ -51,22 +57,28 @@ public:
    * Append the value to the result.
    * @param value the value to append.
    */
-  void append(int value) { results_.emplace_back(value); }
-  void append(std::string_view value) { results_.emplace_back(value); }
-  void append(const std::string& value) { results_.emplace_back(value); }
-  void append(const Common::Variant& value) { results_.emplace_back(value); }
-  void append(std::string&& value) { results_.emplace_back(std::move(value)); }
+  template <class T> void append(T&& value) {
+    if (size_ < stack_result_size) [[likely]] {
+      stack_results_[size_].variant_ = std::forward<T>(value);
+    } else {
+      heap_results_.emplace_back(std::forward<T>(value));
+    }
+    ++size_;
+  }
 
   /**
    * Clear the result.
    */
-  const void clear() { results_.clear(); }
+  const void clear() {
+    heap_results_.clear();
+    size_ = 0;
+  }
 
   /**
    * Get the size of the result.
    * @return the size of the result.
    */
-  size_t size() const { return results_.size(); }
+  size_t size() const { return size_; }
 
   /**
    * Move the string buffer of the result by index.
@@ -74,14 +86,16 @@ public:
    * @return the string buffer of the result.
    */
   std::string moveString(size_t index) {
-    assert(index < results_.size());
-    if (index < results_.size()) {
-      auto& result = results_[index];
-      std::string buffer = std::move(result.string_buffer_);
-      if (buffer.empty() && IS_STRING_VIEW_VARIANT(result.variant_)) {
-        buffer = std::get<std::string_view>(result.variant_);
+    assert(index < size_);
+    if (index < size_) [[likely]] {
+      EvaluateResult::Result* result = index < stack_result_size
+                                           ? &stack_results_[index]
+                                           : &heap_results_[index - stack_result_size];
+      std::string buffer = std::move(result->string_buffer_);
+      if (buffer.empty() && IS_STRING_VIEW_VARIANT(result->variant_)) {
+        buffer = std::get<std::string_view>(result->variant_);
       }
-      result.variant_ = EMPTY_VARIANT;
+      result->variant_ = EMPTY_VARIANT;
       return buffer;
     }
     return EMPTY_STRING;
@@ -91,9 +105,7 @@ private:
   struct Result {
     std::string string_buffer_;
     Common::Variant variant_;
-    Result(int value) : variant_(value) {}
-    Result(std::string_view value) : variant_(value) {}
-    Result(const std::string& value) : variant_(value) {}
+    Result() = default;
     Result(const Common::Variant& value) : variant_(value) {}
     Result(std::string&& value) : string_buffer_(std::move(value)), variant_(string_buffer_) {}
     Result(Result&& result) {
@@ -103,17 +115,22 @@ private:
         variant_ = string_buffer_;
       }
     }
-    void operator=(Result&& result) {
-      variant_ = std::move(result.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_)) {
-        string_buffer_ = std::move(result.string_buffer_);
-        variant_ = string_buffer_;
-      }
-    }
   };
 
-  // Some variable may return multiple strings, so we use a vector to store the result.
-  std::vector<Result> results_;
+  std::array<Result, stack_result_size> stack_results_;
+  std::vector<Result> heap_results_;
+  size_t size_{0};
 };
+
+template <> inline void EvaluateResult::append(std::string&& value) {
+  if (size_ < stack_result_size) [[likely]] {
+    auto& result = stack_results_[size_];
+    result.string_buffer_ = std::move(value);
+    result.variant_ = result.string_buffer_;
+  } else {
+    heap_results_.emplace_back(std::move(value));
+  }
+  ++size_;
+}
 } // namespace Common
 } // namespace SrSecurity
