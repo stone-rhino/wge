@@ -265,5 +265,37 @@ TEST_F(RuleOperatorTest, validateUrlEncoding) {
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
+
+TEST_F(RuleOperatorTest, contains) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld,setvar:tx.bar=hello"
+  SecRule TX:foo "@contains hello" "id:1,phase:1,setvar:'tx.true'"
+  SecRule TX:foo "@contains hello1" "id:2,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
+
+TEST_F(RuleOperatorTest, containsWithMacro) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=helloworld,setvar:tx.bar=hello"
+  SecRule TX:foo "@contains %{tx.bar}" "id:1,phase:1,setvar:'tx.true'"
+  SecRule TX:foo "@contains %{tx.bar}1" "id:2,phase:1,setvar:'tx.false'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("false"));
+}
 } // namespace Parser
 } // namespace SrSecurity
