@@ -17,8 +17,18 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    assert(false);
-    throw "Not implemented!";
+    if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
+      if (!macro_) [[likely]] {
+        return is_not_ ^
+               (std::get<std::string_view>(operand).find(literal_value_) != std::string_view::npos);
+      } else {
+        MACRO_EXPAND_STRING_VIEW(macro_value);
+        return is_not_ ^
+               (std::get<std::string_view>(operand).find(macro_value) != std::string_view::npos);
+      }
+    } else {
+      return false;
+    }
   }
 };
 } // namespace Operator
