@@ -12,7 +12,24 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override { assert(false); throw "Not implemented!"; };
+  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+    if (!is_counter_) [[likely]] {
+      if (sub_name_.empty()) {
+        t.httpExtractor().request_header_traversal_(
+            [&](std::string_view key, std::string_view value) {
+              result.append(key);
+              return true;
+            });
+      } else {
+        std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
+        if (!value.empty()) {
+          result.append(sub_name_);
+        }
+      }
+    } else {
+      result.append(t.httpExtractor().request_header_count_ ? 1 : 0);
+    }
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity

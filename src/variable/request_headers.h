@@ -14,9 +14,20 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
     if (!is_counter_) [[likely]] {
-      result.append(t.httpExtractor().request_header_extractor_(sub_name_));
+      if (sub_name_.empty()) {
+        t.httpExtractor().request_header_traversal_(
+            [&](std::string_view key, std::string_view value) {
+              result.append(value);
+              return true;
+            });
+      } else {
+        std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
+        if (!value.empty()) {
+          result.append(value);
+        }
+      }
     } else {
-      result.append(t.httpExtractor().request_header_extractor_(sub_name_).empty() ? 0 : 1);
+      result.append(t.httpExtractor().request_header_count_ ? 1 : 0);
     }
   };
 };
