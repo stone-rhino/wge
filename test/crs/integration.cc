@@ -84,7 +84,9 @@ protected:
   std::string upstream_ip_{"192.168.1.200"};
   short upstream_port_{80};
 
-  std::string uri_{"GET / HTTP/1.1"};
+  std::string uri_{"/"};
+  std::string method_{"GET"};
+  std::string version_{"1.1"};
 
   std::unordered_multimap<std::string, std::string> request_headers_{
       {"host", "localhost:80"},
@@ -102,7 +104,7 @@ protected:
 TEST_F(IntegrationTest, crs) {
   auto t = engine_.makeTransaction();
   t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
-  t->processUri(uri_);
+  t->processUri(uri_, method_, version_);
   t->processRequestHeaders(request_header_extractor_, nullptr);
 }
 } // namespace SrSecurity

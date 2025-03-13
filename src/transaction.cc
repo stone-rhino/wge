@@ -38,58 +38,114 @@ void Transaction::processConnection(std::string_view downstream_ip, short downst
   connection_info_.upstream_port_ = upstream_port;
 }
 
-void Transaction::processUri(std::string_view uri) {
+void Transaction::processUri(std::string_view request_line) {
   SRSECURITY_LOG_TRACE("====process uri====");
 
-  // parse the uri
-  uri_ = uri;
-  auto pos = uri.find(' ');
+  // Parse the request line
+  request_line_ = request_line;
+  auto pos = request_line.find(' ');
   if (pos != std::string_view::npos) {
-    // parse the method
-    uri_info_.method_ = uri.substr(0, pos);
+    // Parse the method
+    requset_line_info_.method_ = request_line.substr(0, pos);
 
-    // parse the path
-    uri.remove_prefix(pos + 1);
-    pos = uri.find(' ');
+    // Parse the uri
+    request_line.remove_prefix(pos + 1);
+    pos = request_line.find(' ');
     if (pos != std::string_view::npos) {
-      uri_info_.path_ = uri.substr(0, pos);
-      uri_info_.path_and_query_ = uri_info_.path_;
+      requset_line_info_.uri_ = request_line.substr(0, pos);
+      requset_line_info_.uri_raw_ = requset_line_info_.uri_;
     }
 
-    // parse the query
-    auto pos_question = uri_info_.path_.find('?');
+    // Parse the query
+    auto pos_question = requset_line_info_.uri_.find('?');
     if (pos_question != std::string_view::npos) {
-      uri_info_.query_ = uri_info_.path_.substr(pos_question + 1);
-      uri_info_.path_.remove_suffix(uri_info_.path_.size() - pos_question);
+      requset_line_info_.query_ = requset_line_info_.uri_.substr(pos_question + 1);
+      requset_line_info_.uri_.remove_suffix(requset_line_info_.uri_.size() - pos_question);
     }
 
-    // parse the relative path
-    uri_info_.relative_path_ = uri_info_.path_;
-    if (uri_info_.relative_path_.starts_with("http://")) {
-      auto pos = uri_info_.relative_path_.find('/', 7);
+    // Parse the relative uri
+    requset_line_info_.relative_uri_ = requset_line_info_.uri_;
+    if (requset_line_info_.relative_uri_.starts_with("http://")) {
+      auto pos = requset_line_info_.relative_uri_.find('/', 7);
       if (pos != std::string_view::npos) {
-        uri_info_.relative_path_.remove_prefix(pos);
+        requset_line_info_.relative_uri_.remove_prefix(pos);
       }
-    } else if (uri_info_.relative_path_.starts_with("https://")) {
-      auto pos = uri_info_.relative_path_.find('/', 8);
+    } else if (requset_line_info_.relative_uri_.starts_with("https://")) {
+      auto pos = requset_line_info_.relative_uri_.find('/', 8);
       if (pos != std::string_view::npos) {
-        uri_info_.relative_path_.remove_prefix(pos);
+        requset_line_info_.relative_uri_.remove_prefix(pos);
       }
     }
 
-    // parse the protocol and verison
-    uri.remove_prefix(pos + 1);
-    pos = uri.find('/');
+    // Parse the protocol and verison
+    request_line.remove_prefix(pos + 1);
+    pos = request_line.find('/');
     if (pos != std::string_view::npos) {
-      uri_info_.protocol_ = uri;
-      uri.remove_prefix(pos + 1);
-      uri_info_.version_ = uri;
+      requset_line_info_.protocol_ = request_line;
+      request_line.remove_prefix(pos + 1);
+      requset_line_info_.version_ = request_line;
     }
 
-    SRSECURITY_LOG_TRACE("method: {}, path: {}, query: {}, protocol: {}, version: {}",
-                         uri_info_.method_, uri_info_.path_, uri_info_.query_, uri_info_.protocol_,
-                         uri_info_.version_);
+    SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
+                         requset_line_info_.method_, requset_line_info_.uri_,
+                         requset_line_info_.query_, requset_line_info_.protocol_,
+                         requset_line_info_.version_);
   }
+}
+
+void Transaction::processUri(std::string_view uri, std::string_view method,
+                             std::string_view version) {
+  SRSECURITY_LOG_TRACE("====process uri====");
+
+  // method
+  requset_line_info_.method_ = method;
+
+  // uri
+  requset_line_info_.uri_raw_ = uri;
+  requset_line_info_.uri_ = uri;
+
+  // Parse the query
+  auto pos_question = requset_line_info_.uri_.find('?');
+  if (pos_question != std::string_view::npos) {
+    requset_line_info_.query_ = requset_line_info_.uri_.substr(pos_question + 1);
+    requset_line_info_.uri_.remove_suffix(requset_line_info_.uri_.size() - pos_question);
+  }
+
+  // Parse the relative uri
+  requset_line_info_.relative_uri_ = requset_line_info_.uri_;
+  if (requset_line_info_.relative_uri_.starts_with("http://")) {
+    auto pos = requset_line_info_.relative_uri_.find('/', 7);
+    if (pos != std::string_view::npos) {
+      requset_line_info_.relative_uri_.remove_prefix(pos);
+    }
+  } else if (requset_line_info_.relative_uri_.starts_with("https://")) {
+    auto pos = requset_line_info_.relative_uri_.find('/', 8);
+    if (pos != std::string_view::npos) {
+      requset_line_info_.relative_uri_.remove_prefix(pos);
+    }
+  }
+
+  // protocol and verison
+  requset_line_info_.protocol_ = "HTTP";
+  requset_line_info_.version_ = version;
+
+  // combine the request line
+  request_line_buffer_.reserve(
+      requset_line_info_.method_.size() + requset_line_info_.uri_raw_.size() +
+      requset_line_info_.protocol_.size() + requset_line_info_.version_.size() + 3);
+  request_line_buffer_ += requset_line_info_.method_;
+  request_line_buffer_ += ' ';
+  request_line_buffer_ += requset_line_info_.uri_raw_;
+  request_line_buffer_ += ' ';
+  request_line_buffer_ += requset_line_info_.protocol_;
+  request_line_buffer_ += '/';
+  request_line_buffer_ += requset_line_info_.version_;
+  request_line_ = request_line_buffer_;
+
+  SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
+                       requset_line_info_.method_, requset_line_info_.uri_,
+                       requset_line_info_.query_, requset_line_info_.protocol_,
+                       requset_line_info_.version_);
 }
 
 void Transaction::processRequestHeaders(HeaderExtractor header_extractor,

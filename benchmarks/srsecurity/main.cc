@@ -44,7 +44,7 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     auto t = engine.makeTransaction();
     t->processConnection(request.downstream_ip_, request.downstream_port_, request.upstream_ip_,
                          request.upstream_port_);
-    t->processUri(request.uri_);
+    t->processUri(request.uri_, request.method_, request.version_);
     t->processRequestHeaders(request_header_extractor, nullptr);
   }
 }

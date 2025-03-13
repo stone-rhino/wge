@@ -39,14 +39,14 @@ public:
     short upstream_port_;
   };
 
-  // The URI info
-  // At the ProcessUri method, we will parse the uri and store the method, path, query, protocol,
-  // and version.
-  struct UriInfo {
+  // The request line info
+  // At the ProcessUri method, we will parse the request line and store the method, path, query,
+  // protocol, and version.
+  struct RequestLineInfo {
     std::string method_;
-    std::string_view path_and_query_;
-    std::string_view path_;
-    std::string_view relative_path_;
+    std::string_view uri_raw_;
+    std::string_view uri_;
+    std::string_view relative_uri_;
     std::string_view query_;
     std::string protocol_;
     std::string version_;
@@ -65,9 +65,18 @@ public:
 
   /**
    * Process the uri info.
-   * @param uri the uri info. include method, path, query, protocol, version. E.g. GET / HTTP/1.1
+   * @param request_line the request line. include method, path, query, protocol, version.
+   * E.g. GET / HTTP/1.1
    */
-  void processUri(std::string_view uri);
+  void processUri(std::string_view request_line);
+
+  /**
+   * Process the uri info.
+   * @param uri the uri. E.g. /hello/world
+   * @param method the method. E.g. GET
+   * @param version the version. E.g. 1.1
+   */
+  void processUri(std::string_view uri, std::string_view method, std::string_view version);
 
   /**
    * Process the request headers.
@@ -284,9 +293,8 @@ public:
 
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
 
-  std::string_view getUri() const { return uri_; }
-
-  const UriInfo& getUriInfo() const { return uri_info_; }
+  std::string_view getRequestLine() const { return request_line_; }
+  const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
 private:
   class RandomInitHelper {
@@ -336,11 +344,12 @@ private:
   std::optional<BodyProcessorType> request_body_processor_;
   std::optional<EngineConfig::Option> rule_engine_;
 
-  // The http info
+  // The r info
 private:
   ConnectionInfo connection_info_;
-  std::string_view uri_;
-  UriInfo uri_info_;
+  std::string_view request_line_;
+  std::string request_line_buffer_;
+  RequestLineInfo requset_line_info_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

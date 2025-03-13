@@ -9,7 +9,9 @@ struct RequestBase {
   std::string upstream_ip_{"192.168.1.200"};
   short upstream_port_{80};
 
-  std::string uri_{"GET / HTTP/1.1"};
+  std::string uri_{"/"};
+  std::string method_{"GET"};
+  std::string version_{"1.1"};
 
   std::unordered_multimap<std::string, std::string> request_headers_{
       {"host", "localhost:80"},
