@@ -52,17 +52,6 @@ bool Rule::evaluate(Transaction& t) const {
         matched = evaluateOperator(t, var_variant);
       }
 
-      // Evaluate the chained rules
-      if (matched && !chain_.empty()) [[unlikely]] {
-        // If the chained rules are not matched means the rule is not matched
-        if (!evaluateChain(t)) {
-          return false;
-        }
-      }
-
-      // FIXME(zhouyu 2025-03-13): Ensure that the chained rule can't be evaluated the actions.
-      // May be we can add a flag to implement this feature.
-
       // If the rule is matched, do some things such as macro expansion and evaluate the actions
       if (matched) {
         SRSECURITY_LOG_TRACE("Rule is matched. id: {}", id_);
@@ -74,8 +63,17 @@ bool Rule::evaluate(Transaction& t) const {
         // Evaluate the default actions and the action defined actions
         evaluateActions(t);
 
-        // Any variable is matched means the rule is matched
-        return true;
+        // Evaluate the chained rules
+        if (!chain_.empty()) [[unlikely]] {
+          // If the chained rules are matched means the rule is matched, the remaining value of
+          // variables or remaining variables are ignored.
+          if (evaluateChain(t)) {
+            return true;
+          }
+        } else {
+          // Any variable is matched means the rule is matched
+          return true;
+        }
       }
     }
   }
