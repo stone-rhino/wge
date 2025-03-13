@@ -80,10 +80,13 @@ public:
 
   /**
    * Process the request headers.
-   * @param header_extractor the request headers extractor.
+   * @param request_header_find the header find function.
+   * @param request_header_traversal the header traversal function.
+   * @param request_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processRequestHeaders(HeaderExtractor header_extractor,
+  void processRequestHeaders(HeaderFind request_header_find,
+                             HeaderTraversal request_header_traversal, size_t request_header_count,
                              std::function<void(const Rule&)> log_callback);
 
   /**
@@ -96,10 +99,14 @@ public:
 
   /**
    * Process the response headers.
-   * @param header_extractor the response headers extractor.
+   * @param response_header_find the header find function.
+   * @param response_header_traversal the header traversal function.
+   * @param response_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    */
-  void processResponseHeaders(HeaderExtractor header_extractor,
+  void processResponseHeaders(HeaderFind response_header_find,
+                              HeaderTraversal response_header_traversal,
+                              size_t response_header_count,
                               std::function<void(const Rule&)> log_callback);
 
   /**

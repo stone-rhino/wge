@@ -147,10 +147,14 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
                        requset_line_info_.version_);
 }
 
-void Transaction::processRequestHeaders(HeaderExtractor header_extractor,
+void Transaction::processRequestHeaders(HeaderFind request_header_find,
+                                        HeaderTraversal request_header_traversal,
+                                        size_t header_count,
                                         std::function<void(const Rule&)> log_callback) {
   SRSECURITY_LOG_TRACE("====process request headers====");
-  extractor_.request_header_extractor_ = std::move(header_extractor);
+  extractor_.request_header_find_ = std::move(request_header_find);
+  extractor_.request_header_traversal_ = std::move(request_header_traversal);
+  extractor_.request_header_count_ = header_count;
   log_callback_ = std::move(log_callback);
   process(1);
 }
@@ -163,10 +167,14 @@ void Transaction::processRequestBody(BodyExtractor body_extractor,
   process(2);
 }
 
-void Transaction::processResponseHeaders(HeaderExtractor header_extractor,
+void Transaction::processResponseHeaders(HeaderFind response_header_find,
+                                         HeaderTraversal response_header_traversal,
+                                         size_t response_header_count,
                                          std::function<void(const Rule&)> log_callback) {
   SRSECURITY_LOG_TRACE("====process response headers====");
-  extractor_.response_header_extractor_ = std::move(header_extractor);
+  extractor_.response_header_find_ = std::move(response_header_find);
+  extractor_.response_header_traversal_ = std::move(response_header_traversal);
+  extractor_.response_header_count_ = response_header_count;
   log_callback_ = std::move(log_callback);
   process(3);
 }
