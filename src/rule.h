@@ -149,14 +149,10 @@ private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                Common::EvaluateResult& result) const;
-  inline bool
-  evaluateDefalutTransform(Transaction& t, const Common::Variant& var_value,
+  inline void
+  evaluateTransform(Transaction& t, std::string_view var_value,
                            const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                           Common::EvaluateResult& result) const;
-  inline bool
-  evaluateActionTransform(Transaction& t, const Common::Variant& var_value,
-                          const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                          Common::EvaluateResult& result) const;
+                           std::string& result) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateMsgMacro(Transaction& t) const;

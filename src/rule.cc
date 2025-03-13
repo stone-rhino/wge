@@ -27,29 +27,30 @@ bool Rule::evaluate(Transaction& t) const {
 
   // Evaluate the variables
   for (auto& var : variables_) {
-    Common::EvaluateResult variable_result;
-    evaluateVariable(t, var, variable_result);
+    Common::EvaluateResult result;
+    evaluateVariable(t, var, result);
 
     // Evaluate each variable result
-    for (size_t i = 0; i < variable_result.size(); i++) {
-      const Common::Variant* flow_variant = &variable_result.get(i);
+    for (size_t i = 0; i < result.size(); i++) {
+      const Common::Variant& var_variant = result.get(i);
+      std::string_view var_str;
+      bool matched = false;
+      if (IS_STRING_VIEW_VARIANT(var_variant)) [[likely]] {
+        var_str = std::get<std::string_view>(var_variant);
 
-      // Evaluate the default transformations
-      Common::EvaluateResult default_transform_result;
-      bool ret = evaluateDefalutTransform(t, *flow_variant, var, default_transform_result);
-      if (ret) [[unlikely]] {
-        flow_variant = &default_transform_result.front();
+        // Evaluate the transformations
+        std::string transforms_result;
+        evaluateTransform(t, var_str, var, transforms_result);
+        if (!transforms_result.empty()) {
+          var_str = transforms_result;
+        }
+
+        // Evaluate the operator
+        matched = evaluateOperator(t, var_str);
+      } else {
+        // Evaluate the operator
+        matched = evaluateOperator(t, var_variant);
       }
-
-      // Evaluate the action defined transformations
-      Common::EvaluateResult action_transform_result;
-      ret = evaluateActionTransform(t, *flow_variant, var, action_transform_result);
-      if (ret) [[unlikely]] {
-        flow_variant = &action_transform_result.front();
-      }
-
-      // Evaluate the operator
-      bool matched = evaluateOperator(t, *flow_variant);
 
       // Evaluate the chained rules
       if (matched && !chain_.empty()) [[unlikely]] {
@@ -125,95 +126,39 @@ inline void Rule::evaluateVariable(Transaction& t,
                        VISTIT_VARIANT_AS_STRING(*var_value));
 }
 
-inline bool
-Rule::evaluateDefalutTransform(Transaction& t, const Common::Variant& var_value,
-                               const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                               Common::EvaluateResult& result) const {
+inline void Rule::evaluateTransform(Transaction& t, std::string_view var_value,
+                                    const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                                    std::string& result) const {
   // Check if the default transformation should be ignored
   if (is_ingnore_default_transform_) [[likely]] {
-    return false;
+    return;
   }
 
   // Check that the default action is defined
   const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
   if (!default_action) [[likely]] {
-    return false;
+    return;
   }
 
   // Get the default transformation
   auto& transforms = default_action->transforms();
   if (transforms.empty()) [[likely]] {
-    return false;
+    return;
   }
 
-  // Only string type can be transformed
-  if (!IS_STRING_VIEW_VARIANT(var_value)) [[unlikely]] {
-    UNREACHABLE();
-    if (!var->subName().empty()) [[likely]] {
-      SRSECURITY_LOG_WARN("Rule try to transform a variant type that is not string. file: {}[{}] "
-                          "variable: {}.{} variant type: {}",
-                          file_path_, line_, var->mainName(), var->subName(), var_value.index());
-    } else [[unlikely]] {
-      SRSECURITY_LOG_WARN("Rule try to transform a variant type that is not string. file: {}[{}] "
-                          "variable: {} variant type: {}",
-                          file_path_, line_, var->mainName(), var_value.index());
-    }
-    return false;
-  }
-
-  std::string buffer;
-  std::string_view data = std::get<std::string_view>(var_value);
+  // Evaluate the default transformations
   for (auto& t : transforms) {
     SRSECURITY_LOG_TRACE("evaluate default transformation: {}", t->name());
-    buffer = t->evaluate(data.data(), data.size());
-    data = buffer;
+    result = t->evaluate(var_value.data(), var_value.size());
+    var_value = result;
   }
 
-  if (!buffer.empty()) [[likely]] {
-    result.append(std::move(buffer));
-    return true;
-  }
-
-  return false;
-}
-
-inline bool
-Rule::evaluateActionTransform(Transaction& t, const Common::Variant& var_value,
-                              const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                              Common::EvaluateResult& result) const {
-  if (transforms_.empty()) [[likely]] {
-    return false;
-  }
-
-  // Only string type can be transformed
-  if (!IS_STRING_VIEW_VARIANT(var_value)) [[unlikely]] {
-    // UNREACHABLE();
-    if (!var->subName().empty()) [[likely]] {
-      SRSECURITY_LOG_WARN("Rule try to transform a variant type that is not string. file: {}[{}] "
-                          "variable: {}.{} variant type: {}",
-                          file_path_, line_, var->mainName(), var->subName(), var_value.index());
-    } else [[unlikely]] {
-      SRSECURITY_LOG_WARN("Rule try to transform a variant type that is not string. file: {}[{}] "
-                          "variable: {} variant type: {}",
-                          file_path_, line_, var->mainName(), var_value.index());
-    }
-    return false;
-  }
-
-  std::string buffer;
-  std::string_view data = std::get<std::string_view>(var_value);
+  // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
     SRSECURITY_LOG_TRACE("evaluate action defined transformation: {}", transform->name());
-    buffer = transform->evaluate(data.data(), data.size());
-    data = buffer;
+    result = transform->evaluate(var_value.data(), var_value.size());
+    var_value = result;
   }
-
-  if (!buffer.empty()) [[likely]] {
-    result.append(std::move(buffer));
-    return true;
-  }
-
-  return false;
 }
 
 inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
