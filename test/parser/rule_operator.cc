@@ -38,7 +38,7 @@ TEST_F(RuleOperatorTest, beginsWith) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("v1"));
   EXPECT_FALSE(t->hasVariable("v2"));
 }
@@ -54,7 +54,7 @@ TEST_F(RuleOperatorTest, beginsWithMacro) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("v1"));
   EXPECT_FALSE(t->hasVariable("v2"));
 }
@@ -77,7 +77,7 @@ TEST_F(RuleOperatorTest, ipMatch) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("ipv4_true"));
   EXPECT_FALSE(t->hasVariable("ipv4_false"));
   EXPECT_TRUE(t->hasVariable("ipv4_mark_true"));
@@ -102,7 +102,7 @@ TEST_F(RuleOperatorTest, pm) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true1"));
   EXPECT_TRUE(t->hasVariable("true2"));
   EXPECT_TRUE(t->hasVariable("true3"));
@@ -124,7 +124,7 @@ TEST_F(RuleOperatorTest, within) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true1"));
   EXPECT_TRUE(t->hasVariable("true2"));
   EXPECT_TRUE(t->hasVariable("true3"));
@@ -152,7 +152,7 @@ TEST_F(RuleOperatorTest, withinWithMacro) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true1"));
   EXPECT_TRUE(t->hasVariable("true2"));
   EXPECT_TRUE(t->hasVariable("true3"));
@@ -173,7 +173,7 @@ TEST_F(RuleOperatorTest, rx) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true1"));
   EXPECT_TRUE(t->hasVariable("true2"));
   EXPECT_FALSE(t->hasVariable("false"));
@@ -195,7 +195,7 @@ TEST_F(RuleOperatorTest, rxWithMacro) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true1"));
   EXPECT_TRUE(t->hasVariable("true2"));
   EXPECT_TRUE(t->hasVariable("true3"));
@@ -213,7 +213,7 @@ TEST_F(RuleOperatorTest, pmFromFile) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
@@ -229,7 +229,7 @@ TEST_F(RuleOperatorTest, streq) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
@@ -245,7 +245,7 @@ TEST_F(RuleOperatorTest, streqWithMacro) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
@@ -261,7 +261,7 @@ TEST_F(RuleOperatorTest, validateUrlEncoding) {
   auto t = engine_.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  t->processRequestHeaders(nullptr, nullptr);
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }

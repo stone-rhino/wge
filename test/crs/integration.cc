@@ -52,7 +52,7 @@ public:
 
     engine_.init();
 
-    request_header_extractor_ = [&](const std::string& key) {
+    request_header_find_ = [&](const std::string& key) {
       std::vector<std::string_view> result;
       auto range = request_headers_.equal_range(key);
       for (auto iter = range.first; iter != range.second; ++iter) {
@@ -66,6 +66,14 @@ public:
       }
     };
 
+    request_header_traversal_ = [&](HeaderTraversalCallback callback) {
+      for (auto& [key, value] : request_headers_) {
+        if (!callback(key, value)) {
+          break;
+        }
+      }
+    };
+
     request_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
       return request_body_;
     };
@@ -73,9 +81,11 @@ public:
 
 protected:
   Engine engine_;
-  HeaderExtractor request_header_extractor_;
+  HeaderFind request_header_find_;
+  HeaderTraversal request_header_traversal_;
   BodyExtractor request_body_extractor_;
-  HeaderExtractor response_header_extractor_;
+  HeaderFind response_header_find_;
+  HeaderTraversal response_header_traversal_;
   BodyExtractor response_body_extractor_;
 
 protected:
@@ -105,6 +115,7 @@ TEST_F(IntegrationTest, crs) {
   auto t = engine_.makeTransaction();
   t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
   t->processUri(uri_, method_, version_);
-  t->processRequestHeaders(request_header_extractor_, nullptr);
+  t->processRequestHeaders(request_header_find_, request_header_traversal_, request_headers_.size(),
+                           nullptr);
 }
 } // namespace SrSecurity
