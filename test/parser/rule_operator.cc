@@ -45,9 +45,41 @@ TEST_F(RuleOperatorTest, beginsWith) {
 
 TEST_F(RuleOperatorTest, beginsWithMacro) {
   const std::string directive =
-      R"(SecAction "phase:1,setvar:tx.foo=bar,setvar:tx.bar=bar,setvar:tx.bar1=bar1"
+      R"(SecAction "phase:1,setvar:tx.foo=bar,setvar:tx.bar=ba,setvar:tx.bar1=bar1"
   SecRule TX:foo "@beginsWith %{tx.bar}" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'"
   SecRule TX:foo "@beginsWith %{tx.bar1}" "id:2,phase:1,setvar:'tx.v2',tag:'foo',msg:'bar'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("v1"));
+  EXPECT_FALSE(t->hasVariable("v2"));
+}
+
+TEST_F(RuleOperatorTest, endsWith) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=bar"
+      SecRule TX:foo "@endsWith ar" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'"
+      SecRule TX:foo "@endsWith ba" "id:1,phase:2,setvar:'tx.v2',tag:'foo',msg:'bar'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("v1"));
+  EXPECT_FALSE(t->hasVariable("v2"));
+}
+
+TEST_F(RuleOperatorTest, endsWithMacro) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=bar,setvar:tx.bar=ar,setvar:tx.bar1=bar1"
+  SecRule TX:foo "@endsWith %{tx.bar}" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'"
+  SecRule TX:foo "@endsWith %{tx.bar1}" "id:2,phase:1,setvar:'tx.v2',tag:'foo',msg:'bar'")";
 
   auto result = engine_.load(directive);
   engine_.init();
