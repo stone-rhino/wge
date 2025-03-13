@@ -253,7 +253,7 @@ public:
    * Get the Unique ID of the transaction.
    * @return the Unique ID of the transaction.
    */
-  const std::string_view getUniqueId() const { return unique_id_; }
+  const std::string_view getUniqueId();
 
   /**
    * Get the engine.

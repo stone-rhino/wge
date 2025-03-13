@@ -22,7 +22,6 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
     : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
       tx_variables_buffer_(literal_key_size + variable_key_with_macro_size),
       literal_key_size_(literal_key_size) {
-  initUniqueId();
   tx_variables_.resize(literal_key_size);
   tx_variables_buffer_.resize(literal_key_size);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
@@ -313,6 +312,16 @@ const Common::Variant& Transaction::getMatched(size_t index) const {
   }
 
   return EMPTY_VARIANT;
+}
+
+const std::string_view Transaction::getUniqueId() {
+  // We doesn't generate the unique id in the constructor, because the rules may be not use the
+  // unique id any more, so we generate the unique id when the unique id is needed.
+  // This is a lazy initialization, ant it's will be increased the performance.
+  if (unique_id_.empty()) {
+    initUniqueId();
+  }
+  return unique_id_;
 }
 
 void Transaction::removeRule(
