@@ -31,6 +31,14 @@ public:
     const char* main_name_;
     const std::string& sub_name_;
 
+    std::string tostring() const {
+      std::string full_name = main_name_;
+      if (!sub_name_.empty()) {
+        full_name += ":" + sub_name_;
+      }
+      return full_name;
+    }
+
     bool operator>(const FullName& full_name) const {
       int result = ::strcmp(main_name_, full_name.main_name_);
       if (result == 0) {
@@ -61,8 +69,10 @@ public:
 
 public:
   VariableBase(std::string&& sub_name, bool is_not, bool is_counter)
-      : sub_name_(std::move(sub_name)), is_not_(is_not), is_counter_(is_counter) {}
-  VariableBase(bool is_not, bool is_counter) : is_not_(is_not), is_counter_(is_counter) {}
+      : sub_name_(std::move(sub_name)), is_not_(is_not), is_counter_(is_counter) {
+    // The name of variable is case-insensitive.
+    std::transform(sub_name_.begin(), sub_name_.end(), sub_name_.begin(), ::tolower);
+  }
   virtual ~VariableBase() = default;
 
 public:

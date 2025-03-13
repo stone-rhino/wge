@@ -225,16 +225,17 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * Set the matched string that is captured by the operator.
-   * @param index the index of the matched string.the range is [0, 99].
+   * add a matched string that is captured by the operator.
    * @param value the reference of the matched string.
+   * @note the maximum number of matched strings is 100. if greater than 100, the value will be
+   * ignored.
    */
-  void setMatched(size_t index, std::string_view value);
+  void addMatched(std::string_view value);
 
   /**
    * Get the matched string that is captured by the operator.
    * @param index the index of the matched string.the range is [0, 99].
-   * @return the matched value. if the matched string does not exist, return empty variant.
+   * @return the matched string.
    */
   const Common::Variant& getMatched(size_t index) const;
 
@@ -298,8 +299,13 @@ public:
     log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
+  void setCurrentVariable(const Variable::VariableBase* variable) { current_variable_ = variable; }
+  void setCurrentVariableResult(const Common::Variant* result) {
+    current_variable_result_ = result;
+  }
+  const Variable::VariableBase* getCurrentVariable() const { return current_variable_; }
+  const Common::Variant* getCurrentVariableResult() const { return current_variable_result_; }
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
-
   std::string_view getRequestLine() const { return request_line_; }
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
@@ -324,6 +330,7 @@ private:
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   const size_t literal_key_size_;
   std::array<Common::Variant, 100> matched_;
+  size_t matched_size_{0};
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
 
@@ -340,6 +347,8 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
+  const Variable::VariableBase* current_variable_{nullptr};
+  const Common::Variant* current_variable_result_{nullptr};
   std::string msg_macro_expanded_;
   std::string log_data_macro_expanded_;
 

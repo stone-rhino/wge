@@ -68,9 +68,8 @@ public:
       const std::string_view& operand_str = std::get<std::string_view>(operand);
       scanner->match(operand_str, result);
 
-      size_t index = 0;
       for (const auto& [from, to] : result) {
-        t.setMatched(index++, std::string_view(operand_str.data() + from, to - from));
+        t.addMatched(std::string_view(operand_str.data() + from, to - from));
       }
     } else {
       UNREACHABLE();

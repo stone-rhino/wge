@@ -30,9 +30,11 @@ bool Rule::evaluate(Transaction& t) const {
     Common::EvaluateResult result;
     evaluateVariable(t, var, result);
 
+    t.setCurrentVariable(var.get());
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); i++) {
       const Common::Variant& var_variant = result.get(i);
+      t.setCurrentVariableResult(&var_variant);
       std::string_view var_str;
       bool matched = false;
       if (IS_STRING_VIEW_VARIANT(var_variant)) [[likely]] {

@@ -306,20 +306,22 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::setMatched(size_t index, std::string_view value) {
-  assert(index < matched_.size());
-  if (index < matched_.size()) {
-    matched_[index] = value;
+void Transaction::addMatched(std::string_view value) {
+  if (matched_size_ < matched_.size()) [[likely]] {
+    matched_[matched_size_] = value;
+    ++matched_size_;
   }
 }
 
 const Common::Variant& Transaction::getMatched(size_t index) const {
-  assert(index < matched_.size());
-  if (index < matched_.size()) {
+  // assert(index < matched_size_);
+  if (index < matched_size_) [[likely]] {
     return matched_[index];
+  } else {
+    SRSECURITY_LOG_WARN("The index of matched string is out of range. index: {}, matched size: {}",
+                        index, matched_size_);
+    return EMPTY_VARIANT;
   }
-
-  return EMPTY_VARIANT;
 }
 
 const std::string_view Transaction::getUniqueId() {
@@ -405,6 +407,11 @@ inline void Transaction::process(int phase) {
     // Evaluate the rule
     auto& rule = *iter;
     auto is_matched = rule->evaluate(*this);
+
+    // Clean the matched info
+    matched_size_ = 0;
+    current_variable_ = nullptr;
+    current_variable_result_ = nullptr;
 
     if (!is_matched) [[likely]] {
       ++iter;
