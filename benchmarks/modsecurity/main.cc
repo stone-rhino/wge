@@ -36,7 +36,7 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
 
     t.processConnection(request.downstream_ip_.c_str(), request.downstream_port_,
                         request.upstream_ip_.c_str(), request.upstream_port_);
-    t.processURI(request.path_.c_str(), request.protocol_.c_str(), request.version_.c_str());
+    t.processURI(request.uri_.c_str(), request.method_.c_str(), request.version_.c_str());
 
     for (auto& [key, value] : request.request_headers_) {
       t.addRequestHeader(key, value);
