@@ -255,9 +255,10 @@ void Transaction::increaseVariable(size_t index, int value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
     auto& variant = tx_variables_[index].variant_;
-    assert(IS_INT_VARIANT(variant));
-    if (IS_INT_VARIANT(variant)) {
+    if (IS_INT_VARIANT(variant)) [[likely]] {
       variant = std::get<int>(variant) + value;
+    } else if (IS_EMPTY_VARIANT(variant)) {
+      variant = value;
     }
   }
 }
