@@ -4,6 +4,7 @@
 
 #include "../common/hyperscan/scanner.h"
 #include "../common/lru_cache.hpp"
+#include "../common/string.h"
 
 namespace SrSecurity {
 namespace Operator {
@@ -18,7 +19,7 @@ public:
   Within(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {
     // Split the literal value into tokens.
-    std::vector<std::string_view> tokens = SplitTokens(literal_value_);
+    std::vector<std::string_view> tokens = Common::SplitTokens(literal_value_);
 
     // Calculate the order independent hash value of all tokens.
     int64_t hash = calcOrderIndependentHash(tokens);
@@ -55,7 +56,7 @@ public:
       MACRO_EXPAND_STRING_VIEW(macro_value);
 
       // Split the literal value into tokens.
-      std::vector<std::string_view> tokens = SplitTokens(macro_value);
+      std::vector<std::string_view> tokens = Common::SplitTokens(macro_value);
 
       // Calculate the order independent hash value of all tokens.
       int64_t hash = calcOrderIndependentHash(tokens);
@@ -93,26 +94,6 @@ public:
   }
 
 private:
-  std::vector<std::string_view> SplitTokens(std::string_view value) const {
-    // Split by space
-    constexpr char delimiter = ' ';
-
-    std::vector<std::string_view> tokens;
-    size_t pos = 0;
-    size_t next_pos = 0;
-
-    while ((next_pos = value.find(delimiter, pos)) != std::string_view::npos) {
-      tokens.emplace_back(value.substr(pos, next_pos - pos));
-      pos = next_pos + 1;
-    }
-
-    if (pos < value.size()) {
-      tokens.emplace_back(value.substr(pos));
-    }
-
-    return tokens;
-  }
-
   int64_t calcOrderIndependentHash(const std::vector<std::string_view>& tokens) const {
     int64_t hash = 0;
     std::vector<size_t> token_hashes;
