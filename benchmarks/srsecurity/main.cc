@@ -24,7 +24,7 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     }
 
     Request request;
-    SrSecurity::HeaderExtractor request_header_extractor = [&](const std::string& key) {
+    SrSecurity::HeaderFind request_header_find = [&](const std::string& key) {
       std::vector<std::string_view> result;
       auto range = request.request_headers_.equal_range(key);
       for (auto iter = range.first; iter != range.second; ++iter) {
@@ -38,6 +38,15 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
       }
     };
 
+    SrSecurity::HeaderTraversal request_header_traversal =
+        [&](SrSecurity::HeaderTraversalCallback callback) {
+          for (auto& [key, value] : request.request_headers_) {
+            if (!callback(key, value)) {
+              break;
+            }
+          }
+        };
+
     SrSecurity::BodyExtractor request_body_extractor =
         [&]() -> const std::vector<std::string_view>& { return request.request_body_; };
 
@@ -45,7 +54,8 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     t->processConnection(request.downstream_ip_, request.downstream_port_, request.upstream_ip_,
                          request.upstream_port_);
     t->processUri(request.uri_, request.method_, request.version_);
-    t->processRequestHeaders(request_header_extractor, nullptr);
+    t->processRequestHeaders(request_header_find, request_header_traversal,
+                             request.request_headers_.size(), nullptr);
   }
 }
 
@@ -92,10 +102,10 @@ int main(int argc, char* argv[]) {
       "test/test_data/waf-conf/base/engin-setup.conf",
       "test/test_data/waf-conf/base/crs-setup.conf",
       "test/test_data/waf-conf/coreruleset/rules/REQUEST-901-INITIALIZATION.conf",
-      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-905-COMMON-EXCEPTIONS.conf",
-      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-911-METHOD-ENFORCEMENT.conf",
-      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-913-SCANNER-DETECTION.conf",
-      // "test/test_data/waf-conf/coreruleset/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-905-COMMON-EXCEPTIONS.conf",
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-911-METHOD-ENFORCEMENT.conf",
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-913-SCANNER-DETECTION.conf",
+      "test/test_data/waf-conf/coreruleset/rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf",
       // "test/test_data/waf-conf/coreruleset/rules/REQUEST-921-PROTOCOL-ATTACK.conf",
       // "test/test_data/waf-conf/coreruleset/rules/REQUEST-922-MULTIPART-ATTACK.conf",
       // "test/test_data/waf-conf/coreruleset/rules/REQUEST-930-APPLICATION-ATTACK-LFI.conf",
