@@ -25,7 +25,28 @@ public:
 public:
   /**
    * Evaluate the rule
-   * @return True if intervening
+   * The evaluation process is as follows:
+   * 1. Evaluate the variables
+   *    - If the variable is a collection, evaluated each element.
+   *    - If any variable is matched, the rule is matched.
+   *    - If any variable is matched, the remaining variables will be evaluated always.
+   * 2. Evaluate the transformations
+   *    - If the variable is matched, evaluate the default transformations and the transformation
+   * that defined in the rule.
+   * 3. Evaluate the operator
+   *    - Before evaluating the operator, the variable result was transformed by the
+   * transformations.
+   * 4. Evaluate the actions
+   *    - If the variable is matched, evaluate the default actions and the action that defined in
+   * the rule.
+   * 5. Evaluate the chained rules
+   *    - The chained rule evaluated after the all variables of the rule that prev aspect of the
+   *      evaluation process are evaluated.
+   *    - Any chained rule is not matched, the rule is not matched, and the remaining chained rules
+   *      will not be evaluated.
+   * 6. Evaluate the msg macro
+   * 7. Evaluate the logdata macro
+   * @return true if the rule is matched, otherwise false.
    */
   bool evaluate(Transaction& t) const;
 
@@ -149,10 +170,9 @@ private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                Common::EvaluateResult& result) const;
-  inline void
-  evaluateTransform(Transaction& t, std::string_view var_value,
-                           const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                           std::string& result) const;
+  inline void evaluateTransform(Transaction& t, std::string_view var_value,
+                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                                std::string& result) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateMsgMacro(Transaction& t) const;

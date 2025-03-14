@@ -9,6 +9,28 @@
 #include "operator/rx.h"
 
 namespace SrSecurity {
+/**
+ * The evaluation process is as follows:
+ * 1. Evaluate the variables
+ *    - If the variable is a collection, evaluated each element.
+ *    - If any variable is matched, the rule is matched.
+ *    - If any variable is matched, the remaining variables will be evaluated always.
+ * 2. Evaluate the transformations
+ *    - If the variable is matched, evaluate the default transformations and the transformation that
+ *      defined in the rule.
+ * 3. Evaluate the operator
+ *    - Before evaluating the operator, the variable result was transformed by the transformations.
+ * 4. Evaluate the actions
+ *    - If the variable is matched, evaluate the default actions and the action that defined in the
+ *      rule.
+ * 5. Evaluate the chained rules
+ *    - The chained rule evaluated after the all variables of the rule that prev aspect of the
+ *      evaluation process are evaluated.
+ *    - Any chained rule is not matched, the rule is not matched, and the remaining chained rules
+ *      will not be evaluated.
+ * 6. Evaluate the msg macro
+ * 7. Evaluate the logdata macro
+ */
 bool Rule::evaluate(Transaction& t) const {
   SRSECURITY_LOG_TRACE("------------------------------------");
 
@@ -26,6 +48,7 @@ bool Rule::evaluate(Transaction& t) const {
   SRSECURITY_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
 
   // Evaluate the variables
+  bool rule_matched = false;
   for (auto& var : variables_) {
     Common::EvaluateResult result;
     evaluateVariable(t, var, result);
@@ -36,7 +59,7 @@ bool Rule::evaluate(Transaction& t) const {
       const Common::Variant& var_variant = result.get(i);
       t.setCurrentVariableResult(&var_variant);
       std::string_view var_str;
-      bool matched = false;
+      bool variable_matched = false;
       if (IS_STRING_VIEW_VARIANT(var_variant)) [[likely]] {
         var_str = std::get<std::string_view>(var_variant);
 
@@ -48,39 +71,40 @@ bool Rule::evaluate(Transaction& t) const {
         }
 
         // Evaluate the operator
-        matched = evaluateOperator(t, var_str);
+        variable_matched = evaluateOperator(t, var_str);
       } else {
         // Evaluate the operator
-        matched = evaluateOperator(t, var_variant);
+        variable_matched = evaluateOperator(t, var_variant);
       }
 
-      // If the rule is matched, do some things such as macro expansion and evaluate the actions
-      if (matched) {
-        SRSECURITY_LOG_TRACE("Rule is matched. id: {}", id_);
-
-        // Macro expansion
-        evaluateMsgMacro(t);
-        evaluateLogDataMacro(t);
+      // If the variable is matched, evaluate the actions
+      if (variable_matched) {
+        SRSECURITY_LOG_TRACE("variable is matched. {}{}", var->mainName(),
+                             var->subName().empty() ? "" : "." + var->subName());
+        rule_matched = true;
 
         // Evaluate the default actions and the action defined actions
         evaluateActions(t);
-
-        // Evaluate the chained rules
-        if (!chain_.empty()) [[unlikely]] {
-          // If the chained rules are matched means the rule is matched, the remaining value of
-          // variables or remaining variables are ignored.
-          if (evaluateChain(t)) {
-            return true;
-          }
-        } else {
-          // Any variable is matched means the rule is matched
-          return true;
-        }
       }
     }
   }
 
-  return false;
+  // Evaluate the chained rules
+  if (rule_matched) {
+    if (!chain_.empty()) [[unlikely]] {
+      // If the chained rules are matched means the rule is matched, otherwise the rule is not
+      // matched
+      if (evaluateChain(t)) {
+        // Evaluate the msg macro and logdata macro
+        evaluateMsgMacro(t);
+        evaluateLogDataMacro(t);
+      } else {
+        rule_matched = false;
+      }
+    }
+  }
+
+  return rule_matched;
 }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {

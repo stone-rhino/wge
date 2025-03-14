@@ -410,16 +410,17 @@ inline void Transaction::process(int phase) {
       continue;
     }
 
-    // Evaluate the rule
-    auto& rule = *iter;
-    auto is_matched = rule->evaluate(*this);
-
-    // Clean the matched info
+    // Clean the current matched info(MATCHED_NAME and MATCHED_VAR)
     matched_size_ = 0;
     current_variable_ = nullptr;
     current_variable_result_ = nullptr;
 
-    if (!is_matched) [[likely]] {
+    // Evaluate the rule
+    auto& rule = *iter;
+    auto is_matched = rule->evaluate(*this);
+
+    if (!is_matched || rule->getOperator() == nullptr // It's a rule that defined by SecAction
+        ) [[likely]] {
       ++iter;
       continue;
     }
@@ -428,11 +429,11 @@ inline void Transaction::process(int phase) {
     if (log_callback_) [[likely]] {
       const SrSecurity::Rule* default_action = engine_.defaultActions(rule->phase());
       if (default_action) {
-        if (rule->log().value_or(default_action->log().value_or(false))) {
+        if (rule->log().value_or(default_action->log().value_or(true))) {
           log_callback_(*rule);
         }
       } else {
-        if (rule->log().value_or(false)) {
+        if (rule->log().value_or(true)) {
           log_callback_(*rule);
         }
       }
