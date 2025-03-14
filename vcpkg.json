@@ -5,6 +5,7 @@
     "gtest",
     "pcre2",
     "gperftools",
-    "hyperscan"
+    "hyperscan",
+    "libinjection"
   ]
 }

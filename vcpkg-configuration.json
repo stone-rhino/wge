@@ -1,7 +1,7 @@
 {
   "default-registry": {
     "kind": "git",
-    "baseline": "38706eb4ca7ba014a84e5d913c067e8609f365dd",
+    "baseline": "9caa434501c1c9bab45140a5d54c574db8e6c092",
     "repository": "https://git.ouryun.cn/base/vcpkg.git"
   },
   "registries": [
