@@ -31,7 +31,7 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (IS_EMPTY_VARIANT(operand)) [[unlikely]] {
+    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
       return false;
     }
 
@@ -61,18 +61,13 @@ public:
       }
     }
 
-    std::vector<std::pair<size_t, size_t>> result;
-
     // Match the operand with the pattern.
-    if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
-      const std::string_view& operand_str = std::get<std::string_view>(operand);
-      scanner->match(operand_str, result);
+    std::vector<std::pair<size_t, size_t>> result;
+    const std::string_view& operand_str = std::get<std::string_view>(operand);
+    scanner->match(operand_str, result);
 
-      for (const auto& [from, to] : result) {
-        t.addMatched(std::string_view(operand_str.data() + from, to - from));
-      }
-    } else {
-      UNREACHABLE();
+    for (const auto& [from, to] : result) {
+      t.addMatched(std::string_view(operand_str.data() + from, to - from));
     }
 
     return is_not_ ^ (!result.empty());
