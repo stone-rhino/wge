@@ -48,8 +48,8 @@ public:
       return false;
     }
 
-    Common::Hyperscan::Scanner* scanner = scanner_.get();
     std::unique_ptr<Common::Hyperscan::Scanner> macro_scanner;
+    Common::Hyperscan::Scanner* scanner = scanner_.get();
 
     // If there is a macro, expand it and create or reuse a scanner.
     if (macro_) [[unlikely]] {
@@ -69,11 +69,7 @@ public:
             macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
             scanner = macro_scanner.get();
           },
-          [&]() {
-            auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false);
-            macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-            return hs_db;
-          });
+          [&]() { return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, false); });
     }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
