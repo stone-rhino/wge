@@ -85,6 +85,9 @@ void Transaction::processUri(std::string_view request_line) {
       requset_line_info_.version_ = request_line;
     }
 
+    // Init the query params
+    initQueryParams();
+
     SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                          requset_line_info_.method_, requset_line_info_.uri_,
                          requset_line_info_.query_, requset_line_info_.protocol_,
@@ -128,7 +131,7 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   requset_line_info_.protocol_ = "HTTP";
   requset_line_info_.version_ = version;
 
-  // combine the request line
+  // Combine the request line
   request_line_buffer_.reserve(
       requset_line_info_.method_.size() + requset_line_info_.uri_raw_.size() +
       requset_line_info_.protocol_.size() + requset_line_info_.version_.size() + 3);
@@ -140,6 +143,9 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   request_line_buffer_ += '/';
   request_line_buffer_ += requset_line_info_.version_;
   request_line_ = request_line_buffer_;
+
+  // Init the query params
+  initQueryParams();
 
   SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                        requset_line_info_.method_, requset_line_info_.uri_,
@@ -467,5 +473,27 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   }
 
   return iter->second;
+}
+
+inline void Transaction::initQueryParams() {
+  // Parse the query parameters
+  if (requset_line_info_.query_.empty()) [[unlikely]] {
+    return;
+  }
+
+  // Parse the query parameters
+  size_t begin = 0;
+  size_t end = 0;
+  while (end != std::string_view::npos) {
+    end = requset_line_info_.query_.find('&', begin);
+    auto param = requset_line_info_.query_.substr(begin, end - begin);
+    auto pos = param.find('=');
+    if (pos != std::string_view::npos) {
+      requset_line_info_.query_params_.emplace_back(param.substr(0, pos), param.substr(pos + 1));
+    } else {
+      requset_line_info_.query_params_.emplace_back(param, "");
+    }
+    begin = end + 1;
+  }
 }
 } // namespace SrSecurity

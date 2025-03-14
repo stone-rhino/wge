@@ -50,6 +50,7 @@ public:
     std::string_view query_;
     std::string protocol_;
     std::string version_;
+    std::vector<std::pair<std::string_view, std::string_view>> query_params_;
   };
 
 public:
@@ -320,6 +321,8 @@ private:
   inline void process(int phase);
 
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
+
+  inline void initQueryParams();
 
 private:
   std::string unique_id_;
