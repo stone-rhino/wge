@@ -20,6 +20,9 @@ namespace SrSecurity::Antlr4 {
  */
 class Parser {
 public:
+  Parser();
+
+public:
   /**
    * Load the rule set from a file
    * @param file_path supports relative and absolute path

@@ -9,6 +9,7 @@
 #include <variant>
 #include <vector>
 
+#include "common/evaluate_result.h"
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
@@ -328,8 +329,7 @@ private:
   std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engine_;
-  std::vector<Common::Variant> tx_variables_;
-  std::vector<std::string> tx_variables_buffer_;
+  std::vector<Common::EvaluateResult::Result> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   const size_t literal_key_size_;
   std::array<Common::Variant, 100> matched_;
@@ -363,7 +363,7 @@ private:
   std::optional<BodyProcessorType> request_body_processor_;
   std::optional<EngineConfig::Option> rule_engine_;
 
-  // The r info
+  // The http info
 private:
   ConnectionInfo connection_info_;
   std::string_view request_line_;

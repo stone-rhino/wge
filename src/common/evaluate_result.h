@@ -101,7 +101,7 @@ public:
     return EMPTY_STRING;
   }
 
-private:
+public:
   struct Result {
     std::string string_buffer_;
     Common::Variant variant_;
@@ -117,6 +117,7 @@ private:
     }
   };
 
+private:
   std::array<Result, stack_result_size> stack_results_;
   std::vector<Result> heap_results_;
   size_t size_{0};

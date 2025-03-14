@@ -55,6 +55,8 @@ public:
   std::string error_msg;
 };
 
+Parser::Parser() { tx_variable_index_.reserve(1000); }
+
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // init
   std::ifstream ifs(file_path);

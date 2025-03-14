@@ -20,12 +20,10 @@ constexpr size_t variable_key_with_macro_size = 100;
 
 Transaction::Transaction(const Engine& engin, size_t literal_key_size)
     : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
-      tx_variables_buffer_(literal_key_size + variable_key_with_macro_size),
       literal_key_size_(literal_key_size) {
   tx_variables_.resize(literal_key_size);
-  tx_variables_buffer_.resize(literal_key_size);
+  local_tx_variable_index_.reserve(variable_key_with_macro_size);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
-  assert(tx_variables_buffer_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
 void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
@@ -196,22 +194,23 @@ void Transaction::processResponseBody(BodyExtractor body_extractor,
 void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
+    auto& tx_variable = tx_variables_[index];
     if (IS_INT_VARIANT(value)) [[likely]] {
-      tx_variables_[index] = std::get<int>(value);
+      tx_variable.variant_ = std::get<int>(value);
     } else if (IS_STRING_VIEW_VARIANT(value)) {
       // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid if
-      // it's reference is invalid. So we copy the value to the tx_variables_buffer_. The
-      // tx_variables_buffer_ store the value as a string, and it will be valid until the
+      // it's reference is invalid. So we copy the value to the string_buffer_. The
+      // string_buffer_ store the value as a string, and it will be valid until the
       // transaction is destroyed. Why we don't let the Common::Variant store the value as a
-      // std::string? If we do it, it seems that we don't need the tx_variables_buffer_ anymore. But
+      // std::string? If we do it, it seems that we don't need the string_buffer_ anymore. But
       // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
       // std::monostate, int, std::string_view. If we add a new std::sting type, we must process the
       // variant in repeat places when we want to get the value as a string. So we choose to store
       // the value as a std::string_view in the Common::Variant, and copy the value to the
-      // tx_variables_buffer_ when we want to store the value as a string. It's a trade-off between
+      // string_buffer_ when we want to store the value as a string. It's a trade-off between
       // the code maintainability and the performance.
-      tx_variables_buffer_[index] = std::get<std::string_view>(value);
-      tx_variables_[index] = tx_variables_buffer_[index];
+      tx_variable.string_buffer_ = std::get<std::string_view>(value);
+      tx_variable.variant_ = tx_variable.string_buffer_;
     } else {
       UNREACHABLE();
     }
@@ -234,8 +233,8 @@ void Transaction::setVariable(std::string&& name, const Common::Variant& value) 
 void Transaction::removeVariable(size_t index) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    assert(!IS_EMPTY_VARIANT(tx_variables_[index]));
-    tx_variables_[index] = EMPTY_VARIANT;
+    assert(!IS_EMPTY_VARIANT(tx_variables_[index].variant_));
+    tx_variables_[index].variant_ = EMPTY_VARIANT;
   }
 }
 
@@ -255,7 +254,7 @@ void Transaction::removeVariable(const std::string& name) {
 void Transaction::increaseVariable(size_t index, int value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    auto& variant = tx_variables_[index];
+    auto& variant = tx_variables_[index].variant_;
     assert(IS_INT_VARIANT(variant));
     if (IS_INT_VARIANT(variant)) {
       variant = std::get<int>(variant) + value;
@@ -280,7 +279,7 @@ void Transaction::increaseVariable(const std::string& name, int value) {
 const Common::Variant& Transaction::getVariable(size_t index) const {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    return tx_variables_[index];
+    return tx_variables_[index].variant_;
   }
 
   return EMPTY_VARIANT;
@@ -303,7 +302,7 @@ const Common::Variant& Transaction::getVariable(const std::string& name) {
 
 bool Transaction::hasVariable(size_t index) const {
   assert(index < tx_variables_.size());
-  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index]);
+  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index].variant_);
 }
 
 bool Transaction::hasVariable(const std::string& name) const {
@@ -463,9 +462,8 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   auto iter = local_tx_variable_index_.find(key);
   if (iter == local_tx_variable_index_.end()) [[unlikely]] {
     if (force_create) [[likely]] {
-      local_tx_variable_index_[key] = tx_variables_.size();
-      tx_variables_.emplace_back(EMPTY_VARIANT);
-      tx_variables_buffer_.emplace_back();
+      local_tx_variable_index_.insert({key, tx_variables_.size()});
+      tx_variables_.emplace_back();
       return tx_variables_.size() - 1;
     } else {
       return std::nullopt;
