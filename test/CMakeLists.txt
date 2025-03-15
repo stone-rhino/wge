@@ -21,3 +21,6 @@ pkg_check_modules(HYPERSCAN REQUIRED libhs)
 target_include_directories(test PRIVATE ${HYPERSCAN_INCLUDE_DIRS})
 target_link_directories(test PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(test PRIVATE ${HYPERSCAN_LIBRARIES})
+
+find_package(boost_url CONFIG REQUIRED)
+target_link_libraries(test PRIVATE Boost::url)

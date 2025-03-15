@@ -6,6 +6,7 @@
     "pcre2",
     "gperftools",
     "hyperscan",
-    "libinjection"
+    "libinjection",
+    "boost-url"
   ]
 }
