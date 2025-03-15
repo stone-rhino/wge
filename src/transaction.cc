@@ -23,6 +23,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
       literal_key_size_(literal_key_size) {
   tx_variables_.resize(literal_key_size);
   local_tx_variable_index_.reserve(variable_key_with_macro_size);
+  matched_variables_.reserve(4);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
@@ -410,10 +411,9 @@ inline void Transaction::process(int phase) {
       continue;
     }
 
-    // Clean the current matched info(MATCHED_NAME and MATCHED_VAR)
+    // Clean the current matched info(MATCHED_VAR_NAME,MATCHED_VAR,MATCHED_VARS_NAMES,MATCHED_VARS)
     matched_size_ = 0;
-    current_variable_ = nullptr;
-    current_variable_result_.variant_ = EMPTY_VARIANT;
+    matched_variables_.clear();
 
     // Evaluate the rule
     auto& rule = *iter;

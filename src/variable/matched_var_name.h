@@ -13,11 +13,13 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
-    assert(t.getCurrentVariable());
-    if (!is_counter_) [[likely]] {
-      result.append(t.getCurrentVariable()->fullName().tostring());
-    } else {
-      result.append(t.getCurrentVariable() ? 1 : 0);
+    assert(!t.getMatchedVariables().empty());
+    if (!t.getMatchedVariables().empty()) [[likely]] {
+      if (!is_counter_) [[likely]] {
+        result.append(t.getMatchedVariables().back().first->fullName().tostring());
+      } else {
+        result.append(1);
+      }
     }
   };
 };

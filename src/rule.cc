@@ -52,7 +52,6 @@ bool Rule::evaluate(Transaction& t) const {
   for (auto& var : variables_) {
     Common::EvaluateResult result;
     evaluateVariable(t, var, result);
-    t.setCurrentVariable(var.get());
 
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); i++) {
@@ -70,15 +69,15 @@ bool Rule::evaluate(Transaction& t) const {
           Common::EvaluateResult::Result curr_variable_reulst;
           curr_variable_reulst.string_buffer_ = std::move(transforms_result);
           curr_variable_reulst.variant_ = curr_variable_reulst.string_buffer_;
-          t.setCurrentVariableResult(std::move(curr_variable_reulst));
+          t.pushMatchedVariable(var.get(), std::move(curr_variable_reulst));
         } else {
           variable_matched = evaluateOperator(t, var_variant);
-          t.setCurrentVariableResult(result.move(i));
+          t.pushMatchedVariable(var.get(), result.move(i));
         }
       } else {
         // Evaluate the operator
         variable_matched = evaluateOperator(t, var_variant);
-        t.setCurrentVariableResult(result.move(i));
+        t.pushMatchedVariable(var.get(), result.move(i));
       }
 
       // If the variable is matched, evaluate the actions

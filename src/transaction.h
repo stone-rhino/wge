@@ -303,14 +303,16 @@ public:
     log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
-  void setCurrentVariable(const Variable::VariableBase* variable) { current_variable_ = variable; }
-  void setCurrentVariableResult(Common::EvaluateResult::Result&& result) {
-    current_variable_result_ = std::move(result);
+  void pushMatchedVariable(const Variable::VariableBase* variable,
+                           Common::EvaluateResult::Result&& result) {
+    matched_variables_.emplace_back(variable, std::move(result));
   }
-  const Variable::VariableBase* getCurrentVariable() const { return current_variable_; }
-  const Common::EvaluateResult::Result& getCurrentVariableResult() const {
-    return current_variable_result_;
+
+  const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResult::Result>>&
+  getMatchedVariables() const {
+    return matched_variables_;
   }
+
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
   std::string_view getRequestLine() const { return request_line_; }
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
@@ -354,8 +356,8 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
-  const Variable::VariableBase* current_variable_{nullptr};
-  Common::EvaluateResult::Result current_variable_result_;
+  using MatchedVariable = std::pair<const Variable::VariableBase*, Common::EvaluateResult::Result>;
+  std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResult::Result msg_macro_expanded_;
   Common::EvaluateResult::Result log_data_macro_expanded_;
 

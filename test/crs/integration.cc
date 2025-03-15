@@ -127,7 +127,7 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
       t:none, \
       t:lowercase, \
       msg:'tx.test=%{tx.test}', \
-      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR}', \
+      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
       setvar:tx.test=+1")";
 
     Engine engine(spdlog::level::trace);
@@ -141,7 +141,7 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
     EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
-    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar");
+    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
   }
 
   // Test that chained rule is matched, and starter rule is matched.
@@ -156,7 +156,7 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
       t:none, \
       t:lowercase, \
       msg:'tx.test=%{tx.test}', \
-      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR}', \
+      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
       chain, \
       setvar:tx.test=+1"
         SecRule TX:foo1 "@streq bar" "setvar:tx.chain=true")";
@@ -172,7 +172,7 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
     EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
-    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo1=bar");
+    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo1=bar TX:foo1=bar");
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("chain")), "true");
   }
 
@@ -189,7 +189,7 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
       t:none, \
       t:lowercase, \
       msg:'tx.test=%{tx.test}', \
-      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR}', \
+      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR}  %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
       chain, \
       setvar:tx.test=+1"
         SecRule TX:foo1 "@streq bar12" "setvar:tx.chain=true")";
