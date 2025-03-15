@@ -26,6 +26,29 @@ public:
   EvaluateResult(const EvaluateResult&) = delete;
 
 public:
+  struct Result {
+    std::string string_buffer_;
+    Common::Variant variant_;
+    Result() = default;
+    Result(const Common::Variant& value) : variant_(value) {}
+    Result(std::string&& value) : string_buffer_(std::move(value)), variant_(string_buffer_) {}
+    Result(Result&& result) {
+      variant_ = std::move(result.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_) && !result.string_buffer_.empty()) {
+        string_buffer_ = std::move(result.string_buffer_);
+        variant_ = string_buffer_;
+      }
+    }
+    void operator=(Result&& result) {
+      variant_ = std::move(result.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_) && !result.string_buffer_.empty()) {
+        string_buffer_ = std::move(result.string_buffer_);
+        variant_ = string_buffer_;
+      }
+    }
+  };
+
+public:
   /**
    * Get the front value of the result.
    * @return the front value of the result.
@@ -81,41 +104,26 @@ public:
   size_t size() const { return size_; }
 
   /**
-   * Move the string buffer of the result by index.
+   * Move the result.
    * @param index the index of the result.
-   * @return the string buffer of the result.
+   * @return the result
    */
-  std::string moveString(size_t index) {
+  Result move(size_t index) {
     assert(index < size_);
+    Result result;
     if (index < size_) [[likely]] {
-      EvaluateResult::Result* result = index < stack_result_size
-                                           ? &stack_results_[index]
-                                           : &heap_results_[index - stack_result_size];
-      std::string buffer = std::move(result->string_buffer_);
-      if (buffer.empty() && IS_STRING_VIEW_VARIANT(result->variant_)) {
-        buffer = std::get<std::string_view>(result->variant_);
+      EvaluateResult::Result* p = index < stack_result_size
+                                      ? &stack_results_[index]
+                                      : &heap_results_[index - stack_result_size];
+      result.variant_ = std::move(p->variant_);
+      result.string_buffer_ = std::move(p->string_buffer_);
+      if (!result.string_buffer_.empty() && IS_STRING_VIEW_VARIANT(p->variant_)) {
+        result.variant_ = result.string_buffer_;
       }
-      result->variant_ = EMPTY_VARIANT;
-      return buffer;
+      p->variant_ = EMPTY_VARIANT;
     }
-    return EMPTY_STRING;
+    return result;
   }
-
-public:
-  struct Result {
-    std::string string_buffer_;
-    Common::Variant variant_;
-    Result() = default;
-    Result(const Common::Variant& value) : variant_(value) {}
-    Result(std::string&& value) : string_buffer_(std::move(value)), variant_(string_buffer_) {}
-    Result(Result&& result) {
-      variant_ = std::move(result.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_) && !string_buffer_.empty()) {
-        string_buffer_ = std::move(result.string_buffer_);
-        variant_ = string_buffer_;
-      }
-    }
-  };
 
 private:
   std::array<Result, stack_result_size> stack_results_;

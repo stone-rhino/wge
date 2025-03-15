@@ -52,29 +52,33 @@ bool Rule::evaluate(Transaction& t) const {
   for (auto& var : variables_) {
     Common::EvaluateResult result;
     evaluateVariable(t, var, result);
-
     t.setCurrentVariable(var.get());
+
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); i++) {
       const Common::Variant& var_variant = result.get(i);
-      t.setCurrentVariableResult(&var_variant);
       std::string_view var_str;
       bool variable_matched = false;
       if (IS_STRING_VIEW_VARIANT(var_variant)) [[likely]] {
-        var_str = std::get<std::string_view>(var_variant);
-
         // Evaluate the transformations
         std::string transforms_result;
-        evaluateTransform(t, var_str, var, transforms_result);
-        if (!transforms_result.empty()) {
-          var_str = transforms_result;
-        }
+        evaluateTransform(t, std::get<std::string_view>(var_variant), var, transforms_result);
 
         // Evaluate the operator
-        variable_matched = evaluateOperator(t, var_str);
+        if (!transforms_result.empty()) {
+          variable_matched = evaluateOperator(t, transforms_result);
+          Common::EvaluateResult::Result curr_variable_reulst;
+          curr_variable_reulst.string_buffer_ = std::move(transforms_result);
+          curr_variable_reulst.variant_ = curr_variable_reulst.string_buffer_;
+          t.setCurrentVariableResult(std::move(curr_variable_reulst));
+        } else {
+          variable_matched = evaluateOperator(t, var_variant);
+          t.setCurrentVariableResult(result.move(i));
+        }
       } else {
         // Evaluate the operator
         variable_matched = evaluateOperator(t, var_variant);
+        t.setCurrentVariableResult(result.move(i));
       }
 
       // If the variable is matched, evaluate the actions
@@ -94,14 +98,16 @@ bool Rule::evaluate(Transaction& t) const {
     if (!chain_.empty()) [[unlikely]] {
       // If the chained rules are matched means the rule is matched, otherwise the rule is not
       // matched
-      if (evaluateChain(t)) {
-        // Evaluate the msg macro and logdata macro
-        evaluateMsgMacro(t);
-        evaluateLogDataMacro(t);
-      } else {
+      if (!evaluateChain(t)) {
         rule_matched = false;
       }
     }
+  }
+
+  // Evaluate the msg macro and logdata macro
+  if (rule_matched) {
+    evaluateMsgMacro(t);
+    evaluateLogDataMacro(t);
   }
 
   return rule_matched;
@@ -154,27 +160,25 @@ inline void Rule::evaluateTransform(Transaction& t, std::string_view var_value,
                                     const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                     std::string& result) const {
   // Check if the default transformation should be ignored
-  if (is_ingnore_default_transform_) [[likely]] {
-    return;
-  }
+  if (!is_ingnore_default_transform_) [[unlikely]] {
+    // Check that the default action is defined
+    const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+    if (!default_action) [[likely]] {
+      return;
+    }
 
-  // Check that the default action is defined
-  const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
-  if (!default_action) [[likely]] {
-    return;
-  }
+    // Get the default transformation
+    auto& transforms = default_action->transforms();
+    if (transforms.empty()) [[likely]] {
+      return;
+    }
 
-  // Get the default transformation
-  auto& transforms = default_action->transforms();
-  if (transforms.empty()) [[likely]] {
-    return;
-  }
-
-  // Evaluate the default transformations
-  for (auto& t : transforms) {
-    SRSECURITY_LOG_TRACE("evaluate default transformation: {}", t->name());
-    result = t->evaluate(var_value.data(), var_value.size());
-    var_value = result;
+    // Evaluate the default transformations
+    for (auto& t : transforms) {
+      SRSECURITY_LOG_TRACE("evaluate default transformation: {}", t->name());
+      result = t->evaluate(var_value.data(), var_value.size());
+      var_value = result;
+    }
   }
 
   // Evaluate the action defined transformations
@@ -212,7 +216,7 @@ inline void Rule::evaluateMsgMacro(Transaction& t) const {
   if (msg_macro_) [[unlikely]] {
     Common::EvaluateResult msg_result;
     msg_macro_->evaluate(t, msg_result);
-    t.setMsgMacroExpanded(msg_result.moveString(0));
+    t.setMsgMacroExpanded(msg_result.move(0));
     SRSECURITY_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
   }
 }
@@ -221,7 +225,7 @@ inline void Rule::evaluateLogDataMacro(Transaction& t) const {
   if (log_data_macro_) [[unlikely]] {
     Common::EvaluateResult log_data_result;
     log_data_macro_->evaluate(t, log_data_result);
-    t.setLogDataMacroExpanded(log_data_result.moveString(0));
+    t.setLogDataMacroExpanded(log_data_result.move(0));
     SRSECURITY_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
   }
 }

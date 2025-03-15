@@ -289,24 +289,28 @@ public:
   void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
 
-  const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_; }
+  const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_.string_buffer_; }
 
-  const std::string& getLogDataMacroExpanded() const { return log_data_macro_expanded_; }
+  const std::string& getLogDataMacroExpanded() const {
+    return log_data_macro_expanded_.string_buffer_;
+  }
 
-  void setMsgMacroExpanded(std::string&& msg_macro_expanded) {
+  void setMsgMacroExpanded(Common::EvaluateResult::Result&& msg_macro_expanded) {
     msg_macro_expanded_ = std::move(msg_macro_expanded);
   }
 
-  void setLogDataMacroExpanded(std::string&& log_data_macro_expanded) {
+  void setLogDataMacroExpanded(Common::EvaluateResult::Result&& log_data_macro_expanded) {
     log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
   void setCurrentVariable(const Variable::VariableBase* variable) { current_variable_ = variable; }
-  void setCurrentVariableResult(const Common::Variant* result) {
-    current_variable_result_ = result;
+  void setCurrentVariableResult(Common::EvaluateResult::Result&& result) {
+    current_variable_result_ = std::move(result);
   }
   const Variable::VariableBase* getCurrentVariable() const { return current_variable_; }
-  const Common::Variant* getCurrentVariableResult() const { return current_variable_result_; }
+  const Common::EvaluateResult::Result& getCurrentVariableResult() const {
+    return current_variable_result_;
+  }
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
   std::string_view getRequestLine() const { return request_line_; }
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
@@ -351,9 +355,9 @@ private:
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
   const Variable::VariableBase* current_variable_{nullptr};
-  const Common::Variant* current_variable_result_{nullptr};
-  std::string msg_macro_expanded_;
-  std::string log_data_macro_expanded_;
+  Common::EvaluateResult::Result current_variable_result_;
+  Common::EvaluateResult::Result msg_macro_expanded_;
+  Common::EvaluateResult::Result log_data_macro_expanded_;
 
   // ctl
 private:

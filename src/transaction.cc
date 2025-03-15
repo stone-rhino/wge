@@ -413,7 +413,7 @@ inline void Transaction::process(int phase) {
     // Clean the current matched info(MATCHED_NAME and MATCHED_VAR)
     matched_size_ = 0;
     current_variable_ = nullptr;
-    current_variable_result_ = nullptr;
+    current_variable_result_.variant_ = EMPTY_VARIANT;
 
     // Evaluate the rule
     auto& rule = *iter;
