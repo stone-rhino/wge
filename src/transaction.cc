@@ -23,6 +23,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
       literal_key_size_(literal_key_size) {
   tx_variables_.resize(literal_key_size);
   local_tx_variable_index_.reserve(variable_key_with_macro_size);
+  captured_.reserve(4);
   matched_variables_.reserve(4);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
@@ -313,20 +314,20 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::addMatched(std::string_view value) {
-  if (matched_size_ < matched_.size()) [[likely]] {
-    matched_[matched_size_] = value;
-    ++matched_size_;
+void Transaction::addCapture(std::string_view value) {
+  if (captured_.size() < max_capture_size_) [[likely]] {
+    captured_.emplace_back(value);
   }
 }
 
-const Common::Variant& Transaction::getMatched(size_t index) const {
+const Common::Variant& Transaction::getCapture(size_t index) const {
   // assert(index < matched_size_);
-  if (index < matched_size_) [[likely]] {
-    return matched_[index];
+  if (index < captured_.size()) [[likely]] {
+    return captured_[index];
   } else {
-    SRSECURITY_LOG_WARN("The index of matched string is out of range. index: {}, matched size: {}",
-                        index, matched_size_);
+    SRSECURITY_LOG_WARN(
+        "The index of captured string is out of range. index: {}, captureed size: {}", index,
+        captured_.size());
     return EMPTY_VARIANT;
   }
 }
@@ -411,8 +412,9 @@ inline void Transaction::process(int phase) {
       continue;
     }
 
-    // Clean the current matched info(MATCHED_VAR_NAME,MATCHED_VAR,MATCHED_VARS_NAMES,MATCHED_VARS)
-    matched_size_ = 0;
+    // Clean the current captured and matched, there are:
+    // TX.[0-99], MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
+    captured_.clear();
     matched_variables_.clear();
 
     // Evaluate the rule

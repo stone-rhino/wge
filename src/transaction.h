@@ -227,19 +227,19 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * add a matched string that is captured by the operator.
+   * add a string that is captured by the operator.
    * @param value the reference of the matched string.
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void addMatched(std::string_view value);
+  void addCapture(std::string_view value);
 
   /**
-   * Get the matched string that is captured by the operator.
+   * Get the captured string that is captured by the operator.
    * @param index the index of the matched string.the range is [0, 99].
    * @return the matched string.
    */
-  const Common::Variant& getMatched(size_t index) const;
+  const Common::Variant& getCapture(size_t index) const;
 
   /**
    * Get the HTTP extractor.
@@ -338,8 +338,8 @@ private:
   std::vector<Common::EvaluateResult::Result> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   const size_t literal_key_size_;
-  std::array<Common::Variant, 100> matched_;
-  size_t matched_size_{0};
+  static constexpr int max_capture_size_{100};
+  std::vector<Common::Variant> captured_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
 

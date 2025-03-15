@@ -34,7 +34,7 @@ public:
         }
       }
     } else {
-      result.append(t.getMatched(matched_index_));
+      result.append(t.getCapture(matched_index_));
     }
   }
 

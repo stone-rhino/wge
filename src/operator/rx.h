@@ -67,7 +67,7 @@ public:
     scanner->match(operand_str, result);
 
     for (const auto& [from, to] : result) {
-      t.addMatched(std::string_view(operand_str.data() + from, to - from));
+      t.addCapture(std::string_view(operand_str.data() + from, to - from));
     }
 
     return is_not_ ^ (!result.empty());
