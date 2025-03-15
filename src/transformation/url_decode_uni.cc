@@ -6,18 +6,23 @@ namespace SrSecurity {
 namespace Transformation {
 std::string UrlDecodeUni::evaluate(const void* data, size_t data_len) const {
   std::string result;
+  result.reserve(data_len);
   HexDecode hex_decode;
-  for (size_t i = 0; i < data_len; ++i) {
+  for (size_t i = 0; i < data_len; ++i) [[likely]] {
     const char& ch = static_cast<const char*>(data)[i];
-    if (ch == '%') {
-      if (i + 2 < data_len) {
+    switch (ch) {
+    case '%':
+      if (i + 2 < data_len) [[likely]] {
         result += hex_decode.evaluate(static_cast<const char*>(data) + i + 1, 2);
         i += 2;
       }
-    } else if (ch == '+') {
+      break;
+    case '+':
       result += ' ';
-    } else {
+      break;
+    [[likely]] default:
       result += ch;
+      break;
     }
   }
 
