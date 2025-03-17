@@ -54,12 +54,7 @@ struct FullName {
 namespace std {
 template <> struct hash<SrSecurity::Variable::FullName> {
   size_t operator()(const SrSecurity::Variable::FullName& s) const {
-    size_t h1 = 0;
-    const char* p = s.main_name_;
-    while (p != nullptr && *p != '\0') {
-      h1 = h1 * 131 + *p;
-      ++p;
-    }
+    size_t h1 = std::hash<const char*>()(s.main_name_);
     size_t h2 = std::hash<std::string>()(s.sub_name_);
     return h1 ^ (h2 << 1);
   }
