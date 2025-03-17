@@ -21,6 +21,10 @@ public:
 public:
   /**
    * Evaluate the transformation.
+   * The different between this method and another overloaded evaluate method in the protected
+   * section is that this method will check the cache first, then call the protected method to
+   * evaluate the transformation. As a result, this method avoids the duplicated evaluation of the
+   * same transformation.
    * @param t the reference to the transaction.
    * @param variable_full_name the full name of the variable.
    * @param data the reference to the data to be transformed, and the transformed data will be
@@ -38,6 +42,11 @@ public:
   virtual const char* name() const = 0;
 
 protected:
+  /**
+   * Evaluate the transformation.
+   * @param data the data to be transformed.
+   * @return the transformed data. if the transformation is failed, return an empty string.
+   */
   virtual std::string evaluate(std::string_view data) const = 0;
 };
 } // namespace Transformation

@@ -290,38 +290,86 @@ public:
   void removeRuleTarget(const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
 
+  /**
+   * Get the message macro expanded of current matched rule.
+   * @return the message macro expanded of current matched rule.
+   * @note We must copy the result to  another buffer if we want to store the result and use it
+   * later. Because the result is a shared buffer that will be updated by the next matched rule.
+   */
   const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_.string_buffer_; }
 
+  /**
+   * Get the log data macro expanded of current matched rule.
+   * @return the log data macro expanded of current matched rule.
+   * @note We must copy the result to  another buffer if we want to store the result and use it
+   * later. Because the result is a shared buffer that will be updated by the next matched rule.
+   */
   const std::string& getLogDataMacroExpanded() const {
     return log_data_macro_expanded_.string_buffer_;
   }
 
+  /**
+   * Set the message macro expanded of current matched rule.
+   * @param msg_macro_expanded the message macro expanded of current matched rule.
+   */
   void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
     msg_macro_expanded_ = std::move(msg_macro_expanded);
   }
 
+  /**
+   * Set the log data macro expanded of current matched rule.
+   * @param log_data_macro_expanded the log data macro expanded of current matched rule.
+   */
   void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
     log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
+  /**
+   * Add a matched variable.
+   * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
+   * @param variable the matched variable.
+   * @param result the result of the matched variable.
+   */
   void pushMatchedVariable(const Variable::VariableBase* variable,
                            Common::EvaluateResults::Element&& result) {
     matched_variables_.emplace_back(variable, std::move(result));
   }
 
+  /**
+   * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
+   * @return the matched variables.
+   */
   const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>>&
   getMatchedVariables() const {
     return matched_variables_;
   }
 
+  /**
+   * Get the transformation cache.
+   * @return the transformation cache.
+   */
   std::unordered_map<Variable::FullName,
                      std::unordered_map<const char*, Common::EvaluateResults::Element>>&
   getTransformCache() {
     return transform_cache_;
   }
 
+  /**
+   * Get the connection info.
+   * @return the connection info.
+   */
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
+
+  /**
+   * Get the raw request line.
+   * @return the string view of the raw request line.
+   */
   std::string_view getRequestLine() const { return request_line_; }
+
+  /**
+   * Get the request line info.
+   * @return the request line info that parsed from the raw request line.
+   */
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
 private:
