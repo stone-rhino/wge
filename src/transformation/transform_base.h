@@ -2,6 +2,9 @@
 
 #include <string>
 
+#include "../common/evaluate_result.h"
+#include "../transaction.h"
+
 #define DECLARE_TRANSFORM_NAME(n)                                                                  \
 public:                                                                                            \
   const char* name() const override { return name_; }                                              \
@@ -18,17 +21,22 @@ public:
 public:
   /**
    * Evaluate the transformation.
-   * @param data the data to be transformed.
-   * @param data_len the length of the data.
-   * @return the transformed data. if the transformation fails, return an empty string.
+   * @param t the reference to the transaction.
+   * @param data the reference to the data to be transformed, and the transformed data will be
+   * stored in it.
+   * @return ture if the transformation is successful, otherwise false the data will not be
+   * modified.
    */
-  virtual std::string evaluate(const void* data, size_t data_len) const = 0;
+  bool evaluate(Transaction& t, Common::EvaluateResults::Element& data) const;
 
   /**
    * Get the name of the transform.
    * @return the mname of the transform.
    */
   virtual const char* name() const = 0;
+
+protected:
+  virtual std::string evaluate(std::string_view data) const = 0;
 };
 } // namespace Transformation
 } // namespace SrSecurity

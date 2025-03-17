@@ -10,20 +10,15 @@ class HexDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(hexDecode);
 
 public:
-  std::string evaluate(const void* data, size_t data_len) const override {
+  std::string evaluate(std::string_view data) const override {
     std::string result;
 
-    // Check the input
-    if (data == nullptr || data_len == 0) [[unlikely]] {
-      return result;
-    }
-
     // To hex value
-    result.resize(data_len / 2 + data_len % 2);
-    const char* pch = reinterpret_cast<const char*>(data);
+    result.resize(data.length() / 2 + data.length() % 2);
+    const char* pch = data.data();
     char* pr = result.data();
     size_t len = 0;
-    for (size_t i = 0; i < data_len; ++i) {
+    for (size_t i = 0; i < data.length(); ++i) {
       auto pos = hex_table_.find(pch[i]);
       if (pos == std::string::npos) {
         result.clear();

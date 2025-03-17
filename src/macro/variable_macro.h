@@ -17,7 +17,7 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) override {
     variable_->evaluate(t, result);
     SRSECURITY_LOG_TRACE("macro %{{{}}} expanded: {}", makeVariableName(),
-                         VISTIT_VARIANT_AS_STRING(result.front()));
+                         VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
 private:

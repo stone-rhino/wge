@@ -8,17 +8,11 @@
 
 namespace SrSecurity {
 namespace Transformation {
-std::string Sha1::evaluate(const void* data, size_t data_len) const {
+std::string Sha1::evaluate(std::string_view data) const {
   std::string result;
-
-  // Check the input
-  if (data == nullptr || data_len == 0) [[unlikely]] {
-    return result;
-  }
-
   // Process the data
   boost::uuids::detail::sha1 sha1_;
-  sha1_.process_bytes(data, data_len);
+  sha1_.process_bytes(data.data(), data.length());
   boost::uuids::detail::sha1::digest_type digest;
   sha1_.get_digest(digest);
 

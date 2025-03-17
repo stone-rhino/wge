@@ -28,10 +28,11 @@ public:
         auto pos2 = eval.find('}', pos1);
         assert(pos2 != std::string::npos);
         macro->evaluate(t, result);
-        if (IS_INT_VARIANT(result.front())) {
-          eval = eval.replace(pos1, pos2 - pos1 + 1, std::to_string(std::get<int>(result.front())));
-        } else if (IS_STRING_VIEW_VARIANT(result.front())) {
-          auto& sv = std::get<std::string_view>(result.front());
+        if (IS_INT_VARIANT(result.front().variant_)) {
+          eval = eval.replace(pos1, pos2 - pos1 + 1,
+                              std::to_string(std::get<int>(result.front().variant_)));
+        } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+          auto& sv = std::get<std::string_view>(result.front().variant_);
           eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
         } else [[unlikely]] {
           UNREACHABLE();
@@ -46,7 +47,7 @@ public:
     assert(eval.empty());
 
     SRSECURITY_LOG_TRACE("macro {} expanded: {}", literal_value_,
-                         VISTIT_VARIANT_AS_STRING(result.front()));
+                         VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
 private:

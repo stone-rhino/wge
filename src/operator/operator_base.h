@@ -14,14 +14,14 @@ private:                                                                        
   static constexpr char name_[] = #n;
 
 #define MACRO_EXPAND_STRING_VIEW(var)                                                              \
-  Common::EvaluateResults result;                                                                   \
+  Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  std::string_view var = std::get<std::string_view>(result.front());
+  std::string_view var = std::get<std::string_view>(result.front().variant_);
 
 #define MACRO_EXPAND_INT(var)                                                                      \
-  Common::EvaluateResults result;                                                                   \
+  Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  int var = std::get<int>(result.front());
+  int var = std::get<int>(result.front().variant_);
 
 namespace SrSecurity {
 namespace Operator {

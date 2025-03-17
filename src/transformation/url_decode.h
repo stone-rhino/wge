@@ -12,8 +12,8 @@ class UrlDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(urlDecode);
 
 public:
-  std::string evaluate(const void* data, size_t data_len) const override {
-    boost::urls::pct_string_view pct_str(reinterpret_cast<const char*>(data), data_len);
+  std::string evaluate(std::string_view data) const override {
+    boost::urls::pct_string_view pct_str(data);
     return pct_str.decode();
   }
 };

@@ -50,30 +50,25 @@ public:
 
 public:
   /**
-   * Get the front value of the result.
-   * @return the front value of the result.
+   * Get the front element of the results.
+   * @return the front element of the results.
    */
-  const Common::Variant& front() const {
-    if (size_ != 0) [[likely]] {
-      return stack_results_.front().variant_;
-    }
-    return EMPTY_VARIANT;
-  }
+  Element& front() { return stack_results_[0]; }
 
   /**
-   * Get the value of the result by index.
-   * @param index the index of the result.
-   * @return the value of the result.
+   * Get the element of the results by index.
+   * @param index the index of the results.
+   * @return the element of the results.
    */
-  const Common::Variant& get(size_t index) const {
+  Element& get(size_t index) {
     assert(index < size_);
     if (index < size_) [[likely]] {
       if (index < stack_result_size) [[likely]] {
-        return stack_results_[index].variant_;
+        return stack_results_[index];
       }
-      return heap_results_[index - stack_result_size].variant_;
+      return heap_results_[index - stack_result_size];
     }
-    return EMPTY_VARIANT;
+    return stack_results_[0];
   }
 
   /**

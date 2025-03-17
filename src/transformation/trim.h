@@ -10,7 +10,7 @@ class Trim : public TransformBase {
   DECLARE_TRANSFORM_NAME(trim);
 
 public:
-  std::string evaluate(const void* data, size_t data_len) const override {
+  std::string evaluate(std::string_view data) const override {
     assert(false);
     throw "Not implemted!";
   }

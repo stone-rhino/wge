@@ -55,30 +55,16 @@ bool Rule::evaluate(Transaction& t) const {
 
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); i++) {
-      const Common::Variant& var_variant = result.get(i);
-      std::string_view var_str;
+      Common::EvaluateResults::Element& variable_value = result.get(i);
       bool variable_matched = false;
-      if (IS_STRING_VIEW_VARIANT(var_variant)) [[likely]] {
+      if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
         // Evaluate the transformations
-        std::string transforms_result;
-        evaluateTransform(t, std::get<std::string_view>(var_variant), var, transforms_result);
-
-        // Evaluate the operator
-        if (!transforms_result.empty()) {
-          variable_matched = evaluateOperator(t, transforms_result);
-          Common::EvaluateResults::Element curr_variable_reulst;
-          curr_variable_reulst.string_buffer_ = std::move(transforms_result);
-          curr_variable_reulst.variant_ = curr_variable_reulst.string_buffer_;
-          t.pushMatchedVariable(var.get(), std::move(curr_variable_reulst));
-        } else {
-          variable_matched = evaluateOperator(t, var_variant);
-          t.pushMatchedVariable(var.get(), result.move(i));
-        }
-      } else {
-        // Evaluate the operator
-        variable_matched = evaluateOperator(t, var_variant);
-        t.pushMatchedVariable(var.get(), result.move(i));
+        evaluateTransform(t, variable_value);
       }
+
+      // Evaluate the operator
+      variable_matched = evaluateOperator(t, variable_value.variant_);
+      t.pushMatchedVariable(var.get(), result.move(i));
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
@@ -148,16 +134,13 @@ inline void Rule::evaluateVariable(Transaction& t,
                                    const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                    Common::EvaluateResults& result) const {
   var->evaluate(t, result);
-  const Common::Variant* var_value = &result.front();
   SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
                        var->isCounter() ? "&" : "", var->mainName(),
                        var->subName().empty() ? "" : "." + var->subName(),
-                       VISTIT_VARIANT_AS_STRING(*var_value));
+                       VISTIT_VARIANT_AS_STRING(result.front().variant_));
 }
 
-inline void Rule::evaluateTransform(Transaction& t, std::string_view var_value,
-                                    const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                                    std::string& result) const {
+inline void Rule::evaluateTransform(Transaction& t, Common::EvaluateResults::Element& data) const {
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
@@ -173,18 +156,16 @@ inline void Rule::evaluateTransform(Transaction& t, std::string_view var_value,
     }
 
     // Evaluate the default transformations
-    for (auto& t : transforms) {
-      SRSECURITY_LOG_TRACE("evaluate default transformation: {}", t->name());
-      result = t->evaluate(var_value.data(), var_value.size());
-      var_value = result;
+    for (auto& transform : transforms) {
+      bool ret = transform->evaluate(t, data);
+      SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
     }
   }
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
-    SRSECURITY_LOG_TRACE("evaluate action defined transformation: {}", transform->name());
-    result = transform->evaluate(var_value.data(), var_value.size());
-    var_value = result;
+    bool ret = transform->evaluate(t, data);
+    SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
   }
 }
 
