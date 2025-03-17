@@ -842,7 +842,7 @@ private:
 
       // Remove the variable first if current mode is update rule
       if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
-        Variable::VariableBase::FullName full_name{variable->fullName()};
+        Variable::FullName full_name{variable->fullName()};
         (*current_rule_iter_)->removeVariable(full_name);
       }
 

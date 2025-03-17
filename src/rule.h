@@ -151,14 +151,13 @@ public:
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
 
-  void removeVariable(const Variable::VariableBase::FullName& full_name);
+  void removeVariable(const Variable::FullName& full_name);
 
   const std::vector<std::unique_ptr<Variable::VariableBase>>& variables() const {
     return variables_;
   }
 
-  const std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>&
-  variablesIndex() const {
+  const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
     return variables_index_by_full_name_;
   }
 
@@ -170,7 +169,8 @@ private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                Common::EvaluateResults& result) const;
-  inline void evaluateTransform(Transaction& t, Common::EvaluateResults::Element& data) const;
+  inline void evaluateTransform(Transaction& t, const Variable::FullName& variable_full_name,
+                                Common::EvaluateResults::Element& data) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateMsgMacro(Transaction& t) const;
@@ -184,8 +184,7 @@ private:
   std::unique_ptr<Operator::OperatorBase> operator_;
 
   // Build the index to quick find
-  std::unordered_map<Variable::VariableBase::FullName, Variable::VariableBase&>
-      variables_index_by_full_name_;
+  std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;
 
   // Action Group: Meta-data
 private:

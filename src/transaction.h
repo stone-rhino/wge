@@ -13,6 +13,7 @@
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
+#include "variable/full_name.h"
 
 namespace SrSecurity {
 class Engine;
@@ -313,6 +314,12 @@ public:
     return matched_variables_;
   }
 
+  std::unordered_map<Variable::FullName,
+                     std::unordered_map<const char*, Common::EvaluateResults::Element>>&
+  getTransformCache() {
+    return transform_cache_;
+  }
+
   const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
   std::string_view getRequestLine() const { return request_line_; }
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
@@ -356,10 +363,14 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
-  using MatchedVariable = std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
+  using MatchedVariable =
+      std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
   std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
+  std::unordered_map<Variable::FullName,
+                     std::unordered_map<const char*, Common::EvaluateResults::Element>>
+      transform_cache_;
 
   // ctl
 private:

@@ -22,12 +22,14 @@ public:
   /**
    * Evaluate the transformation.
    * @param t the reference to the transaction.
+   * @param variable_full_name the full name of the variable.
    * @param data the reference to the data to be transformed, and the transformed data will be
    * stored in it.
    * @return ture if the transformation is successful, otherwise false the data will not be
    * modified.
    */
-  bool evaluate(Transaction& t, Common::EvaluateResults::Element& data) const;
+  bool evaluate(Transaction& t, const Variable::FullName& variable_full_name,
+                Common::EvaluateResults::Element& data) const;
 
   /**
    * Get the name of the transform.

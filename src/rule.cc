@@ -59,7 +59,7 @@ bool Rule::evaluate(Transaction& t) const {
       bool variable_matched = false;
       if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
         // Evaluate the transformations
-        evaluateTransform(t, variable_value);
+        evaluateTransform(t, var->fullName(), variable_value);
       }
 
       // Evaluate the operator
@@ -107,7 +107,7 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
   }
 }
 
-void Rule::removeVariable(const Variable::VariableBase::FullName& full_name) {
+void Rule::removeVariable(const Variable::FullName& full_name) {
   auto iter = variables_index_by_full_name_.find(full_name);
   if (iter != variables_index_by_full_name_.end()) {
     variables_index_by_full_name_.erase(iter);
@@ -140,7 +140,8 @@ inline void Rule::evaluateVariable(Transaction& t,
                        VISTIT_VARIANT_AS_STRING(result.front().variant_));
 }
 
-inline void Rule::evaluateTransform(Transaction& t, Common::EvaluateResults::Element& data) const {
+inline void Rule::evaluateTransform(Transaction& t, const Variable::FullName& variable_full_name,
+                                    Common::EvaluateResults::Element& data) const {
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
@@ -157,14 +158,14 @@ inline void Rule::evaluateTransform(Transaction& t, Common::EvaluateResults::Ele
 
     // Evaluate the default transformations
     for (auto& transform : transforms) {
-      bool ret = transform->evaluate(t, data);
+      bool ret = transform->evaluate(t, variable_full_name, data);
       SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
     }
   }
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
-    bool ret = transform->evaluate(t, data);
+    bool ret = transform->evaluate(t, variable_full_name, data);
     SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
   }
 }
