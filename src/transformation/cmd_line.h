@@ -11,8 +11,56 @@ class CmdLine : public TransformBase {
 
 public:
   std::string evaluate(const void* data, size_t data_len) const override {
-    assert(false);
-    throw "Not implemted!";
+    // The cmdLine transformation function avoids this problem by manipulating the variable contend
+    // in the following ways:
+    // deleting all backslashes [\]
+    // deleting all double quotes ["]
+    // deleting all single quotes [']
+    // deleting all carets [^]
+    // deleting spaces before a slash /
+    // deleting spaces before an open parentesis [(]
+    // replacing all commas [,] and semicolon [;] into a space
+    std::string result;
+    std::string_view data_view(static_cast<const char*>(data), data_len);
+    for (size_t i = 0; i < data_len; ++i) {
+      switch (data_view[i]) {
+      case '\\':
+      case '"':
+      case '\'':
+      case '^':
+        break;
+      case ' ':
+        if (i + 1 < data_len && (data_view[i + 1] == '/' || data_view[i + 1] == '(')) {
+          break;
+        }
+        result.push_back(data_view[i]);
+        break;
+      case ',':
+      case ';':
+        result.push_back(' ');
+        break;
+      default:
+        result.push_back(data_view[i]);
+        break;
+      }
+    }
+
+    // replacing all multiple spaces (including tab, newline, etc.) into one space
+    // transform all characters to lowercase
+    bool is_space = false;
+    for (size_t i = 0; i < data_len; ++i) {
+      if (std::isspace(data_view[i])) {
+        if (!is_space) {
+          result.push_back(' ');
+          is_space = true;
+        }
+      } else {
+        result.push_back(std::tolower(data_view[i]));
+        is_space = false;
+      }
+    }
+
+    return result;
   }
 };
 } // namespace Transformation
