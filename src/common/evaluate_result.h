@@ -14,7 +14,7 @@ namespace Common {
 // different from the traditional SBO. It will try to store the result in the stack first. If the
 // result is too big, it will store the result in the heap, but will not move the result from the
 // stack to the heap. It use the stack and heap at the same time.
-class EvaluateResult {
+class EvaluateResults {
 private:
   // The size of the stack result. About how to set the size of the stack result, we can run the
   // benchmark to get the best size of the stack result. Currnetly, we set the size of the stack
@@ -22,27 +22,27 @@ private:
   static constexpr size_t stack_result_size = 1;
 
 public:
-  EvaluateResult() = default;
-  EvaluateResult(const EvaluateResult&) = delete;
+  EvaluateResults() = default;
+  EvaluateResults(const EvaluateResults&) = delete;
 
 public:
-  struct Result {
+  struct Element {
     std::string string_buffer_;
     Common::Variant variant_;
-    Result() = default;
-    Result(const Common::Variant& value) : variant_(value) {}
-    Result(std::string&& value) : string_buffer_(std::move(value)), variant_(string_buffer_) {}
-    Result(Result&& result) {
-      variant_ = std::move(result.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_) && !result.string_buffer_.empty()) {
-        string_buffer_ = std::move(result.string_buffer_);
+    Element() = default;
+    Element(const Common::Variant& value) : variant_(value) {}
+    Element(std::string&& value) : string_buffer_(std::move(value)), variant_(string_buffer_) {}
+    Element(Element&& element) {
+      variant_ = std::move(element.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
+        string_buffer_ = std::move(element.string_buffer_);
         variant_ = string_buffer_;
       }
     }
-    void operator=(Result&& result) {
-      variant_ = std::move(result.variant_);
-      if (IS_STRING_VIEW_VARIANT(variant_) && !result.string_buffer_.empty()) {
-        string_buffer_ = std::move(result.string_buffer_);
+    void operator=(Element&& element) {
+      variant_ = std::move(element.variant_);
+      if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
+        string_buffer_ = std::move(element.string_buffer_);
         variant_ = string_buffer_;
       }
     }
@@ -108,30 +108,30 @@ public:
    * @param index the index of the result.
    * @return the result
    */
-  Result move(size_t index) {
+  Element move(size_t index) {
     assert(index < size_);
-    Result result;
+    Element element;
     if (index < size_) [[likely]] {
-      EvaluateResult::Result* p = index < stack_result_size
-                                      ? &stack_results_[index]
-                                      : &heap_results_[index - stack_result_size];
-      result.variant_ = std::move(p->variant_);
-      result.string_buffer_ = std::move(p->string_buffer_);
-      if (!result.string_buffer_.empty() && IS_STRING_VIEW_VARIANT(p->variant_)) {
-        result.variant_ = result.string_buffer_;
+      EvaluateResults::Element* p = index < stack_result_size
+                                        ? &stack_results_[index]
+                                        : &heap_results_[index - stack_result_size];
+      element.variant_ = std::move(p->variant_);
+      element.string_buffer_ = std::move(p->string_buffer_);
+      if (!element.string_buffer_.empty() && IS_STRING_VIEW_VARIANT(p->variant_)) {
+        element.variant_ = element.string_buffer_;
       }
       p->variant_ = EMPTY_VARIANT;
     }
-    return result;
+    return element;
   }
 
 private:
-  std::array<Result, stack_result_size> stack_results_;
-  std::vector<Result> heap_results_;
+  std::array<Element, stack_result_size> stack_results_;
+  std::vector<Element> heap_results_;
   size_t size_{0};
 };
 
-template <> inline void EvaluateResult::append(std::string&& value) {
+template <> inline void EvaluateResults::append(std::string&& value) {
   if (size_ < stack_result_size) [[likely]] {
     auto& result = stack_results_[size_];
     result.string_buffer_ = std::move(value);

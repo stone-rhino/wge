@@ -19,7 +19,7 @@ public:
       : MacroBase(std::move(literal_value)), macros_(std::move(macros)) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) override {
     std::string eval = literal_value_;
     for (auto& macro : macros_) {
       auto pos1 = eval.find("%{");

@@ -33,7 +33,7 @@ public:
    * @param t the transaction.
    * @param result the result of the evaluation.
    */
-  virtual void evaluate(Transaction& t, Common::EvaluateResult& result) = 0;
+  virtual void evaluate(Transaction& t, Common::EvaluateResults& result) = 0;
 
 protected:
   std::string literal_value_;

@@ -50,7 +50,7 @@ bool Rule::evaluate(Transaction& t) const {
   // Evaluate the variables
   bool rule_matched = false;
   for (auto& var : variables_) {
-    Common::EvaluateResult result;
+    Common::EvaluateResults result;
     evaluateVariable(t, var, result);
 
     // Evaluate each variable result
@@ -66,7 +66,7 @@ bool Rule::evaluate(Transaction& t) const {
         // Evaluate the operator
         if (!transforms_result.empty()) {
           variable_matched = evaluateOperator(t, transforms_result);
-          Common::EvaluateResult::Result curr_variable_reulst;
+          Common::EvaluateResults::Element curr_variable_reulst;
           curr_variable_reulst.string_buffer_ = std::move(transforms_result);
           curr_variable_reulst.variant_ = curr_variable_reulst.string_buffer_;
           t.pushMatchedVariable(var.get(), std::move(curr_variable_reulst));
@@ -146,7 +146,7 @@ void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) { operator_
 
 inline void Rule::evaluateVariable(Transaction& t,
                                    const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                                   Common::EvaluateResult& result) const {
+                                   Common::EvaluateResults& result) const {
   var->evaluate(t, result);
   const Common::Variant* var_value = &result.front();
   SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
@@ -213,7 +213,7 @@ inline bool Rule::evaluateChain(Transaction& t) const {
 
 inline void Rule::evaluateMsgMacro(Transaction& t) const {
   if (msg_macro_) [[unlikely]] {
-    Common::EvaluateResult msg_result;
+    Common::EvaluateResults msg_result;
     msg_macro_->evaluate(t, msg_result);
     t.setMsgMacroExpanded(msg_result.move(0));
     SRSECURITY_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
@@ -222,7 +222,7 @@ inline void Rule::evaluateMsgMacro(Transaction& t) const {
 
 inline void Rule::evaluateLogDataMacro(Transaction& t) const {
   if (log_data_macro_) [[unlikely]] {
-    Common::EvaluateResult log_data_result;
+    Common::EvaluateResults log_data_result;
     log_data_macro_->evaluate(t, log_data_result);
     t.setLogDataMacroExpanded(log_data_result.move(0));
     SRSECURITY_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());

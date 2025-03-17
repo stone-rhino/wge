@@ -12,7 +12,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     assert(!t.getMatchedVariables().empty());
     if (!t.getMatchedVariables().empty()) [[likely]] {
       if (!is_counter_) [[likely]] {

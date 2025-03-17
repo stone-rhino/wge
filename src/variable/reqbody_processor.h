@@ -16,7 +16,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
     if (iter != body_processor_type_map_.end()) {

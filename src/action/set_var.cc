@@ -48,7 +48,7 @@ void SetVar::evaluate(Transaction& t) const {
   switch (type_) {
   case EvaluateType::Create: {
     if (key_macro_) [[unlikely]] {
-      Common::EvaluateResult result;
+      Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front());
       SRSECURITY_LOG_TRACE("setvar(Create): tx.{}=1", key);
@@ -61,11 +61,11 @@ void SetVar::evaluate(Transaction& t) const {
   } break;
   [[likely]] case EvaluateType::CreateAndInit: {
     if (key_macro_) [[unlikely]] {
-      Common::EvaluateResult result;
+      Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front());
       if (value_macro_) [[unlikely]] {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
                              VISTIT_VARIANT_AS_STRING(result.front()));
@@ -77,7 +77,7 @@ void SetVar::evaluate(Transaction& t) const {
       }
     } else {
       if (value_macro_) [[unlikely]] {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
                              VISTIT_VARIANT_AS_STRING(result.front()));
@@ -91,7 +91,7 @@ void SetVar::evaluate(Transaction& t) const {
   } break;
   case EvaluateType::Remove: {
     if (key_macro_) [[unlikely]] {
-      Common::EvaluateResult result;
+      Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front());
       SRSECURITY_LOG_TRACE("setvar(Remove): tx.{}", key);
@@ -104,11 +104,11 @@ void SetVar::evaluate(Transaction& t) const {
   } break;
   case EvaluateType::Increase: {
     if (key_macro_) [[unlikely]] {
-      Common::EvaluateResult result;
+      Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front());
       if (value_macro_) {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front());
         SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}+={}", key, value);
@@ -119,7 +119,7 @@ void SetVar::evaluate(Transaction& t) const {
       }
     } else {
       if (value_macro_) {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front());
         SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, value);
@@ -134,11 +134,11 @@ void SetVar::evaluate(Transaction& t) const {
   } break;
   case EvaluateType::Decrease: {
     if (key_macro_) [[unlikely]] {
-      Common::EvaluateResult result;
+      Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front());
       if (value_macro_) {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front());
         SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, value);
@@ -149,7 +149,7 @@ void SetVar::evaluate(Transaction& t) const {
       }
     } else {
       if (value_macro_) {
-        Common::EvaluateResult result;
+        Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front());
         SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);

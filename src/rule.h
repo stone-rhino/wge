@@ -169,7 +169,7 @@ public:
 private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
-                               Common::EvaluateResult& result) const;
+                               Common::EvaluateResults& result) const;
   inline void evaluateTransform(Transaction& t, std::string_view var_value,
                                 const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                 std::string& result) const;

@@ -81,7 +81,7 @@ public:
    * @param t the transaction.
    * @param result the result of the evaluation.
    */
-  virtual void evaluate(Transaction& t, Common::EvaluateResult& result) const = 0;
+  virtual void evaluate(Transaction& t, Common::EvaluateResults& result) const = 0;
 
   /**
    * Get the full name of the variable.

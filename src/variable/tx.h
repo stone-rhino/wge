@@ -18,7 +18,7 @@ public:
   }
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     if (matched_index_ == 0xffffffff) [[likely]] {
       if (is_counter_) {
         if (index_.has_value()) [[likely]] {

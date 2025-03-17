@@ -22,7 +22,7 @@ SetEnv::SetEnv(std::string&& key, std::shared_ptr<Macro::MacroBase> macro)
 
 void SetEnv::evaluate(Transaction& t) const {
   if (macro_) {
-    Common::EvaluateResult result;
+    Common::EvaluateResults result;
     macro_->evaluate(t, result);
     if (IS_INT_VARIANT(result.front())) {
       ::setenv(key_.c_str(), std::to_string(std::get<int>(result.front())).c_str(), 1);

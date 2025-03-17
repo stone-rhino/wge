@@ -295,20 +295,20 @@ public:
     return log_data_macro_expanded_.string_buffer_;
   }
 
-  void setMsgMacroExpanded(Common::EvaluateResult::Result&& msg_macro_expanded) {
+  void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
     msg_macro_expanded_ = std::move(msg_macro_expanded);
   }
 
-  void setLogDataMacroExpanded(Common::EvaluateResult::Result&& log_data_macro_expanded) {
+  void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
     log_data_macro_expanded_ = std::move(log_data_macro_expanded);
   }
 
   void pushMatchedVariable(const Variable::VariableBase* variable,
-                           Common::EvaluateResult::Result&& result) {
+                           Common::EvaluateResults::Element&& result) {
     matched_variables_.emplace_back(variable, std::move(result));
   }
 
-  const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResult::Result>>&
+  const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>>&
   getMatchedVariables() const {
     return matched_variables_;
   }
@@ -335,7 +335,7 @@ private:
   std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engine_;
-  std::vector<Common::EvaluateResult::Result> tx_variables_;
+  std::vector<Common::EvaluateResults::Element> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   const size_t literal_key_size_;
   static constexpr int max_capture_size_{100};
@@ -356,10 +356,10 @@ private:
   int current_phase_{1};
   const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
-  using MatchedVariable = std::pair<const Variable::VariableBase*, Common::EvaluateResult::Result>;
+  using MatchedVariable = std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
   std::vector<MatchedVariable> matched_variables_;
-  Common::EvaluateResult::Result msg_macro_expanded_;
-  Common::EvaluateResult::Result log_data_macro_expanded_;
+  Common::EvaluateResults::Element msg_macro_expanded_;
+  Common::EvaluateResults::Element log_data_macro_expanded_;
 
   // ctl
 private:

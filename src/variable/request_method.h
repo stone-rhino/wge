@@ -12,7 +12,7 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResult& result) const override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     if (!is_counter_) [[likely]] {
       result.append(t.getRequestLineInfo().method_);
     } else {
