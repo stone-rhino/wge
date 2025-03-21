@@ -1,6 +1,8 @@
 file(GLOB local_source
-  *.h
-  *.cc
+  rule_operator_test.cc
+  rule_action_test.cc
+  rule_evaluate_logic_test.cc
+  crs_test.cc
 )
 
 add_library(integration ${local_source})

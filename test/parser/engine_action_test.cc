@@ -2,41 +2,37 @@
 
 #include <gtest/gtest.h>
 
+#include "antlr4/parser.h"
 #include "engine.h"
 
 namespace SrSecurity {
 namespace Parsr {
 class EngineActionTest : public testing::Test {
-public:
-  EngineActionTest() : engine_(spdlog::level::trace) {}
-
-protected:
-  Engine engine_;
+private:
+  // Use for specific the main thread id, so that the ASSERT_IS_MAIN_THREAD macro can work
+  // correctly in the test.
+  Engine main_thread_id_init_helper_;
 };
 
 TEST_F(EngineActionTest, SecAction) {
   const std::string directive =
       R"(SecAction "id:1,phase:2,setvar:'tx.score=100',setvar:'tx.score1=%{tx.score}'")";
 
-  auto result = engine_.load(directive);
-  engine_.init();
-  auto t = engine_.makeTransaction();
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rules = engine_.rules(2);
+  auto& rules = parser.rules();
   EXPECT_EQ(rules.size(), 1);
   auto& rule = rules.front();
   EXPECT_EQ(rule->id(), 1);
   EXPECT_EQ(rule->phase(), 2);
+  EXPECT_EQ(rule->getOperator(), nullptr);
 
   auto& actions = rule->actions();
-  for (auto& action : actions) {
-    action->evaluate(*t);
-  }
-  int score = std::get<int>(t->getVariable("score"));
-  int score1 = std::get<int>(t->getVariable("score1"));
-  EXPECT_EQ(score, 100);
-  EXPECT_EQ(score1, 100);
+  EXPECT_EQ(actions.size(), 2);
+  EXPECT_EQ(actions[0]->name(), std::string_view("setvar"));
+  EXPECT_EQ(actions[1]->name(), std::string_view("setvar"));
 }
 
 TEST_F(EngineActionTest, SecDefaultAction) {
@@ -44,15 +40,14 @@ TEST_F(EngineActionTest, SecDefaultAction) {
       R"(SecDefaultAction "phase:1,log,auditlog,pass"
       SecDefaultAction "phase:2,log,auditlog,pass")";
 
-  auto result = engine_.load(directive);
-  engine_.init();
-  auto t = engine_.makeTransaction();
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto rule1 = engine_.defaultActions(1);
-  auto rule2 = engine_.defaultActions(2);
-  EXPECT_NE(rule1, nullptr);
-  EXPECT_NE(rule2, nullptr);
+  auto& rules = parser.defaultActions();
+  EXPECT_EQ(rules.size(), 2);
+  auto& rule1 = rules.front();
+  auto& rule2 = rules.back();
   EXPECT_EQ(rule1->phase(), 1);
   EXPECT_EQ(rule2->phase(), 2);
   EXPECT_TRUE(rule1->log().value_or(false));

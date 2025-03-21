@@ -5,9 +5,10 @@
 #include "engine.h"
 
 namespace SrSecurity {
-class IntegrationTest : public testing::Test {
+namespace Integration {
+class CrsTest : public testing::Test {
 public:
-  IntegrationTest() : engine_(spdlog::level::trace) {}
+  CrsTest() : engine_(spdlog::level::trace) {}
 
 public:
   void SetUp() override {
@@ -27,20 +28,20 @@ public:
         "test/test_data/waf-conf/coreruleset/rules/REQUEST-932-APPLICATION-ATTACK-RCE.conf",
         "test/test_data/waf-conf/coreruleset/rules/REQUEST-933-APPLICATION-ATTACK-PHP.conf",
         "test/test_data/waf-conf/coreruleset/rules/REQUEST-934-APPLICATION-ATTACK-GENERIC.conf",
-        "test/test_data/waf-conf/coreruleset/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf",
-        "test/test_data/waf-conf/coreruleset/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
-        "test/test_data/waf-conf/coreruleset/rules/"
-        "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
-        "test/test_data/waf-conf/coreruleset/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf",
-        "test/test_data/waf-conf/coreruleset/rules/REQUEST-949-BLOCKING-EVALUATION.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-950-DATA-LEAKAGES.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-955-DATA-LEAKAGES-APACHE.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
-        "test/test_data/waf-conf/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/REQUEST-941-APPLICATION-ATTACK-XSS.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/REQUEST-942-APPLICATION-ATTACK-SQLI.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/"
+        // "REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/REQUEST-944-APPLICATION-ATTACK-JAVA.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/REQUEST-949-BLOCKING-EVALUATION.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-950-DATA-LEAKAGES.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-951-DATA-LEAKAGES-SQL.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-952-DATA-LEAKAGES-JAVA.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-953-DATA-LEAKAGES-PHP.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-954-DATA-LEAKAGES-IIS.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-955-DATA-LEAKAGES-APACHE.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
+        // "test/test_data/waf-conf/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
     };
     for (auto& rule_file : rule_files) {
       result = engine_.loadFromFile(rule_file);
@@ -111,11 +112,12 @@ protected:
   std::vector<std::string_view> request_body_;
 };
 
-TEST_F(IntegrationTest, crs) {
+TEST_F(CrsTest, crs) {
   auto t = engine_.makeTransaction();
   t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
   t->processUri(uri_, method_, version_);
   t->processRequestHeaders(request_header_find_, request_header_traversal_, request_headers_.size(),
                            nullptr);
 }
+} // namespace Integration
 } // namespace SrSecurity

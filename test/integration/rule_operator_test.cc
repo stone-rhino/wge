@@ -13,7 +13,7 @@
 #include "variable/variables_include.h"
 
 namespace SrSecurity {
-namespace Parser {
+namespace Integration {
 class RuleOperatorTest : public testing::Test {
 public:
   RuleOperatorTest() : engine_(spdlog::level::trace) {}
@@ -345,5 +345,5 @@ SecRule TX:bar "@validateByteRange 65,66-68" "id:2,phase:1,setvar:'tx.false'")";
   EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
 }
-} // namespace Parser
+} // namespace Integration
 } // namespace SrSecurity
