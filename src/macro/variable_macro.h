@@ -22,7 +22,8 @@ public:
 
 private:
   std::string makeVariableName() {
-    std::string name = variable_->mainName();
+    std::string name;
+    name = variable_->mainName();
     if (!variable_->subName().empty()) {
       name += "." + variable_->subName();
     }

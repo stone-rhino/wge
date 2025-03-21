@@ -14,10 +14,10 @@
 #define DECLARE_VIRABLE_NAME(name)                                                                 \
 public:                                                                                            \
   FullName fullName() const override { return {main_name_, sub_name_}; }                           \
-  const char* mainName() const override { return main_name_; }                                     \
+  std::string_view mainName() const override { return main_name_; }                                \
                                                                                                    \
 private:                                                                                           \
-  static constexpr char main_name_[] = #name;
+  static constexpr std::string_view main_name_{#name};
 
 namespace SrSecurity {
 namespace Variable {
@@ -52,7 +52,7 @@ public:
    * Get the main(collection) name of the variable.
    * @return the main(collection) name of the variable.
    */
-  virtual const char* mainName() const = 0;
+  virtual std::string_view mainName() const = 0;
 
   /**
    * Get whether the variable is a collection.
