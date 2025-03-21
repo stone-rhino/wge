@@ -98,11 +98,17 @@ TEST_F(TransformationTest, escapeSeqDecode) {
 }
 
 TEST_F(TransformationTest, hexDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  HexDecode hexDecode;
+  std::string data = "5468697320697320612074657374";
+  std::string result = hexDecode.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
 }
 
 TEST_F(TransformationTest, hexEncode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  HexEncode hexEncode;
+  std::string data = "This is a test";
+  std::string result = hexEncode.evaluate(data);
+  EXPECT_EQ(result, "5468697320697320612074657374");
 }
 
 TEST_F(TransformationTest, htmlEntityDecode) {
