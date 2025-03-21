@@ -3,10 +3,16 @@
 #include <gtest/gtest.h>
 
 #include "antlr4/parser.h"
+#include "engine.h"
 
 namespace SrSecurity {
 namespace Parsr {
-class EngineConfigTest : public testing::Test {};
+class EngineConfigTest : public testing::Test {
+private:
+  // Use for specific the main thread id, so that the ASSERT_IS_MAIN_THREAD macro can work
+  // correctly in the test.
+  Engine main_thread_id_init_helper_;
+};
 
 TEST_F(EngineConfigTest, EngineConfig) {
   {

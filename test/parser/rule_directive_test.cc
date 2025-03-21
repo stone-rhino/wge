@@ -15,11 +15,10 @@
 namespace SrSecurity {
 namespace Parser {
 class RuleTest : public testing::Test {
-public:
-  RuleTest() : engine_(spdlog::level::trace) {}
-
-public:
-  Engine engine_;
+private:
+  // Use for specific the main thread id, so that the ASSERT_IS_MAIN_THREAD macro can work
+  // correctly in the test.
+  Engine main_thread_id_init_helper_;
 };
 
 TEST_F(RuleTest, Rule) {

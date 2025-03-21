@@ -3,7 +3,8 @@
 #include "engine.h"
 
 namespace SrSecurity {
-TEST(RuleEvaluateLogic, evluateLogic) {
+namespace Integration {
+TEST(RuleEvaluateLogicTest, evluateLogic) {
   // Test that all variables will be evaluated and the action will be executed every time when the
   // each variable is matched.
   // And any variable is matched, the rule will be matched, and msg and logdata macro will be
@@ -101,7 +102,7 @@ TEST(RuleEvaluateLogic, evluateLogic) {
   }
 }
 
-TEST(RuleEvaluateLogic, exceptVariable) {
+TEST(RuleEvaluateLogicTest, exceptVariable) {
   // Test that the except variable is won't be evaluated.
   {
     const std::string directive = R"(
@@ -158,4 +159,5 @@ TEST(RuleEvaluateLogic, exceptVariable) {
     EXPECT_FALSE(matched);
   }
 }
+} // namespace Integration
 } // namespace SrSecurity
