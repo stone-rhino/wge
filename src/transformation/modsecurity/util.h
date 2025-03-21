@@ -17,4 +17,5 @@
 
 namespace SrSecurity::Transformation::ModSecurity {
 std::string cmdLime(std::string_view data);
+std::string cssDecode(std::string_view data);
 } // namespace SrSecurity::Transformation::ModSecurity
