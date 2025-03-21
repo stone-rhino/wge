@@ -1,6 +1,8 @@
 file(GLOB local_source
   *.h
   *.cc
+  modsecurity/*.h
+  modsecurity/*.cc
 )
 
 find_package(Boost REQUIRED COMPONENTS url)
