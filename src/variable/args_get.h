@@ -3,11 +3,12 @@
 #include <string>
 #include <string_view>
 
+#include "collection_base.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
 namespace Variable {
-class ArgsGet : public VariableBase {
+class ArgsGet : public VariableBase, public CollectionBase {
   friend class Args;
   DECLARE_VIRABLE_NAME(ARGS_GET);
 
@@ -19,12 +20,16 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     if (!is_counter_) [[likely]] {
       for (auto& query_param : t.getRequestLineInfo().query_params_) {
-        result.append(query_param.second);
+        if (!hasExceptVariable(query_param.first)) [[likely]] {
+          result.append(query_param.second);
+        }
       }
     } else {
       result.append(t.getRequestLineInfo().query_params_.empty() ? 0 : 1);
     }
   };
+
+  bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
 } // namespace SrSecurity

@@ -982,7 +982,7 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   // Variables pool
   auto& chain_rule = parser.rules().back()->backChainRule();
   auto& rule_var_pool = chain_rule->variables();
-  EXPECT_EQ(rule_var_pool.size(), 4);
+  ASSERT_EQ(rule_var_pool.size(), 3);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
   EXPECT_FALSE(rule_var_pool[0]->isCounter());
@@ -993,15 +993,17 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   EXPECT_FALSE(rule_var_pool[1]->isCounter());
   EXPECT_FALSE(rule_var_pool[1]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
-  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
-  EXPECT_FALSE(rule_var_pool[2]->isCounter());
-  EXPECT_TRUE(rule_var_pool[2]->isNot());
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[2].get()));
+  EXPECT_EQ(rule_var_pool[2]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[2]->isCounter());
+  EXPECT_FALSE(rule_var_pool[2]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
-  EXPECT_EQ(rule_var_pool[3]->subName(), "");
-  EXPECT_TRUE(rule_var_pool[3]->isCounter());
-  EXPECT_FALSE(rule_var_pool[3]->isNot());
+  auto& except_var_pool = chain_rule->exceptVariables();
+  ASSERT_EQ(except_var_pool.size(), 1);
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(except_var_pool[0].get()));
+  EXPECT_EQ(except_var_pool[0]->subName(), "foo");
+  EXPECT_FALSE(except_var_pool[0]->isCounter());
+  EXPECT_TRUE(except_var_pool[0]->isNot());
 
   // variables map
   auto& rule_var_index = chain_rule->variablesIndex();
@@ -1169,7 +1171,7 @@ TEST_F(RuleActionTest, ActionIdWithString) {
   // Variables pool
   EXPECT_EQ(parser.rules().size(), 1);
   auto& rule_var_pool = parser.rules().back()->variables();
-  ASSERT_EQ(rule_var_pool.size(), 4);
+  ASSERT_EQ(rule_var_pool.size(), 3);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
   EXPECT_FALSE(rule_var_pool[0]->isCounter());
@@ -1180,15 +1182,17 @@ TEST_F(RuleActionTest, ActionIdWithString) {
   EXPECT_FALSE(rule_var_pool[1]->isCounter());
   EXPECT_FALSE(rule_var_pool[1]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
-  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
-  EXPECT_FALSE(rule_var_pool[2]->isCounter());
-  EXPECT_TRUE(rule_var_pool[2]->isNot());
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[2].get()));
+  EXPECT_EQ(rule_var_pool[2]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[2]->isCounter());
+  EXPECT_FALSE(rule_var_pool[2]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
-  EXPECT_EQ(rule_var_pool[3]->subName(), "");
-  EXPECT_TRUE(rule_var_pool[3]->isCounter());
-  EXPECT_FALSE(rule_var_pool[3]->isNot());
+  auto& except_var_pool = parser.rules().back()->exceptVariables();
+  ASSERT_EQ(except_var_pool.size(), 1);
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(except_var_pool[0].get()));
+  EXPECT_EQ(except_var_pool[0]->subName(), "foo");
+  EXPECT_FALSE(except_var_pool[0]->isCounter());
+  EXPECT_TRUE(except_var_pool[0]->isNot());
 
   // variables map
   auto& rule_var_index = parser.rules().back()->variablesIndex();

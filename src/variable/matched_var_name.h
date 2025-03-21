@@ -16,7 +16,13 @@ public:
     assert(!t.getMatchedVariables().empty());
     if (!t.getMatchedVariables().empty()) [[likely]] {
       if (!is_counter_) [[likely]] {
-        result.append(t.getMatchedVariables().back().first->fullName().tostring());
+        auto& matched_var = t.getMatchedVariables().back();
+        if (matched_var.first->isCollection()) [[likely]] {
+          result.append(std::format("{}:{}", matched_var.first->mainName(),
+                                    matched_var.second.variable_sub_name_));
+        } else {
+          result.append(matched_var.first->fullName().tostring());
+        }
       } else {
         result.append(1);
       }

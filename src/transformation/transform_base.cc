@@ -1,11 +1,18 @@
 #include "transform_base.h"
 
 #include "../common/log.h"
+#include "../variable/variable_base.h"
 
 namespace SrSecurity {
 namespace Transformation {
-bool TransformBase::evaluate(Transaction& t, const Variable::FullName& variable_full_name,
+bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* variable,
                              Common::EvaluateResults::Element& data) const {
+  assert(variable);
+  Variable::FullName variable_full_name = variable->fullName();
+  if (variable->isCollection()) [[likely]] {
+    variable_full_name.sub_name_ = data.variable_sub_name_;
+  }
+
   // Check the cache
   std::unordered_map<Variable::FullName,
                      std::unordered_map<const char*, Common::EvaluateResults::Element>>&

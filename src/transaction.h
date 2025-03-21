@@ -208,6 +208,20 @@ public:
   const Common::Variant& getVariable(const std::string& name);
 
   /**
+   * Get the variables that the value is not empty in the transient transaction collection.
+   * @return the variables. the first element is the name of the variable, and the second element is
+   * the value of the variable.
+   */
+  std::vector<std::pair<std::string_view, Common::Variant*>> getVariables();
+
+  /**
+   * Get the count of the variables, which the value is not empty in the transient transaction
+   * collection.
+   * @return the count of the variables.
+   */
+  int getVariablesCount() const;
+
+  /**
    * Check if the variable exists in the transient transaction collection
    *
    * Used for check if the variable exists that the key of the variable can be evaluated at parse

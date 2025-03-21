@@ -54,6 +54,12 @@ public:
    */
   virtual const char* mainName() const = 0;
 
+  /**
+   * Get whether the variable is a collection.
+   * @return true if the variable is a collection, false otherwise.
+   */
+  virtual bool isCollection() const { return false; }
+
 public:
   /**
    * Get the sub name of the variable.
@@ -72,6 +78,17 @@ public:
    * @return true if the variable is a counter, false otherwise.
    */
   bool isCounter() const { return is_counter_; }
+
+  /**
+   * Update the variable.
+   * @param is_not whether the variable is negated.
+   * @param is_counter whether the variable is a counter.
+   */
+  void update(bool is_not, bool is_counter) {
+    ASSERT_IS_MAIN_THREAD();
+    is_not_ = is_not;
+    is_counter_ = is_counter;
+  }
 
 protected:
   std::string sub_name_;

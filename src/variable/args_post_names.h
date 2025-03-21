@@ -1,10 +1,11 @@
 #pragma once
 
+#include "collection_base.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
 namespace Variable {
-class ArgsPostNames : public VariableBase {
+class ArgsPostNames : public VariableBase, public CollectionBase  {
   DECLARE_VIRABLE_NAME(ARGS_POST_NAMES);
 
 public:
@@ -13,6 +14,8 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override { assert(false); throw "Not implemented!"; };
+
+  bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
 } // namespace SrSecurity

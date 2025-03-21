@@ -33,7 +33,7 @@ TEST_F(RuleTest, Rule) {
   // Variables pool
   EXPECT_EQ(parser.rules().size(), 1);
   auto& rule_var_pool = parser.rules().back()->variables();
-  ASSERT_EQ(rule_var_pool.size(), 4);
+  ASSERT_EQ(rule_var_pool.size(), 3);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
   EXPECT_FALSE(rule_var_pool[0]->isCounter());
@@ -44,15 +44,17 @@ TEST_F(RuleTest, Rule) {
   EXPECT_FALSE(rule_var_pool[1]->isCounter());
   EXPECT_FALSE(rule_var_pool[1]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[2].get()));
-  EXPECT_EQ(rule_var_pool[2]->subName(), "foo");
-  EXPECT_FALSE(rule_var_pool[2]->isCounter());
-  EXPECT_TRUE(rule_var_pool[2]->isNot());
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[2].get()));
+  EXPECT_EQ(rule_var_pool[2]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[2]->isCounter());
+  EXPECT_FALSE(rule_var_pool[2]->isNot());
 
-  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
-  EXPECT_EQ(rule_var_pool[3]->subName(), "");
-  EXPECT_TRUE(rule_var_pool[3]->isCounter());
-  EXPECT_FALSE(rule_var_pool[3]->isNot());
+  auto& except_var_pool = parser.rules().back()->exceptVariables();
+  ASSERT_EQ(except_var_pool.size(), 1);
+  EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(except_var_pool[0].get()));
+  EXPECT_EQ(except_var_pool[0]->subName(), "foo");
+  EXPECT_FALSE(except_var_pool[0]->isCounter());
+  EXPECT_TRUE(except_var_pool[0]->isNot());
 
   // variables map
   auto& rule_var_index = parser.rules().back()->variablesIndex();
@@ -285,8 +287,13 @@ SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,tag:'tag1',msg:'msg1'")";
     EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
-    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
-    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
+
+    auto& except_variables = parser.rules().front()->exceptVariables();
+    EXPECT_EQ(except_variables.size(), 2);
+    EXPECT_EQ(except_variables[0]->subName(), "aaa");
+    EXPECT_EQ(except_variables[1]->subName(), "bbb");
+    EXPECT_TRUE(except_variables[0]->isNot());
+    EXPECT_TRUE(except_variables[1]->isNot());
   }
 }
 
@@ -317,8 +324,13 @@ TEST_F(RuleTest, RuleUpdateTargetByMsg) {
     EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
-    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
-    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
+
+    auto& except_variables = parser.rules().back()->exceptVariables();
+    EXPECT_EQ(except_variables.size(), 2);
+    EXPECT_EQ(except_variables[0]->subName(), "aaa");
+    EXPECT_EQ(except_variables[1]->subName(), "bbb");
+    EXPECT_TRUE(except_variables[0]->isNot());
+    EXPECT_TRUE(except_variables[1]->isNot());
   }
 }
 
@@ -349,8 +361,13 @@ TEST_F(RuleTest, RuleUpdateTargetByTag) {
     EXPECT_NE(variable_index.find({"ARGS", "aaa"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "bbb"}), variable_index.end());
     EXPECT_NE(variable_index.find({"ARGS", "ccc"}), variable_index.end());
-    EXPECT_TRUE(variable_index.find({"ARGS", "aaa"})->second.isNot());
-    EXPECT_TRUE(variable_index.find({"ARGS", "bbb"})->second.isNot());
+
+    auto& except_variables = parser.rules().back()->exceptVariables();
+    EXPECT_EQ(except_variables.size(), 2);
+    EXPECT_EQ(except_variables[0]->subName(), "aaa");
+    EXPECT_EQ(except_variables[1]->subName(), "bbb");
+    EXPECT_TRUE(except_variables[0]->isNot());
+    EXPECT_TRUE(except_variables[1]->isNot());
   }
 }
 

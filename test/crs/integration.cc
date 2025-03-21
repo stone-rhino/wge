@@ -111,7 +111,7 @@ protected:
   std::vector<std::string_view> request_body_;
 };
 
-TEST(IntegrationPrevTest, ruleEvaluateLogic) {
+TEST(IntegrationPrev, ruleEvaluateLogic) {
   // Test that all variables will be evaluated and the action will be executed every time when the
   // each variable is matched.
   // And any variable is matched, the rule will be matched, and msg and logdata macro will be
@@ -206,6 +206,64 @@ TEST(IntegrationPrevTest, ruleEvaluateLogic) {
     EXPECT_FALSE(matched);
     EXPECT_TRUE(t->getMsgMacroExpanded().empty());
     EXPECT_TRUE(t->getLogDataMacroExpanded().empty());
+  }
+}
+
+TEST(IntegrationPrev, ruleExceptVariable) {
+  // Test that the except variable is won't be evaluated.
+  {
+    const std::string directive = R"(
+      SecRuleEngine On
+      SecAction "phase:1,setvar:tx.foo1=bar,setvar:tx.foo2=bar123,setvar:tx.foo3=bar,setvar:tx.foo4=BAR"
+      SecRule TX:foo1|TX:foo2|TX:foo3|TX:foo4|!TX:foo1|TX  "@streq bar" \
+      "id:1, \
+      phase:1, \
+      pass, \
+      t:none, \
+      t:lowercase, \
+      msg:'tx.test=%{tx.test}', \
+      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
+      setvar:tx.test=+1")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
+    EXPECT_EQ(std::get<int>(t->getVariable("test")), 4);
+    EXPECT_TRUE(matched);
+    EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
+    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:test=2 TX:foo2=bar123");
+  }
+
+  // Test that the except collection is won't be evaluated.
+  {
+    const std::string directive = R"(
+      SecRuleEngine On
+      SecAction "phase:1,setvar:tx.foo1=bar,setvar:tx.foo2=bar123,setvar:tx.foo3=bar,setvar:tx.foo4=BAR"
+      SecRule TX:foo1|TX:foo2|TX:foo3|TX:foo4|!TX "@streq bar" \
+      "id:1, \
+      phase:1, \
+      pass, \
+      t:none, \
+      t:lowercase, \
+      msg:'tx.test=%{tx.test}', \
+      logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
+      setvar:tx.test=+1")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
+    EXPECT_FALSE(t->hasVariable("test"));
+    EXPECT_FALSE(matched);
   }
 }
 

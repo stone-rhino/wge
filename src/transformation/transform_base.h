@@ -26,13 +26,13 @@ public:
    * evaluate the transformation. As a result, this method avoids the duplicated evaluation of the
    * same transformation.
    * @param t the reference to the transaction.
-   * @param variable_full_name the full name of the variable.
+   * @param variable the pointer to the variable.
    * @param data the reference to the data to be transformed, and the transformed data will be
    * stored in it.
    * @return ture if the transformation is successful, otherwise false the data will not be
    * modified.
    */
-  bool evaluate(Transaction& t, const Variable::FullName& variable_full_name,
+  bool evaluate(Transaction& t, const Variable::VariableBase* variable,
                 Common::EvaluateResults::Element& data) const;
 
   /**

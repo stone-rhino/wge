@@ -1,10 +1,11 @@
 #pragma once
 
+#include "collection_base.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
 namespace Variable {
-class MatchedVarsNames : public VariableBase {
+class MatchedVarsNames : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(MATCHED_VARS_NAMES);
 
 public:
@@ -14,16 +15,29 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     assert(!t.getMatchedVariables().empty());
-    if (!t.getMatchedVariables().empty()) [[likely]] {
-      if (!is_counter_) [[likely]] {
-        for (auto& [variable, _] : t.getMatchedVariables()) {
-          result.append(variable->fullName().tostring());
+    if (t.getMatchedVariables().empty()) [[unlikely]] {
+      return;
+    }
+
+    if (is_counter_) [[unlikely]] {
+      result.append(static_cast<int>(t.getMatchedVariables().size()));
+      return;
+    }
+
+    for (auto& [variable, variable_value] : t.getMatchedVariables()) {
+      auto full_name = variable->fullName();
+      if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
+        if (variable->isCollection()) {
+          result.append(
+              std::format("{}:{}", variable->mainName(), variable_value.variable_sub_name_));
+        } else {
+          result.append(full_name.tostring());
         }
-      } else {
-        result.append(static_cast<int>(t.getMatchedVariables().size()));
       }
     }
   };
+
+  bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
 } // namespace SrSecurity

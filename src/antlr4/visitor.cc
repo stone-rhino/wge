@@ -319,7 +319,6 @@ std::any Visitor::visitSec_rule_update_target_by_id(
   if (current_rule_iter_ != parser_->rules().end()) {
     // Visit variables
     std::string error;
-    visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
     TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
     if (!error.empty()) {
       return error;
@@ -332,7 +331,6 @@ std::any Visitor::visitSec_rule_update_target_by_id(
 std::any Visitor::visitSec_rule_update_target_by_msg(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
   auto range = parser_->findRuleByMsg(ctx->STRING()->getText());
-  visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
   for (auto iter = range.first; iter != range.second; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
@@ -349,7 +347,6 @@ std::any Visitor::visitSec_rule_update_target_by_msg(
 std::any Visitor::visitSec_rule_update_target_by_tag(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
   auto range = parser_->findRuleByTag(ctx->STRING()->getText());
-  visit_variable_mode_ = VisitVariableMode::SecUpdateTarget;
   for (auto iter = range.first; iter != range.second; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
@@ -759,7 +756,10 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
   bool is_not = ctx->NOT() != nullptr;
   bool is_counter = ctx->VAR_COUNT() != nullptr;
 
-  std::optional<size_t> index = parser_->getTxVariableIndex(sub_name, true);
+  std::optional<size_t> index;
+  if (!sub_name.empty()) {
+    index = parser_->getTxVariableIndex(sub_name, true);
+  }
 
   if (visit_variable_mode_ == VisitVariableMode::Ctl) {
     // std::any is copyable, so we can't return a unique_ptr
@@ -799,12 +799,6 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
     if (ctx->DOT()) {
       RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
                                variable->subName()));
-    }
-
-    // Remove the variable first if current mode is update rule
-    if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
-      Variable::FullName full_name{variable->fullName()};
-      (*current_rule_iter_)->removeVariable(full_name);
     }
 
     // Append variable

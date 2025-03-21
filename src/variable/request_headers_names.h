@@ -1,10 +1,11 @@
 #pragma once
 
+#include "collection_base.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
 namespace Variable {
-class RequestHeadersNames : public VariableBase {
+class RequestHeadersNames : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(REQUEST_HEADERS_NAMES);
 
 public:
@@ -17,19 +18,25 @@ public:
       if (sub_name_.empty()) {
         t.httpExtractor().request_header_traversal_(
             [&](std::string_view key, std::string_view value) {
-              result.append(key);
+              if (!hasExceptVariable(key)) [[likely]] {
+                result.append(key);
+              }
               return true;
             });
       } else {
         std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
         if (!value.empty()) {
-          result.append(sub_name_);
+          if (!hasExceptVariable(sub_name_)) [[likely]] {
+            result.append(sub_name_);
+          }
         }
       }
     } else {
       result.append(t.httpExtractor().request_header_count_ ? 1 : 0);
     }
   };
+
+  bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
 } // namespace SrSecurity

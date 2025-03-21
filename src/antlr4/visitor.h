@@ -840,12 +840,6 @@ private:
                                  variable->subName()));
       }
 
-      // Remove the variable first if current mode is update rule
-      if (visit_variable_mode_ == VisitVariableMode::SecUpdateTarget) {
-        Variable::FullName full_name{variable->fullName()};
-        (*current_rule_iter_)->removeVariable(full_name);
-      }
-
       // Append variable
       (*current_rule_iter_)->appendVariable(std::move(variable));
 
@@ -879,7 +873,7 @@ private:
   std::list<std::unique_ptr<Rule>>::iterator current_rule_iter_;
   bool chain_{false};
   std::unordered_multimap<std::string, std::string> action_map_;
-  enum class VisitVariableMode { SecRule, SecUpdateTarget, Ctl, Macro };
+  enum class VisitVariableMode { SecRule, Ctl, Macro };
   enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction, SecDefaultAction };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
   VisitActionMode visit_action_mode_{VisitActionMode::SecRule};

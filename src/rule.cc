@@ -7,8 +7,48 @@
 #include "common/try.h"
 #include "engine.h"
 #include "operator/rx.h"
+#include "variable/collection_base.h"
 
 namespace SrSecurity {
+void Rule::initExceptVariables() {
+  ASSERT_IS_MAIN_THREAD();
+
+  // Traverse the except variables and remove the matched variables from the variables list, or add
+  // the except variable to the collection except list.
+  for (auto& except_var : except_variables_) {
+    auto except_var_name = except_var->fullName();
+    for (auto iter = variables_.begin(); iter != variables_.end();) {
+      auto var_name = (*iter)->fullName();
+
+      // They are not the same collection
+      if (var_name.main_name_ != except_var_name.main_name_) {
+        ++iter;
+        continue;
+      }
+
+      // The specific exception is collection or they are the same variable, we remove the variable
+      // directly for the performance.
+      if (except_var_name.sub_name_.empty() || var_name.sub_name_ == except_var_name.sub_name_) {
+        variables_index_by_full_name_.erase(var_name);
+        iter = variables_.erase(iter);
+        continue;
+      }
+
+      // The specific exception is a variable and the variable that will be evaluate is a
+      // collection, we add the exception variable to the collection except list. It's use for
+      // except the specific variable when the collection is evaluated.
+      if (var_name.sub_name_.empty() && !except_var_name.sub_name_.empty()) {
+        Variable::CollectionBase* collection = dynamic_cast<Variable::CollectionBase*>(iter->get());
+        if (collection) {
+          collection->addExceptVariable(except_var_name.sub_name_);
+        }
+      }
+
+      ++iter;
+    }
+  }
+}
+
 /**
  * The evaluation process is as follows:
  * 1. Evaluate the variables
@@ -59,7 +99,7 @@ bool Rule::evaluate(Transaction& t) const {
       bool variable_matched = false;
       if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
         // Evaluate the transformations
-        evaluateTransform(t, var->fullName(), variable_value);
+        evaluateTransform(t, var.get(), variable_value);
       }
 
       // Evaluate the operator
@@ -68,8 +108,17 @@ bool Rule::evaluate(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        SRSECURITY_LOG_TRACE("variable is matched. {}{}", var->mainName(),
-                             var->subName().empty() ? "" : "." + var->subName());
+        SRSECURITY_LOG_TRACE([&]() {
+          if (!var->isCollection()) {
+            return std::format("variable is matched. {}{}", var->mainName(),
+                               var->subName().empty() ? "" : "." + var->subName());
+          } else {
+            auto& matched_var = t.getMatchedVariables().back();
+            return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                               matched_var.second.variable_sub_name_);
+          }
+        }());
+
         rule_matched = true;
 
         // Evaluate the default actions and the action defined actions
@@ -99,24 +148,19 @@ bool Rule::evaluate(Transaction& t) const {
 }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
-  auto full_name = var->fullName();
-  auto iter = variables_index_by_full_name_.find(full_name);
-  if (iter == variables_index_by_full_name_.end()) {
-    variables_.emplace_back(std::move(var));
-    variables_index_by_full_name_.insert({full_name, *variables_.back()});
-  }
-}
+  ASSERT_IS_MAIN_THREAD();
 
-void Rule::removeVariable(const Variable::FullName& full_name) {
-  auto iter = variables_index_by_full_name_.find(full_name);
-  if (iter != variables_index_by_full_name_.end()) {
-    variables_index_by_full_name_.erase(iter);
-    std::erase_if(variables_, [&](const std::unique_ptr<Variable::VariableBase>& var) {
-      if (var->fullName() == full_name) {
-        return true;
-      }
-      return false;
-    });
+  if (!var->isNot()) {
+    auto full_name = var->fullName();
+    auto iter = variables_index_by_full_name_.find(full_name);
+
+    // Not accept the same variable
+    if (iter == variables_index_by_full_name_.end()) {
+      variables_.emplace_back(std::move(var));
+      variables_index_by_full_name_.insert({full_name, *variables_.back()});
+    }
+  } else {
+    except_variables_.emplace_back(std::move(var));
   }
 }
 
@@ -128,19 +172,29 @@ void Rule::capture(bool value) {
   capture_ = value;
 }
 
-void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) { operator_ = std::move(op); }
+void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
+  ASSERT_IS_MAIN_THREAD();
+  operator_ = std::move(op);
+}
 
 inline void Rule::evaluateVariable(Transaction& t,
                                    const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                    Common::EvaluateResults& result) const {
   var->evaluate(t, result);
-  SRSECURITY_LOG_TRACE("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
-                       var->isCounter() ? "&" : "", var->mainName(),
-                       var->subName().empty() ? "" : "." + var->subName(),
-                       VISTIT_VARIANT_AS_STRING(result.front().variant_));
+  SRSECURITY_LOG_TRACE([&]() {
+    if (!var->isCollection()) {
+      return std::format("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
+                         var->isCounter() ? "&" : "", var->mainName(),
+                         var->subName().empty() ? "" : ":" + var->subName(),
+                         VISTIT_VARIANT_AS_STRING(result.front().variant_));
+    } else {
+      return std::format("evaluate collection: {}{}{}", var->isNot() ? "!" : "",
+                         var->isCounter() ? "&" : "", var->mainName());
+    }
+  }());
 }
 
-inline void Rule::evaluateTransform(Transaction& t, const Variable::FullName& variable_full_name,
+inline void Rule::evaluateTransform(Transaction& t, const SrSecurity::Variable::VariableBase* var,
                                     Common::EvaluateResults::Element& data) const {
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
@@ -158,15 +212,15 @@ inline void Rule::evaluateTransform(Transaction& t, const Variable::FullName& va
 
     // Evaluate the default transformations
     for (auto& transform : transforms) {
-      bool ret = transform->evaluate(t, variable_full_name, data);
+      bool ret = transform->evaluate(t, var, data);
       SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
     }
   }
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
-    bool ret = transform->evaluate(t, variable_full_name, data);
-    SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
+    bool ret = transform->evaluate(t, var, data);
+    SRSECURITY_LOG_TRACE("evaluate action defined transformation: {} {}", transform->name(), ret);
   }
 }
 

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "collection_base.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
 namespace Variable {
-class ArgsGetNames : public VariableBase {
+class ArgsGetNames : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(ARGS_GET_NAMES);
 
 public:
@@ -15,12 +16,16 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     if (!is_counter_) [[likely]] {
       for (auto& query_param : t.getRequestLineInfo().query_params_) {
-        result.append(query_param.first);
+        if (!hasExceptVariable(query_param.first)) [[likely]] {
+          result.append(query_param.first);
+        }
       }
     } else {
       result.append(t.getRequestLineInfo().query_params_.empty() ? 0 : 1);
     }
   };
+
+  bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
 } // namespace SrSecurity

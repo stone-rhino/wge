@@ -55,7 +55,11 @@ public:
   std::string error_msg;
 };
 
-Parser::Parser() { tx_variable_index_.reserve(1000); }
+Parser::Parser() {
+  constexpr size_t tx_variable_index_size = 1000;
+  tx_variable_index_.reserve(tx_variable_index_size);
+  tx_variable_index_reverse_.reserve(tx_variable_index_size);
+}
 
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // init
@@ -447,11 +451,21 @@ std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool f
   } else {
     if (force) {
       ASSERT_IS_MAIN_THREAD();
-      tx_variable_index_[name] = tx_variable_index_.size();
+      auto result = tx_variable_index_.insert({name, tx_variable_index_.size()});
+      tx_variable_index_reverse_.emplace_back(result.first->first);
       return tx_variable_index_.size() - 1;
     }
   }
 
   return std::nullopt;
+}
+
+std::string_view Parser::getTxVariableIndexReverse(size_t index) const {
+  assert(index < tx_variable_index_reverse_.size());
+  if (index < tx_variable_index_reverse_.size()) {
+    return tx_variable_index_reverse_[index];
+  }
+
+  return EMPTY_STRING_VIEW;
 }
 } // namespace SrSecurity::Antlr4

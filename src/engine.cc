@@ -103,6 +103,10 @@ std::optional<size_t> Engine::getTxVariableIndex(const std::string& name) const 
   return parser_->getTxVariableIndex(name, false);
 }
 
+std::string_view Engine::getTxVariableIndexReverse(size_t index) const {
+  return parser_->getTxVariableIndexReverse(index);
+}
+
 std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,
                                                                        int phase) const {
   assert(phase >= 1 && phase <= PHASE_TOTAL);
@@ -139,6 +143,11 @@ void Engine::initDefaultActions() {
 
 void Engine::initRules() {
   auto& rules = parser_->rules();
+
+  // Initialize the except variables
+  for (auto& rule : rules) {
+    rule->initExceptVariables();
+  }
 
   // Initialize the rules ctl
   for (auto& rule : rules) {

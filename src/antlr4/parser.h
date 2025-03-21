@@ -113,6 +113,7 @@ public:
 
   size_t getTxVariableIndexSize() const { return tx_variable_index_.size(); }
   std::optional<size_t> getTxVariableIndex(const std::string& name, bool force);
+  std::string_view getTxVariableIndexReverse(size_t index) const;
 
 private:
   EngineConfig engine_config_;
@@ -131,5 +132,6 @@ private:
 
   // Used to store the tx variable index of the vector tx_vec_.
   std::unordered_map<std::string, size_t> tx_variable_index_;
+  std::vector<std::string_view> tx_variable_index_reverse_;
 };
 } // namespace SrSecurity::Antlr4

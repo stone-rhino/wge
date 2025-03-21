@@ -24,6 +24,16 @@ public:
 
 public:
   /**
+   * Initialize the variables that are excepted.
+   * We can't auto initialize in the constructor because the except variables are defined by the
+   * SecRuleUpdateTargetById/SecRuleUpdateTargetByTag. Theses directive may be defined after the
+   * SecRule, So we must manually initialize the except variables after the all directives are
+   * loaded. We must call this function and only once before evaluating the rule.
+   */
+  void initExceptVariables();
+
+public:
+  /**
    * Evaluate the rule
    * The evaluation process is as follows:
    * 1. Evaluate the variables
@@ -151,10 +161,12 @@ public:
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
 
-  void removeVariable(const Variable::FullName& full_name);
-
   const std::vector<std::unique_ptr<Variable::VariableBase>>& variables() const {
     return variables_;
+  }
+
+  const std::vector<std::unique_ptr<Variable::VariableBase>>& exceptVariables() const {
+    return except_variables_;
   }
 
   const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
@@ -169,7 +181,7 @@ private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
                                Common::EvaluateResults& result) const;
-  inline void evaluateTransform(Transaction& t, const Variable::FullName& variable_full_name,
+  inline void evaluateTransform(Transaction& t, const SrSecurity::Variable::VariableBase* var,
                                 Common::EvaluateResults::Element& data) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
@@ -181,6 +193,7 @@ private:
   std::string_view file_path_;
   int line_;
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
+  std::vector<std::unique_ptr<Variable::VariableBase>> except_variables_;
   std::unique_ptr<Operator::OperatorBase> operator_;
 
   // Build the index to quick find

@@ -303,6 +303,28 @@ const Common::Variant& Transaction::getVariable(const std::string& name) {
   return EMPTY_VARIANT;
 }
 
+std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVariables() {
+  std::vector<std::pair<std::string_view, Common::Variant*>> variables;
+  variables.reserve(tx_variables_.size());
+  for (size_t i = 0; i < tx_variables_.size(); ++i) {
+    auto& variable = tx_variables_[i];
+    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+      variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable.variant_);
+    }
+  }
+  return variables;
+}
+
+int Transaction::getVariablesCount() const {
+  int count = 0;
+  for (auto& variable : tx_variables_) {
+    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 bool Transaction::hasVariable(size_t index) const {
   assert(index < tx_variables_.size());
   return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index].variant_);

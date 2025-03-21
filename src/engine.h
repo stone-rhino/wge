@@ -114,6 +114,13 @@ public:
    */
   std::optional<size_t> getTxVariableIndex(const std::string& name) const;
 
+  /**
+   * Get the transaction variable index reverse
+   * @param index the index of the variable
+   * @return the variable name. if the index is out of range, an empty string is returned
+   */
+  std::string_view getTxVariableIndexReverse(size_t index) const;
+
   std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name,
                                                                  int phase) const;
 
