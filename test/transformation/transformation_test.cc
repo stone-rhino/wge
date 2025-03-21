@@ -19,7 +19,70 @@ TEST_F(TransformationTest, base64Encode) {
 }
 
 TEST_F(TransformationTest, cmdLine) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  CmdLine cmdLine;
+
+  // deleting all backslashes [\]
+  {
+    std::string data = R"(\test\ \data\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test data");
+  }
+
+  // deleting all double quotes ["]
+  {
+    std::string data = R"(\"test\ \"data\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test data");
+  }
+
+  // deleting all single quotes [']
+  {
+    std::string data = R"(\"test'\ \"data'\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test data");
+  }
+
+  // deleting all carets [^]
+  {
+    std::string data = R"(\"te^st'\ \"da^ta'\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test data");
+  }
+
+  // deleting spaces before a slash /
+  {
+    std::string data = R"(\"te^st'\           /\"da^ta'\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test/data");
+  }
+
+  // deleting spaces before an open parentesis [(]
+  {
+    std::string data = R"(\"te^st'\           /          (\"da^ta'\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test/(data");
+  }
+
+  // replacing all commas [,] and semicolon [;] into a space
+  {
+    std::string data = R"(\"te^st'\           /          (,\"da^t;a'\)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test/( dat a");
+  }
+
+  // replacing all multiple spaces (including tab, newline, etc.) into one space
+  {
+    std::string data = "\\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test/( dat a");
+  }
+
+  // transform all characters to lowercase
+  {
+    std::string data = "\\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "test/( dat a_hello");
+  }
 }
 
 TEST_F(TransformationTest, compressWhiteSpace) {
