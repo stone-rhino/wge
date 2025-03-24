@@ -112,7 +112,32 @@ TEST_F(TransformationTest, hexEncode) {
 }
 
 TEST_F(TransformationTest, htmlEntityDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  HtmlEntityDecode htmlEntityDecode;
+  // clang-format off
+  std::unordered_map<std::string,std::string> test_cases = {
+    {"This is a test", "This is a test"},
+    {"&#x54;&#x68;&#x69;&#x73;&#x20;&#x69;&#x73;&#x20;&#x61;&#x20;&#x74;&#x65;&#x73;&#x74;", "This is a test"},
+    {"&#84;&#104;&#105;&#115;&#32;&#105;&#115;&#32;&#97;&#32;&#116;&#101;&#115;&#116;", "This is a test"},
+    {"&#x54;his is a test", "This is a test"},
+    {"&#84;his is a test", "This is a test"},
+    {"&#x54;his is a test", "This is a test"},
+    {"&#84;his is a test", "This is a test"},
+    {"&amp; &lt; &gt; &quot; &apos; &nbsp;", "& < > \" '  "},
+    {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"}
+  };
+  // clang-format on
+
+  for (auto& test_case : test_cases) {
+    std::string result = htmlEntityDecode.evaluate(test_case.first);
+    EXPECT_EQ(result, test_case.second);
+  }
+
+  // Test for not valid html entity
+  {
+    std::string data = "&amp; &lt; &gt; &quot; &apos; &nbsp; &notValid;";
+    std::string result = htmlEntityDecode.evaluate(data);
+    EXPECT_EQ(result, "& < > \" '   &notValid;");
+  }
 }
 
 TEST_F(TransformationTest, jsDecode) {
