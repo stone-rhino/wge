@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "modsecurity/util.h"
 #include "transform_base.h"
 
 namespace SrSecurity {
@@ -12,7 +11,7 @@ class CmdLine : public TransformBase {
   DECLARE_TRANSFORM_NAME(cmdLine);
 
 public:
-  std::string evaluate(std::string_view data) const override { return ModSecurity::cmdLime(data); }
+  std::string evaluate(std::string_view data) const override;
 };
 } // namespace Transformation
 } // namespace SrSecurity

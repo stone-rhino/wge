@@ -59,6 +59,7 @@ void emitNumericEntity(std::string& result, const std::string& entity_value, boo
 
 std::string htmlEntityDecode(std::string_view input) {
     std::string result;
+    result.reserve(input.size());
     const char* p = input.data();
     const char* pe = p + input.size();
     const char* eof = pe;
