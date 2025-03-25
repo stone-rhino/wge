@@ -21,82 +21,82 @@ TEST_F(TransformationTest, base64Encode) {
 }
 
 TEST_F(TransformationTest, cmdLine) {
-  const CmdLine cmdLine;
+  const CmdLine cmd_line;
 
   // Test that prescan is working, and that will not copy if there is no transformation
   {
     std::string data = R"(this is a test data)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_TRUE(result.empty());
   }
 
   // Test that prescan is working, and that will hold the token if there is a transformation
   {
     std::string data = R"(this        is a ;;;;;;;;;test data)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all backslashes [\]
   {
     std::string data = R"(this is a \test\ \data\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all double quotes ["]
   {
     std::string data = R"(this is a \"test\ \"data\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all single quotes [']
   {
     std::string data = R"(this is a \"test'\ \"data'\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all carets [^]
   {
     std::string data = R"(this is a \"te^st'\ \"da^ta'\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting spaces before a slash /
   {
     std::string data = R"(this is a \"te^st'\           /\"da^ta'\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test/data");
   }
 
   // deleting spaces before an open parentesis [(]
   {
     std::string data = R"(this is a \"te^st'\           /          (\"da^ta'\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test/(data");
   }
 
   // replacing all commas [,] and semicolon [;] into a space
   {
     std::string data = R"(this is a \"te^st'\           /          (,\"da^t;a'\)";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // replacing all multiple spaces (including tab, newline, etc.) into one space
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // transform all characters to lowercase
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
-    std::string result = cmdLine.evaluate(data);
+    std::string result = cmd_line.evaluate(data);
     EXPECT_EQ(result, "this is a test/( dat a_hello");
   }
 }
@@ -114,10 +114,25 @@ TEST_F(TransformationTest, escapeSeqDecode) {
 }
 
 TEST_F(TransformationTest, hexDecode) {
-  HexDecode hexDecode;
-  std::string data = "5468697320697320612074657374";
-  std::string result = hexDecode.evaluate(data);
-  EXPECT_EQ(result, "This is a test");
+  const HexDecode hex_decode;
+
+  {
+    std::string data = "G5468697320697320612074657374";
+    std::string result = hex_decode.evaluate(data);
+    EXPECT_TRUE(result.empty());
+  }
+
+  {
+    std::string data = "5468G697320697320612074657374";
+    std::string result = hex_decode.evaluate(data);
+    EXPECT_EQ(result, "Th");
+  }
+
+  {
+    std::string data = "5468697320697320612074657374";
+    std::string result = hex_decode.evaluate(data);
+    EXPECT_EQ(result, "This is a test");
+  }
 }
 
 TEST_F(TransformationTest, hexEncode) {
@@ -128,7 +143,7 @@ TEST_F(TransformationTest, hexEncode) {
 }
 
 TEST_F(TransformationTest, htmlEntityDecode) {
-  const HtmlEntityDecode htmlEntityDecode;
+  const HtmlEntityDecode html_entity_decode;
 
   // clang-format off
   std::vector<std::pair<std::string,std::string>> test_cases = {
@@ -146,19 +161,19 @@ TEST_F(TransformationTest, htmlEntityDecode) {
   // Test that prescan is working, and that will not copy if there is no transformation
   {
     std::string data = R"(This is a test data)";
-    std::string result = htmlEntityDecode.evaluate(data);
+    std::string result = html_entity_decode.evaluate(data);
     EXPECT_TRUE(result.empty());
   }
 
   for (auto& test_case : test_cases) {
-    std::string result = htmlEntityDecode.evaluate(test_case.first);
+    std::string result = html_entity_decode.evaluate(test_case.first);
     EXPECT_EQ(result, test_case.second);
   }
 
   // Test for not valid html entity
   {
     std::string data = "&amp; &lt; &gt; &quot; &apos; &nbsp; &notValid;";
-    std::string result = htmlEntityDecode.evaluate(data);
+    std::string result = html_entity_decode.evaluate(data);
     EXPECT_EQ(result, "& < > \" '   &notValid;");
   }
 }
