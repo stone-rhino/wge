@@ -123,6 +123,12 @@ TEST_F(TransformationTest, hexDecode) {
   }
 
   {
+    std::string data = "a";
+    std::string result = hex_decode.evaluate(data);
+    EXPECT_EQ(result, "\n");
+  }
+
+  {
     std::string data = "5468G697320697320612074657374";
     std::string result = hex_decode.evaluate(data);
     EXPECT_EQ(result, "Th");
