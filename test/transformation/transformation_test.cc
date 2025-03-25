@@ -2,6 +2,8 @@
 
 #include "transformation/transform_include.h"
 
+#include "../../src/common/duration.h"
+
 namespace SrSecurity {
 namespace Transformation {
 class TransformationTest : public ::testing::Test {};
@@ -19,69 +21,83 @@ TEST_F(TransformationTest, base64Encode) {
 }
 
 TEST_F(TransformationTest, cmdLine) {
-  CmdLine cmdLine;
+  const CmdLine cmdLine;
+
+  // Test that prescan is working, and that will not copy if there is no transformation
+  {
+    std::string data = R"(this is a test data)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_TRUE(result.empty());
+  }
+
+  // Test that prescan is working, and that will hold the token if there is a transformation
+  {
+    std::string data = R"(this        is a ;;;;;;;;;test data)";
+    std::string result = cmdLine.evaluate(data);
+    EXPECT_EQ(result, "this is a test data");
+  }
 
   // deleting all backslashes [\]
   {
-    std::string data = R"(\test\ \data\)";
+    std::string data = R"(this is a \test\ \data\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test data");
+    EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all double quotes ["]
   {
-    std::string data = R"(\"test\ \"data\)";
+    std::string data = R"(this is a \"test\ \"data\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test data");
+    EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all single quotes [']
   {
-    std::string data = R"(\"test'\ \"data'\)";
+    std::string data = R"(this is a \"test'\ \"data'\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test data");
+    EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all carets [^]
   {
-    std::string data = R"(\"te^st'\ \"da^ta'\)";
+    std::string data = R"(this is a \"te^st'\ \"da^ta'\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test data");
+    EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting spaces before a slash /
   {
-    std::string data = R"(\"te^st'\           /\"da^ta'\)";
+    std::string data = R"(this is a \"te^st'\           /\"da^ta'\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test/data");
+    EXPECT_EQ(result, "this is a test/data");
   }
 
   // deleting spaces before an open parentesis [(]
   {
-    std::string data = R"(\"te^st'\           /          (\"da^ta'\)";
+    std::string data = R"(this is a \"te^st'\           /          (\"da^ta'\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test/(data");
+    EXPECT_EQ(result, "this is a test/(data");
   }
 
   // replacing all commas [,] and semicolon [;] into a space
   {
-    std::string data = R"(\"te^st'\           /          (,\"da^t;a'\)";
+    std::string data = R"(this is a \"te^st'\           /          (,\"da^t;a'\)";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test/( dat a");
+    EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // replacing all multiple spaces (including tab, newline, etc.) into one space
   {
-    std::string data = "\\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
+    std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test/( dat a");
+    EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // transform all characters to lowercase
   {
-    std::string data = "\\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
+    std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
     std::string result = cmdLine.evaluate(data);
-    EXPECT_EQ(result, "test/( dat a_hello");
+    EXPECT_EQ(result, "this is a test/( dat a_hello");
   }
 }
 

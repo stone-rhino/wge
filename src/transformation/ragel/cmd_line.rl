@@ -2,6 +2,7 @@
 
 #include <string>
 #include <string_view>
+#include <iostream>
 
 // deleting all backslashes [\]
 // deleting all double quotes ["]
@@ -15,15 +16,41 @@
 %%{
   machine cmd_line;
 
+  action exec_transformation { 
+    result.resize(input.size());
+    r = result.data();
+    if(ts > input.data()){
+      memcpy(r, input.data(), ts - input.data());
+      r += ts - input.data();
+    }
+    p = ts;
+    fhold;
+    fgoto transformation;
+  }
+
+  action skip {}
+  action append_slash { *r++ = '/'; }
+  action append_open_parenthesis { *r++ = '('; }
+  action append_space { *r++ = ' '; }
+  action tolower { *r++ = tolower(*p); }
+
+  # prescan
   main := |*
-    '\\' => {};
-    '"' => {};
-    '\'' => {};
-    '^' => {};
-    [ \t\r\n,;]+'/' => { *r++ = '/'; };
-    [ \t\r\n,;]+'(' => { *r++ = '('; };
-    [ \t\r\n,;]+ => { *r++ = ' '; };
-    any => { *r++ = tolower(*p); };
+    [\\"'^] => exec_transformation;
+    [ \t\r\n,;]+'/' => exec_transformation;
+    [ \t\r\n,;]+'(' => exec_transformation;
+    [\t\r\n,;] => exec_transformation;
+    ' '{2,} => exec_transformation;
+    [A-Z] => exec_transformation;
+    any => {};
+  *|;
+
+  transformation := |*
+    [\\"'^] => skip;
+    [ \t\r\n,;]+'/' => append_slash;
+    [ \t\r\n,;]+'(' => append_open_parenthesis;
+    [ \t\r\n,;]+ => append_space;
+    any => tolower;
   *|;
 }%%
 
@@ -31,8 +58,7 @@
 
 std::string cmdLine(std::string_view input) {
   std::string result;
-  result.resize(input.size());
-  char* r = result.data();
+  char* r = nullptr;
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -43,6 +69,8 @@ std::string cmdLine(std::string_view input) {
   %% write init;
   %% write exec;
 
-  result.resize(r - result.data());
+  if(r){
+    result.resize(r - result.data());
+  }
   return result;
 }
