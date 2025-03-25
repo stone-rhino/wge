@@ -128,10 +128,10 @@ TEST_F(TransformationTest, hexEncode) {
 }
 
 TEST_F(TransformationTest, htmlEntityDecode) {
-  HtmlEntityDecode htmlEntityDecode;
+  const HtmlEntityDecode htmlEntityDecode;
+
   // clang-format off
-  std::unordered_map<std::string,std::string> test_cases = {
-    {"This is a test", "This is a test"},
+  std::vector<std::pair<std::string,std::string>> test_cases = {
     {"&#x54;&#x68;&#x69;&#x73;&#x20;&#x69;&#x73;&#x20;&#x61;&#x20;&#x74;&#x65;&#x73;&#x74;", "This is a test"},
     {"&#84;&#104;&#105;&#115;&#32;&#105;&#115;&#32;&#97;&#32;&#116;&#101;&#115;&#116;", "This is a test"},
     {"&#x54;his is a test", "This is a test"},
@@ -142,6 +142,13 @@ TEST_F(TransformationTest, htmlEntityDecode) {
     {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"}
   };
   // clang-format on
+
+  // Test that prescan is working, and that will not copy if there is no transformation
+  {
+    std::string data = R"(This is a test data)";
+    std::string result = htmlEntityDecode.evaluate(data);
+    EXPECT_TRUE(result.empty());
+  }
 
   for (auto& test_case : test_cases) {
     std::string result = htmlEntityDecode.evaluate(test_case.first);
