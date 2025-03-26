@@ -35,11 +35,12 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   }
 
   // Evaluate the transformation and store the result in the cache
-  auto iter_transform_result =
-      iter_variable_full_name->second.emplace(name(), Common::EvaluateResults::Element()).first;
-  Common::EvaluateResults::Element& result = iter_transform_result->second;
-  result.string_buffer_ = evaluate(std::get<std::string_view>(data.variant_));
-  if (!result.string_buffer_.empty()) [[likely]] {
+  std::string buffer = evaluate(std::get<std::string_view>(data.variant_));
+  if (!buffer.empty()) {
+    auto iter_transform_result =
+        iter_variable_full_name->second.emplace(name(), Common::EvaluateResults::Element()).first;
+    Common::EvaluateResults::Element& result = iter_transform_result->second;
+    result.string_buffer_ = std::move(buffer);
     result.variant_ = result.string_buffer_;
     data.variant_ = result.variant_;
     return true;
