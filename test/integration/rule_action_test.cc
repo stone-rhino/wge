@@ -22,7 +22,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -41,7 +41,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.foo=bar',msg:'aaa'"
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.%{tx.foo}score',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -62,7 +62,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score2=100',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -82,7 +82,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score2=100',msg:'aaa'"
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:'tx.score_%{tx.foo}=%{tx.score2}',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -104,7 +104,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score',setvar:'tx.score2=100',msg:'aaa'"
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.foo2=%{tx.score2}_%{tx.score}',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -129,7 +129,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'!tx.score2',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -156,7 +156,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'!tx.score_%{tx.foo}',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -184,7 +184,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score1=100',msg:'aaa'"
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score1=+100',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -206,7 +206,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=+%{tx.score}',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -237,7 +237,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score1=100',msg:'aaa'"
     SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score1=-50',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -259,7 +259,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=-%{tx.score}',msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -291,7 +291,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -310,7 +310,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.foo=bar,msg:'aaa'"
           SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.%{tx.foo}score,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -331,7 +331,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score2=100,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -351,7 +351,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
           SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score2=100,msg:'aaa'"
           SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:tx.score_%{tx.foo}=%{tx.score2},msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -373,7 +373,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score,setvar:tx.score2=100,msg:'aaa'"
           SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.foo2=%{tx.score2}_%{tx.score},msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -398,7 +398,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:!tx.score2,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -425,7 +425,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:!tx.score_%{tx.foo},msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -453,7 +453,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score1=100,msg:'aaa'"
           SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score1=+100,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -475,7 +475,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score%{tx.score200}=+%{tx.score},msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -506,7 +506,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:tx.score1=100,msg:'aaa'"
       SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score1=-50,msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -528,7 +528,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     const std::string rule_directive2 =
         R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:tx.score%{tx.score200}=-%{tx.score},msg:'aaa'")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(rule_directive1);
     engine.init();
     auto t = engine.makeTransaction();
@@ -558,7 +558,7 @@ TEST_F(RuleActionTest, ActionSetEnv) {
   const std::string rule_directive =
       R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setenv:'var1=hello',msg:'aaa bbb'")";
 
-  Engine engine(spdlog::level::trace);
+  Engine engine(spdlog::level::off);
   auto result = engine.load(rule_directive);
   engine.init();
   auto t = engine.makeTransaction();

@@ -16,7 +16,7 @@ namespace SrSecurity {
 namespace Integration {
 class RuleOperatorTest : public testing::Test {
 public:
-  RuleOperatorTest() : engine_(spdlog::level::trace) {}
+  RuleOperatorTest() : engine_(spdlog::level::off) {}
 
   void SetUp() override {
     std::string directiv = R"(SecRuleEngine On)";

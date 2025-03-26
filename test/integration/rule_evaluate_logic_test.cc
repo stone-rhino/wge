@@ -23,7 +23,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
         setvar:tx.test=+1")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -54,7 +54,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         setvar:tx.test=+1"
           SecRule TX:foo1 "@streq bar" "setvar:tx.chain=true")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -87,7 +87,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         setvar:tx.test=+1"
           SecRule TX:foo1 "@streq bar12" "setvar:tx.chain=true")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -118,7 +118,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
         setvar:tx.test=+1")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -147,7 +147,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
         setvar:tx.test=+1")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
