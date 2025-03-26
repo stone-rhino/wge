@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include "modsecurity/util.h"
 #include "transform_base.h"
 
 namespace SrSecurity {
@@ -11,9 +10,7 @@ class CssDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(cssDecode);
 
 public:
-  std::string evaluate(std::string_view data) const override {
-    return ModSecurity::cssDecode(data);
-  }
+  std::string evaluate(std::string_view data) const override;
 };
 } // namespace Transformation
 } // namespace SrSecurity

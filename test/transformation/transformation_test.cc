@@ -106,7 +106,60 @@ TEST_F(TransformationTest, compressWhiteSpace) {
 }
 
 TEST_F(TransformationTest, cssDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const CssDecode css_decode;
+
+  std::string data = R"(This is a test)";
+  std::string result = css_decode.evaluate(data);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This\ is\ a\ test)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(T\hi\s is a test)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(This\ is\ a\ test\)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(This\ is\ a\ test\ \)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test ");
+
+  data = R"(\1254\3468 is\ is\ a\ test\ \ \)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test  ");
+
+  data = R"(\12354\123468is\ is\ a\ test\ \ \)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "This is a test  ");
+
+  data = R"(\12354\123468\6is\ is\ a\ test\ \ \)";
+  result = css_decode.evaluate(data);
+  EXPECT_EQ(result, "Th\u0006is is a test  ");
+
+  {
+    char data[] = "Test\u0000Case";
+    result = css_decode.evaluate({data, sizeof(data) - 1});
+    EXPECT_TRUE(result.empty());
+  }
+
+  {
+    // clang-format off
+    char data[] = "test\\a\\b\\f\\n\\r\\t\\v\\?\\'\\\"\\\u0000\\12\\123\\1234\\12345\\123456\\ff01\\ff5e\\\n\\\u0000  string";
+    result = css_decode.evaluate({data, sizeof(data) - 1});
+    char expect_data[] = "test\n\u000b\u000fnrtv?'\"\u0000\u0012#4EV!~\u0000  string";
+    EXPECT_TRUE(memcmp(result.data(), expect_data, sizeof(expect_data) - 1) == 0);
+    // clang-format on
+  }
+
+  {
+    data = "\\1A\\1 A\\1234567\\123456 7\\1x\\1 x";
+    result = css_decode.evaluate(data);
+    EXPECT_EQ(result, "\u001a\u0001AV7V7\u0001x\u0001x");
+  }
 }
 
 TEST_F(TransformationTest, escapeSeqDecode) {
