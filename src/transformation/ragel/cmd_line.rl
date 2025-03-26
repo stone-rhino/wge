@@ -32,7 +32,7 @@
   action append_slash { *r++ = '/'; }
   action append_open_parenthesis { *r++ = '('; }
   action append_space { *r++ = ' '; }
-  action tolower { *r++ = tolower(*p); }
+  action tolower { *r++ = tolower(fc); }
 
   # prescan
   main := |*

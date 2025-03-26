@@ -50,7 +50,7 @@
       entity_value = std::string(ts + 3, te - ts - 4);
       emitNumericEntity(&r, entity_value, is_hex);
     };
-    any => { *r++ = *p; };
+    any => { *r++ = fc; };
   *|;
 }%%
   
