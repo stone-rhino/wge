@@ -12,6 +12,7 @@ pkg_check_modules(TCMALLOC REQUIRED libtcmalloc)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HYPERSCAN REQUIRED libhs)
 find_package(boost_url CONFIG REQUIRED)
+find_library(INJECTION_LIB injection)
 
 # whitout tcmalloc
 add_executable(srsecurity_benchmark ${local_source})
@@ -23,6 +24,8 @@ target_include_directories(srsecurity_benchmark PRIVATE ${HYPERSCAN_INCLUDE_DIRS
 target_link_directories(srsecurity_benchmark PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(srsecurity_benchmark PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(srsecurity_benchmark PRIVATE Boost::url)
+target_link_libraries(srsecurity_benchmark PRIVATE ${INJECTION_LIB})
+
 
 
 # with tcmalloc
@@ -37,3 +40,5 @@ target_include_directories(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_INC
 target_link_directories(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE Boost::url)
+target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${INJECTION_LIB})
+
