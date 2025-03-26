@@ -16,3 +16,6 @@ message(STATUS "HYPERSCAN_LIBRARIES: ${HYPERSCAN_LIBRARIES}")
 target_include_directories(operator PRIVATE ${HYPERSCAN_INCLUDE_DIRS})
 target_link_directories(operator PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(operator PRIVATE ${HYPERSCAN_LIBRARIES})
+
+find_library(INJECTION_LIB injection)
+target_link_libraries(operator PRIVATE ${INJECTION_LIB})
