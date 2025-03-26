@@ -368,6 +368,11 @@ public:
     return transform_cache_;
   }
 
+  std::unordered_map<std::string_view, std::string_view>& getCookies() {
+    initCookies();
+    return cookies_;
+  }
+
   /**
    * Get the connection info.
    * @return the connection info.
@@ -399,6 +404,8 @@ private:
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
 
   inline void initQueryParams();
+
+  void initCookies();
 
 private:
   std::string unique_id_;
@@ -433,6 +440,8 @@ private:
   std::unordered_map<Variable::FullName,
                      std::unordered_map<const char*, Common::EvaluateResults::Element>>
       transform_cache_;
+  bool init_cookies_{false};
+  std::unordered_map<std::string_view, std::string_view> cookies_;
 
   // ctl
 private:

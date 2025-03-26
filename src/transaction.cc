@@ -520,4 +520,28 @@ inline void Transaction::initQueryParams() {
     begin = end + 1;
   }
 }
+
+void Transaction::initCookies() {
+  if (init_cookies_) [[likely]] {
+    return;
+  }
+
+  init_cookies_ = true;
+
+  // Get the cookies form the request headers
+  std::string_view cookies = extractor_.request_header_find_("cookie");
+
+  // Parse the cookies
+  size_t begin = 0;
+  size_t end = 0;
+  while (end != std::string_view::npos) {
+    end = cookies.find(';', begin);
+    auto cookie = cookies.substr(begin, end - begin);
+    auto pos = cookie.find('=');
+    if (pos != std::string_view::npos) {
+      cookies_[cookie.substr(0, pos)] = cookie.substr(pos + 1);
+    }
+    begin = end + 1;
+  }
+}
 } // namespace SrSecurity
