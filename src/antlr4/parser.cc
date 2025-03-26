@@ -64,6 +64,9 @@ Parser::Parser() {
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // init
   std::ifstream ifs(file_path);
+  if(!ifs.is_open()){
+    return std::unexpected(std::format("open file {} failed", file_path));
+  }
   antlr4::ANTLRInputStream input(ifs);
   Antlr4Gen::SecLangLexer lexer(&input);
   antlr4::CommonTokenStream tokens(&lexer);
