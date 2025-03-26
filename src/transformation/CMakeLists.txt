@@ -1,8 +1,6 @@
 file(GLOB local_source
   *.h
   *.cc
-  modsecurity/*.h
-  modsecurity/*.cc
 )
 
 add_subdirectory(ragel)
