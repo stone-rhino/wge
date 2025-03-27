@@ -78,6 +78,10 @@ protected:
   std::vector<std::string_view> request_body_;
 };
 
+TEST_F(VariableTest, ARGS_COMBINED_SIZE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
 TEST_F(VariableTest, ARGS_GET_NAMES) {
   Common::EvaluateResults result;
 
@@ -172,6 +176,382 @@ TEST_F(VariableTest, ARGS_GET) {
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 0);
   }
+}
+
+TEST_F(VariableTest, ARGS_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, ARGS_POST_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, ARGS_POST) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, ARGS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, AUTH_TYPE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, DURATION) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, ENV) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES_COMBINED_SIZE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES_SIZES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES_TMPNAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES_TMP_CONTENT) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FILES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FULL_REQUEST_LENGTH) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, FULL_REQUEST) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, GEO) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, HIGHEST_SEVERITY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, INBOUND_DATA_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MATCHED_VAR_NAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MATCHED_VAR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MATCHED_VARS_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MATCHED_VARS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MODSEC_BUILD) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MSC_PCRE_LIMITS_EXCEEDED) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_BOUNDARY_QUOTED) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_BOUNDARY_WHITESPACE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_CRLF_LF_LINES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_DATA_AFTER) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_DATA_BEFORE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_FILE_LIMIT_EXCEEDED) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_FILENAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_HEADER_FOLDING) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_INVALID_HEADER_FOLDING) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_INVALID_PART) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_INVALID_QUOTING) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_LF_LINE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_MISSING_SEMICOLON) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_NAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_PART_HEADERS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_STRICT_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, MULTIPART_UNMATCHED_BOUNDARY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, OUTBOUND_DATA_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, PATH_INFO) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, QUERY_STRING) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REMOTE_ADDR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REMOTE_HOST) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REMOTE_PORT) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REMOTE_USER) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQBODY_ERROR_MSG) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQBODY_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQBODY_PROCESSOR_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQBODY_PROCESSOR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_BASENAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_BODY_LENGTH) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_BODY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_COOKIES_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_COOKIES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_FILENAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_HEADERS_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_HEADERS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_LINE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_METHOD) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_PROTOCOL) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_URI_RAW) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, REQUEST_URI) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_BODY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_CONTENT_LENGTH) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_CONTENT_TYPE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_HEADERS_NAMES) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_HEADERS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_PROTOCOL) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RESPONSE_STATUS) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, RULE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, SERVER_ADDR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, SERVER_NAME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, SERVER_PORT) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, SESSION) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, SESSIONID) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, STATUS_LINE) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_DAY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_EPOCH) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_HOUR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_MIN) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_MON) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_SEC) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_WDAY) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME_YEAR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TIME) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, TX) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, UNIQUE_ID) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, URLENCODED_ERROR) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, USERID) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, WEBAPPID) {
+  // TODO(zhouyu 2025-03-27): add the test cast
+}
+
+TEST_F(VariableTest, XML) {
+  // TODO(zhouyu 2025-03-27): add the test cast
 }
 } // namespace Integration
 } // namespace SrSecurity
