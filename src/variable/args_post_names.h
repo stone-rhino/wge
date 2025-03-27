@@ -5,15 +5,18 @@
 
 namespace SrSecurity {
 namespace Variable {
-class ArgsPostNames : public VariableBase, public CollectionBase  {
+class ArgsPostNames : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(ARGS_POST_NAMES);
 
 public:
   ArgsPostNames(std::string&& sub_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override { assert(false); throw "Not implemented!"; };
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+    assert(false);
+    throw "Not implemented!";
+  };
 
   bool isCollection() const override { return sub_name_.empty(); };
 };

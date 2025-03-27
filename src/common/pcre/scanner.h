@@ -26,6 +26,8 @@ public:
              std::vector<std::pair<size_t, size_t>>& result) const;
   void match(const Pattern* pattern, std::string_view subject,
              std::vector<std::pair<size_t, size_t>>& result) const;
+  bool match(const Pattern* pattern, std::string_view subject) const;
+  bool match(std::string_view subject) const;
   void matchGlobal(std::string_view subject, std::vector<std::pair<size_t, size_t>>& result) const;
   void matchGlobal(uint64_t id, std::string_view subject,
                    std::vector<std::pair<size_t, size_t>>& result) const;

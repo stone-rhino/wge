@@ -514,8 +514,10 @@ inline void Transaction::initQueryParams() {
     auto pos = param.find('=');
     if (pos != std::string_view::npos) {
       requset_line_info_.query_params_.emplace_back(param.substr(0, pos), param.substr(pos + 1));
+      requset_line_info_.query_params_map_.emplace(param.substr(0, pos), param.substr(pos + 1));
     } else {
       requset_line_info_.query_params_.emplace_back(param, "");
+      requset_line_info_.query_params_map_.emplace(param, "");
     }
     begin = end + 1;
   }

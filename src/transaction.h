@@ -53,6 +53,7 @@ public:
     std::string protocol_;
     std::string version_;
     std::vector<std::pair<std::string_view, std::string_view>> query_params_;
+    std::unordered_map<std::string_view, std::string_view> query_params_map_;
   };
 
 public:

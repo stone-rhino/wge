@@ -1,4 +1,5 @@
 file(GLOB local_source
+  variable.cc
   rule_operator_test.cc
   rule_action_test.cc
   rule_evaluate_logic_test.cc

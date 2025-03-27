@@ -91,6 +91,36 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
   }
 }
 
+bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
+  assert(pattern);
+  int rc =
+      pcre2_match(reinterpret_cast<const pcre2_code_8*>(pattern->db()),
+                  reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0, 0,
+                  reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()), nullptr);
+  if (rc < 0) [[unlikely]] {
+    switch (rc) {
+    case PCRE2_ERROR_NOMATCH:
+      SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
+      break;
+    default:
+      break;
+    }
+    return false;
+  }
+
+  assert(rc == 1);
+  if (rc == 0) [[unlikely]] {
+    SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
+    return false;
+  }
+
+  return rc > 0;
+}
+
+bool Scanner::match(std::string_view subject) const {
+  return match(pattern_.get(), subject);
+}
+
 void Scanner::matchGlobal(std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);

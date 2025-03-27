@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "collection_base.h"
+#include "evaluate_help.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
@@ -14,19 +15,15 @@ class ArgsGet : public VariableBase, public CollectionBase {
 
 public:
   ArgsGet(std::string&& sub_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_) [[likely]] {
-      for (auto& query_param : t.getRequestLineInfo().query_params_) {
-        if (!hasExceptVariable(query_param.first)) [[likely]] {
-          result.append(query_param.second);
-        }
-      }
-    } else {
-      result.append(t.getRequestLineInfo().query_params_.empty() ? 0 : 1);
-    }
+    RETURN_IF_COUNTER(t.getRequestLineInfo().query_params_,
+                      t.getRequestLineInfo().query_params_map_);
+
+    RETURN_VALUE_SECOND(t.getRequestLineInfo().query_params_,
+                        t.getRequestLineInfo().query_params_map_);
   };
 
   bool isCollection() const override { return sub_name_.empty(); };

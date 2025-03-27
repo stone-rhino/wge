@@ -12,7 +12,8 @@ class Tx : public VariableBase, public CollectionBase {
 
 public:
   Tx(std::string&& sub_name, std::optional<size_t> index, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter), index_(index) {
+      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_),
+        index_(index) {
     if (!sub_name_.empty() && std::all_of(sub_name_.begin(), sub_name_.end(), ::isdigit)) {
       capture_index_ = ::atoi(sub_name_.c_str());
     }

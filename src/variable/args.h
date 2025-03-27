@@ -15,7 +15,7 @@ class Args : public VariableBase, public CollectionBase {
 
 public:
   Args(std::string&& sub_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {

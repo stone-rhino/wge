@@ -79,17 +79,6 @@ public:
    */
   bool isCounter() const { return is_counter_; }
 
-  /**
-   * Update the variable.
-   * @param is_not whether the variable is negated.
-   * @param is_counter whether the variable is a counter.
-   */
-  void update(bool is_not, bool is_counter) {
-    ASSERT_IS_MAIN_THREAD();
-    is_not_ = is_not;
-    is_counter_ = is_counter;
-  }
-
 protected:
   std::string sub_name_;
   bool is_not_;
