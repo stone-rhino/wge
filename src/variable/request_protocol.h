@@ -13,11 +13,12 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_) [[likely]] {
-      result.append(t.getRequestLineInfo().protocol_);
-    } else {
+    if (is_counter_) [[unlikely]] {
       result.append(t.getRequestLineInfo().protocol_.empty() ? 0 : 1);
+      return;
     }
+
+    result.append(t.getRequestLineInfo().protocol_);
   };
 };
 } // namespace Variable

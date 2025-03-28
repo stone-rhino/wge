@@ -13,14 +13,21 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(!t.getMatchedVariables().empty());
-    if (!t.getMatchedVariables().empty()) [[likely]] {
-      if (!is_counter_) [[likely]] {
-        result.append(t.getMatchedVariables().back().second.variant_);
-      } else {
+    if (is_counter_) [[unlikely]] {
+      if (!t.getMatchedVariables().empty()) [[likely]] {
         result.append(1);
+      } else {
+        result.append(0);
       }
+      return;
     }
+
+    if (t.getMatchedVariables().empty()) [[unlikely]] {
+      return;
+    }
+
+    auto& matched_var = t.getMatchedVariables().back();
+    result.append(matched_var.second.variant_);
   };
 };
 } // namespace Variable

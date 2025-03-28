@@ -1,6 +1,7 @@
 #pragma once
 
 #include "collection_base.h"
+#include "evaluate_help.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
@@ -14,26 +15,44 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_) [[likely]] {
-      if (sub_name_.empty()) {
-        t.httpExtractor().request_header_traversal_(
-            [&](std::string_view key, std::string_view value) {
-              if (!hasExceptVariable(key)) [[likely]] {
-                result.append(key);
-              }
-              return true;
-            });
-      } else {
-        std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
-        if (!value.empty()) {
-          if (!hasExceptVariable(sub_name_)) [[likely]] {
-            result.append(sub_name_);
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(static_cast<int>(t.httpExtractor().request_header_count_)); },
+        // specify subname
+        { result.append(t.httpExtractor().request_header_find_(sub_name_).empty() ? 0 : 1); });
+
+    RETURN_VALUE(
+        // collection
+        {
+          t.httpExtractor().request_header_traversal_(
+              [&](std::string_view key, std::string_view value) {
+                if (!hasExceptVariable(key)) [[likely]] {
+                  result.append(key);
+                }
+                return true;
+              });
+        },
+        // collection regex
+        {
+          t.httpExtractor().request_header_traversal_(
+              [&](std::string_view key, std::string_view value) {
+                if (!hasExceptVariable(key)) [[likely]] {
+                  if (match(key)) {
+                    result.append(key);
+                  }
+                }
+                return true;
+              });
+        },
+        // specify subname
+        {
+          std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
+          if (!value.empty()) {
+            if (!hasExceptVariable(sub_name_)) [[likely]] {
+              result.append(sub_name_);
+            }
           }
-        }
-      }
-    } else {
-      result.append(t.httpExtractor().request_header_count_ ? 1 : 0);
-    }
+        });
   };
 
   bool isCollection() const override { return sub_name_.empty(); };

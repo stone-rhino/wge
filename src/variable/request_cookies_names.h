@@ -1,6 +1,7 @@
 #pragma once
 
 #include "collection_base.h"
+#include "evaluate_help.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
@@ -15,28 +16,44 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     const std::unordered_map<std::string_view, std::string_view>& cookies = t.getCookies();
-    if (cookies.empty()) [[unlikely]] {
-      return;
-    }
 
-    if (!is_counter_) [[likely]] {
-      if (sub_name_.empty()) {
-        for (const auto& [key, value] : cookies) {
-          if (!hasExceptVariable(key)) [[likely]] {
-            result.append(key);
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(static_cast<int>(cookies.size())); },
+        // specify subname
+        {
+          auto iter = cookies.find(sub_name_);
+          result.append(iter != cookies.end() ? 1 : 0);
+        });
+
+    RETURN_VALUE(
+        // collection
+        {
+          for (auto& elem : cookies) {
+            if (!hasExceptVariable(elem.first)) [[likely]] {
+              result.append(elem.first);
+            }
           }
-        }
-      } else {
-        auto iter = cookies.find(sub_name_);
-        if (iter != cookies.end()) {
+        },
+        // collection regex
+        {
+          for (auto& elem : cookies) {
+            if (!hasExceptVariable(elem.first)) [[likely]] {
+              if (match(elem.first)) {
+                result.append(elem.first);
+              }
+            }
+          }
+        },
+        // specify subname
+        {
           if (!hasExceptVariable(sub_name_)) [[likely]] {
-            result.append(iter->first);
+            auto iter = cookies.find(sub_name_);
+            if (iter != cookies.end()) {
+              result.append(iter->first);
+            }
           }
-        }
-      }
-    } else {
-      result.append(static_cast<int>(cookies.size()));
-    }
+        });
   };
 
   bool isCollection() const override { return sub_name_.empty(); };
