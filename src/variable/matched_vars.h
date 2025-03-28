@@ -14,19 +14,26 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(!t.getMatchedVariables().empty());
-    if (!t.getMatchedVariables().empty()) [[likely]] {
-      if (!is_counter_) [[likely]] {
-        for (auto& [variable, value] : t.getMatchedVariables()) {
-          auto full_name = variable->fullName();
-          if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
-            result.append(value.variant_);
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(static_cast<int>(t.getMatchedVariables().size())); },
+        // specify subname
+        { UNREACHABLE(); });
+
+    RETURN_VALUE(
+        // collection
+        {
+          for (auto& [variable, value] : t.getMatchedVariables()) {
+            auto full_name = variable->fullName();
+            if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
+              result.append(value.variant_);
+            }
           }
-        }
-      } else {
-        result.append(static_cast<int>(t.getMatchedVariables().size()));
-      }
-    }
+        },
+        // collection regex
+        { UNREACHABLE(); },
+        // specify subname
+        { UNREACHABLE(); });
   };
 
   bool isCollection() const override { return sub_name_.empty(); };

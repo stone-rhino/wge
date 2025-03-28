@@ -13,15 +13,16 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_) [[likely]] {
-      auto pos = t.getRequestLineInfo().uri_.rfind('/');
-      if (pos == std::string_view::npos) {
-        result.append(t.getRequestLineInfo().uri_);
-      } else {
-        result.append(t.getRequestLineInfo().uri_.substr(pos + 1));
-      }
-    } else {
+    if (is_counter_) [[unlikely]] {
       result.append(t.getRequestLineInfo().uri_.empty() ? 0 : 1);
+      return;
+    }
+
+    auto pos = t.getRequestLineInfo().uri_.rfind('/');
+    if (pos == std::string_view::npos) {
+      result.append(t.getRequestLineInfo().uri_);
+    } else {
+      result.append(t.getRequestLineInfo().uri_.substr(pos + 1));
     }
   };
 };
