@@ -414,6 +414,7 @@ private:
   const Engine& engine_;
   std::vector<Common::EvaluateResults::Element> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
+  std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
   const size_t literal_key_size_;
   static constexpr int max_capture_size_{100};
   std::vector<Common::Variant> captured_;

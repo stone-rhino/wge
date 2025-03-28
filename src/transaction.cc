@@ -23,6 +23,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
       literal_key_size_(literal_key_size) {
   tx_variables_.resize(literal_key_size);
   local_tx_variable_index_.reserve(variable_key_with_macro_size);
+  local_tx_variable_index_reverse_.reserve(variable_key_with_macro_size);
   captured_.reserve(4);
   matched_variables_.reserve(4);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
@@ -309,7 +310,14 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
   for (size_t i = 0; i < tx_variables_.size(); ++i) {
     auto& variable = tx_variables_[i];
     if (!IS_EMPTY_VARIANT(variable.variant_)) {
-      variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable.variant_);
+      if (i < literal_key_size_) {
+        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable.variant_);
+      } else {
+        auto iter = local_tx_variable_index_reverse_.find(i);
+        if (iter != local_tx_variable_index_reverse_.end()) {
+          variables.emplace_back(iter->second, &variable.variant_);
+        }
+      }
     }
   }
   return variables;
@@ -375,15 +383,15 @@ void Transaction::removeRule(
       continue;
     }
 
-    // For performance reasons, we use a flag array that is the same size as the rules array to mark
-    // the rules that need to be removed.
+    // For performance reasons, we use a flag array that is the same size as the rules array to
+    // mark the rules that need to be removed.
     auto& rule_remove_flag = rule_remove_flags_[phase - 1];
     if (rule_remove_flag.empty()) [[unlikely]] {
       rule_remove_flag.resize(engine_.rules(phase).size());
     }
 
-    // We record the current rule index, make sure that the rules that have been evaluated will not
-    // be removed. As above, it makes no sense to remove the rules that have been evaluated.
+    // We record the current rule index, make sure that the rules that have been evaluated will
+    // not be removed. As above, it makes no sense to remove the rules that have been evaluated.
     auto& rules = engine_.rules(phase);
     auto begin = rules.begin();
     if (phase == current_phase_) {
@@ -489,6 +497,7 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   if (iter == local_tx_variable_index_.end()) [[unlikely]] {
     if (force_create) [[likely]] {
       local_tx_variable_index_.insert({key, tx_variables_.size()});
+      local_tx_variable_index_reverse_.insert({tx_variables_.size(), key});
       tx_variables_.emplace_back();
       return tx_variables_.size() - 1;
     } else {

@@ -3,6 +3,7 @@
 #include <optional>
 
 #include "collection_base.h"
+#include "evaluate_help.h"
 #include "variable_base.h"
 
 namespace SrSecurity {
@@ -23,69 +24,59 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     // Process capture that definded by TX:[1-99]
     if (capture_index_.has_value()) [[unlikely]] {
-      if (!is_counter_) [[likely]] {
-        evluateCapture(t, result);
+      if (is_counter_) [[unlikely]] {
+        result.append(IS_EMPTY_VARIANT(t.getCapture(capture_index_.value())) ? 1 : 0);
       } else {
-        evluateCaptureCount(t, result);
+        result.append(t.getCapture(capture_index_.value()));
       }
       return;
     }
 
     // Process single variable and collection
-    if (!is_counter_) [[likely]] {
-      if (!sub_name_.empty()) [[likely]] {
-        evluateVariable(t, result);
-      } else {
-        evluateCollection(t, result);
-      }
-    } else {
-      if (!sub_name_.empty()) {
-        evluateVariableCount(t, result);
-      } else {
-        evluateCollectionCount(t, result);
-      }
-    }
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(t.getVariablesCount()); },
+        // specify subname
+        {
+          if (index_.has_value()) [[likely]] {
+            t.hasVariable(index_.value()) ? result.append(1) : result.append(0);
+          } else {
+            t.hasVariable(sub_name_) ? result.append(1) : result.append(0);
+          }
+        });
+
+    RETURN_VALUE(
+        // collection
+        {
+          auto variables = t.getVariables();
+          for (auto variable : variables) {
+            if (!hasExceptVariable(variable.first)) [[likely]] {
+              result.append(*variable.second, variable.first);
+            }
+          }
+        },
+        // collection regex
+        {
+          auto variables = t.getVariables();
+          for (auto variable : variables) {
+            if (!hasExceptVariable(variable.first)) [[likely]] {
+              if (match(variable.first)) {
+                result.append(*variable.second, variable.first);
+              }
+            }
+          }
+        },
+        // specify subname
+        {
+          if (index_.has_value()) [[likely]] {
+            result.append(t.getVariable(index_.value()));
+          } else {
+            result.append(t.getVariable(sub_name_));
+          }
+        });
   }
 
   bool isCollection() const override { return sub_name_.empty(); };
-
-private:
-  void evluateCapture(Transaction& t, Common::EvaluateResults& result) const {
-    result.append(t.getCapture(capture_index_.value()));
-  }
-
-  void evluateCaptureCount(Transaction& t, Common::EvaluateResults& result) const {
-    result.append(IS_EMPTY_VARIANT(t.getCapture(capture_index_.value())) ? 1 : 0);
-  }
-
-  void evluateVariable(Transaction& t, Common::EvaluateResults& result) const {
-    if (index_.has_value()) [[likely]] {
-      result.append(t.getVariable(index_.value()));
-    } else {
-      result.append(t.getVariable(sub_name_));
-    }
-  }
-
-  void evluateVariableCount(Transaction& t, Common::EvaluateResults& result) const {
-    if (index_.has_value()) [[likely]] {
-      t.hasVariable(index_.value()) ? result.append(1) : result.append(0);
-    } else {
-      t.hasVariable(sub_name_) ? result.append(1) : result.append(0);
-    }
-  }
-
-  void evluateCollection(Transaction& t, Common::EvaluateResults& result) const {
-    std::vector<std::pair<std::string_view, Common::Variant*>> variables = t.getVariables();
-    for (auto variable : variables) {
-      if (!hasExceptVariable(variable.first)) [[likely]] {
-        result.append(*variable.second, variable.first);
-      }
-    }
-  }
-
-  void evluateCollectionCount(Transaction& t, Common::EvaluateResults& result) const {
-    result.append(t.getVariablesCount());
-  }
 
 private:
   std::optional<size_t> index_;
