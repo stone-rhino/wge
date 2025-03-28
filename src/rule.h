@@ -277,7 +277,7 @@ private:
 
   // Action Group: Disruptive
 private:
-  Disruptive disruptive_{Disruptive::ALLOW};
+  Disruptive disruptive_{Disruptive::PASS};
 
   // Intercepts transaction by issuing an external (client-visible) redirection to the given
   // location.

@@ -154,7 +154,7 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
                        requset_line_info_.version_);
 }
 
-void Transaction::processRequestHeaders(HeaderFind request_header_find,
+bool Transaction::processRequestHeaders(HeaderFind request_header_find,
                                         HeaderTraversal request_header_traversal,
                                         size_t header_count,
                                         std::function<void(const Rule&)> log_callback) {
@@ -163,18 +163,18 @@ void Transaction::processRequestHeaders(HeaderFind request_header_find,
   extractor_.request_header_traversal_ = std::move(request_header_traversal);
   extractor_.request_header_count_ = header_count;
   log_callback_ = std::move(log_callback);
-  process(1);
+  return process(1);
 }
 
-void Transaction::processRequestBody(BodyExtractor body_extractor,
+bool Transaction::processRequestBody(BodyExtractor body_extractor,
                                      std::function<void(const Rule&)> log_callback) {
   SRSECURITY_LOG_TRACE("====process request body====");
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
-  process(2);
+  return process(2);
 }
 
-void Transaction::processResponseHeaders(HeaderFind response_header_find,
+bool Transaction::processResponseHeaders(HeaderFind response_header_find,
                                          HeaderTraversal response_header_traversal,
                                          size_t response_header_count,
                                          std::function<void(const Rule&)> log_callback) {
@@ -183,15 +183,15 @@ void Transaction::processResponseHeaders(HeaderFind response_header_find,
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
   extractor_.response_header_count_ = response_header_count;
   log_callback_ = std::move(log_callback);
-  process(3);
+  return process(3);
 }
 
-void Transaction::processResponseBody(BodyExtractor body_extractor,
+bool Transaction::processResponseBody(BodyExtractor body_extractor,
                                       std::function<void(const Rule&)> log_callback) {
   SRSECURITY_LOG_TRACE("====process response body====");
   extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
-  process(4);
+  return process(4);
 }
 
 void Transaction::setVariable(size_t index, const Common::Variant& value) {
@@ -422,13 +422,14 @@ void Transaction::initUniqueId() {
   unique_id_ = std::format("{}.{}", timestamp, random);
 }
 
-inline void Transaction::process(int phase) {
+inline bool Transaction::process(int phase) {
   if (engine_.config().is_rule_engine_ == EngineConfig::Option::Off) [[unlikely]] {
-    return;
+    return true;
   }
 
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
+  const SrSecurity::Rule* default_action = engine_.defaultActions(phase);
 
   // Traverse the rules and evaluate them
   auto begin = rules.begin();
@@ -459,7 +460,6 @@ inline void Transaction::process(int phase) {
 
     // Log the matched rule
     if (log_callback_) [[likely]] {
-      const SrSecurity::Rule* default_action = engine_.defaultActions(rule->phase());
       if (default_action) {
         if (rule->log().value_or(default_action->log().value_or(true))) {
           log_callback_(*rule);
@@ -469,6 +469,12 @@ inline void Transaction::process(int phase) {
           log_callback_(*rule);
         }
       }
+    }
+
+    // Do the disruptive action
+    std::optional<bool> disruptive = doDisruptive(*rule, default_action);
+    if (disruptive.has_value()) {
+      return disruptive.value();
     }
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched
@@ -489,6 +495,8 @@ inline void Transaction::process(int phase) {
     // If skip and skipAfter are not set, then continue to the next rule
     ++iter;
   }
+
+  return true;
 }
 
 inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::string& key,
@@ -554,5 +562,68 @@ void Transaction::initCookies() {
     }
     begin = end + 1;
   }
+}
+
+inline std::optional<bool> Transaction::doDisruptive(const Rule& rule,
+                                                     const Rule* default_action) const {
+  switch (rule.disruptive()) {
+  case Rule::Disruptive::ALLOW: {
+    // Stops rule processing on a successful match and allows the transaction to proceed.
+    return true;
+  } break;
+  [[likely]] case Rule::Disruptive::BLOCK: {
+    // Performs the disruptive action defined by the previous SecDefaultAction.
+    Rule::Disruptive disruptive =
+        default_action ? default_action->disruptive() : Rule::Disruptive::PASS;
+    switch (disruptive) {
+    case Rule::Disruptive::ALLOW: {
+      // Stops rule processing on a successful match and allows the transaction to proceed.
+      return true;
+    } break;
+    case Rule::Disruptive::BLOCK: {
+      // Performs the disruptive action defined by the previous SecDefaultAction.
+      // We do nothing here, and continue to the next rule.
+    } break;
+    case Rule::Disruptive::DENY:
+    case Rule::Disruptive::DROP: {
+      // Stops rule processing and intercepts transaction.
+      return false;
+    } break;
+    case Rule::Disruptive::PASS: {
+      // Continues processing with the next rule in spite of a successful match.
+      // We do nothing here, and continue to the next rule.
+    } break;
+    case Rule::Disruptive::REDIRECT: {
+      // Intercepts transaction by issuing an external (client-visible) redirection to the given
+      // location..
+      // FIXME(zhouyu 2025-03-28): implement the redirect action
+      UNREACHABLE();
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+  } break;
+  case Rule::Disruptive::DENY:
+  case Rule::Disruptive::DROP: {
+    // Stops rule processing and intercepts transaction.
+    return false;
+  } break;
+  case Rule::Disruptive::PASS: {
+    // Continues processing with the next rule in spite of a successful match.
+    // We do nothing here, and continue to the next rule.
+  } break;
+  case Rule::Disruptive::REDIRECT: {
+    // Intercepts transaction by issuing an external (client-visible) redirection to the given
+    // location..
+    // FIXME(zhouyu 2025-03-28): implement the redirect action
+    UNREACHABLE();
+  } break;
+  default:
+    UNREACHABLE();
+    break;
+  }
+
+  return std::nullopt;
 }
 } // namespace SrSecurity

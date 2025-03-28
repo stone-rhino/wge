@@ -88,8 +88,9 @@ public:
    * @param request_header_traversal the header traversal function.
    * @param request_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  void processRequestHeaders(HeaderFind request_header_find,
+  bool processRequestHeaders(HeaderFind request_header_find,
                              HeaderTraversal request_header_traversal, size_t request_header_count,
                              std::function<void(const Rule&)> log_callback);
 
@@ -97,8 +98,9 @@ public:
    * Process the request body.
    * @param body_extractor the request body extractor.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  void processRequestBody(BodyExtractor body_extractor,
+  bool processRequestBody(BodyExtractor body_extractor,
                           std::function<void(const Rule&)> log_callback);
 
   /**
@@ -107,8 +109,9 @@ public:
    * @param response_header_traversal the header traversal function.
    * @param response_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  void processResponseHeaders(HeaderFind response_header_find,
+  bool processResponseHeaders(HeaderFind response_header_find,
                               HeaderTraversal response_header_traversal,
                               size_t response_header_count,
                               std::function<void(const Rule&)> log_callback);
@@ -117,8 +120,9 @@ public:
    * Process the response body.
    * @param body_extractor the response body extractor.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  void processResponseBody(BodyExtractor body_extractor,
+  bool processResponseBody(BodyExtractor body_extractor,
                            std::function<void(const Rule&)> log_callback);
 
 public:
@@ -400,13 +404,15 @@ private:
 
   void initUniqueId();
 
-  inline void process(int phase);
+  inline bool process(int phase);
 
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
 
   inline void initQueryParams();
 
   void initCookies();
+
+  inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action) const;
 
 private:
   std::string unique_id_;
