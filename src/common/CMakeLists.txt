@@ -7,10 +7,12 @@ file(GLOB local_source
   pcre/*.cc
 )
 
+
+add_subdirectory(ragel)
+add_library(common ${local_source} $<TARGET_OBJECTS:common_ragel>)
+
 find_package(spdlog CONFIG REQUIRED)
 find_package(pcre2 CONFIG REQUIRED)
-
-add_library(common ${local_source})
 target_link_libraries(common PRIVATE spdlog::spdlog_header_only PCRE2::8BIT)
 
 find_package(PkgConfig REQUIRED)

@@ -155,6 +155,7 @@ add_library(srsecurity
   $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
   $<TARGET_OBJECTS:common>
+  $<TARGET_OBJECTS:common_ragel>
   $<TARGET_OBJECTS:macro>
   $<TARGET_OBJECTS:operator>
   $<TARGET_OBJECTS:variable>
