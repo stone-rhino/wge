@@ -14,6 +14,7 @@
 #include "config.h"
 #include "http_extractor.h"
 #include "variable/full_name.h"
+#include "common/ragel/query_param.h"
 
 namespace SrSecurity {
 class Engine;
@@ -52,8 +53,7 @@ public:
     std::string_view query_;
     std::string protocol_;
     std::string version_;
-    std::vector<std::pair<std::string_view, std::string_view>> query_params_;
-    std::unordered_map<std::string_view, std::string_view> query_params_map_;
+    Common::Ragel::QueryParam query_params_;
   };
 
 public:
@@ -407,8 +407,6 @@ private:
   inline bool process(int phase);
 
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
-
-  inline void initQueryParams();
 
   void initCookies();
 

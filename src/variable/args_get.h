@@ -19,8 +19,8 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& query_params = t.getRequestLineInfo().query_params_;
-    auto& query_params_map = t.getRequestLineInfo().query_params_map_;
+    auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+    auto& query_params_map = t.getRequestLineInfo().query_params_.get();
 
     RETURN_IF_COUNTER(
         // collection
@@ -35,17 +35,17 @@ public:
         // collection
         {
           for (auto& elem : query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              result.append(elem.second);
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              result.append(elem->second);
             }
           }
         },
         // collection regex
         {
           for (auto& elem : query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              if (match(elem.first)) {
-                result.append(elem.second);
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              if (match(elem->first)) {
+                result.append(elem->second);
               }
             }
           }
