@@ -118,6 +118,7 @@ TEST_F(CrsTest, crs) {
   t->processUri(uri_, method_, version_);
   t->processRequestHeaders(request_header_find_, request_header_traversal_, request_headers_.size(),
                            nullptr);
+  t->processRequestBody(request_body_extractor_, nullptr);
 }
 } // namespace Integration
 } // namespace SrSecurity

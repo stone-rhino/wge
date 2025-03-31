@@ -191,6 +191,46 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
   SRSECURITY_LOG_TRACE("====process response body====");
   extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
+
+  // Parse the query params
+  if (request_body_processor_.has_value()) {
+    switch (request_body_processor_.value()) {
+      {
+      case BodyProcessorType::UrlEncoded: {
+        const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
+        if (!body.empty()) {
+          body_query_param_.init(body.front());
+        }
+      } break;
+      case BodyProcessorType::MultiPart:
+        break;
+      case BodyProcessorType::Xml:
+        break;
+      case BodyProcessorType::Json:
+        break;
+      default:
+        UNREACHABLE();
+        break;
+      }
+    }
+  } else {
+    auto content_type = extractor_.request_header_find_("content-type");
+    if (content_type == "application/x-www-form-urlencoded") {
+      const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
+      if (!body.empty()) {
+        body_query_param_.init(body.front());
+      }
+    } else if (content_type == "multipart/form-data") {
+    }
+
+    // The xml and json processor must be specified by the ctl action.
+    // else if (content_type == "application/xml" || content_type == "text/xml") {
+    //   request_body_processor_ = BodyProcessorType::Xml;
+    // } else if (content_type == "application/json") {
+    //   request_body_processor_ = BodyProcessorType::Json;
+    // }
+  }
+
   return process(4);
 }
 
@@ -201,15 +241,15 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
     if (IS_INT_VARIANT(value)) [[likely]] {
       tx_variable.variant_ = std::get<int>(value);
     } else if (IS_STRING_VIEW_VARIANT(value)) {
-      // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid if
-      // it's reference is invalid. So we copy the value to the string_buffer_. The
+      // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid
+      // if it's reference is invalid. So we copy the value to the string_buffer_. The
       // string_buffer_ store the value as a string, and it will be valid until the
       // transaction is destroyed. Why we don't let the Common::Variant store the value as a
       // std::string? If we do it, it seems that we don't need the string_buffer_ anymore. But
       // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
-      // std::monostate, int, std::string_view. If we add a new std::sting type, we must process the
-      // variant in repeat places when we want to get the value as a string. So we choose to store
-      // the value as a std::string_view in the Common::Variant, and copy the value to the
+      // std::monostate, int, std::string_view. If we add a new std::sting type, we must process
+      // the variant in repeat places when we want to get the value as a string. So we choose to
+      // store the value as a std::string_view in the Common::Variant, and copy the value to the
       // string_buffer_ when we want to store the value as a string. It's a trade-off between
       // the code maintainability and the performance.
       tx_variable.string_buffer_ = std::get<std::string_view>(value);

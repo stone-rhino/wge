@@ -396,6 +396,10 @@ public:
    */
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
+  const Common::Ragel::QueryParam& getBodyQueryParam() const {
+    return body_query_param_;
+  }
+
 private:
   class RandomInitHelper {
   public:
@@ -463,6 +467,7 @@ private:
   std::string_view request_line_;
   std::string request_line_buffer_;
   RequestLineInfo requset_line_info_;
+  Common::Ragel::QueryParam body_query_param_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

@@ -19,8 +19,10 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(false);
-    throw "Not implemented!";
+    ArgsGet args_get(std::string(sub_name_), is_not_, is_counter_);
+    args_get.evaluate(t, result);
+    ArgsPost args_post(std::string(sub_name_), is_not_, is_counter_);
+    args_post.evaluate(t, result);
   };
   bool isCollection() const override { return sub_name_.empty(); };
 };
