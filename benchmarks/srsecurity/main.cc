@@ -56,6 +56,7 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     t->processUri(request.uri_, request.method_, request.version_);
     t->processRequestHeaders(request_header_find, request_header_traversal,
                              request.request_headers_.size(), nullptr);
+    t->processRequestBody(request_body_extractor, nullptr);
   }
 }
 

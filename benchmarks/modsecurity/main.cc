@@ -42,6 +42,10 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
       t.addRequestHeader(key, value);
     }
     t.processRequestHeaders();
+    for (auto value : request.request_body_) {
+      t.appendRequestBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
+    }
+    t.processRequestBody();
   }
 }
 
