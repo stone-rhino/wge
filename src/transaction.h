@@ -10,11 +10,11 @@
 #include <vector>
 
 #include "common/evaluate_result.h"
+#include "common/ragel/query_param.h"
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
 #include "variable/full_name.h"
-#include "common/ragel/query_param.h"
 
 namespace SrSecurity {
 class Engine;
@@ -396,9 +396,9 @@ public:
    */
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
-  const Common::Ragel::QueryParam& getBodyQueryParam() const {
-    return body_query_param_;
-  }
+  const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
+
+  const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
 
 private:
   class RandomInitHelper {
@@ -468,6 +468,7 @@ private:
   std::string request_line_buffer_;
   RequestLineInfo requset_line_info_;
   Common::Ragel::QueryParam body_query_param_;
+  std::string req_body_error_msg_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
