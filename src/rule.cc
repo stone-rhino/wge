@@ -188,8 +188,12 @@ inline void Rule::evaluateVariable(Transaction& t,
                          var->subName().empty() ? "" : ":" + var->subName(),
                          VISTIT_VARIANT_AS_STRING(result.front().variant_));
     } else {
-      return std::format("evaluate collection: {}{}{}", var->isNot() ? "!" : "",
-                         var->isCounter() ? "&" : "", var->mainName());
+      if (var->isCounter()) {
+        return std::format("evaluate collection: {}&{} = {}", var->isNot() ? "!" : "",
+                           var->mainName(), VISTIT_VARIANT_AS_STRING(result.front().variant_));
+      } else {
+        return std::format("evaluate collection: {}{}", var->isNot() ? "!" : "", var->mainName());
+      }
     }
   }());
 }
