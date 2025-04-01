@@ -16,10 +16,67 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    ArgsGetNames args_get_names(std::string(sub_name_), is_not_, is_counter_);
-    args_get_names.evaluate(t, result);
-    ArgsPostNames args_post_names(std::string(sub_name_), is_not_, is_counter_);
-    args_post_names.evaluate(t, result);
+    auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
+    auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
+    auto& body_query_params = t.getBodyQueryParam().getLinked();
+    auto& body_query_params_map = t.getBodyQueryParam().get();
+
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(static_cast<int>(line_query_params.size() + body_query_params.size())); },
+        // specify subname
+        {
+          int count = line_query_params_map.find(sub_name_) != line_query_params_map.end() ? 1 : 0;
+          if (body_query_params_map.find(sub_name_) != body_query_params_map.end()) {
+            count++;
+          }
+          result.append(count);
+        });
+
+    RETURN_VALUE(
+        // collection
+        {
+          for (auto& elem : line_query_params) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              result.append(elem->first);
+            }
+          }
+          for (auto& elem : body_query_params) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              result.append(elem->first);
+            }
+          }
+        },
+        // collection regex
+        {
+          for (auto& elem : line_query_params) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              if (match(elem->first)) {
+                result.append(elem->first);
+              }
+            }
+          }
+          for (auto& elem : body_query_params) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              if (match(elem->first)) {
+                result.append(elem->first);
+              }
+            }
+          }
+        },
+        // specify subname
+        {
+          if (!hasExceptVariable(sub_name_)) [[likely]] {
+            auto iter = line_query_params_map.find(sub_name_);
+            if (iter != line_query_params_map.end()) {
+              result.append(iter->first);
+            }
+            auto iter2 = body_query_params_map.find(sub_name_);
+            if (iter2 != body_query_params_map.end()) {
+              result.append(iter2->first);
+            }
+          }
+        });
   };
 
   bool isCollection() const override { return sub_name_.empty(); };

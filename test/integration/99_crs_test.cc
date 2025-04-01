@@ -95,7 +95,7 @@ protected:
   std::string upstream_ip_{"192.168.1.200"};
   short upstream_port_{80};
 
-  std::string uri_{"/"};
+  std::string uri_{"/?p1=v1&p2=v2"};
   std::string method_{"GET"};
   std::string version_{"1.1"};
 
@@ -106,8 +106,8 @@ protected:
       {"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/"
                  "webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"},
       {"x-forwarded-proto", "http"},
-      {"cookie", "aa=bb"},
-      {"cookie", "cc=dd"}};
+      {"cookie", "c1=v1;c2=v2"},
+      {"cookie", "c3=v4"}};
 
   std::vector<std::string_view> request_body_;
 };
