@@ -25,10 +25,10 @@ public:
 
     int64_t operand_value = std::get<int>(operand);
     if (!macro_) [[likely]] {
-      return is_not_ ^ (value_ < operand_value);
+      return is_not_ ^ (operand_value < value_);
     } else {
       MACRO_EXPAND_INT(macro_value);
-      return is_not_ ^ (macro_value < operand_value);
+      return is_not_ ^ (operand_value < macro_value);
     }
   }
 
