@@ -561,7 +561,7 @@ Visitor::visitVariable_remote_user(Antlr4Gen::SecLangParser::Variable_remote_use
 
 std::any
 Visitor::visitVariable_reqbody_error(Antlr4Gen::SecLangParser::Variable_reqbody_errorContext* ctx) {
-  return appendVariable<Variable::ReqBodyProcessor>(ctx);
+  return appendVariable<Variable::ReqBodyError>(ctx);
 };
 
 std::any Visitor::visitVariable_reqbody_error_msg(
