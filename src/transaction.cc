@@ -217,7 +217,7 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
       } break;
       case BodyProcessorType::MultiPart: {
         auto content_type = extractor_.request_header_find_("content-type");
-        body_multi_part_.init(content_type, body.front(), 0);
+        body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
       } break;
       case BodyProcessorType::Xml:
         break;
