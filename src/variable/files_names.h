@@ -14,8 +14,44 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(false);
-    throw "Not implemented!";
+    auto& filename = t.getBodyMultiPart().getNameFileNameLinked();
+    auto& filename_map = t.getBodyMultiPart().getNameFileName();
+
+    RETURN_IF_COUNTER(
+        // collection
+        { result.append(static_cast<int>(filename.size())); },
+        // specify subname
+        {
+          auto iter = filename_map.find(sub_name_);
+          result.append(iter != t.getBodyMultiPart().getNameFileName().end() ? 1 : 0);
+        });
+
+    RETURN_VALUE(
+        // collection
+        {
+          for (auto& elem : filename) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              result.append(elem->first);
+            }
+          }
+        },
+        // collection regex
+        {
+          for (auto& elem : filename) {
+            if (!hasExceptVariable(elem->first)) [[likely]] {
+              if (match(elem->first)) {
+                result.append(elem->first);
+              }
+            }
+          }
+        },
+        // specify subname regex
+        {
+          auto iter = filename_map.find(sub_name_);
+          if (iter != filename_map.end()) {
+            result.append(iter->first);
+          }
+        });
   };
 
   bool isCollection() const override { return sub_name_.empty(); };
