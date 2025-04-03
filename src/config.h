@@ -50,6 +50,10 @@ struct EngineConfig {
   // correct verifying process can lead to a security issue.
   Option is_xml_external_entity_{Option::Off};
 
+  // SecUploadFileLimit
+  // Configures the maximum number of file uploads processed in a multipart POST.
+  uint32_t upload_file_limit_{0};
+
   // SecResponseBodyMimeType
   // Configures which MIME types are to be considered for response body buffering.
   std::vector<std::string> response_body_mime_types_;

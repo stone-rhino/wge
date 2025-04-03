@@ -174,6 +174,10 @@ void Parser::secTmpSaveUploadedFiles(EngineConfig::Option option) {
   engine_config_.is_tmp_save_uploaded_files_ = option;
 }
 
+void Parser::secUploadFileLimit(uint32_t limit_count) {
+  engine_config_.upload_file_limit_ = limit_count;
+}
+
 void Parser::secUploadKeepFiles(EngineConfig::Option option) {
   engine_config_.is_upload_keep_files_ = option;
 }

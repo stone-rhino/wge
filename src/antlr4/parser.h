@@ -46,6 +46,7 @@ public:
   void secResponseBodyAccess(EngineConfig::Option option);
   void secRuleEngine(EngineConfig::Option option);
   void secTmpSaveUploadedFiles(EngineConfig::Option option);
+  void secUploadFileLimit(uint32_t limit_count);
   void secUploadKeepFiles(EngineConfig::Option option);
   void secXmlExternalEntity(EngineConfig::Option option);
   void secRequestBodyLimit(uint64_t limit_bytes);

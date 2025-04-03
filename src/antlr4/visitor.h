@@ -45,6 +45,9 @@ public:
       Antlr4Gen::SecLangParser::Sec_tmp_save_uploaded_filesContext* ctx) override;
 
   std::any
+  visitSec_upload_file_limit(Antlr4Gen::SecLangParser::Sec_upload_file_limitContext* ctx) override;
+
+  std::any
   visitSec_upload_keep_files(Antlr4Gen::SecLangParser::Sec_upload_keep_filesContext* ctx) override;
 
   std::any visitSec_xml_external_entity(

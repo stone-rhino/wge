@@ -71,6 +71,12 @@ std::any Visitor::visitSec_tmp_save_uploaded_files(
 }
 
 std::any
+Visitor::visitSec_upload_file_limit(Antlr4Gen::SecLangParser::Sec_upload_file_limitContext* ctx) {
+  parser_->secUploadFileLimit(::atol(ctx->INT()->getText().c_str()));
+  return EMPTY_STRING;
+}
+
+std::any
 Visitor::visitSec_upload_keep_files(Antlr4Gen::SecLangParser::Sec_upload_keep_filesContext* ctx) {
   parser_->secUploadKeepFiles(optionStr2EnumValue(ctx->OPTION()->getText()));
   return EMPTY_STRING;
