@@ -1,0 +1,310 @@
+#pragma once
+
+#include <string_view>
+
+#ifndef ENABLE_MULTI_PART_DEBUG_LOG
+#define ENABLE_MULTI_PART_DEBUG_LOG 0
+#endif
+
+#if ENABLE_MULTI_PART_DEBUG_LOG
+#include <iostream>
+#include <format>
+#define MULTI_PART_LOG(x) std::cout << x << std::endl;
+#else
+#define MULTI_PART_LOG(x)
+#endif
+
+%%{
+  machine multipart_content_type;
+  
+  action error_boundary_whitespace {
+    MULTI_PART_LOG("error_boundary_whitespace");
+    error_code.set(MultipartStrictError::ErrorType::BoundaryWhitespace);
+    fbreak;
+  }
+
+  action error_boundary_quoted {
+    MULTI_PART_LOG("error_boundary_quoted");
+    error_code.set(MultipartStrictError::ErrorType::BoundaryQuoted);
+    fbreak;
+  }
+
+  action start_boundary {
+    boundary_start = p;
+  }
+
+  action end_boundary {
+    boundary_len = p - boundary_start;
+  }
+
+  boundary = "--" [^ \t\r\n]+ >start_boundary %end_boundary;
+  whitespace_boundary = "--" [^\r\n]* [ \t]+ >error_boundary_whitespace;
+  quoted_boundary = '"' [^"]+ '"' >error_boundary_quoted;
+
+  main := ' '* "multipart/form-data;" ' '* "boundary="
+  (boundary | quoted_boundary | whitespace_boundary);
+}%%
+
+%% write data;
+
+static std::string_view parseContentType(std::string_view input, SrSecurity::MultipartStrictError& error_code) {
+  using namespace SrSecurity;
+
+  const char* p = input.data();
+  const char* pe = p + input.size();
+  const char* eof = pe;
+  int cs;
+
+  const char* boundary_start = nullptr;
+  size_t boundary_len = 0;
+
+  %% write init;
+  %% write exec;
+
+  return { boundary_start, boundary_len };
+}
+
+%%{
+  machine multipart;
+
+  action skip {}
+
+  action error_data_before {
+    MULTI_PART_LOG("error_data_before");
+    error_code.set(MultipartStrictError::ErrorType::DataBefore);
+    fbreak;
+  }
+
+  action error_data_after {
+    MULTI_PART_LOG("error_data_after");
+    error_code.set(MultipartStrictError::ErrorType::DataAfter);
+    fbreak;
+  }
+
+  action error_header_folding {
+    MULTI_PART_LOG("error_header_folding");
+    error_code.set(MultipartStrictError::ErrorType::HeaderFolding);
+    fbreak;
+  }
+
+  action error_lf_line {
+    MULTI_PART_LOG("error_lf_line");
+    error_code.set(MultipartStrictError::ErrorType::LfLine);
+    fbreak;
+  }
+
+  action error_missing_semicolon {
+    MULTI_PART_LOG("error_missing_semicolon");
+    error_code.set(MultipartStrictError::ErrorType::MissingSemicolon);
+    fbreak;
+  }
+
+  action error_invalid_quoting {
+    MULTI_PART_LOG("error_invalid_quoting");
+    error_code.set(MultipartStrictError::ErrorType::InvalidQuoting);
+    fbreak;
+  }
+
+  action error_invalid_part {
+    MULTI_PART_LOG("error_invalid_part");
+    error_code.set(MultipartStrictError::ErrorType::InvalidPart);
+    fbreak;
+  }
+
+  action error_invalid_header_folding {
+    MULTI_PART_LOG("error_invalid_header_folding");
+    error_code.set(MultipartStrictError::ErrorType::InvalidHeaderFolding);
+    fbreak;
+  }
+
+  action error_file_limit_exceeded {
+    MULTI_PART_LOG("error_file_limit_exceeded");
+    error_code.set(MultipartStrictError::ErrorType::FileLimitExceeded);
+    fbreak;
+  }
+
+  action start_boundary {
+    MULTI_PART_LOG("start_boundary");
+    boundary_start = p - 2;
+  }
+
+  action end_boundary {
+    boundary_len = p - boundary_start;
+    MULTI_PART_LOG(std::format("end_boundary:{}", std::string_view(boundary_start, boundary_len)));
+  }
+
+  boundary = "--" [^ \t\r\n\-]+ >start_boundary %end_boundary;
+  data_before = [^\-] >error_data_before;
+  data_after = any >error_data_after;
+
+  lf = '\n' >error_lf_line;
+  crlf = '\r\n';
+
+  main := 
+    ((data_before | boundary ) (("--" data_after?) %{ MULTI_PART_LOG("multipart end"); fbreak; })? (lf | crlf) @{ MULTI_PART_LOG("fcall headers"); fcall headers;})+;
+
+  headers := |*
+    # Header folding
+    [ \t]+ => error_header_folding;
+
+    # Invalid header folding
+    [^ \t\r\n] [^ \t\r\n:]+ (lf | crlf) => error_invalid_header_folding;
+
+    # Content-Disposition header
+    "content-disposition:" [ \t]* => { 
+      MULTI_PART_LOG("fcall content-disposition header_value");
+      is_content_disposition = true;
+      name = {};
+      p_value_start = nullptr;
+      value_len = 0;
+      fcall header_value; 
+    };
+
+    # Other headers
+    [^ \t\r\n]+ ':' [ \t]* => { 
+      MULTI_PART_LOG("fcall header_value");
+      fcall header_value; 
+    };
+
+    # End of headers
+    '\r\n' => { 
+      MULTI_PART_LOG("fnext body"); 
+      p_value_start = te;
+      fnext body; 
+    }; 
+
+    any => error_invalid_part;
+  *|;
+
+  header_value := |*
+    # Missing semicolon
+    [^ \r\n;]+ [ \t]+ [^\r\n]+ => error_missing_semicolon;
+
+    # The value is ok 
+    [^\r\n]+ => { 
+      if(is_content_disposition){
+        MULTI_PART_LOG("fnext content_disposition_value");
+        p = ts; 
+        fhold; 
+        fnext content_disposition_value; 
+      } 
+    };
+
+    # End of kv pair
+    '\r\n' => {
+      MULTI_PART_LOG("fret header_value");
+      fret; 
+    };
+
+    any => error_invalid_part;
+  *|;
+
+  content_disposition_value := |*
+    "form-data;" [ \t]* => skip;
+    "name=" '"' [^"\r\n]+ '"' [ \t;]* => { 
+      name = trim(ts + 5, te - ts - 5);
+      MULTI_PART_LOG(std::format("name with quotes:{}", name));
+    };
+    "name=" [^ \t\r\n"]* '"' => error_invalid_quoting;
+    "name=" [^ \t\r\n"]+ => { 
+      name = trim(ts + 5, te - ts - 5);
+      MULTI_PART_LOG(std::format("name without quotes:{}", name));
+    };
+    "filename=" '"' [^"\r\n]+ '"' [ \t;]* => { 
+      MULTI_PART_LOG(std::format("filename with quotes:{}", std::string_view(ts + 9, te - ts - 9)));
+      ++file_count; 
+      if(max_file_count && file_count > max_file_count) { 
+        error_code.set(MultipartStrictError::ErrorType::FileLimitExceeded); 
+        fbreak; 
+      }
+    };
+    "filename=" [^ \t\r\n"]* '"' => error_invalid_quoting;
+    "filename=" [^ \t\r\n]+ => {
+      MULTI_PART_LOG(std::format("filename without quotes:{}", std::string_view(ts + 9, te - ts - 9)));
+      ++file_count; 
+      if(max_file_count && file_count > max_file_count) { 
+        error_code.set(MultipartStrictError::ErrorType::FileLimitExceeded); 
+        fbreak; 
+      }
+    };
+    '\r\n' => {
+      MULTI_PART_LOG("fret content_disposition_value");
+      fret; 
+    };
+    any => error_invalid_part;
+  *|;
+
+  body := |*
+    "--" [^ \t\r\n\-]+ => { 
+      std::string_view boundary(ts, te - ts);
+      if(boundary == std::string_view(boundary_start, boundary_len)) {
+        if(!name.empty() && value_len > 0) {
+          MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
+          auto it = query_params.find(name);
+          if (it != query_params.end()) {
+            // If the key already exists, update the value
+            it->second = std::string_view(p_value_start, value_len);
+          } else {
+            auto result = query_params.insert({name, std::string_view(p_value_start, value_len)});
+            query_params_linked.emplace_back(result.first);
+          }
+        }
+        MULTI_PART_LOG("body fret");
+        p = ts;
+        fhold;
+        fret;
+      }
+    };
+    any => { ++value_len; };
+  *|;
+}%%
+
+%% write data;
+
+
+
+// Trims leading and trailing whitespace or quotes from a string.
+static std::string_view trim(const char* start, size_t size) {
+  const char* end = start + size;
+
+  // Trim leading whitespace or quotes
+  while (start < end && (*start == ' ' || *start == '\t' || *start == '"')) {
+    ++start;
+  }
+
+  // Trim trailing whitespace
+  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '"')) {
+    --end;
+  }
+
+  return std::string_view(start, end - start);
+}
+
+static void parseMultiPart(std::string_view input,std::unordered_map<std::string_view, std::string_view>& query_params,
+  std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>& query_params_linked, SrSecurity::MultipartStrictError& error_code, uint32_t max_file_count) {
+  using namespace SrSecurity;
+
+  query_params.clear();
+  query_params_linked.clear();
+
+  const char* p = input.data();
+  const char* pe = p + input.size();
+  const char* eof = pe;
+  const char* ts, *te;
+  int cs,act;
+  int top = 0;
+  int stack[16];
+
+  const char* boundary_start = nullptr;
+  size_t boundary_len = 0;
+  bool is_content_disposition = false;
+  std::string_view name;
+  const char* p_value_start = nullptr;
+  size_t value_len = 0;
+  uint32_t file_count = 0;
+
+  %% write init;
+  %% write exec;
+}
+
+#undef MULTI_PART_LOG
