@@ -21,16 +21,33 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
     auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
-    auto& body_query_params = t.getBodyQueryParam().getLinked();
-    auto& body_query_params_map = t.getBodyQueryParam().get();
+
+    // Get the query params by the request body processor type
+    const std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>*
+        body_query_params = nullptr;
+    const std::unordered_map<std::string_view, std::string_view>* body_query_params_map = nullptr;
+    switch (t.getRequestBodyProcessor()) {
+    case BodyProcessorType::UrlEncoded:
+      body_query_params = &t.getBodyQueryParam().getLinked();
+      body_query_params_map = &t.getBodyQueryParam().get();
+      break;
+    case BodyProcessorType::MultiPart:
+      body_query_params = &t.getBodyMultiPart().getLinked();
+      body_query_params_map = &t.getBodyMultiPart().get();
+      break;
+    default:
+      body_query_params = &t.getBodyQueryParam().getLinked();
+      body_query_params_map = &t.getBodyQueryParam().get();
+      break;
+    }
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(line_query_params.size() + body_query_params.size())); },
+        { result.append(static_cast<int>(line_query_params.size() + body_query_params->size())); },
         // specify subname
         {
           int count = line_query_params_map.find(sub_name_) != line_query_params_map.end() ? 1 : 0;
-          if (body_query_params_map.find(sub_name_) != body_query_params_map.end()) {
+          if (body_query_params_map->find(sub_name_) != body_query_params_map->end()) {
             count++;
           }
           result.append(count);
@@ -44,7 +61,7 @@ public:
               result.append(elem->second);
             }
           }
-          for (auto& elem : body_query_params) {
+          for (auto& elem : *body_query_params) {
             if (!hasExceptVariable(elem->first)) [[likely]] {
               result.append(elem->second);
             }
@@ -59,7 +76,7 @@ public:
               }
             }
           }
-          for (auto& elem : body_query_params) {
+          for (auto& elem : *body_query_params) {
             if (!hasExceptVariable(elem->first)) [[likely]] {
               if (match(elem->first)) {
                 result.append(elem->second);
@@ -74,8 +91,8 @@ public:
             if (iter != line_query_params_map.end()) {
               result.append(iter->second);
             }
-            auto iter2 = body_query_params_map.find(sub_name_);
-            if (iter2 != body_query_params_map.end()) {
+            auto iter2 = body_query_params_map->find(sub_name_);
+            if (iter2 != body_query_params_map->end()) {
               result.append(iter2->second);
             }
           }
