@@ -30,7 +30,7 @@
   }
 
   action start_boundary {
-    boundary_start = p;
+    boundary_start = p - 2;
   }
 
   action end_boundary {
@@ -131,6 +131,11 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
   action end_boundary {
     boundary_len = p - boundary_start;
     MULTI_PART_LOG(std::format("end_boundary:{}", std::string_view(boundary_start, boundary_len)));
+    if(boundary != std::string_view(boundary_start, boundary_len)) {
+      MULTI_PART_LOG("error_unmatched_boundary");
+      error_code.set(MultipartStrictError::ErrorType::UnmatchedBoundary);
+      fbreak;
+    }
   }
 
   boundary = "--" [^ \t\r\n\-]+ >start_boundary %end_boundary;
@@ -236,8 +241,8 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
 
   body := |*
     "--" [^ \t\r\n\-]+ => { 
-      std::string_view boundary(ts, te - ts);
-      if(boundary == std::string_view(boundary_start, boundary_len)) {
+      if(boundary == std::string_view(ts, te - ts)) {
+        parse_complete = true;
         if(!name.empty() && value_len > 0) {
           MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
           auto it = query_params.find(name);
@@ -280,8 +285,12 @@ static std::string_view trim(const char* start, size_t size) {
   return std::string_view(start, end - start);
 }
 
-static void parseMultiPart(std::string_view input,std::unordered_map<std::string_view, std::string_view>& query_params,
-  std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>& query_params_linked, SrSecurity::MultipartStrictError& error_code, uint32_t max_file_count) {
+static void parseMultiPart(std::string_view input, 
+  std::string_view boundary, 
+  std::unordered_map<std::string_view, std::string_view>& query_params,
+  std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>& query_params_linked, 
+  SrSecurity::MultipartStrictError& error_code, 
+  uint32_t max_file_count) {
   using namespace SrSecurity;
 
   query_params.clear();
@@ -302,9 +311,14 @@ static void parseMultiPart(std::string_view input,std::unordered_map<std::string
   const char* p_value_start = nullptr;
   size_t value_len = 0;
   uint32_t file_count = 0;
+  bool parse_complete = false;
 
   %% write init;
   %% write exec;
+
+  if(!parse_complete && !error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+    error_code.set(MultipartStrictError::ErrorType::InvalidPart);
+  }
 }
 
 #undef MULTI_PART_LOG

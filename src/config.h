@@ -225,7 +225,8 @@ struct MultipartStrictError : public std::bitset<16> {
     InvalidQuoting,
     InvalidPart,
     InvalidHeaderFolding,
-    FileLimitExceeded
+    FileLimitExceeded,
+    UnmatchedBoundary
   };
   bool get(ErrorType type) const { return test(static_cast<size_t>(type)); }
   void set(ErrorType type) {

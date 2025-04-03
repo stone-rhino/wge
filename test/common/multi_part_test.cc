@@ -65,6 +65,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::BoundaryWhitespace
@@ -85,6 +86,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::DataBefore
@@ -105,6 +107,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::DataAfter
@@ -130,6 +133,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::HeaderFolding
@@ -156,6 +160,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::LfLine
@@ -181,6 +186,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::MissingSemicolon
@@ -206,6 +212,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::InvalidQuoting
@@ -231,6 +238,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::InvalidQuoting
@@ -256,6 +264,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::InvalidQuoting
@@ -281,6 +290,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::InvalidPart
@@ -304,6 +314,32 @@ TEST(Common, multiPartError) {
     EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
+  }
+
+  // ErrorType::InvalidPart
+  {
+    SrSecurity::Common::Ragel::MultiPart multi_part;
+    multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
+                    "--helloworld\r\n"
+                    "content-disposition: form-data; name=hello\r\n"
+                    "\r\n"
+                    "world\r\n");
+    auto error = multi_part.getError();
+    EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::MultipartStrictError));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::ReqbodyProcessorError));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::BoundaryQuoted));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::BoundaryWhitespace));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::DataBefore));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::DataAfter));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::HeaderFolding));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::LfLine));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::MissingSemicolon));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidQuoting));
+    EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::InvalidHeaderFolding
@@ -330,6 +366,7 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 
   // ErrorType::FileLimitExceeded
@@ -364,5 +401,32 @@ TEST(Common, multiPartError) {
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
     EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
     EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
+  }
+
+  // ErrorType::UnmatchedBoundary
+  {
+    SrSecurity::Common::Ragel::MultiPart multi_part;
+    multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
+                    "--helloworld2\r\n"
+                    "content-disposition: form-data; name=hello\r\n"
+                    "\r\n"
+                    "world\r\n"
+                    "--helloworld2--");
+    auto error = multi_part.getError();
+    EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::MultipartStrictError));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::ReqbodyProcessorError));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::BoundaryQuoted));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::BoundaryWhitespace));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::DataBefore));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::DataAfter));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::HeaderFolding));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::LfLine));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::MissingSemicolon));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidQuoting));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidPart));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::InvalidHeaderFolding));
+    EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::FileLimitExceeded));
+    EXPECT_TRUE(error.get(SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary));
   }
 }
