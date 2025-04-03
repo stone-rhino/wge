@@ -183,6 +183,21 @@ bool Transaction::processResponseHeaders(HeaderFind response_header_find,
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
   extractor_.response_header_count_ = response_header_count;
   log_callback_ = std::move(log_callback);
+
+  // Set the request body processor
+  auto content_type = extractor_.request_header_find_("content-type");
+  if (content_type == "application/x-www-form-urlencoded") {
+    request_body_processor_ = BodyProcessorType::UrlEncoded;
+  } else if (content_type == "multipart/form-data") {
+    request_body_processor_ = BodyProcessorType::MultiPart;
+  }
+  // The xml and json processor must be specified by the ctl action.
+  // else if (content_type == "application/xml" || content_type == "text/xml") {
+  //   request_body_processor_ = BodyProcessorType::Xml;
+  // } else if (content_type == "application/json") {
+  //   request_body_processor_ = BodyProcessorType::Json;
+  // }
+
   return process(3);
 }
 
@@ -193,17 +208,17 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
   log_callback_ = std::move(log_callback);
 
   // Parse the query params
-  if (request_body_processor_.has_value()) {
+  const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
+  if (!body.empty() && request_body_processor_.has_value()) {
     switch (request_body_processor_.value()) {
       {
       case BodyProcessorType::UrlEncoded: {
-        const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
-        if (!body.empty()) {
-          body_query_param_.init(body.front());
-        }
+        body_query_param_.init(body.front());
       } break;
-      case BodyProcessorType::MultiPart:
-        break;
+      case BodyProcessorType::MultiPart: {
+        auto content_type = extractor_.request_header_find_("content-type");
+        body_multi_part_.init(content_type, body.front(), 0);
+      } break;
       case BodyProcessorType::Xml:
         break;
       case BodyProcessorType::Json:
@@ -213,22 +228,6 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
         break;
       }
     }
-  } else {
-    auto content_type = extractor_.request_header_find_("content-type");
-    if (content_type == "application/x-www-form-urlencoded") {
-      const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
-      if (!body.empty()) {
-        body_query_param_.init(body.front());
-      }
-    } else if (content_type == "multipart/form-data") {
-    }
-
-    // The xml and json processor must be specified by the ctl action.
-    // else if (content_type == "application/xml" || content_type == "text/xml") {
-    //   request_body_processor_ = BodyProcessorType::Xml;
-    // } else if (content_type == "application/json") {
-    //   request_body_processor_ = BodyProcessorType::Json;
-    // }
   }
 
   return process(4);
