@@ -23,17 +23,18 @@ public:
     auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
 
     // Get the query params by the request body processor type
-    const std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>*
+    const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>*
         body_query_params = nullptr;
-    const std::unordered_map<std::string_view, std::string_view>* body_query_params_map = nullptr;
+    const std::unordered_multimap<std::string_view, std::string_view>* body_query_params_map =
+        nullptr;
     switch (t.getRequestBodyProcessor()) {
     case BodyProcessorType::UrlEncoded:
       body_query_params = &t.getBodyQueryParam().getLinked();
       body_query_params_map = &t.getBodyQueryParam().get();
       break;
     case BodyProcessorType::MultiPart:
-      body_query_params = &t.getBodyMultiPart().getLinked();
-      body_query_params_map = &t.getBodyMultiPart().get();
+      body_query_params = &t.getBodyMultiPart().getNameValueLinked();
+      body_query_params_map = &t.getBodyMultiPart().getNameValue();
       break;
     default:
       body_query_params = &t.getBodyQueryParam().getLinked();

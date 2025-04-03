@@ -11,8 +11,8 @@ void MultiPart::init(std::string_view content_type, std::string_view multi_part,
   if (boundary.empty()) {
     return;
   }
-  ::parseMultiPart(multi_part, boundary, query_param_map_, query_param_linked_,
-                   multipart_strict_error_, max_file_count);
+  ::parseMultiPart(multi_part, boundary, name_value_map_, name_value_linked_, name_filename_map_,
+                   name_filename_linked_, multipart_strict_error_, max_file_count);
 }
 
 } // namespace Ragel

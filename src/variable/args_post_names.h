@@ -15,17 +15,17 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     // Get the query params by the request body processor type
-    const std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>*
+    const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>*
         query_params = nullptr;
-    const std::unordered_map<std::string_view, std::string_view>* query_params_map = nullptr;
+    const std::unordered_multimap<std::string_view, std::string_view>* query_params_map = nullptr;
     switch (t.getRequestBodyProcessor()) {
     case BodyProcessorType::UrlEncoded:
       query_params = &t.getBodyQueryParam().getLinked();
       query_params_map = &t.getBodyQueryParam().get();
       break;
     case BodyProcessorType::MultiPart:
-      query_params = &t.getBodyMultiPart().getLinked();
-      query_params_map = &t.getBodyMultiPart().get();
+      query_params = &t.getBodyMultiPart().getNameValueLinked();
+      query_params_map = &t.getBodyMultiPart().getNameValue();
       break;
     default:
       query_params = &t.getBodyQueryParam().getLinked();

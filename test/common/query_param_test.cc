@@ -8,9 +8,9 @@ TEST(Common, queryParam) {
     query_param.init("a=1&b=2&c=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
-    EXPECT_EQ(map["a"], "1");
-    EXPECT_EQ(map["b"], "2");
-    EXPECT_EQ(map["c"], "3");
+    EXPECT_EQ(map.find("a")->second, "1");
+    EXPECT_EQ(map.find("b")->second, "2");
+    EXPECT_EQ(map.find("c")->second, "3");
 
     auto linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 3);
@@ -27,9 +27,9 @@ TEST(Common, queryParam) {
     query_param.init("a=1&b&c=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
-    EXPECT_EQ(map["a"], "1");
-    EXPECT_EQ(map["b"], "");
-    EXPECT_EQ(map["c"], "3");
+    EXPECT_EQ(map.find("a")->second, "1");
+    EXPECT_EQ(map.find("b")->second, "");
+    EXPECT_EQ(map.find("c")->second, "3");
 
     auto linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 3);
