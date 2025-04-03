@@ -18,32 +18,48 @@ TEST(Common, multiPart) {
                   "\r\n"
                   "bar3\r\n"
                   "--helloworld\r\n"
-                  "content-disposition: form-data; filename=hello1\r\n"
+                  "content-disposition: form-data; name=file1; filename=hello1\r\n"
                   "\r\n"
                   "world\r\n"
                   "--helloworld\r\n"
-                  "content-disposition: form-data; filename=hello2\r\n"
+                  "content-disposition: form-data; name=file2; filename=hello2\r\n"
                   "\r\n"
                   "world\r\n"
                   "--helloworld\r\n"
-                  "content-disposition: form-data; filename=hello3\r\n"
+                  "content-disposition: form-data; name=file3; filename=hello3\r\n"
                   "\r\n"
                   "world\r\n"
                   "--helloworld--",
                   3);
   auto error = multi_part.getError();
   EXPECT_FALSE(error.get(SrSecurity::MultipartStrictError::ErrorType::MultipartStrictError));
-  EXPECT_EQ(multi_part.get().size(), 3);
-  EXPECT_EQ(multi_part.getLinked().size(), 3);
-  EXPECT_EQ(multi_part.get().at("foo1"), "bar1\r\n");
-  EXPECT_EQ(multi_part.get().at("foo2"), "bar2\r\n");
-  EXPECT_EQ(multi_part.get().at("foo3"), "bar3\r\n");
-  EXPECT_EQ(multi_part.getLinked()[0]->first, "foo1");
-  EXPECT_EQ(multi_part.getLinked()[1]->first, "foo2");
-  EXPECT_EQ(multi_part.getLinked()[2]->first, "foo3");
-  EXPECT_EQ(multi_part.getLinked()[0]->second, "bar1\r\n");
-  EXPECT_EQ(multi_part.getLinked()[1]->second, "bar2\r\n");
-  EXPECT_EQ(multi_part.getLinked()[2]->second, "bar3\r\n");
+  auto& name_value_map = multi_part.getNameValue();
+  auto& name_value_linked = multi_part.getNameValueLinked();
+  EXPECT_EQ(name_value_map.size(), 3);
+  EXPECT_EQ(name_value_linked.size(), 3);
+  EXPECT_EQ(name_value_map.find("foo1")->second, "bar1\r\n");
+  EXPECT_EQ(name_value_map.find("foo2")->second, "bar2\r\n");
+  EXPECT_EQ(name_value_map.find("foo3")->second, "bar3\r\n");
+  EXPECT_EQ(name_value_linked[0]->first, "foo1");
+  EXPECT_EQ(name_value_linked[1]->first, "foo2");
+  EXPECT_EQ(name_value_linked[2]->first, "foo3");
+  EXPECT_EQ(name_value_linked[0]->second, "bar1\r\n");
+  EXPECT_EQ(name_value_linked[1]->second, "bar2\r\n");
+  EXPECT_EQ(name_value_linked[2]->second, "bar3\r\n");
+
+  auto& name_filename_map = multi_part.getNameFileName();
+  auto& name_filename_linked = multi_part.getNameFileNameLinked();
+  EXPECT_EQ(name_filename_map.size(), 3);
+  EXPECT_EQ(name_filename_linked.size(), 3);
+  EXPECT_EQ(name_filename_map.find("file1")->second, "hello1");
+  EXPECT_EQ(name_filename_map.find("file2")->second, "hello2");
+  EXPECT_EQ(name_filename_map.find("file3")->second, "hello3");
+  EXPECT_EQ(name_filename_linked[0]->first, "file1");
+  EXPECT_EQ(name_filename_linked[1]->first, "file2");
+  EXPECT_EQ(name_filename_linked[2]->first, "file3");
+  EXPECT_EQ(name_filename_linked[0]->second, "hello1");
+  EXPECT_EQ(name_filename_linked[1]->second, "hello2");
+  EXPECT_EQ(name_filename_linked[2]->second, "hello3");
 }
 
 TEST(Common, multiPartError) {
@@ -141,8 +157,8 @@ TEST(Common, multiPartError) {
     SrSecurity::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
                     "--helloworld\r\n"
-                    "content-disposition: form-data;\r\n"
-                    " name=\"hello\"\r\n"
+                    "content-disposition: form-data; name=\"hello\";\r\n"
+                    " filename=\"hello\"\r\n"
                     "\r\n"
                     "world\r\n"
                     "--helloworld--");
@@ -347,8 +363,8 @@ TEST(Common, multiPartError) {
     SrSecurity::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
                     "--helloworld\r\n"
-                    "content-disposition: form-data;\r\n"
-                    "name=hello\r\n"
+                    "content-disposition: form-data;name=hello\r\n"
+                    "filename=hello\r\n"
                     "\r\n"
                     "world\r\n"
                     "--helloworld--");
@@ -374,15 +390,15 @@ TEST(Common, multiPartError) {
     SrSecurity::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
                     "--helloworld\r\n"
-                    "content-disposition: form-data; filename=hello1\r\n"
+                    "content-disposition: form-data; name=file1; filename=hello1\r\n"
                     "\r\n"
                     "world\r\n"
                     "--helloworld\r\n"
-                    "content-disposition: form-data; filename=hello2\r\n"
+                    "content-disposition: form-data; name=file2; filename=hello2\r\n"
                     "\r\n"
                     "world\r\n"
                     "--helloworld\r\n"
-                    "content-disposition: form-data; filename=hello3\r\n"
+                    "content-disposition: form-data; name=file2; filename=hello3\r\n"
                     "\r\n"
                     "world\r\n"
                     "--helloworld--",

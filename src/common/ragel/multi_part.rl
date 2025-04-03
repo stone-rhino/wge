@@ -160,6 +160,7 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
       MULTI_PART_LOG("fcall content-disposition header_value");
       is_content_disposition = true;
       name = {};
+      filename = {};
       p_value_start = nullptr;
       value_len = 0;
       fcall header_value; 
@@ -211,12 +212,14 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
       MULTI_PART_LOG(std::format("name with quotes:{}", name));
     };
     "name=" [^ \t\r\n"]* '"' => error_invalid_quoting;
-    "name=" [^ \t\r\n"]+ => { 
+    "name=" [^ \t\r\n";]+ [ \t;]* => { 
       name = trim(ts + 5, te - ts - 5);
       MULTI_PART_LOG(std::format("name without quotes:{}", name));
+      MULTI_PART_LOG(std::string_view(ts, te - ts));
     };
-    "filename=" '"' [^"\r\n]+ '"' [ \t;]* => { 
-      MULTI_PART_LOG(std::format("filename with quotes:{}", std::string_view(ts + 9, te - ts - 9)));
+    "filename=" '"' [^"\r\n]+ '"' [ \t;]* => {
+      filename = trim(ts + 9, te - ts - 9);
+      MULTI_PART_LOG(std::format("filename with quotes:{}", filename));
       ++file_count; 
       if(max_file_count && file_count > max_file_count) { 
         error_code.set(MultipartStrictError::ErrorType::FileLimitExceeded); 
@@ -224,8 +227,9 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
       }
     };
     "filename=" [^ \t\r\n"]* '"' => error_invalid_quoting;
-    "filename=" [^ \t\r\n]+ => {
-      MULTI_PART_LOG(std::format("filename without quotes:{}", std::string_view(ts + 9, te - ts - 9)));
+    "filename=" [^ \t\r\n;]+ [ \t;]* => {
+      filename = trim(ts + 9, te - ts - 9);
+      MULTI_PART_LOG(std::format("filename without quotes:{}", filename));
       ++file_count; 
       if(max_file_count && file_count > max_file_count) { 
         error_code.set(MultipartStrictError::ErrorType::FileLimitExceeded); 
@@ -233,6 +237,12 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
       }
     };
     '\r\n' => {
+      if(name.empty()) {
+        MULTI_PART_LOG("error_invalid_part: name is empty");
+        error_code.set(MultipartStrictError::ErrorType::InvalidPart);
+        fbreak;
+      }
+
       MULTI_PART_LOG("fret content_disposition_value");
       fret; 
     };
@@ -242,18 +252,20 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
   body := |*
     "--" [^ \t\r\n\-]+ => { 
       if(boundary == std::string_view(ts, te - ts)) {
-        parse_complete = true;
-        if(!name.empty() && value_len > 0) {
-          MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
-          auto it = query_params.find(name);
-          if (it != query_params.end()) {
-            // If the key already exists, update the value
-            it->second = std::string_view(p_value_start, value_len);
-          } else {
-            auto result = query_params.insert({name, std::string_view(p_value_start, value_len)});
-            query_params_linked.emplace_back(result.first);
+        if(filename.empty()) {
+          if(value_len > 0) {
+            MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
+            auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
+            name_value_linked.emplace_back(result);
           }
+        }else{
+          MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
+          auto result = name_filename_map.insert({name, filename});
+          name_filename_linked.emplace_back(result);
         }
+
+        parse_complete = true;
+
         MULTI_PART_LOG("body fret");
         p = ts;
         fhold;
@@ -278,7 +290,7 @@ static std::string_view trim(const char* start, size_t size) {
   }
 
   // Trim trailing whitespace
-  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '"')) {
+  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '"' || *(end - 1) == ';')) {
     --end;
   }
 
@@ -287,14 +299,18 @@ static std::string_view trim(const char* start, size_t size) {
 
 static void parseMultiPart(std::string_view input, 
   std::string_view boundary, 
-  std::unordered_map<std::string_view, std::string_view>& query_params,
-  std::vector<std::unordered_map<std::string_view, std::string_view>::iterator>& query_params_linked, 
+  std::unordered_multimap<std::string_view, std::string_view>& name_value_map,
+  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_value_linked, 
+  std::unordered_multimap<std::string_view, std::string_view>& name_filename_map,
+  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_filename_linked, 
   SrSecurity::MultipartStrictError& error_code, 
   uint32_t max_file_count) {
   using namespace SrSecurity;
 
-  query_params.clear();
-  query_params_linked.clear();
+  name_value_map.clear();
+  name_value_linked.clear();
+  name_filename_map.clear();
+  name_filename_linked.clear();
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -308,6 +324,7 @@ static void parseMultiPart(std::string_view input,
   size_t boundary_len = 0;
   bool is_content_disposition = false;
   std::string_view name;
+  std::string_view filename;
   const char* p_value_start = nullptr;
   size_t value_len = 0;
   uint32_t file_count = 0;
@@ -318,6 +335,13 @@ static void parseMultiPart(std::string_view input,
 
   if(!parse_complete && !error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
     error_code.set(MultipartStrictError::ErrorType::InvalidPart);
+  }
+
+  if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+    name_value_map.clear();
+    name_value_linked.clear();
+    name_filename_map.clear();
+    name_filename_linked.clear();
   }
 }
 
