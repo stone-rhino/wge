@@ -12,7 +12,12 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override { assert(false); throw "Not implemented!"; };
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+    result.append(t.getBodyMultiPart().getError().get(
+                      SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary)
+                      ? 1
+                      : 0);
+  };
 };
 } // namespace Variable
 } // namespace SrSecurity
