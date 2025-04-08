@@ -308,7 +308,6 @@ void Transaction::increaseVariable(size_t index, int value) {
 
 void Transaction::increaseVariable(const std::string& name, int value) {
   auto index = engine_.getTxVariableIndex(name);
-  assert(index.has_value());
   if (index.has_value()) {
     increaseVariable(index.value(), value);
   } else {
