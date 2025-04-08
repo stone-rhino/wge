@@ -163,7 +163,19 @@ TEST_F(TransformationTest, cssDecode) {
 }
 
 TEST_F(TransformationTest, escapeSeqDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const EscapeSeqDecode escape_seq_decode;
+
+  {
+    std::string data = R"(This is a test data)";
+    std::string result = escape_seq_decode.evaluate(data);
+    EXPECT_TRUE(result.empty());
+  }
+
+  {
+    std::string data = R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)";
+    std::string result = escape_seq_decode.evaluate(data);
+    EXPECT_EQ(result, "This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1");
+  }
 }
 
 TEST_F(TransformationTest, hexDecode) {
