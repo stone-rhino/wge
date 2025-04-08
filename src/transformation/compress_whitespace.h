@@ -10,10 +10,7 @@ class CompressWhiteSpace : public TransformBase {
   DECLARE_TRANSFORM_NAME(compressWhiteSpace);
 
 public:
-  std::string evaluate(std::string_view data) const override {
-    assert(false);
-    throw "Not implemted!";
-  }
+  std::string evaluate(std::string_view data) const override;
 };
 } // namespace Transformation
 } // namespace SrSecurity
