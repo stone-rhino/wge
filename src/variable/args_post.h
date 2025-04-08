@@ -51,7 +51,7 @@ public:
         {
           for (auto& elem : *query_params) {
             if (!hasExceptVariable(elem->first)) [[likely]] {
-              result.append(elem->second);
+              result.append(elem->second, elem->first);
             }
           }
         },
@@ -60,7 +60,7 @@ public:
           for (auto& elem : *query_params) {
             if (!hasExceptVariable(elem->first)) [[likely]] {
               if (match(elem->first)) {
-                result.append(elem->second);
+                result.append(elem->second, elem->first);
               }
             }
           }
