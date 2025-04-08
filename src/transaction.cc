@@ -220,6 +220,7 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
         body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
       } break;
       case BodyProcessorType::Xml:
+        body_xml_.init(body.front());
         break;
       case BodyProcessorType::Json:
         break;
