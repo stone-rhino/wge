@@ -7,14 +7,17 @@ TEST(Common, multiPart) {
   multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
                   "--helloworld\r\n"
                   "content-disposition: form-data; name=foo1\r\n"
+                  "header1: value1\r\n"
                   "\r\n"
                   "bar1\r\n"
                   "--helloworld\r\n"
                   "content-disposition: form-data; name=foo2\r\n"
+                  "header2: value2\r\n"
                   "\r\n"
                   "bar2\r\n"
                   "--helloworld\r\n"
                   "content-disposition: form-data; name=foo3\r\n"
+                  "header2: value3\r\n"
                   "\r\n"
                   "bar3\r\n"
                   "--helloworld\r\n"
@@ -60,6 +63,25 @@ TEST(Common, multiPart) {
   EXPECT_EQ(name_filename_linked[0]->second, "hello1");
   EXPECT_EQ(name_filename_linked[1]->second, "hello2");
   EXPECT_EQ(name_filename_linked[2]->second, "hello3");
+
+  auto& headers_map = multi_part.getHeaders();
+  auto& headers_linked = multi_part.getHeadersLinked();
+  EXPECT_EQ(headers_map.size(), 3);
+  EXPECT_EQ(headers_linked.size(), 3);
+  EXPECT_EQ(headers_map.find("header1")->second, "header1: value1");
+  auto iter_range = headers_map.equal_range("header2");
+  int count = 0;
+  for(auto iter = iter_range.first; iter != iter_range.second; ++iter) {
+    EXPECT_TRUE(iter->second == "header2: value2" || iter->second == "header2: value3");
+    ++count;
+  }
+  EXPECT_EQ(count, 2);
+  EXPECT_EQ(headers_linked[0]->first, "header1");
+  EXPECT_EQ(headers_linked[1]->first, "header2");
+  EXPECT_EQ(headers_linked[2]->first, "header2");
+  EXPECT_EQ(headers_linked[0]->second, "header1: value1");
+  EXPECT_EQ(headers_linked[1]->second, "header2: value2");
+  EXPECT_EQ(headers_linked[2]->second, "header2: value3");
 }
 
 TEST(Common, multiPartError) {

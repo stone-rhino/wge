@@ -169,6 +169,8 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
     # Other headers
     [^ \t\r\n]+ ':' [ \t]* => { 
       MULTI_PART_LOG("fcall header_value");
+      header_name = trim(ts, te - ts);
+      header_name.remove_suffix(1);
       fcall header_value; 
     };
 
@@ -188,17 +190,25 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
 
     # The value is ok 
     [^\r\n]+ => { 
-      if(is_content_disposition){
+      if(is_content_disposition) {
         MULTI_PART_LOG("fnext content_disposition_value");
         p = ts; 
         fhold; 
         fnext content_disposition_value; 
-      } 
+      } else {
+        // The value is the entire part-header line -- including both the part-header name and the part-header value.
+        std::string_view header_value(header_name.data(), te - header_name.data());
+        MULTI_PART_LOG(std::format("insert header key:{},value:{}",header_name, header_value));
+        auto iter = headers_map.insert({ header_name, header_value});
+        headers_linked.emplace_back(iter);
+      }
     };
 
     # End of kv pair
     '\r\n' => {
       MULTI_PART_LOG("fret header_value");
+      is_content_disposition = false;
+      header_name = {};
       fret; 
     };
 
@@ -244,6 +254,8 @@ static std::string_view parseContentType(std::string_view input, SrSecurity::Mul
       }
 
       MULTI_PART_LOG("fret content_disposition_value");
+      is_content_disposition = false;
+      header_name = {};
       fret; 
     };
     any => error_invalid_part;
@@ -303,6 +315,8 @@ static void parseMultiPart(std::string_view input,
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_value_linked, 
   std::unordered_multimap<std::string_view, std::string_view>& name_filename_map,
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_filename_linked, 
+  std::unordered_multimap<std::string_view, std::string_view>& headers_map,
+  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& headers_linked, 
   SrSecurity::MultipartStrictError& error_code, 
   uint32_t max_file_count) {
   using namespace SrSecurity;
@@ -329,6 +343,7 @@ static void parseMultiPart(std::string_view input,
   size_t value_len = 0;
   uint32_t file_count = 0;
   bool parse_complete = false;
+  std::string_view header_name;
 
   %% write init;
   %% write exec;
