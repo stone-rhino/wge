@@ -12,6 +12,7 @@
 #include "common/evaluate_result.h"
 #include "common/ragel/multi_part.h"
 #include "common/ragel/query_param.h"
+#include "common/ragel/xml.h"
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
@@ -401,6 +402,8 @@ public:
 
   const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
 
+  const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
+
   const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
 
 private:
@@ -472,6 +475,7 @@ private:
   RequestLineInfo requset_line_info_;
   Common::Ragel::QueryParam body_query_param_;
   Common::Ragel::MultiPart body_multi_part_;
+  Common::Ragel::Xml body_xml_;
   std::string req_body_error_msg_;
 };
 
