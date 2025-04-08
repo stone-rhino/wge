@@ -29,3 +29,6 @@ target_link_libraries(test PRIVATE Boost::url)
 
 find_library(INJECTION_LIB injection)
 target_link_libraries(test PRIVATE ${INJECTION_LIB})
+
+find_package(LibXml2 REQUIRED)
+target_link_libraries(test PRIVATE LibXml2::LibXml2)
