@@ -1,0 +1,54 @@
+#pragma once
+
+// Converts any of the whitespace characters (0x20, \f, \t, \n, \r, \v, 0xa0) to spaces (ASCII 0x20), 
+// compressing multiple consecutive space characters into one.
+%%{
+  machine compress_whitespace;
+  
+  action skip {}
+
+  action exec_transformation { 
+    result.resize(input.size());
+    r = result.data();
+    if(ts > input.data()){
+      memcpy(r, input.data(), ts - input.data());
+      r += ts - input.data();
+    }
+    p = ts;
+    fhold;
+    fgoto transformation;
+  }
+
+  # prescan
+  main := |*
+    [\f\t\n\r\v] | 0xA0 => exec_transformation;
+    ' ' ([ \f\t\n\r\v] | 0xA0)  => exec_transformation;
+    any => skip;
+  *|;
+  
+  transformation := |*
+    ([ \f\t\n\r\v] | 0xA0)+ => { *r++ = ' '; };
+    any => { *r++ = fc; };
+  *|;
+}%%
+
+%% write data;
+
+std::string compressWhitespace(std::string_view input) {
+  std::string result;
+  char* r = nullptr;
+
+  const char* p = input.data();
+  const char* pe = p + input.size();
+  const char* eof = pe;
+  const char* ts, *te;
+  int cs,act;
+
+  %% write init;
+  %% write exec;
+
+  if(r){
+    result.resize(r - result.data());
+  }
+  return result;
+}

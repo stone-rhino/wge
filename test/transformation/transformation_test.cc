@@ -102,7 +102,19 @@ TEST_F(TransformationTest, cmdLine) {
 }
 
 TEST_F(TransformationTest, compressWhiteSpace) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const CompressWhiteSpace compress_white_space;
+
+  std::string data = R"(This is a test)";
+  std::string result = compress_white_space.evaluate(data);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This   is   a   test)";
+  result = compress_white_space.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
+
+  data = "This \f\t\n\r\v\xa0 is \f\t\n\r\v\xa0 a \f\t\n\r\v\xa0 test";
+  result = compress_white_space.evaluate(data);
+  EXPECT_EQ(result, "This is a test");
 }
 
 TEST_F(TransformationTest, cssDecode) {
