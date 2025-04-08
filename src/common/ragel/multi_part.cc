@@ -11,6 +11,10 @@ void MultiPart::init(std::string_view content_type, std::string_view multi_part,
   if (boundary.empty()) {
     return;
   }
+  name_value_map_.reserve(5);
+  name_value_linked_.reserve(5);
+  name_filename_map_.reserve(5);
+  name_filename_linked_.reserve(5);
   ::parseMultiPart(multi_part, boundary, name_value_map_, name_value_linked_, name_filename_map_,
                    name_filename_linked_, multipart_strict_error_, max_file_count);
 }
