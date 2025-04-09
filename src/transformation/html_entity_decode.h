@@ -15,7 +15,7 @@ class HtmlEntityDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(htmlEntityDecode);
 
 public:
-  std::string evaluate(std::string_view data) const override;
+  bool evaluate(std::string_view data, std::string& result) const override;
 };
 } // namespace Transformation
 } // namespace SrSecurity

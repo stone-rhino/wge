@@ -47,8 +47,8 @@
 
 %% write data;
 
-static std::string hexDecode(std::string_view input) {
-  std::string result;
+static bool hexDecode(std::string_view input, std::string& result) {
+  result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
@@ -61,13 +61,15 @@ static std::string hexDecode(std::string_view input) {
   %% write init;
   %% write exec;
 
-  if(r){
+  if(r) {
     result.resize(r - result.data());
 
     // If the input length is odd, we assume the last character is a low 4 bits of a byte
     if((p - po) % 2 != 0){
       result.back() = result.back() >> 4 & 0x0F;
     }
+    return true;
   }
-  return result;
+
+  return false;
 }

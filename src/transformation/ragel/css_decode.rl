@@ -67,7 +67,7 @@ void emitNumericEntity(char** r, const std::string& entity_value) {
     }
   }
  
-  decoded = hexDecode(data);
+  hexDecode(data,decoded);
   if(full_width){
     decoded.front() += 0x20;
   }
@@ -75,8 +75,8 @@ void emitNumericEntity(char** r, const std::string& entity_value) {
   *r += decoded.size();
 }
 
-std::string cssDecode(std::string_view input) {
-  std::string result;
+static bool cssDecode(std::string_view input, std::string& result) {
+  result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
@@ -92,8 +92,10 @@ std::string cssDecode(std::string_view input) {
   %% write init;
   %% write exec;
 
-  if(r){
+  if(r) {
     result.resize(r - result.data());
+    return true;
   }
-  return result;
+
+  return false;
 }

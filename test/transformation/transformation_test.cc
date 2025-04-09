@@ -26,77 +26,99 @@ TEST_F(TransformationTest, cmdLine) {
   // Test that prescan is working, and that will not copy if there is no transformation
   {
     std::string data = R"(this is a test data)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_FALSE(ret);
     EXPECT_TRUE(result.empty());
   }
 
   // Test that prescan is working, and that will hold the token if there is a transformation
   {
     std::string data = R"(this        is a ;;;;;;;;;test data)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all backslashes [\]
   {
     std::string data = R"(this is a \test\ \data\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all double quotes ["]
   {
     std::string data = R"(this is a \"test\ \"data\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all single quotes [']
   {
     std::string data = R"(this is a \"test'\ \"data'\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting all carets [^]
   {
     std::string data = R"(this is a \"te^st'\ \"da^ta'\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test data");
   }
 
   // deleting spaces before a slash /
   {
     std::string data = R"(this is a \"te^st'\           /\"da^ta'\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/data");
   }
 
   // deleting spaces before an open parentesis [(]
   {
     std::string data = R"(this is a \"te^st'\           /          (\"da^ta'\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/(data");
   }
 
   // replacing all commas [,] and semicolon [;] into a space
   {
     std::string data = R"(this is a \"te^st'\           /          (,\"da^t;a'\)";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // replacing all multiple spaces (including tab, newline, etc.) into one space
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
   // transform all characters to lowercase
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
-    std::string result = cmd_line.evaluate(data);
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/( dat a_hello");
   }
 }
@@ -105,15 +127,19 @@ TEST_F(TransformationTest, compressWhiteSpace) {
   const CompressWhiteSpace compress_white_space;
 
   std::string data = R"(This is a test)";
-  std::string result = compress_white_space.evaluate(data);
+  std::string result;
+  bool ret = compress_white_space.evaluate(data, result);
+  EXPECT_FALSE(ret);
   EXPECT_TRUE(result.empty());
 
   data = R"(This   is   a   test)";
-  result = compress_white_space.evaluate(data);
+  ret = compress_white_space.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
 
   data = "This \f\t\n\r\v\xa0 is \f\t\n\r\v\xa0 a \f\t\n\r\v\xa0 test";
-  result = compress_white_space.evaluate(data);
+  ret = compress_white_space.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
 }
 
@@ -121,47 +147,58 @@ TEST_F(TransformationTest, cssDecode) {
   const CssDecode css_decode;
 
   std::string data = R"(This is a test)";
-  std::string result = css_decode.evaluate(data);
+  std::string result;
+  bool ret = css_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
   EXPECT_TRUE(result.empty());
 
   data = R"(This\ is\ a\ test)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
 
   data = R"(T\hi\s is a test)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
 
   data = R"(This\ is\ a\ test\)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
 
   data = R"(This\ is\ a\ test\ \)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test ");
 
   data = R"(\1254\3468 is\ is\ a\ test\ \ \)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test  ");
 
   data = R"(\12354\123468is\ is\ a\ test\ \ \)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test  ");
 
   data = R"(\12354\123468\6is\ is\ a\ test\ \ \)";
-  result = css_decode.evaluate(data);
+  ret = css_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "Th\u0006is is a test  ");
 
   {
     char data[] = "Test\u0000Case";
-    result = css_decode.evaluate({data, sizeof(data) - 1});
+    ret = css_decode.evaluate({data, sizeof(data) - 1}, result);
+    EXPECT_FALSE(ret);
     EXPECT_TRUE(result.empty());
   }
 
   {
     // clang-format off
     char data[] = "test\\a\\b\\f\\n\\r\\t\\v\\?\\'\\\"\\\u0000\\12\\123\\1234\\12345\\123456\\ff01\\ff5e\\\n\\\u0000  string";
-    result = css_decode.evaluate({data, sizeof(data) - 1});
+    ret = css_decode.evaluate({data, sizeof(data) - 1},result);
+    EXPECT_TRUE(ret);
     char expect_data[] = "test\n\u000b\u000fnrtv?'\"\u0000\u0012#4EV!~\u0000  string";
     EXPECT_TRUE(memcmp(result.data(), expect_data, sizeof(expect_data) - 1) == 0);
     // clang-format on
@@ -169,7 +206,8 @@ TEST_F(TransformationTest, cssDecode) {
 
   {
     data = "\\1A\\1 A\\1234567\\123456 7\\1x\\1 x";
-    result = css_decode.evaluate(data);
+    ret = css_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "\u001a\u0001AV7V7\u0001x\u0001x");
   }
 }
@@ -179,13 +217,17 @@ TEST_F(TransformationTest, escapeSeqDecode) {
 
   {
     std::string data = R"(This is a test data)";
-    std::string result = escape_seq_decode.evaluate(data);
+    std::string result;
+    bool ret = escape_seq_decode.evaluate(data, result);
+    EXPECT_FALSE(ret);
     EXPECT_TRUE(result.empty());
   }
 
   {
     std::string data = R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)";
-    std::string result = escape_seq_decode.evaluate(data);
+    std::string result;
+    bool ret = escape_seq_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1");
   }
 }
@@ -195,25 +237,33 @@ TEST_F(TransformationTest, hexDecode) {
 
   {
     std::string data = "G5468697320697320612074657374";
-    std::string result = hex_decode.evaluate(data);
+    std::string result;
+    bool ret = hex_decode.evaluate(data, result);
+    EXPECT_FALSE(ret);
     EXPECT_TRUE(result.empty());
   }
 
   {
     std::string data = "a";
-    std::string result = hex_decode.evaluate(data);
+    std::string result;
+    bool ret = hex_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "\n");
   }
 
   {
     std::string data = "5468G697320697320612074657374";
-    std::string result = hex_decode.evaluate(data);
+    std::string result;
+    bool ret = hex_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "Th");
   }
 
   {
     std::string data = "5468697320697320612074657374";
-    std::string result = hex_decode.evaluate(data);
+    std::string result;
+    bool ret = hex_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "This is a test");
   }
 }
@@ -221,7 +271,9 @@ TEST_F(TransformationTest, hexDecode) {
 TEST_F(TransformationTest, hexEncode) {
   HexEncode hexEncode;
   std::string data = "This is a test";
-  std::string result = hexEncode.evaluate(data);
+  std::string result;
+  bool ret = hexEncode.evaluate(data, result);
+  EXPECT_TRUE(ret);
   EXPECT_EQ(result, "5468697320697320612074657374");
 }
 
@@ -244,19 +296,25 @@ TEST_F(TransformationTest, htmlEntityDecode) {
   // Test that prescan is working, and that will not copy if there is no transformation
   {
     std::string data = R"(This is a test data)";
-    std::string result = html_entity_decode.evaluate(data);
+    std::string result;
+    bool ret = html_entity_decode.evaluate(data, result);
+    EXPECT_FALSE(ret);
     EXPECT_TRUE(result.empty());
   }
 
   for (auto& test_case : test_cases) {
-    std::string result = html_entity_decode.evaluate(test_case.first);
+    std::string result;
+    bool ret = html_entity_decode.evaluate(test_case.first, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, test_case.second);
   }
 
   // Test for not valid html entity
   {
     std::string data = "&amp; &lt; &gt; &quot; &apos; &nbsp; &notValid;";
-    std::string result = html_entity_decode.evaluate(data);
+    std::string result;
+    bool ret = html_entity_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(result, "& < > \" '   &notValid;");
   }
 }

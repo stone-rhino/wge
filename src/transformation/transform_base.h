@@ -45,9 +45,10 @@ protected:
   /**
    * Evaluate the transformation.
    * @param data the data to be transformed.
-   * @return the transformed data. if the transformation is failed, return an empty string.
+   * @param result the reference to the transformed data.
+   * @return true if the transformation is successful, otherwise false and the result will be empty.
    */
-  virtual std::string evaluate(std::string_view data) const = 0;
+  virtual bool evaluate(std::string_view data, std::string& result) const = 0;
 };
 } // namespace Transformation
 } // namespace SrSecurity

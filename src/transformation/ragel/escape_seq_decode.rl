@@ -20,8 +20,8 @@
   }
 
   action decode_hex {
-    std::string decode = hexDecode({ts + 2, 2});
-    if(!decode.empty()){
+    std::string decode;
+    if(hexDecode({ts + 2, 2},decode) && !decode.empty()){
       *r++ = decode.front();
     }
   }
@@ -74,8 +74,8 @@
 
 %% write data;
 
-std::string escapeSeqDecode(std::string_view input) {
-  std::string result;
+static bool escapeSeqDecode(std::string_view input, std::string& result) {
+  result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
@@ -87,8 +87,10 @@ std::string escapeSeqDecode(std::string_view input) {
   %% write init;
   %% write exec;
 
-  if(r){
+  if(r) {
     result.resize(r - result.data());
+    return true;
   }
-  return result;
+
+  return false;
 }

@@ -4,8 +4,8 @@
 
 namespace SrSecurity {
 namespace Transformation {
-std::string HtmlEntityDecode::evaluate(std::string_view data) const {
-  return htmlEntityDecode(data);
+bool HtmlEntityDecode::evaluate(std::string_view data, std::string& result) const {
+  return htmlEntityDecode(data, result);
 }
 } // namespace Transformation
 } // namespace SrSecurity

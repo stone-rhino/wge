@@ -12,8 +12,8 @@ class HexEncode : public TransformBase {
   DECLARE_TRANSFORM_NAME(hexEncode);
 
 public:
-  std::string evaluate(std::string_view data) const override {
-    std::string result;
+  bool evaluate(std::string_view data, std::string& result) const override {
+    result.clear();
 
     // To hex string
     result.resize(data.length() * 2);
@@ -23,7 +23,7 @@ public:
       pr[i * 2 + 1] = hex_table_[*(data.data() + i) & 0x0f];
     }
 
-    return result;
+    return true;
   }
 
 private:

@@ -10,13 +10,13 @@ class LowerCase : public TransformBase {
   DECLARE_TRANSFORM_NAME(lowercase);
 
 public:
-  std::string evaluate(std::string_view data) const override {
-    std::string result;
+  bool evaluate(std::string_view data, std::string& result) const override {
+    result.clear();
     result.reserve(data.length());
     for (size_t i = 0; i < data.length(); ++i) {
       result.push_back(std::tolower(data[i]));
     }
-    return result;
+    return true;
   }
 };
 } // namespace Transformation

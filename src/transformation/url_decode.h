@@ -12,9 +12,10 @@ class UrlDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(urlDecode);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
     boost::urls::pct_string_view pct_str(data);
-    return pct_str.decode();
+    result = pct_str.decode();
+    return true;
   }
 };
 } // namespace Transformation

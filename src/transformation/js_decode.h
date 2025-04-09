@@ -10,12 +10,12 @@ class JsDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(jsDecode);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
     // Decodes JavaScript escape sequences. If a \uHHHH code is in the range of FF01-FF5E (the full
     // width ASCII codes), then the higher byte is used to detect and adjust the lower byte.
     // Otherwise, only the lower byte will be used and the higher byte zeroed (leading to possible
     // loss of information).
-    std::string result;
+    result.clear();
     for (size_t i = 0; i < data.length(); ++i) {
       if (data[i] == '\\' && i + 1 < data.length() && data[i + 1] == 'u') {
         if (i + 5 < data.length()) {
@@ -44,7 +44,7 @@ public:
         result.push_back(data[i]);
       }
     }
-    return result;
+    return true;
   }
 };
 } // namespace Transformation

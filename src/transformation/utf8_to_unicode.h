@@ -10,9 +10,10 @@ class Utf8ToUnicode : public TransformBase {
   DECLARE_TRANSFORM_NAME(utf8ToUnicode);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
+    result.clear();
+
     // The utf-8 to unicode transformation.
-    std::string result;
     result.reserve(data.length() * 2);
     for (size_t i = 0; i < data.length(); ++i) {
       if ((data[i] & 0x80) == 0) {
@@ -36,7 +37,7 @@ public:
         }
       }
     }
-    return result;
+    return true;
   }
 };
 } // namespace Transformation
