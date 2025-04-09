@@ -10,10 +10,10 @@ class NormalizePathWin : public TransformBase {
   DECLARE_TRANSFORM_NAME(normalizePathWin);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
     // Removes multiple slashes, directory self-references, and directory back-references (except
     // when at the beginning of the input) from input string.
-    std::string result;
+    result.clear();
     result.reserve(data.length());
     size_t i = 0;
     while (i < data.length()) {
@@ -39,7 +39,7 @@ public:
         ++i;
       }
     }
-    return result;
+    return true;
   }
 };
 } // namespace Transformation

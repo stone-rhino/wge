@@ -8,8 +8,9 @@
 
 namespace SrSecurity {
 namespace Transformation {
-std::string Sha1::evaluate(std::string_view data) const {
-  std::string result;
+bool Sha1::evaluate(std::string_view data, std::string& result) const {
+  result.clear();
+
   // Process the data
   boost::uuids::detail::sha1 sha1_;
   sha1_.process_bytes(data.data(), data.length());
@@ -29,7 +30,7 @@ std::string Sha1::evaluate(std::string_view data) const {
   // Copy the digest to the result
   const auto char_digest = reinterpret_cast<const char*>(&order);
   result.append(char_digest, sizeof(boost::uuids::detail::sha1::digest_type));
-  return result;
+  return true;
 }
 } // namespace Transformation
 } // namespace SrSecurity

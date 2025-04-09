@@ -10,7 +10,7 @@ class UpperCase : public TransformBase {
   DECLARE_TRANSFORM_NAME(upperCase);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
     assert(false);
     throw "Not implemted!";
   }

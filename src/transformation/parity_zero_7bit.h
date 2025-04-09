@@ -10,7 +10,7 @@ class ParityZero7Bit : public TransformBase {
   DECLARE_TRANSFORM_NAME(parityZero7Bit);
 
 public:
-  std::string evaluate(std::string_view data) const override {
+  bool evaluate(std::string_view data, std::string& result) const override {
     assert(false);
     throw "Not implemted!";
   }

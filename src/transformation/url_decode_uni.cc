@@ -4,9 +4,10 @@
 
 namespace SrSecurity {
 namespace Transformation {
-std::string UrlDecodeUni::evaluate(std::string_view data) const {
+bool UrlDecodeUni::evaluate(std::string_view data, std::string& result) const {
   boost::urls::pct_string_view pct_str(data);
-  return pct_str.decode();
+  result = pct_str.decode();
+  return true;
 }
 } // namespace Transformation
 } // namespace SrSecurity

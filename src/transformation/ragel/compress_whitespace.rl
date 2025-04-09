@@ -34,8 +34,8 @@
 
 %% write data;
 
-std::string compressWhitespace(std::string_view input) {
-  std::string result;
+static bool compressWhitespace(std::string_view input, std::string& result) {
+  result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
@@ -47,8 +47,10 @@ std::string compressWhitespace(std::string_view input) {
   %% write init;
   %% write exec;
 
-  if(r){
+  if(r) {
     result.resize(r - result.data());
+    return true;
   }
-  return result;
+
+  return false;
 }

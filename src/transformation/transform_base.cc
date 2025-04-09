@@ -35,18 +35,18 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   }
 
   // Evaluate the transformation and store the result in the cache
-  std::string buffer = evaluate(std::get<std::string_view>(data.variant_));
-  if (!buffer.empty()) {
+  std::string buffer;
+  bool ret = evaluate(std::get<std::string_view>(data.variant_), buffer);
+  if (ret) {
     auto iter_transform_result =
         iter_variable_full_name->second.emplace(name(), Common::EvaluateResults::Element()).first;
     Common::EvaluateResults::Element& result = iter_transform_result->second;
     result.string_buffer_ = std::move(buffer);
     result.variant_ = result.string_buffer_;
     data.variant_ = result.variant_;
-    return true;
   }
 
-  return false;
+  return ret;
 }
 } // namespace Transformation
 } // namespace SrSecurity

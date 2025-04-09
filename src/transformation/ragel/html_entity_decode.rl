@@ -75,8 +75,8 @@ void emitNumericEntity(char** r, const std::string& entity_value, bool is_hex) {
   }
 }
 
-std::string htmlEntityDecode(std::string_view input) {
-  std::string result;
+static bool htmlEntityDecode(std::string_view input, std::string& result) {
+  result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
@@ -92,8 +92,10 @@ std::string htmlEntityDecode(std::string_view input) {
   %% write init;
   %% write exec;
 
-  if(r){
+  if(r) {
     result.resize(r - result.data());
+    return true;
   }
-  return result;
+
+  return false;
 }
