@@ -348,7 +348,61 @@ TEST_F(TransformationTest, normalizePathWin) {
 }
 
 TEST_F(TransformationTest, normalizePath) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const NormalizePath normalize_path;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = normalize_path.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(/path/to/file)";
+  ret = normalize_path.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  // clang-format off
+  std::vector<std::pair<std::string,std::string>> test_cases = {
+    {".",""},
+    {"./",""},
+    {"./..", ".."},
+    {"./../", "../"},
+    {"..", ".."},
+    {"../", "../"},
+    {"../.", ".."},
+    {".././", "../"},
+    {"../..", "../.."},
+    {"../../", "../../"},
+    {"/dir/foo//bar", "/dir/foo/bar"},
+    {"dir/foo//bar/", "dir/foo/bar/"},
+    {"dir/../foo", "foo"},
+    {"dir/../../foo", "../foo"},
+    {"dir/./.././../../foo/bar", "../../foo/bar"},
+    {"dir/./.././../../foo/bar/.", "../../foo/bar"},
+    {"dir/./.././../../foo/bar/./", "../../foo/bar/"},
+    {"dir/./.././../../foo/bar/..", "../../foo"},
+    {"dir/./.././../../foo/bar/../", "../../foo/"},
+    {"dir/./.././../../foo/bar/", "../../foo/bar/"},
+    {"dir//.//..//.//..//..//foo//bar", "../../foo/bar"},
+    {"dir//.//..//.//..//..//foo//bar//", "../../foo/bar/"},
+    {"dir/subdir/subsubdir/subsubsubdir/../../..", "dir"},
+    {"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
+    {"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
+    {"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
+    {"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+  };
+  // clang-format on
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    auto& test_case = test_cases[i];
+    std::string result;
+    bool ret = normalize_path.evaluate(test_case.first, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, test_case.second);
+    if(!ret || result != test_case.second) {
+      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result << std::endl;
+    }
+  }
 }
 
 TEST_F(TransformationTest, parityEven7Bit) {
