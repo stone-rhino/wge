@@ -336,15 +336,180 @@ TEST_F(TransformationTest, md5) {
 }
 
 TEST_F(TransformationTest, normalisePathWin) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const NormalisePathWin normalise_path_win;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = normalise_path_win.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(\path\to\file)";
+  ret = normalise_path_win.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "/path/to/file");
+
+  // clang-format off
+  std::vector<std::pair<std::string,std::string>> test_cases = {
+    {".",""},
+    {".\\",""},
+    {".\\..", ".."},
+    {".\\..\\", "../"},
+    {"..", ".."},
+    {"..\\", "../"},
+    {"..\\.", ".."},
+    {"..\\.\\", "../"},
+    {"..\\..", "../.."},
+    {"..\\..\\", "../../"},
+    {"\\dir\\foo\\\\bar", "/dir/foo/bar"},
+    {"dir\\foo\\\\bar\\", "dir/foo/bar/"},
+    {"dir\\..\\foo", "foo"},
+    {"dir\\..\\..\\foo", "../foo"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\.", "../../foo/bar"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\.\\", "../../foo/bar/"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\..", "../../foo"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\..\\", "../../foo/"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\", "../../foo/bar/"},
+    {"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar", "../../foo/bar"},
+    {"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar\\\\", "../../foo/bar/"},
+    {"dir\\subdir\\subsubdir\\subsubsubdir\\..\\..\\..", "dir"},
+    {"dir\\.\\subdir\\.\\subsubdir\\.\\subsubsubdir\\..\\..\\..", "dir"},
+    {"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
+    {"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
+    {"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+  };
+  // clang-format on
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    auto& test_case = test_cases[i];
+    std::string result;
+    bool ret = normalise_path_win.evaluate(test_case.first, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, test_case.second);
+    if (!ret || result != test_case.second) {
+      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result
+                << std::endl;
+    }
+  }
 }
 
 TEST_F(TransformationTest, normalisePath) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const NormalisePath normalise_path;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = normalise_path.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(/path/to/file)";
+  ret = normalise_path.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  // clang-format off
+  std::vector<std::pair<std::string,std::string>> test_cases = {
+    {".",""},
+    {"./",""},
+    {"./..", ".."},
+    {"./../", "../"},
+    {"..", ".."},
+    {"../", "../"},
+    {"../.", ".."},
+    {".././", "../"},
+    {"../..", "../.."},
+    {"../../", "../../"},
+    {"/dir/foo//bar", "/dir/foo/bar"},
+    {"dir/foo//bar/", "dir/foo/bar/"},
+    {"dir/../foo", "foo"},
+    {"dir/../../foo", "../foo"},
+    {"dir/./.././../../foo/bar", "../../foo/bar"},
+    {"dir/./.././../../foo/bar/.", "../../foo/bar"},
+    {"dir/./.././../../foo/bar/./", "../../foo/bar/"},
+    {"dir/./.././../../foo/bar/..", "../../foo"},
+    {"dir/./.././../../foo/bar/../", "../../foo/"},
+    {"dir/./.././../../foo/bar/", "../../foo/bar/"},
+    {"dir//.//..//.//..//..//foo//bar", "../../foo/bar"},
+    {"dir//.//..//.//..//..//foo//bar//", "../../foo/bar/"},
+    {"dir/subdir/subsubdir/subsubsubdir/../../..", "dir"},
+    {"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
+    {"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
+    {"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
+    {"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+  };
+  // clang-format on
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    auto& test_case = test_cases[i];
+    std::string result;
+    bool ret = normalise_path.evaluate(test_case.first, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, test_case.second);
+    if (!ret || result != test_case.second) {
+      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result
+                << std::endl;
+    }
+  }
 }
 
 TEST_F(TransformationTest, normalizePathWin) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const NormalizePathWin normalize_path_win;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = normalize_path_win.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(\path\to\file)";
+  ret = normalize_path_win.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "/path/to/file");
+
+  // clang-format off
+  std::vector<std::pair<std::string,std::string>> test_cases = {
+    {".",""},
+    {".\\",""},
+    {".\\..", ".."},
+    {".\\..\\", "../"},
+    {"..", ".."},
+    {"..\\", "../"},
+    {"..\\.", ".."},
+    {"..\\.\\", "../"},
+    {"..\\..", "../.."},
+    {"..\\..\\", "../../"},
+    {"\\dir\\foo\\\\bar", "/dir/foo/bar"},
+    {"dir\\foo\\\\bar\\", "dir/foo/bar/"},
+    {"dir\\..\\foo", "foo"},
+    {"dir\\..\\..\\foo", "../foo"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\.", "../../foo/bar"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\.\\", "../../foo/bar/"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\..", "../../foo"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\..\\", "../../foo/"},
+    {"dir\\.\\..\\.\\..\\..\\foo\\bar\\", "../../foo/bar/"},
+    {"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar", "../../foo/bar"},
+    {"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar\\\\", "../../foo/bar/"},
+    {"dir\\subdir\\subsubdir\\subsubsubdir\\..\\..\\..", "dir"},
+    {"dir\\.\\subdir\\.\\subsubdir\\.\\subsubsubdir\\..\\..\\..", "dir"},
+    {"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
+    {"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
+    {"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+  };
+  // clang-format on
+
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    auto& test_case = test_cases[i];
+    std::string result;
+    bool ret = normalize_path_win.evaluate(test_case.first, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, test_case.second);
+    if (!ret || result != test_case.second) {
+      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result
+                << std::endl;
+    }
+  }
 }
 
 TEST_F(TransformationTest, normalizePath) {
@@ -399,8 +564,9 @@ TEST_F(TransformationTest, normalizePath) {
     bool ret = normalize_path.evaluate(test_case.first, result);
     EXPECT_TRUE(ret);
     EXPECT_EQ(result, test_case.second);
-    if(!ret || result != test_case.second) {
-      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result << std::endl;
+    if (!ret || result != test_case.second) {
+      std::cout << "Test case " << i << " failed: " << test_case.first << " -> " << result
+                << std::endl;
     }
   }
 }
