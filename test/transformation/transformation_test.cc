@@ -701,7 +701,38 @@ TEST_F(TransformationTest, upperCase) {
 }
 
 TEST_F(TransformationTest, urlDecodeUni) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const UrlDecodeUni url_decode_uni;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = url_decode_uni.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This%20is%20a%20test)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(This+is+a+test)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(%54%68is%20is%20a%20%74es%74)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(%u4E2D%u6587)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "\u4E2D\u6587");
+
+  data = R"(%u4E2D+%u6587%20%u4E2D+%u6587%20)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "\u4E2D \u6587 \u4E2D \u6587 ");
 }
 
 TEST_F(TransformationTest, urlDecode) {
