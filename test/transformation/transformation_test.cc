@@ -596,7 +596,23 @@ TEST_F(TransformationTest, removeNulls) {
 }
 
 TEST_F(TransformationTest, removeWhitespace) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const RemoveWhitespace remove_whitespace;
+
+  std::string data = R"(Thisisatest)";
+  std::string result;
+  bool ret = remove_whitespace.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This is a test)";
+  ret = remove_whitespace.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "Thisisatest");
+
+  data = "This \t\r\n\f\vis \t\r\n\f\va\xa0 test";
+  ret = remove_whitespace.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "Thisisatest");
 }
 
 TEST_F(TransformationTest, replaceComments) {
