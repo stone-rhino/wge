@@ -705,7 +705,28 @@ TEST_F(TransformationTest, urlDecodeUni) {
 }
 
 TEST_F(TransformationTest, urlDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const UrlDecode url_decode;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = url_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This%20is%20a%20test)";
+  ret = url_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(This+is+a+test)";
+  ret = url_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = R"(%54%68is%20is%20a%20%74es%74)";
+  ret = url_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
 }
 
 TEST_F(TransformationTest, urlEncode) {
