@@ -592,7 +592,34 @@ TEST_F(TransformationTest, removeCommentChar) {
 }
 
 TEST_F(TransformationTest, removeNulls) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const RemoveNulls remove_nulls;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = remove_nulls.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  {
+    char data[] = "This is a test \0";
+    ret = remove_nulls.evaluate({data, sizeof(data) - 1}, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "This is a test ");
+  }
+
+  {
+    char data[] = "\0\0\0\0This is a test \0";
+    ret = remove_nulls.evaluate({data, sizeof(data) - 1}, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "This is a test ");
+  }
+
+  {
+    char data[] = "\0\0\0\0This\0\0\0\0 is\0\0\0\0 a\0\0\0\0 test \0";
+    ret = remove_nulls.evaluate({data, sizeof(data) - 1}, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "This is a test ");
+  }
 }
 
 TEST_F(TransformationTest, removeWhitespace) {
