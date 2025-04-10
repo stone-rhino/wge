@@ -44,6 +44,14 @@ public:
       }
       variable_sub_name_ = element.variable_sub_name_;
     }
+    void operator=(const Element& element) {
+      variant_ = element.variant_;
+      if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
+        string_buffer_ = element.string_buffer_;
+        variant_ = string_buffer_;
+      }
+      variable_sub_name_ = element.variable_sub_name_;
+    }
     void operator=(Element&& element) {
       variant_ = std::move(element.variant_);
       if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
@@ -104,6 +112,17 @@ public:
    * @return the size of the result.
    */
   size_t size() const { return size_; }
+
+  /**
+   * Reserve the size of the result.
+   * @param size the size of the result.
+   * @note The size is the size of the heap result. The stack result size is fixed.
+   */
+  void reserve(size_t size) {
+    if (size > stack_result_size) [[likely]] {
+      heap_results_.reserve(size - stack_result_size);
+    }
+  }
 
   /**
    * Move the result.

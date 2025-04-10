@@ -87,6 +87,13 @@ bool Rule::evaluate(Transaction& t) const {
 
   SRSECURITY_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
 
+  // If the multi match is enabled, then perform multiple operator invocations for every target,
+  // before and after every anti-evasion transformation is performed.
+  if (multi_match_.value_or(false)) [[unlikely]] {
+    SRSECURITY_LOG_TRACE("multi match is enabled");
+    return evaluateWithMultiMatch(t);
+  }
+
   // Evaluate the variables
   bool rule_matched = false;
   for (auto& var : variables_) {
@@ -282,5 +289,111 @@ inline void Rule::evaluateActions(Transaction& t) const {
   for (auto& action : actions_) {
     action->evaluate(t);
   }
+}
+
+// Normally, variables are inspected only once per rule, and only after all transformation functions
+// have been completed. With multiMatch, variables are checked against the operator before and after
+// every transformation function that changes the input.
+inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
+  // Get all of the transformations
+  std::vector<Transformation::TransformBase*> transforms;
+  if (!is_ingnore_default_transform_) {
+    const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+    if (default_action) {
+      transforms.reserve(default_action->transforms().size());
+      for (auto& transform : default_action->transforms()) {
+        transforms.emplace_back(transform.get());
+      }
+    }
+  }
+  transforms.reserve(transforms.size() + transforms_.size());
+  for (auto& transform : transforms_) {
+    transforms.emplace_back(transform.get());
+  }
+
+  // Evaluate the variables
+  bool rule_matched = false;
+  for (auto& var : variables_) {
+    Common::EvaluateResults result;
+    evaluateVariable(t, var, result);
+
+    size_t curr_transform_index = 0;
+
+    // Evaluate each variable result
+    for (size_t i = 0; i < result.size();) {
+      Common::EvaluateResults::Element& variable_value = result.get(i);
+
+      // Evaluate the operator
+      bool variable_matched = evaluateOperator(t, variable_value.variant_);
+      t.pushMatchedVariable(var.get(), result.move(i));
+
+      // If the variable is matched, evaluate the actions
+      if (variable_matched) {
+        SRSECURITY_LOG_TRACE([&]() {
+          if (!var->isCollection()) {
+            return std::format("variable is matched. {}{}", var->mainName(),
+                               var->subName().empty() ? "" : "." + var->subName());
+          } else {
+            auto& matched_var = t.getMatchedVariables().back();
+            return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                               matched_var.second.variable_sub_name_);
+          }
+        }());
+
+        rule_matched = true;
+
+        // Evaluate the default actions and the action defined actions
+        evaluateActions(t);
+
+        // The variable value is matched, evaluate next variable value
+        i++;
+        curr_transform_index = 0;
+      } else {
+        // The variable value was moved by pushMatchedVariable, we need copy it back
+        variable_value = t.getMatchedVariables().back().second;
+
+        // The variable value is not matched, perf transformation and try to match again
+        if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
+          // Evaluate the transformation
+          bool ret = false;
+          while (!ret && curr_transform_index < transforms.size()) {
+            ret = transforms[curr_transform_index]->evaluate(t, var.get(), variable_value);
+            SRSECURITY_LOG_TRACE("evaluate transformation: {} {}",
+                                 transforms[curr_transform_index]->name(), ret);
+            curr_transform_index++;
+          }
+
+          // All of the transformations have been evaluated, and the variable value is not matched
+          // We need to evaluate the next variable value
+          if (!ret) {
+            i++;
+            curr_transform_index = 0;
+          }
+        } else {
+          i++;
+          curr_transform_index = 0;
+        }
+      }
+    }
+  }
+
+  // Evaluate the chained rules
+  if (rule_matched) {
+    if (!chain_.empty()) [[unlikely]] {
+      // If the chained rules are matched means the rule is matched, otherwise the rule is not
+      // matched
+      if (!evaluateChain(t)) {
+        rule_matched = false;
+      }
+    }
+  }
+
+  // Evaluate the msg macro and logdata macro
+  if (rule_matched) {
+    evaluateMsgMacro(t);
+    evaluateLogDataMacro(t);
+  }
+
+  return rule_matched;
 }
 } // namespace SrSecurity
