@@ -765,7 +765,23 @@ TEST_F(TransformationTest, urlEncode) {
 }
 
 TEST_F(TransformationTest, utf8ToUnicode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const Utf8ToUnicode utf8_to_unicode;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = utf8_to_unicode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\u4E2D\u6587";
+  ret = utf8_to_unicode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "%u4e2d%u6587");
+
+  data = "This is \u4E2D\u6587 ";
+  ret = utf8_to_unicode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is %u4e2d%u6587 ");
 }
 } // namespace Transformation
 } // namespace SrSecurity

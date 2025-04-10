@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 %%{
   machine hex_decode;
   
