@@ -188,6 +188,7 @@ private:
   inline void evaluateMsgMacro(Transaction& t) const;
   inline void evaluateLogDataMacro(Transaction& t) const;
   inline void evaluateActions(Transaction& t) const;
+  inline bool evaluateWithMultiMatch(Transaction& t) const;
 
 private:
   std::string_view file_path_;
