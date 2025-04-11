@@ -14,24 +14,33 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   }
 
   // Check the cache
-  std::unordered_map<Variable::FullName,
-                     std::unordered_map<const char*, Common::EvaluateResults::Element>>&
+  std::unordered_map<
+      Variable::FullName,
+      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>>&
       transform_cache = t.getTransformCache();
   auto iter_variable_full_name = transform_cache.find(variable_full_name);
   if (iter_variable_full_name != transform_cache.end()) {
     auto iter_transform_result = iter_variable_full_name->second.find(name());
     if (iter_transform_result != iter_variable_full_name->second.end()) {
-      // The transformation has been evaluated before.
-      data.variant_ = iter_transform_result->second.variant_;
       SRSECURITY_LOG_TRACE("transform cache hit: {} {}", variable_full_name.tostring(), name());
-      return true;
+
+      // The transformation has been evaluated before.
+      if (iter_transform_result->second.has_value()) [[likely]] {
+        data.variant_ = iter_transform_result->second.value().variant_;
+        return true;
+      } else {
+        return false;
+      }
     }
   } else {
     iter_variable_full_name =
         transform_cache
-            .emplace(variable_full_name,
-                     std::unordered_map<const char*, Common::EvaluateResults::Element>{})
+            .emplace(
+                variable_full_name,
+                std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>{})
             .first;
+
+    iter_variable_full_name->second.reserve(16);
   }
 
   // Evaluate the transformation and store the result in the cache
@@ -40,10 +49,13 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   if (ret) {
     auto iter_transform_result =
         iter_variable_full_name->second.emplace(name(), Common::EvaluateResults::Element()).first;
-    Common::EvaluateResults::Element& result = iter_transform_result->second;
+    Common::EvaluateResults::Element& result = iter_transform_result->second.value();
     result.string_buffer_ = std::move(buffer);
     result.variant_ = result.string_buffer_;
     data.variant_ = result.variant_;
+  } else {
+    auto iter_transform_result =
+        iter_variable_full_name->second.emplace(name(), std::nullopt).first;
   }
 
   return ret;

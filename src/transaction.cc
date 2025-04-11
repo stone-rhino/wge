@@ -26,6 +26,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
   local_tx_variable_index_reverse_.reserve(variable_key_with_macro_size);
   captured_.reserve(4);
   matched_variables_.reserve(4);
+  transform_cache_.reserve(100);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
