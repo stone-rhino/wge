@@ -369,8 +369,9 @@ public:
    * Get the transformation cache.
    * @return the transformation cache.
    */
-  std::unordered_map<Variable::FullName,
-                     std::unordered_map<const char*, Common::EvaluateResults::Element>>&
+  std::unordered_map<
+      Variable::FullName,
+      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>>&
   getTransformCache() {
     return transform_cache_;
   }
@@ -453,8 +454,9 @@ private:
   std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
-  std::unordered_map<Variable::FullName,
-                     std::unordered_map<const char*, Common::EvaluateResults::Element>>
+  std::unordered_map<
+      Variable::FullName,
+      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>>
       transform_cache_;
   bool init_cookies_{false};
   std::unordered_map<std::string_view, std::string_view> cookies_;
