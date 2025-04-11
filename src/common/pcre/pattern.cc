@@ -54,6 +54,8 @@ void Pattern::compile(const std::string_view pattern, bool case_less, bool captu
     SRSECURITY_LOG_ERROR("pcre compile error: {}", buffer);
     return;
   }
+
+  pcre2_jit_compile(reinterpret_cast<pcre2_code_8*>(db_), PCRE2_JIT_COMPLETE);
 }
 
 void PatternList::add(const std::string& pattern, bool case_less, bool capture, uint64_t id) {
