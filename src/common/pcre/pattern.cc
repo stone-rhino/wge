@@ -39,7 +39,7 @@ void Pattern::compile(const std::string& pattern, bool case_less, bool capture) 
 void Pattern::compile(const std::string_view pattern, bool case_less, bool capture) {
   int error_number;
   PCRE2_SIZE error_offset;
-  uint32_t flag = 0;
+  uint32_t flag = PCRE2_DOTALL | PCRE2_MULTILINE;
   if (case_less) {
     flag |= PCRE2_CASELESS;
   }
