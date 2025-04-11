@@ -354,7 +354,23 @@ TEST_F(TransformationTest, length) {
 }
 
 TEST_F(TransformationTest, lowercase) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const LowerCase lowercase;
+
+  std::string data = R"(this is a test)";
+  std::string result;
+  bool ret = lowercase.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(THIS IS A TEST)";
+  ret = lowercase.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "this is a test");
+
+  data = R"(ThiS iS A TeSt~!@#$%^&*()_+)";
+  ret = lowercase.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "this is a test~!@#$%^&*()_+");
 }
 
 TEST_F(TransformationTest, md5) {
