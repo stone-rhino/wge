@@ -13,7 +13,33 @@ TEST_F(TransformationTest, base64DecodeExt) {
 }
 
 TEST_F(TransformationTest, base64Decode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const Base64Decode base64_decode;
+
+  std::string data = R"(This is a@ test)";
+  std::string result;
+  bool ret = base64_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "VGhpcyBpcyBhIHRlc3Q";
+  ret = base64_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "VGhpcyBpcyBhIHRlc3=Q";
+  ret = base64_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "VGhpcyBpcyBhIHRlc===";
+  ret = base64_decode.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "VGhpcyBpcyBhIHRlc3Q=";
+  ret = base64_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
 }
 
 TEST_F(TransformationTest, base64Encode) {
