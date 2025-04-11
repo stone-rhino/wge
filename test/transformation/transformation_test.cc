@@ -610,7 +610,33 @@ TEST_F(TransformationTest, ParityZero7Bit) {
 }
 
 TEST_F(TransformationTest, removeComments) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const RemoveCommentsChar remove_comments_char;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = remove_comments_char.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This is /* comment */ a test)";
+  ret = remove_comments_char.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is  comment  a test");
+
+  data = R"(This is # comment a test)";
+  ret = remove_comments_char.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is  comment a test");
+
+  data = R"(This is -- comment a test)";
+  ret = remove_comments_char.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is  comment a test");
+
+  data = R"(This is <!-- comment a test)";
+  ret = remove_comments_char.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is  comment a test");
 }
 
 TEST_F(TransformationTest, removeCommentChar) {
