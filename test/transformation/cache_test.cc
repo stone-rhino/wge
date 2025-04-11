@@ -20,14 +20,15 @@ protected:
 
 TEST_F(CacheTest, hit) {
   std::unique_ptr<Transformation::TransformBase> trans = std::make_unique<LowerCase>();
-  Common::Variant data = "Hello, World!";
+  std::string_view test_data = "Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!";
+  Common::Variant data = test_data;
 
   Common::EvaluateResults::Element transform_buffer(data, "");
   Variable::Tx variable(std::string("test"), std::nullopt, false, false);
   bool ret = trans->evaluate(*t_, &variable, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
-  EXPECT_EQ(result, "hello, world!");
+  EXPECT_EQ(result, "hello, world!hello, world!hello, world!hello, world!hello, world!");
 
   Common::EvaluateResults::Element transform_buffe2(data, "");
   ret = trans->evaluate(*t_, &variable, transform_buffe2);
@@ -36,7 +37,7 @@ TEST_F(CacheTest, hit) {
   EXPECT_EQ(result.data(), result2.data());
 }
 
-TEST_F(CacheTest, notHit) {
+TEST_F(CacheTest, notHitWithDifferentVaraible) {
   std::unique_ptr<Transformation::TransformBase> trans = std::make_unique<LowerCase>();
   Common::Variant data = "Hello, World!";
 
@@ -53,6 +54,25 @@ TEST_F(CacheTest, notHit) {
   EXPECT_TRUE(ret);
   std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_EQ(result, result2);
+  EXPECT_NE(result.data(), result2.data());
+}
+
+TEST_F(CacheTest, notHitWithLessThanThreshold) {
+  std::unique_ptr<Transformation::TransformBase> trans = std::make_unique<LowerCase>();
+  std::string_view test_data = "Hello, World!";
+  Common::Variant data = test_data;
+
+  Common::EvaluateResults::Element transform_buffer(data, "");
+  Variable::Tx variable(std::string("test"), std::nullopt, false, false);
+  bool ret = trans->evaluate(*t_, &variable, transform_buffer);
+  EXPECT_TRUE(ret);
+  std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
+  EXPECT_EQ(result, "hello, world!");
+
+  Common::EvaluateResults::Element transform_buffe2(data, "");
+  ret = trans->evaluate(*t_, &variable, transform_buffe2);
+  EXPECT_TRUE(ret);
+  std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_NE(result.data(), result2.data());
 }
 } // namespace Transformation
