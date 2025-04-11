@@ -21,7 +21,7 @@ struct FullName {
   }
 
   bool operator==(const FullName& full_name) const {
-    if (main_name_ == full_name.main_name_) {
+    if (main_name_.data() == full_name.main_name_.data()) {
       return sub_name_ == full_name.sub_name_;
     }
 
@@ -37,7 +37,7 @@ struct FullName {
 namespace std {
 template <> struct hash<SrSecurity::Variable::FullName> {
   size_t operator()(const SrSecurity::Variable::FullName& s) const {
-    size_t h1 = std::hash<std::string_view>()(s.main_name_);
+    size_t h1 = std::hash<const char*>()(s.main_name_.data());
     size_t h2 = std::hash<std::string_view>()(s.sub_name_);
     return h1 ^ (h2 << 1);
   }
