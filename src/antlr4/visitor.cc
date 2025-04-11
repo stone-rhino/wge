@@ -1714,7 +1714,7 @@ std::any Visitor::visitAction_non_disruptive_t_replace_comments(
 std::any Visitor::visitAction_non_disruptive_t_remove_commentschar(
     Antlr4Gen::SecLangParser::Action_non_disruptive_t_remove_commentscharContext* ctx) {
   auto& transforms = (*current_rule_iter_)->transforms();
-  transforms.emplace_back(std::make_unique<Transformation::RemoveCommentChar>());
+  transforms.emplace_back(std::make_unique<Transformation::RemoveCommentsChar>());
   return EMPTY_STRING;
 }
 

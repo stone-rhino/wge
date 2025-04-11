@@ -22,7 +22,7 @@
 #include "parity_odd_7bit.h"
 #include "parity_zero_7bit.h"
 #include "remove_comments.h"
-#include "remove_commment_char.h"
+#include "remove_comments_char.h"
 #include "remove_nulls.h"
 #include "remove_whitespace.h"
 #include "replace_comments.h"

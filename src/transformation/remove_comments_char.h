@@ -6,8 +6,8 @@
 
 namespace SrSecurity {
 namespace Transformation {
-class RemoveCommentChar : public TransformBase {
-  DECLARE_TRANSFORM_NAME(removeCommentChar);
+class RemoveCommentsChar : public TransformBase {
+  DECLARE_TRANSFORM_NAME(removeCommentsChar);
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override {
