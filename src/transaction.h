@@ -58,6 +58,11 @@ public:
     Common::Ragel::QueryParam query_params_;
   };
 
+  struct ResponseLineInfo {
+    std::string_view status_code_;
+    std::string_view protocol_;
+  };
+
 public:
   /**
    * Process the connection info.
@@ -107,13 +112,16 @@ public:
 
   /**
    * Process the response headers.
+   * @param status_code the status code of the response. E.g. 200
+   * @param protocol the protocol of the response. E.g. HTTP/1.1
    * @param response_header_find the header find function.
    * @param response_header_traversal the header traversal function.
    * @param response_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool processResponseHeaders(HeaderFind response_header_find,
+  bool processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                              HeaderFind response_header_find,
                               HeaderTraversal response_header_traversal,
                               size_t response_header_count,
                               std::function<void(const Rule&)> log_callback);
@@ -399,6 +407,12 @@ public:
    */
   const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
 
+  /**
+   * Get the response line info.
+   * @return the response line info
+   */
+  const ResponseLineInfo& getResponseLineInfo() const { return response_line_info_; }
+
   const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
 
   const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
@@ -475,6 +489,7 @@ private:
   std::string_view request_line_;
   std::string request_line_buffer_;
   RequestLineInfo requset_line_info_;
+  ResponseLineInfo response_line_info_;
   Common::Ragel::QueryParam body_query_param_;
   Common::Ragel::MultiPart body_multi_part_;
   Common::Ragel::Xml body_xml_;

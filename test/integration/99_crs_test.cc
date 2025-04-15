@@ -78,6 +78,32 @@ public:
     request_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
       return request_body_;
     };
+
+    response_header_find_ = [&](const std::string& key) {
+      std::vector<std::string_view> result;
+      auto range = response_headers_.equal_range(key);
+      for (auto iter = range.first; iter != range.second; ++iter) {
+        result.emplace_back(iter->second.data(), iter->second.length());
+      }
+
+      if (result.size() > 0) {
+        return result[0];
+      } else {
+        return std::string_view();
+      }
+    };
+
+    response_header_traversal_ = [&](HeaderTraversalCallback callback) {
+      for (auto& [key, value] : response_headers_) {
+        if (!callback(key, value)) {
+          break;
+        }
+      }
+    };
+
+    response_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
+      return response_body_;
+    };
   }
 
 protected:
@@ -109,7 +135,14 @@ protected:
       {"cookie", "c1=v1;c2=v2"},
       {"cookie", "c3=v4"}};
 
+  std::unordered_multimap<std::string, std::string> response_headers_{
+      {"content-type", "text/html; charset=UTF-8"},
+      {"content-length", "11"},
+      {"set-cookie", "c1=v1;c2=v2"},
+      {"set-cookie", "c3=v4"}};
+
   std::vector<std::string_view> request_body_;
+  std::vector<std::string_view> response_body_{{"hello world"}};
 };
 
 TEST_F(CrsTest, crs) {
@@ -119,6 +152,8 @@ TEST_F(CrsTest, crs) {
   t->processRequestHeaders(request_header_find_, request_header_traversal_, request_headers_.size(),
                            nullptr);
   t->processRequestBody(request_body_extractor_, nullptr);
+  t->processResponseHeaders("200", "HTTP/1.1", response_header_find_, response_header_traversal_,
+                            response_headers_.size(), nullptr);
 }
 } // namespace Integration
 } // namespace SrSecurity

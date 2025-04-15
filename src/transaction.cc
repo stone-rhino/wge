@@ -164,6 +164,23 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
   extractor_.request_header_traversal_ = std::move(request_header_traversal);
   extractor_.request_header_count_ = header_count;
   log_callback_ = std::move(log_callback);
+
+  // Set the request body processor
+  if (extractor_.request_header_find_) {
+    auto content_type = extractor_.request_header_find_("content-type");
+    if (content_type == "application/x-www-form-urlencoded") {
+      request_body_processor_ = BodyProcessorType::UrlEncoded;
+    } else if (content_type == "multipart/form-data") {
+      request_body_processor_ = BodyProcessorType::MultiPart;
+    }
+    // The xml and json processor must be specified by the ctl action.
+    // else if (content_type == "application/xml" || content_type == "text/xml") {
+    //   request_body_processor_ = BodyProcessorType::Xml;
+    // } else if (content_type == "application/json") {
+    //   request_body_processor_ = BodyProcessorType::Json;
+    // }
+  }
+
   return process(1);
 }
 
@@ -175,7 +192,8 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
   return process(2);
 }
 
-bool Transaction::processResponseHeaders(HeaderFind response_header_find,
+bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                                         HeaderFind response_header_find,
                                          HeaderTraversal response_header_traversal,
                                          size_t response_header_count,
                                          std::function<void(const Rule&)> log_callback) {
@@ -184,21 +202,8 @@ bool Transaction::processResponseHeaders(HeaderFind response_header_find,
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
   extractor_.response_header_count_ = response_header_count;
   log_callback_ = std::move(log_callback);
-
-  // Set the request body processor
-  auto content_type = extractor_.request_header_find_("content-type");
-  if (content_type == "application/x-www-form-urlencoded") {
-    request_body_processor_ = BodyProcessorType::UrlEncoded;
-  } else if (content_type == "multipart/form-data") {
-    request_body_processor_ = BodyProcessorType::MultiPart;
-  }
-  // The xml and json processor must be specified by the ctl action.
-  // else if (content_type == "application/xml" || content_type == "text/xml") {
-  //   request_body_processor_ = BodyProcessorType::Xml;
-  // } else if (content_type == "application/json") {
-  //   request_body_processor_ = BodyProcessorType::Json;
-  // }
-
+  response_line_info_.status_code_ = status_code;
+  response_line_info_.protocol_ = protocol;
   return process(3);
 }
 
