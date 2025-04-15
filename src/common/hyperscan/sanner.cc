@@ -43,7 +43,7 @@ void Scanner::blockScan(std::string_view data) const {
     hs_error_t err =
         ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
                   worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
-    if (err != HS_SUCCESS) [[unlikely]] {
+    if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
       SRSECURITY_LOG_ERROR("block mode hs_scan error");
     }
   }
@@ -65,7 +65,7 @@ void Scanner::streamScan(std::string_view data) const {
     hs_error_t err = ::hs_scan_stream(worker_scratch_->stream_id_, data.data(), data.length(), 0,
                                       worker_scratch_->stream_scratch_, matchCallback,
                                       const_cast<Scanner*>(this));
-    if (err != HS_SUCCESS) [[unlikely]] {
+    if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
       SRSECURITY_LOG_ERROR("stream mode hs_scan_stream error");
     }
   }
@@ -84,6 +84,7 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
   assert(worker_scratch_->match_cb_);
 
   uint64_t real_id = scanner->hs_db_->getRealId(id);
+  int cease = 0;
 
   // Try again with the pcre
   // Although the pcre scanner is member of the hyperscan scanner, but it is not stateful means that
@@ -139,7 +140,11 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
         }
 
         // Notify matched
-        worker_scratch_->match_cb_(real_id, from, to, flags, worker_scratch_->match_cb_user_data_);
+        cease = worker_scratch_->match_cb_(real_id, from, to, flags,
+                                           worker_scratch_->match_cb_user_data_);
+        if (cease) {
+          break;
+        }
       }
     } else {
       uint64_t new_from, new_to;
@@ -151,14 +156,16 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
         size_t new_to = result.front().second;
         from = pcre_scan_from + new_from;
         to = from + (new_to - new_from);
-        worker_scratch_->match_cb_(real_id, from, to, flags, worker_scratch_->match_cb_user_data_);
+        cease = worker_scratch_->match_cb_(real_id, from, to, flags,
+                                           worker_scratch_->match_cb_user_data_);
       }
     }
   } else {
-    worker_scratch_->match_cb_(real_id, from, to, flags, worker_scratch_->match_cb_user_data_);
+    cease =
+        worker_scratch_->match_cb_(real_id, from, to, flags, worker_scratch_->match_cb_user_data_);
   }
 
-  return 0;
+  return cease;
 }
 } // namespace Hyperscan
 } // namespace Common
