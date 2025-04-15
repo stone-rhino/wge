@@ -38,14 +38,25 @@ void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_
                         request.upstream_ip_.c_str(), request.upstream_port_);
     t.processURI(request.uri_.c_str(), request.method_.c_str(), request.version_.c_str());
 
-    for (auto& [key, value] : request.request_headers_) {
+    for (auto& [key, value] : request.headers_) {
       t.addRequestHeader(key, value);
     }
     t.processRequestHeaders();
-    for (auto value : request.request_body_) {
+
+    for (auto value : request.body_) {
       t.appendRequestBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
     }
     t.processRequestBody();
+
+    for (auto& [key, value] : request.headers_) {
+      t.addResponseHeader(key, value);
+    }
+    t.processResponseHeaders(200, "HTTP/1.1");
+
+    for (auto value : request.body_) {
+      t.appendResponseBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
+    }
+    t.processResponseBody();
   }
 }
 
@@ -54,7 +65,7 @@ int main(int argc, char* argv[]) {
   // Thread count, default is the number of CPU cores
   uint32_t concurrency = std::thread::hardware_concurrency();
   // The maximum requests number of tests, default 10000000
-  uint32_t max_test_count = 10000000;
+  uint32_t max_test_count = 1000000;
 
   // Parse command line arguments
   int opt;

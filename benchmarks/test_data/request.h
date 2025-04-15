@@ -13,7 +13,7 @@ struct RequestBase {
   std::string method_{"GET"};
   std::string version_{"1.1"};
 
-  std::unordered_multimap<std::string, std::string> request_headers_{
+  std::unordered_multimap<std::string, std::string> headers_{
       {"host", "localhost:80"},
       {"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
                      "Gecko) Chrome/124.0.0.0 Safari/537.36"},
@@ -23,7 +23,7 @@ struct RequestBase {
       {"cookie", "aa=bb"},
       {"cookie", "cc=dd"}};
 
-  std::vector<std::string_view> request_body_;
+  std::vector<std::string_view> body_;
 };
 
 struct Request : public RequestBase {

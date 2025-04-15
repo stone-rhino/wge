@@ -9,6 +9,7 @@
 #include "engine.h"
 
 #include "../test_data/request.h"
+#include "../test_data/response.h"
 
 uint32_t test_count = 0;
 std::mutex mutex;
@@ -26,7 +27,7 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
     Request request;
     SrSecurity::HeaderFind request_header_find = [&](const std::string& key) {
       std::vector<std::string_view> result;
-      auto range = request.request_headers_.equal_range(key);
+      auto range = request.headers_.equal_range(key);
       for (auto iter = range.first; iter != range.second; ++iter) {
         result.emplace_back(iter->second.data(), iter->second.length());
       }
@@ -40,7 +41,7 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
 
     SrSecurity::HeaderTraversal request_header_traversal =
         [&](SrSecurity::HeaderTraversalCallback callback) {
-          for (auto& [key, value] : request.request_headers_) {
+          for (auto& [key, value] : request.headers_) {
             if (!callback(key, value)) {
               break;
             }
@@ -48,15 +49,45 @@ void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
         };
 
     SrSecurity::BodyExtractor request_body_extractor =
-        [&]() -> const std::vector<std::string_view>& { return request.request_body_; };
+        [&]() -> const std::vector<std::string_view>& { return request.body_; };
+
+    Response response;
+    SrSecurity::HeaderFind response_header_find = [&](const std::string& key) {
+      std::vector<std::string_view> result;
+      auto range = response.headers_.equal_range(key);
+      for (auto iter = range.first; iter != range.second; ++iter) {
+        result.emplace_back(iter->second.data(), iter->second.length());
+      }
+
+      if (result.size() > 0) {
+        return result[0];
+      } else {
+        return std::string_view();
+      }
+    };
+
+    SrSecurity::HeaderTraversal response_header_traversal =
+        [&](SrSecurity::HeaderTraversalCallback callback) {
+          for (auto& [key, value] : response.headers_) {
+            if (!callback(key, value)) {
+              break;
+            }
+          }
+        };
+
+    SrSecurity::BodyExtractor response_body_extractor =
+        [&]() -> const std::vector<std::string_view>& { return response.body_; };
 
     auto t = engine.makeTransaction();
     t->processConnection(request.downstream_ip_, request.downstream_port_, request.upstream_ip_,
                          request.upstream_port_);
     t->processUri(request.uri_, request.method_, request.version_);
-    t->processRequestHeaders(request_header_find, request_header_traversal,
-                             request.request_headers_.size(), nullptr);
+    t->processRequestHeaders(request_header_find, request_header_traversal, request.headers_.size(),
+                             nullptr);
     t->processRequestBody(request_body_extractor, nullptr);
+    t->processResponseHeaders("200", "HTTP/1.1", response_header_find, response_header_traversal,
+                              response.headers_.size(), nullptr);
+    t->processResponseBody(response_body_extractor, nullptr);
   }
 }
 
@@ -65,7 +96,7 @@ int main(int argc, char* argv[]) {
   // Thread count, default is the number of CPU cores
   uint32_t concurrency = std::thread::hardware_concurrency();
   // The maximum requests number of tests, default 10000000
-  uint32_t max_test_count = 10000000;
+  uint32_t max_test_count = 1000000;
 
   // Parse command line arguments
   int opt;
