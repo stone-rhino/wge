@@ -154,6 +154,7 @@ TEST_F(CrsTest, crs) {
   t->processRequestBody(request_body_extractor_, nullptr);
   t->processResponseHeaders("200", "HTTP/1.1", response_header_find_, response_header_traversal_,
                             response_headers_.size(), nullptr);
+  t->processResponseBody(response_body_extractor_, nullptr);
 }
 } // namespace Integration
 } // namespace SrSecurity
