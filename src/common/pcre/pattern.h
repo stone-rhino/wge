@@ -34,6 +34,7 @@ class PatternList {
 public:
   void add(const std::string& pattern, bool case_less, bool capture, uint64_t id);
   const Pattern* get(uint64_t id) const;
+  void clear() { pattern_map_.clear(); }
 
 private:
   std::unordered_map<uint64_t, Pattern> pattern_map_;

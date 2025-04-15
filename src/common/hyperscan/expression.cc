@@ -107,11 +107,13 @@ size_t ExpressionList::size() const { return exprs_.size(); }
 
 void ExpressionList::clear() {
   expr_pointers_.clear();
+  expr_lens_.clear();
   exprs_.clear();
   flags_.clear();
   ids_.clear();
   real_ids_.clear();
   logic_id_map_.clear();
+  pcre_pattern_list_.clear();
 }
 
 uint64_t ExpressionList::getRealId(unsigned int id) const {
