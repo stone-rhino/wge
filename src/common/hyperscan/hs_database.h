@@ -24,16 +24,20 @@ public:
    * @param pattern the pattern
    * @param literal whether the pattern is literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param support_stream whether support stream mode
    */
-  HsDataBase(const std::string& pattern, bool literal, bool som_leftmost);
+  HsDataBase(const std::string& pattern, bool literal, bool som_leftmost,
+             bool support_stream = false);
 
   /**
    * Load patterns form a vector of string_view.
    * @param patterns the patterns
    * @param literal whether the patterns are literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param support_stream whether support stream mode
    */
-  HsDataBase(const std::vector<std::string_view>& patterns, bool literal, bool som_leftmost);
+  HsDataBase(const std::vector<std::string_view>& patterns, bool literal, bool som_leftmost,
+             bool support_stream = false);
 
   /**
    * Load patterns from the specified file.
@@ -41,8 +45,9 @@ public:
    * @param ifs the file stream
    * @param literal whether the patterns are literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param support_stream whether support stream mode
    */
-  HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost);
+  HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool support_stream = false);
 
 public:
   const hs_database_t* blockNative() const { return db_.block_db_; }
@@ -73,7 +78,7 @@ private:
   };
 
 private:
-  void compile();
+  void compile(bool support_stream);
   static Scratch main_scratch_;
 
 private:

@@ -31,15 +31,17 @@ public:
    * If we uses multiple databases, only a single scratch space is needed: in this case, call this
    * function for each database.
    * @param block_db: block mode database
+   */
+  void addBlock(const hs_database_t* block_db) { ::hs_alloc_scratch(block_db, &block_scratch_); }
+
+  /**
+   * Add scratch space for the given databases.
+   * If we uses multiple databases, only a single scratch space is needed: in this case, call this
+   * function for each database.
    * @param stream_db: stream mode database
    */
-  void add(const hs_database_t* block_db, const hs_database_t* stream_db) {
-    if (block_db && !block_scratch_) {
-      ::hs_alloc_scratch(block_db, &block_scratch_);
-    }
-    if (stream_db && !stream_scratch_) {
-      ::hs_alloc_scratch(stream_db, &stream_scratch_);
-    }
+  void addStream(const hs_database_t* stream_db) {
+    ::hs_alloc_scratch(stream_db, &stream_scratch_);
   }
 
   /**
