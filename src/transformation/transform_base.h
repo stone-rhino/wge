@@ -49,6 +49,12 @@ protected:
    * @return true if the transformation is successful, otherwise false and the result will be empty.
    */
   virtual bool evaluate(std::string_view data, std::string& result) const = 0;
+
+  /**
+   * Check if the transformation needs to be converted to int.
+   * @return true if the transformation needs to be converted to int, otherwise false.
+   */
+  virtual bool convertToInt() const { return false; }
 };
 } // namespace Transformation
 } // namespace SrSecurity

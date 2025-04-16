@@ -70,9 +70,13 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   } else {
     std::string buffer;
     bool ret = evaluate(std::get<std::string_view>(data.variant_), buffer);
-    if (ret) {
-      data.string_buffer_ = std::move(buffer);
-      data.variant_ = data.string_buffer_;
+    if (ret) [[likely]] {
+      if (convertToInt()) [[unlikely]] {
+        data.variant_ = ::atoi(buffer.c_str());
+      } else {
+        data.string_buffer_ = std::move(buffer);
+        data.variant_ = data.string_buffer_;
+      }
     }
 
     return ret;

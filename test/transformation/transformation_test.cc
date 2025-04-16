@@ -350,7 +350,15 @@ TEST_F(TransformationTest, jsDecode) {
 }
 
 TEST_F(TransformationTest, length) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const Length length;
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = length.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "14");
+  EXPECT_TRUE(length.convertToInt());
+  int length_value = ::atoi(result.c_str());
+  EXPECT_EQ(length_value, 14);
 }
 
 TEST_F(TransformationTest, lowercase) {

@@ -11,9 +11,11 @@ class Length : public TransformBase {
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
+    result = std::to_string(data.length());
+    return true;
   }
+
+  bool convertToInt() const override { return true; }
 };
 } // namespace Transformation
 } // namespace SrSecurity
