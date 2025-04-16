@@ -3,12 +3,13 @@
 # The request and response are surrounded by {{ and }}.
 #
 {{
-GET / HTTP/1.1
-Host: localhost
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-X-Forwarded-Proto: http
-Cookie: aa=bb; cc=dd
+GET /kktv/poster/20241113/15/160750752_45384.jpg!256 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+referer:https://www.kktv5.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:i
 
 HTTP/1.1 200 OK
 Content-Type: text/html; charset=UTF-8
@@ -20,15 +21,259 @@ hello world
 }}
 
 {{
-GET / HTTP/1.1
-Host: localhost
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-X-Forwarded-Proto: http
-Cookie: aa=bb; cc=dd
+GET /play/858048.htm HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+referer:https://www.9ku.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=0, i
+cookie:tvc=1; visitcounts=1; visittime2=1732783700; visiturl=https://www.9ku.com/
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
 Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
 
 hello world
+}}
+
+{{
+GET /show2channe?l=inline&id=126566_1798286;&state=0&submitcnt=1 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:*/*
+referer:https://www.pclady.com.cn/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /play.htm HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+referer:https://www.9ku.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=0, i
+cookie:tvc=1; visitcounts=1; visittime2=1732783700; visiturl=https://www.9ku.com/
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /z_stat.phpi?d=1277810324&web_id=1277810324 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:*/*
+referer:https://www.infzm.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=1
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /ma_icon/0/icon_52850201_1727269309/256 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+referer:https://www.hiwifi.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:i
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+POST /e/search/index.php HTTP/1.1
+content-length:88
+cache-control:max-age=0
+origin:https://www.fqrsw.com
+content-type:application/x-www-form-urlencoded
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+referer:https://www.fqrsw.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=0, i
+cookie:acw_tc=3da0c01217332056712951031ee3915d09914eb865bf3692f024213d7c;show=title&classid=1&keyboard=testinput&btnForIndexSearch=%E6%90%9C%C2%A0%C2%A0%E7%B4%A2
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /soke?y=testinput HTTP/1.1
+Host:www.0534888.com
+Connection:keep-alive
+User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer:https://www.0534888.com/
+Accept-Encoding:gzip, deflate, br, zstd
+Accept-Language:en-US,en;q=0.9
+Cookie:ASP.NET_SessionId=bxhtyg45zgushkijeiwfbtz0; jishuqi=2024/12/3 2:18:37; _d_id=ef4b00aa3697c9109009e389782ee1
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /gtag/jsi?d=UA-159638743-11 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:*/*
+referer:https://www.longre.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /plus/search.phpkwtyp?e=0&q=testinput HTTP/1.1
+Host:www.biodiscover.com
+Connection:keep-alive
+User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Referer:https://www.biodiscover.com/
+Accept-Encoding:gzip, deflate, br, zstd
+Accept-Language:en-US,en;q=0.9
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /search.phpkeyword?s=testinput&dataBi=k1 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+referer:https://www.sfwcbg.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=0, i
+cookie:real_ipd=59.39.215.70; ECS_ID=e3d2e5f87e9c5dd5698af82e8c3955ac06b2c5eb
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /api/ship/read?_=1733142669437&callback=jsonp_1733142669437_21793 HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:*/*
+referer:https://topjet.en.alibaba.com/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+cookie:ali_apache_id=33.102.195.134.1733142672612.579365.7; cna=kJbUH6g6l0ECATtSPSMqd5OX; xman_us_f=x_l=0; acs_usuc_t=acs_rt=beadf5661f664e9b8fb506b72c152463; xman_t=TaXLK/EYR12l2ju6vnGW1JQ1dpZqrnVcL1d2oV5grvJ2xck9XE0r5dWxx+HiGDxs; xman_f=iWkAp0YMhoFgbElZZTJS1juZXdgZ8BTR15Z19X6uYD+3Ici9ZIepLLnVl0j/Q8fa3XRnlshps5qn2jWZYScuE+4EQuObi+zgvpel2HHU9c/MUsvAu5YNag==; ug_se_c=free_1733142672777
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /api/v1/snippets/websites/a28919d1-5d82-4d04-b383-aa5e5875276f HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:application/json, text/plain, */*
+referer:https://www.tonertopup.co.uk/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=1, i
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /v1/aHR0cHM6Ly9xaW5nZ29uZ2p1LmNvb?Q== HTTP/1.1
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+accept:image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+referer:https://df.imgsrc.xyz/
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:i
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+POST /api/send HTTP/1.1
+content-length:256
+user-agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/130.0.0.0 Safari/537.36
+content-type:application/json
+accept:*/*
+accept-encoding:gzip, deflate, br, zstd
+accept-language:en-US,en;q=0.9
+priority:u=1, i
+
+{"type":"event","payload":{"website":"d5c2a4e7-a13b-43b6-a5e7-054b7fe0fe9a","hostname":"www.bsd.wiki","screen":"800x600","language":"en-US","title":"FreeBSD%20%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E8%B7%91%E8%B7%AF%20%7C%20BSDWIKI","url":"/","referrer":""}}
 HTTP/1.1 200 OK
 Content-Type: text/html; charset=UTF-8
 Content-Length: 11

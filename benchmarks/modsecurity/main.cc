@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
   // Thread count, default is the number of CPU cores
   uint32_t concurrency = std::thread::hardware_concurrency();
   // The maximum requests number of tests, default 10000000
-  uint32_t max_test_count = 1000000;
+  uint32_t max_test_count = 100000;
 
   // Parse command line arguments
   int opt;

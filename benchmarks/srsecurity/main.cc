@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
   // Thread count, default is the number of CPU cores
   uint32_t concurrency = std::thread::hardware_concurrency();
   // The maximum requests number of tests, default 10000000
-  uint32_t max_test_count = 1000000;
+  uint32_t max_test_count = 100000;
 
   // Parse command line arguments
   int opt;
@@ -139,7 +139,16 @@ int main(int argc, char* argv[]) {
 
   // Load Test data
   TestData test_data_white(TestData::Type::White);
+  if (test_data_white.getHttpInfos().empty()) {
+    std::cout << "Load white test data error" << std::endl;
+    return 1;
+  }
+
   TestData test_data_black(TestData::Type::Black);
+  if (test_data_black.getHttpInfos().empty()) {
+    std::cout << "Load black test data error" << std::endl;
+    return 1;
+  }
 
   // Load rules
   SrSecurity::Engine engine(spdlog::level::trace);
