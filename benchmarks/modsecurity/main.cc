@@ -9,10 +9,41 @@
 #include "modsecurity/rules_set.h"
 #include "modsecurity/transaction.h"
 
-#include "../test_data/request.h"
+#include "../test_data/test_data.h"
 
 uint32_t test_count = 0;
 std::mutex mutex;
+
+void process(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
+             const HttpInfo& http_info) {
+  modsecurity::Transaction t(&engine, &rules_set, nullptr);
+
+  t.processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
+  t.processURI(
+      std::string(http_info.request_uri_.data(), http_info.request_uri_.size()).c_str(),
+      std::string(http_info.request_method_.data(), http_info.request_method_.size()).c_str(),
+      std::string(http_info.request_version_.data(), http_info.request_version_.size()).c_str());
+
+  for (auto& [key, value] : http_info.request_headers_) {
+    t.addRequestHeader({key.data(), key.length()}, {value.data(), value.length()});
+  }
+  t.processRequestHeaders();
+
+  for (auto value : http_info.request_body_) {
+    t.appendRequestBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
+  }
+  t.processRequestBody();
+
+  for (auto& [key, value] : http_info.response_headers_) {
+    t.addResponseHeader({key.data(), key.length()}, {value.data(), value.length()});
+  }
+  t.processResponseHeaders(200, "HTTP/1.1");
+
+  for (auto value : http_info.response_body_) {
+    t.appendResponseBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
+  }
+  t.processResponseBody();
+}
 
 void logCb(void* data, const void* message) {
   const modsecurity::RuleMessage* rule_message =
@@ -21,42 +52,24 @@ void logCb(void* data, const void* message) {
 }
 
 void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
-                 uint32_t max_test_count) {
+                 uint32_t max_test_count, const TestData& test_data_white,
+                 const TestData& test_data_black) {
   while (true) {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      if (test_count >= max_test_count) {
-        break;
-      }
-      ++test_count;
+    auto& white_data = test_data_white.getHttpInfos();
+    auto& black_data = test_data_black.getHttpInfos();
+
+    for (auto& http_info : white_data) {
+      process(engine, rules_set, http_info);
+    }
+    for (auto& http_info : black_data) {
+      process(engine, rules_set, http_info);
     }
 
-    Request request;
-    modsecurity::Transaction t(&engine, &rules_set, nullptr);
-
-    t.processConnection(request.downstream_ip_.c_str(), request.downstream_port_,
-                        request.upstream_ip_.c_str(), request.upstream_port_);
-    t.processURI(request.uri_.c_str(), request.method_.c_str(), request.version_.c_str());
-
-    for (auto& [key, value] : request.headers_) {
-      t.addRequestHeader(key, value);
+    std::lock_guard<std::mutex> lock(mutex);
+    test_count += white_data.size() + black_data.size();
+    if (test_count >= max_test_count) {
+      break;
     }
-    t.processRequestHeaders();
-
-    for (auto value : request.body_) {
-      t.appendRequestBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
-    }
-    t.processRequestBody();
-
-    for (auto& [key, value] : request.headers_) {
-      t.addResponseHeader(key, value);
-    }
-    t.processResponseHeaders(200, "HTTP/1.1");
-
-    for (auto value : request.body_) {
-      t.appendResponseBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
-    }
-    t.processResponseBody();
   }
 }
 
@@ -95,6 +108,10 @@ int main(int argc, char* argv[]) {
       return 0;
     }
   }
+
+  // Load Test data
+  TestData test_data_white(TestData::Type::White);
+  TestData test_data_black(TestData::Type::Black);
 
   // Load rules
   modsecurity::ModSecurity engine;
@@ -144,8 +161,9 @@ int main(int argc, char* argv[]) {
   std::vector<std::thread> threads;
   SrSecurity::Common::Duration duration;
   for (int i = 0; i < concurrency; ++i) {
-    threads.emplace_back(
-        std::thread(thread_func, std::ref(engine), std::ref(rules_set), max_test_count));
+    threads.emplace_back(std::thread(thread_func, std::ref(engine), std::ref(rules_set),
+                                     max_test_count, std::ref(test_data_white),
+                                     std::ref(test_data_black)));
   }
 
   // Wait for all threads to finish

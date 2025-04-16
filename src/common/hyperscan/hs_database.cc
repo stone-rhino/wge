@@ -51,8 +51,6 @@ HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool
 }
 
 void HsDataBase::compile(bool support_stream) {
-  ASSERT_IS_MAIN_THREAD();
-
   assert(db_.expressions_.size());
 
   if (support_stream) {
