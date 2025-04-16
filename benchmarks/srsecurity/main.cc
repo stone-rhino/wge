@@ -1,3 +1,4 @@
+#include <array>
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -8,86 +9,95 @@
 #include "common/duration.h"
 #include "engine.h"
 
-#include "../test_data/request.h"
-#include "../test_data/response.h"
+#include "../test_data/test_data.h"
 
 uint32_t test_count = 0;
 std::mutex mutex;
 
-void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count) {
-  while (true) {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      if (test_count >= max_test_count) {
-        break;
-      }
-      ++test_count;
+void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
+  SrSecurity::HeaderFind request_header_find = [&](const std::string& key) {
+    std::vector<std::string_view> result;
+    auto range = http_info.request_headers_.equal_range(key);
+    for (auto iter = range.first; iter != range.second; ++iter) {
+      result.emplace_back(iter->second.data(), iter->second.length());
     }
 
-    Request request;
-    SrSecurity::HeaderFind request_header_find = [&](const std::string& key) {
-      std::vector<std::string_view> result;
-      auto range = request.headers_.equal_range(key);
-      for (auto iter = range.first; iter != range.second; ++iter) {
-        result.emplace_back(iter->second.data(), iter->second.length());
-      }
+    if (result.size() > 0) {
+      return result[0];
+    } else {
+      return std::string_view();
+    }
+  };
 
-      if (result.size() > 0) {
-        return result[0];
-      } else {
-        return std::string_view();
-      }
-    };
-
-    SrSecurity::HeaderTraversal request_header_traversal =
-        [&](SrSecurity::HeaderTraversalCallback callback) {
-          for (auto& [key, value] : request.headers_) {
-            if (!callback(key, value)) {
-              break;
-            }
+  SrSecurity::HeaderTraversal request_header_traversal =
+      [&](SrSecurity::HeaderTraversalCallback callback) {
+        for (auto& [key, value] : http_info.request_headers_) {
+          if (!callback(key, value)) {
+            break;
           }
-        };
+        }
+      };
 
-    SrSecurity::BodyExtractor request_body_extractor =
-        [&]() -> const std::vector<std::string_view>& { return request.body_; };
+  SrSecurity::BodyExtractor request_body_extractor = [&]() -> const std::vector<std::string_view>& {
+    return http_info.request_body_;
+  };
 
-    Response response;
-    SrSecurity::HeaderFind response_header_find = [&](const std::string& key) {
-      std::vector<std::string_view> result;
-      auto range = response.headers_.equal_range(key);
-      for (auto iter = range.first; iter != range.second; ++iter) {
-        result.emplace_back(iter->second.data(), iter->second.length());
-      }
+  SrSecurity::HeaderFind response_header_find = [&](const std::string& key) {
+    std::vector<std::string_view> result;
+    auto range = http_info.response_headers_.equal_range(key);
+    for (auto iter = range.first; iter != range.second; ++iter) {
+      result.emplace_back(iter->second.data(), iter->second.length());
+    }
 
-      if (result.size() > 0) {
-        return result[0];
-      } else {
-        return std::string_view();
-      }
-    };
+    if (result.size() > 0) {
+      return result[0];
+    } else {
+      return std::string_view();
+    }
+  };
 
-    SrSecurity::HeaderTraversal response_header_traversal =
-        [&](SrSecurity::HeaderTraversalCallback callback) {
-          for (auto& [key, value] : response.headers_) {
-            if (!callback(key, value)) {
-              break;
-            }
+  SrSecurity::HeaderTraversal response_header_traversal =
+      [&](SrSecurity::HeaderTraversalCallback callback) {
+        for (auto& [key, value] : http_info.response_headers_) {
+          if (!callback(key, value)) {
+            break;
           }
-        };
+        }
+      };
 
-    SrSecurity::BodyExtractor response_body_extractor =
-        [&]() -> const std::vector<std::string_view>& { return response.body_; };
+  SrSecurity::BodyExtractor response_body_extractor =
+      [&]() -> const std::vector<std::string_view>& { return http_info.response_body_; };
 
-    auto t = engine.makeTransaction();
-    t->processConnection(request.downstream_ip_, request.downstream_port_, request.upstream_ip_,
-                         request.upstream_port_);
-    t->processUri(request.uri_, request.method_, request.version_);
-    t->processRequestHeaders(request_header_find, request_header_traversal, request.headers_.size(),
-                             nullptr);
-    t->processRequestBody(request_body_extractor, nullptr);
-    t->processResponseHeaders("200", "HTTP/1.1", response_header_find, response_header_traversal,
-                              response.headers_.size(), nullptr);
-    t->processResponseBody(response_body_extractor, nullptr);
+  auto t = engine.makeTransaction();
+  t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
+  t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
+  t->processRequestHeaders(request_header_find, request_header_traversal,
+                           http_info.request_headers_.size(), nullptr);
+  t->processRequestBody(request_body_extractor, nullptr);
+  t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
+                            response_header_find, response_header_traversal,
+                            http_info.response_headers_.size(), nullptr);
+  t->processResponseBody(response_body_extractor, nullptr);
+}
+
+void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count,
+                 const TestData& test_data_white, const TestData& test_data_black) {
+  while (true) {
+    auto& white_data = test_data_white.getHttpInfos();
+    auto& black_data = test_data_black.getHttpInfos();
+
+    for (auto& http_info : white_data) {
+      process(engine, http_info);
+    }
+    for (auto& http_info : black_data) {
+      process(engine, http_info);
+    }
+
+    std::lock_guard<std::mutex> lock(mutex);
+    test_count += white_data.size() + black_data.size();
+    if (test_count >= max_test_count) {
+      break;
+    }
   }
 }
 
@@ -126,6 +136,10 @@ int main(int argc, char* argv[]) {
       return 0;
     }
   }
+
+  // Load Test data
+  TestData test_data_white(TestData::Type::White);
+  TestData test_data_black(TestData::Type::Black);
 
   // Load rules
   SrSecurity::Engine engine(spdlog::level::trace);
@@ -174,7 +188,8 @@ int main(int argc, char* argv[]) {
   std::vector<std::thread> threads;
   SrSecurity::Common::Duration duration;
   for (int i = 0; i < concurrency; ++i) {
-    threads.emplace_back(std::thread(thread_func, std::ref(engine), max_test_count));
+    threads.emplace_back(std::thread(thread_func, std::ref(engine), max_test_count,
+                                     std::ref(test_data_white), std::ref(test_data_black)));
   }
 
   // Wait for all threads to finish
@@ -187,7 +202,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Test count: " << test_count << std::endl;
   std::cout << "Total time: " << duration.milliseconds() << "ms" << std::endl;
   std::cout << std::fixed << std::setprecision(3)
-            << "QPS:" << 1000.0 * max_test_count / duration.milliseconds() << std::endl;
+            << "QPS:" << 1000.0 * test_count / duration.milliseconds() << std::endl;
 
   return 0;
 }

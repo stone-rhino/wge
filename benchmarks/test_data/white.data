@@ -1,0 +1,39 @@
+#
+# This file is the white data for the test.
+# The request and response are surrounded by {{ and }}.
+#
+{{
+GET / HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+X-Forwarded-Proto: http
+Cookie: aa=bb; cc=dd
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}
+
+{{
+GET / HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+X-Forwarded-Proto: http
+Cookie: aa=bb; cc=dd
+Content-Length: 11
+
+hello world
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: 11
+Set-Cookie: c1=v1;c2=v2
+Set-Cookie: c3=v4
+
+hello world
+}}

@@ -14,6 +14,10 @@ pkg_check_modules(HYPERSCAN REQUIRED libhs)
 find_package(boost_url CONFIG REQUIRED)
 find_library(INJECTION_LIB injection)
 
+if (NOT TARGET test_data)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../test_data test_data)
+endif()
+
 # whitout tcmalloc
 add_executable(srsecurity_benchmark ${local_source})
 target_include_directories(srsecurity_benchmark PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -25,6 +29,7 @@ target_link_directories(srsecurity_benchmark PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(srsecurity_benchmark PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(srsecurity_benchmark PRIVATE Boost::url)
 target_link_libraries(srsecurity_benchmark PRIVATE ${INJECTION_LIB})
+target_link_libraries(srsecurity_benchmark PRIVATE test_data)
 
 
 
@@ -41,4 +46,5 @@ target_link_directories(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRAR
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE Boost::url)
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${INJECTION_LIB})
+target_link_libraries(srsecurity_benchmark PRIVATE test_data)
 
