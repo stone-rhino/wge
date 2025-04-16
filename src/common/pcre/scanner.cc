@@ -78,7 +78,6 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
     return;
   }
 
-  assert(rc == 1);
   if (rc == 0) [[unlikely]] {
     SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
     return;
