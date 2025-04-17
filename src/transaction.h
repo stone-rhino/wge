@@ -258,11 +258,11 @@ public:
 
   /**
    * add a string that is captured by the operator.
-   * @param value the reference of the matched string.
+   * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void addCapture(std::string_view value);
+  void addCapture(Common::EvaluateResults::Element&& value);
 
   /**
    * Get the captured string that is captured by the operator.
@@ -446,7 +446,7 @@ private:
   std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
   const size_t literal_key_size_;
   static constexpr int max_capture_size_{100};
-  std::vector<Common::Variant> captured_;
+  std::vector<Common::EvaluateResults::Element> captured_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
 

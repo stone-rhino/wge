@@ -7,6 +7,7 @@
 
 #include "operator_base.h"
 
+#include "../common/evaluate_result.h"
 #include "../common/file.h"
 #include "../common/hyperscan/scanner.h"
 #include "../common/log.h"
@@ -38,7 +39,7 @@ public:
         return;
       }
 
-      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, false);
+      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, true);
       scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
       database_cache_.emplace(file_path, hs_db);
     } else {
@@ -66,16 +67,27 @@ public:
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
     // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
     // scratch space for each transaction.
-    bool matched = false;
+    std::pair<unsigned long long, unsigned long long> result(0, 0);
     scanner_->registMatchCallback(
         [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
            void* user_data) -> int {
-          bool* matched = static_cast<bool*>(user_data);
-          *matched = true;
+          std::pair<unsigned long long, unsigned long long>* result =
+              static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
+          result->first = from;
+          result->second = to;
           return 1;
         },
-        &matched);
-    scanner_->blockScan(std::get<std::string_view>(operand));
+        &result);
+    std::string_view operand_str = std::get<std::string_view>(operand);
+    scanner_->blockScan(operand_str);
+
+    bool matched = result.first != result.second;
+    if (matched) {
+      Common::EvaluateResults::Element value;
+      value.variant_ =
+          std::string_view(operand_str.data() + result.first, result.second - result.first);
+      t.addCapture(std::move(value));
+    }
 
     return is_not_ ^ matched;
   }

@@ -67,7 +67,9 @@ public:
     scanner->match(operand_str, result);
 
     for (const auto& [from, to] : result) {
-      t.addCapture(std::string_view(operand_str.data() + from, to - from));
+      Common::EvaluateResults::Element value;
+      value.variant_ = std::string_view(operand_str.data() + from, to - from);
+      t.addCapture(std::move(value));
     }
 
     return is_not_ ^ (!result.empty());

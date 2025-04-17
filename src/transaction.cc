@@ -389,16 +389,16 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::addCapture(std::string_view value) {
+void Transaction::addCapture(Common::EvaluateResults::Element&& value) {
   if (captured_.size() < max_capture_size_) [[likely]] {
-    captured_.emplace_back(value);
+    captured_.emplace_back(std::move(value));
   }
 }
 
 const Common::Variant& Transaction::getCapture(size_t index) const {
   // assert(index < matched_size_);
   if (index < captured_.size()) [[likely]] {
-    return captured_[index];
+    return captured_[index].variant_;
   } else {
     SRSECURITY_LOG_WARN(
         "The index of captured string is out of range. index: {}, captured size: {}", index,
