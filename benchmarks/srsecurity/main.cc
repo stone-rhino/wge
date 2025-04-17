@@ -72,12 +72,20 @@ void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
   t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
   t->processRequestHeaders(request_header_find, request_header_traversal,
-                           http_info.request_headers_.size(), nullptr);
-  t->processRequestBody(request_body_extractor, nullptr);
+                           http_info.request_headers_.size(), [](const SrSecurity::Rule& rule) {
+                             // std::cout << rule.getId() << std::endl;
+                           });
+  t->processRequestBody(request_body_extractor, [](const SrSecurity::Rule& rule) {
+    // std::cout << rule.getId() << std::endl;
+  });
   t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
                             response_header_find, response_header_traversal,
-                            http_info.response_headers_.size(), nullptr);
-  t->processResponseBody(response_body_extractor, nullptr);
+                            http_info.response_headers_.size(), [](const SrSecurity::Rule& rule) {
+                              // std::cout << rule.getId() << std::endl;
+                            });
+  t->processResponseBody(response_body_extractor, [](const SrSecurity::Rule& rule) {
+    // std::cout << rule.getId() << std::endl;
+  });
 }
 
 void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count,
@@ -183,6 +191,15 @@ int main(int argc, char* argv[]) {
       "test/test_data/waf-conf/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
       "test/test_data/waf-conf/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
   };
+
+  // Set the blocking_paranoia_level
+  result = engine.load(
+      R"(SecAction "id:205, phase:1,nolog,pass,t:none,setvar:tx.blocking_paranoia_level=4")");
+  if (!result.has_value()) {
+    std::cout << "Set blocking_paranoia_level error: " << result.error() << std::endl;
+    return 1;
+  }
+
   for (auto& rule_file : rule_files) {
     result = engine.loadFromFile(rule_file);
     if (!result.has_value()) {

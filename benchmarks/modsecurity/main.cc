@@ -48,7 +48,7 @@ void process(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
 void logCb(void* data, const void* message) {
   const modsecurity::RuleMessage* rule_message =
       reinterpret_cast<const modsecurity::RuleMessage*>(message);
-  std::cout << rule_message->m_rule.m_ruleId << std::endl;
+  // std::cout << rule_message->m_rule.m_ruleId << std::endl;
 }
 
 void thread_func(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
@@ -149,6 +149,15 @@ int main(int argc, char* argv[]) {
       "test/test_data/waf-conf/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
       "test/test_data/waf-conf/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
   };
+
+  // Set the blocking_paranoia_level
+  result = rules_set.load(
+      R"(SecAction "id:205, phase:1,nolog,pass,t:none,setvar:tx.blocking_paranoia_level=4")");
+  if (result == -1) {
+    std::cout << "Set blocking_paranoia_level error: " << rules_set.getParserError() << std::endl;
+    return 1;
+  }
+
   for (auto& rule_file : rule_files) {
     result = rules_set.loadFromUri(rule_file.c_str());
     if (result == -1) {
