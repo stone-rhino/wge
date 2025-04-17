@@ -546,11 +546,16 @@ inline bool Transaction::process(int phase) {
 
 inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::string& key,
                                                                 bool force_create) {
-  auto iter = local_tx_variable_index_.find(key);
+  // The key is case insensitive
+  std::string less_case_key;
+  less_case_key.reserve(key.size());
+  std::transform(key.begin(), key.end(), std::back_inserter(less_case_key), ::tolower);
+
+  auto iter = local_tx_variable_index_.find(less_case_key);
   if (iter == local_tx_variable_index_.end()) [[unlikely]] {
     if (force_create) [[likely]] {
-      local_tx_variable_index_.insert({key, tx_variables_.size()});
-      local_tx_variable_index_reverse_.insert({tx_variables_.size(), key});
+      local_tx_variable_index_.insert({less_case_key, tx_variables_.size()});
+      local_tx_variable_index_reverse_.insert({tx_variables_.size(), less_case_key});
       tx_variables_.emplace_back();
       return tx_variables_.size() - 1;
     } else {

@@ -64,7 +64,7 @@ Parser::Parser() {
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // init
   std::ifstream ifs(file_path);
-  if(!ifs.is_open()){
+  if (!ifs.is_open()) {
     return std::unexpected(std::format("open file {} failed", file_path));
   }
   antlr4::ANTLRInputStream input(ifs);
@@ -452,13 +452,18 @@ Parser::findRuleByTag(const std::string& tag) {
 }
 
 std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool force) {
-  auto iter = tx_variable_index_.find(name);
+  // The name is case insensitive
+  std::string less_case_name;
+  less_case_name.reserve(name.size());
+  std::transform(name.begin(), name.end(), std::back_inserter(less_case_name), ::tolower);
+
+  auto iter = tx_variable_index_.find(less_case_name);
   if (iter != tx_variable_index_.end()) {
     return iter->second;
   } else {
     if (force) {
       ASSERT_IS_MAIN_THREAD();
-      auto result = tx_variable_index_.insert({name, tx_variable_index_.size()});
+      auto result = tx_variable_index_.insert({less_case_name, tx_variable_index_.size()});
       tx_variable_index_reverse_.emplace_back(result.first->first);
       return tx_variable_index_.size() - 1;
     }
