@@ -401,7 +401,7 @@ const Common::Variant& Transaction::getCapture(size_t index) const {
     return captured_[index];
   } else {
     SRSECURITY_LOG_WARN(
-        "The index of captured string is out of range. index: {}, captureed size: {}", index,
+        "The index of captured string is out of range. index: {}, captured size: {}", index,
         captured_.size());
     return EMPTY_VARIANT;
   }
