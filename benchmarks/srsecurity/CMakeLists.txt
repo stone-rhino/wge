@@ -46,5 +46,5 @@ target_link_directories(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRAR
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE Boost::url)
 target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE ${INJECTION_LIB})
-target_link_libraries(srsecurity_benchmark PRIVATE test_data)
+target_link_libraries(srsecurity_benchmark_tcmalloc PRIVATE test_data)
 
