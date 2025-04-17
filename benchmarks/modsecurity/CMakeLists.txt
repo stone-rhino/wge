@@ -27,7 +27,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   # Clean release-with-debug-info and release
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/build-debug
-    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/install/release-with-debug-info && rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/install/release && rm -rf release-with-debug-info && rm -rf build-release && touch build-debug && make distclean || true
+    COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/install/release-with-debug-info && rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/install/release && rm -rf build-release-with-debug-info && rm -rf build-release && touch build-debug && make distclean || true
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/modsecurity/configure
   )
