@@ -18,6 +18,7 @@ public:
   Scanner(const std::string& pattern, bool case_less, bool captrue);
   Scanner(std::string_view pattern, bool case_less, bool captrue);
   Scanner(const PatternList* pattern_list);
+  ~Scanner();
 
 public:
   const Pattern* getPattern(uint64_t id);
@@ -33,9 +34,11 @@ public:
                    std::vector<std::pair<size_t, size_t>>& result) const;
   void matchGlobal(const Pattern* pattern, std::string_view subject,
                    std::vector<std::pair<size_t, size_t>>& result) const;
+  void setMatchLimit(size_t match_limit);
 
 private:
   std::unique_ptr<Pattern> pattern_;
+  void* match_context_{nullptr};
   const PatternList* pattern_list_{nullptr};
   static thread_local Scratch per_thread_scratch_;
 };

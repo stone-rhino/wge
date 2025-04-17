@@ -9,6 +9,7 @@
 
 #include "../common/assert.h"
 #include "../common/pcre/scanner.h"
+#include "../engine.h"
 #include "../transaction.h"
 
 namespace SrSecurity {
@@ -59,6 +60,10 @@ public:
       } else {
         scanner = iter->second.get();
       }
+    }
+
+    if (t.getEngine().config().pcre_match_limit_) {
+      scanner->setMatchLimit(t.getEngine().config().pcre_match_limit_);
     }
 
     // Match the operand with the pattern.

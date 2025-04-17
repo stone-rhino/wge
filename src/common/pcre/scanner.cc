@@ -28,6 +28,12 @@ Scanner::Scanner(const std::string_view pattern, bool case_less, bool captrue)
 
 Scanner::Scanner(const PatternList* pattern_list) : pattern_list_(pattern_list) {}
 
+Scanner::~Scanner() {
+  if (match_context_) {
+    pcre2_match_context_free(static_cast<pcre2_match_context*>(match_context_));
+  }
+}
+
 const Pattern* Scanner::getPattern(uint64_t id) {
   assert(pattern_list_);
   if (!pattern_list_) [[unlikely]] {
@@ -63,14 +69,18 @@ void Scanner::match(uint64_t id, std::string_view subject,
 void Scanner::match(const Pattern* pattern, std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern);
-  int rc = pcre2_jit_match(
-      reinterpret_cast<const pcre2_code_8*>(pattern->db()),
-      reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0, 0,
-      reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()), nullptr);
+
+  int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
+                           reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
+                           0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                           static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0) [[unlikely]] {
     switch (rc) {
     case PCRE2_ERROR_NOMATCH:
       SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
+      break;
+    case PCRE2_ERROR_MATCHLIMIT:
+      SRSECURITY_LOG_TRACE("pcre match limit", subject);
       break;
     default:
       break;
@@ -92,14 +102,18 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
 
 bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   assert(pattern);
-  int rc = pcre2_jit_match(
-      reinterpret_cast<const pcre2_code_8*>(pattern->db()),
-      reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0, 0,
-      reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()), nullptr);
+
+  int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
+                           reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
+                           0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                           static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0) [[unlikely]] {
     switch (rc) {
     case PCRE2_ERROR_NOMATCH:
       SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
+      break;
+    case PCRE2_ERROR_MATCHLIMIT:
+      SRSECURITY_LOG_TRACE("pcre match limit", subject);
       break;
     default:
       break;
@@ -107,7 +121,6 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
     return false;
   }
 
-  assert(rc == 1);
   if (rc == 0) [[unlikely]] {
     SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
     return false;
@@ -158,6 +171,13 @@ void Scanner::matchGlobal(const Pattern* pattern, std::string_view subject,
       start_offset = ovector[1] + 1;
     }
   } while (rc > 0);
+}
+
+void Scanner::setMatchLimit(size_t match_limit) {
+  if (!match_context_) {
+    match_context_ = pcre2_match_context_create(nullptr);
+    pcre2_set_match_limit(static_cast<pcre2_match_context*>(match_context_), match_limit);
+  }
 }
 } // namespace Pcre
 } // namespace Common
