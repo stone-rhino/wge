@@ -40,12 +40,15 @@ alias antlr4='java -Xmx500M -cp "/usr/local/lib/antlr-4.13.2-complete.jar:$CLASS
 alias grun='java -Xmx500M -cp "/usr/local/lib/antlr-4.13.2-complete.jar:$CLASSPATH" org.antlr.v4.gui.TestRig'
 ```
 ### Build
-#### Configure the cmake
+* Update the submodule
+```shell
+git submodule update --init
+```
+* Configure the cmake
 ```shell
 cmake --preset=release-with-debug-info
 ```
-
-#### Build with cmake
+* Build with cmake
 ```shell
 cmake --build build/release-with-debug-info
 ```
