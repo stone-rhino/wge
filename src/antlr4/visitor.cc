@@ -1017,7 +1017,10 @@ std::any Visitor::visitOp_strmatch(Antlr4Gen::SecLangParser::Op_strmatchContext*
 
 std::any
 Visitor::visitOp_unconditional_match(Antlr4Gen::SecLangParser::Op_unconditional_matchContext* ctx) {
-  return setOprator<Operator::UnconditionalMatch>(ctx);
+  std::unique_ptr<Operator::OperatorBase> op = std::make_unique<Operator::UnconditionalMatch>(
+      std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return EMPTY_STRING;
 }
 
 std::any

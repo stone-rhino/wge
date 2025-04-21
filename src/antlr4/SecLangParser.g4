@@ -510,7 +510,7 @@ op_rx_global: NOT? AT OP_RX_GLOBAL string_with_macro;
 op_streq: NOT? AT OP_STREQ string_with_macro;
 op_strmatch: NOT? AT OP_STRMATCH string_with_macro;
 op_unconditional_match:
-	NOT? AT OP_UNCONDITIONAL_MATCH string_with_macro;
+	NOT? AT OP_UNCONDITIONAL_MATCH;
 op_validate_byte_range:
 	NOT? AT OP_VALIDATE_BYTE_RANGE string_with_macro;
 op_validate_dtd: NOT? AT OP_VALIDATE_DTD string_with_macro;

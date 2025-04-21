@@ -442,7 +442,8 @@ OP_RX: 'rx';
 OP_RX_GLOBAL: 'rxGlobal';
 OP_STREQ: 'streq';
 OP_STRMATCH: 'strmatch';
-OP_UNCONDITIONAL_MATCH: 'unconditionalMatch';
+OP_UNCONDITIONAL_MATCH:
+	'unconditionalMatch' -> popMode, pushMode(ModeSecRuleOperatorValue);
 OP_VALIDATE_BYTE_RANGE: 'validateByteRange';
 OP_VALIDATE_DTD: 'validateDTD';
 OP_VALIDATE_SCHEMA: 'validateSchema';
