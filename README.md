@@ -9,8 +9,8 @@ Worker Thread: 8
 Input: [White requests](benchmarks/test_data/white.data) and [Black requests](benchmarks/test_data/black.data)
 | Test Case         | Enable Memory Pool(TCMalloc) |ModSecurity | SrSecurity |
 |-------------------|------------------------------|------------|------------|
-| CRS 3.3/dev       |         No                   | 4010 QPS   | 17560 QPS  |
-| CRS 3.3/dev       |         Yes                  | 4927 QPS   | 18864 QPS  |  
+| CRS v4.3.0        |         No                   | 4010 QPS   | 17560 QPS  |
+| CRS v4.3.0        |         Yes                  | 4927 QPS   | 18864 QPS  |  
 
 
 The benchmark results show that SrSecurity is significantly faster than ModSecurity, with a performance improvement of over 4 times. This is due to the use of modern C++ features and excellent architecture design and implementation. The library is designed to be easy to use and integrate into existing applications, making it a great choice for developers looking to add WAF functionality to their projects.
