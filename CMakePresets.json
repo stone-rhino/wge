@@ -11,7 +11,7 @@
       "environment": {
         "CC": "/usr/local/bin/gcc",
         "CXX": "/usr/local/bin/g++",
-        "LD_LIBRARY_PATH": "${sourceDir}"
+        "LD_LIBRARY_PATH": "/usr/local/lib64"
       }
     },
     {
