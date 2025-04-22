@@ -1,6 +1,7 @@
 [submodule "benchmarks/modsecurity/modsecurity"]
 	path = benchmarks/modsecurity/modsecurity
 	url = https://github.com/owasp-modsecurity/ModSecurity.git
+	ignore = untracked
 [submodule "test/test_data/coreruleset"]
 	path = test/test_data/coreruleset
 	url = https://github.com/coreruleset/coreruleset.git
