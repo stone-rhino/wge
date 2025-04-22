@@ -58,10 +58,12 @@ cmake --build build/release-with-debug-info
 ### Run Benchmark
 
 ## License
+Copyright (c) 2024-2025 Stone Rhino and contributors.
+The SrSecurity is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) file for full details.
 
 ## Documentation
 
 ## Contribute
 
 ## Contact
-[石犀科技](https://www.srhino.com/)
+[Stone Rhino](https://www.srhino.com/)
