@@ -8,8 +8,13 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
 endif()
 
 # Enable logging
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-add_definitions(-DSRSECURITY_LOG_ACTIVE_LEVEL=1)
+set(WGE_LOG_ACTIVE_LEVEL 7 CACHE STRING "Set the active log level (1: trace, 2: debug, 3: info, 4: warn, 5: error, 6: critical, 7: off)")
+if(WGE_LOG_ACTIVE_LEVEL LESS 7)
+  add_definitions(-DWGE_LOG_ACTIVE_LEVEL=${WGE_LOG_ACTIVE_LEVEL})
+endif()
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug"  AND WGE_LOG_ACTIVE_LEVEL EQUAL 7)
+  add_definitions(-DWGE_LOG_ACTIVE_LEVEL=1)
 endif()
 
 add_subdirectory(src)

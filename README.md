@@ -47,8 +47,20 @@ git submodule update --init
 ```
 * Configure the cmake
 ```shell
-cmake --preset=release-with-debug-info
+cmake --preset=release-with-debug-info --fresh
 ```
+If we want to enable the debug log that help us to watch the process of WGE, we can set the `WGE_LOG_ACTIVE_LEVEL` to 1.
+```shell
+cmake --preset=release-with-debug-info --fresh -DWGE_LOG_ACTIVE_LEVEL=1
+```
+The WGE_LOG_ACTIVE_LEVEL is a compile-time option that controls the log level:  
+1: Trace  
+2: Debug  
+3: Info  
+4: Warn  
+5: Error  
+6: Critical  
+7: Off  
 * Build with cmake
 ```shell
 cmake --build build/release-with-debug-info
