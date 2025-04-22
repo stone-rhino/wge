@@ -55,8 +55,13 @@ cmake --build build/release-with-debug-info
 ```
 
 ### Run Unit Tests
-
+```shell
+./build/release-with-debug-info/test/test
+```
 ### Run Benchmark
+```shell
+./build/release-with-debug-info/benchmarks/wge/wge_benchmark
+```
 
 ## License
 Copyright (c) 2024-2025 Stone Rhino and contributors.
