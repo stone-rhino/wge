@@ -24,7 +24,7 @@
 
 #include "../macro/macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 /**
  * Creates and updates environment variables that can be accessed by both ModSecurity and the web
@@ -46,4 +46,4 @@ private:
   std::shared_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

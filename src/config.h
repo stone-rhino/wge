@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 
-namespace SrSecurity {
+namespace Wge {
 // There are five phases in the ModSecurity engine
 // 1. Request headers are read
 // 2. Request body is read
@@ -38,7 +38,7 @@ namespace SrSecurity {
 constexpr size_t PHASE_TOTAL = 5;
 
 /**
- * The configuration of the SrSecurity engine.
+ * The configuration of the WGE
  */
 struct EngineConfig {
   enum class Option { On, Off, DetectionOnly };
@@ -256,4 +256,4 @@ struct MultipartStrictError : public std::bitset<16> {
         static_cast<size_t>(MultipartStrictError::ErrorType::MultipartStrictError));
   }
 };
-} // namespace SrSecurity
+} // namespace Wge

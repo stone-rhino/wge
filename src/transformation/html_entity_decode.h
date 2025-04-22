@@ -29,7 +29,7 @@
 
 #include "../common/assert.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class HtmlEntityDecode : public TransformBase {
   DECLARE_TRANSFORM_NAME(htmlEntityDecode);
@@ -38,4 +38,4 @@ public:
   bool evaluate(std::string_view data, std::string& result) const override;
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

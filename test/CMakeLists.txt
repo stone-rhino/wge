@@ -10,7 +10,7 @@ add_subdirectory(integration)
 
 add_executable(test $<TARGET_OBJECTS:common_test> $<TARGET_OBJECTS:parser> $<TARGET_OBJECTS:transformation_test> $<TARGET_OBJECTS:integration>)
 # add_executable(test $<TARGET_OBJECTS:parser> $<TARGET_OBJECTS:rule>)
-target_link_libraries(test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CMAKE_BINARY_DIR}/src/libsrsecurity.a)
+target_link_libraries(test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CMAKE_BINARY_DIR}/src/libwge.a)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(test PRIVATE spdlog::spdlog_header_only)

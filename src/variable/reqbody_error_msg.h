@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class ReqBodyErrorMsg : public VariableBase {
   DECLARE_VIRABLE_NAME(REQBODY_ERROR_MSG);
@@ -37,4 +37,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

@@ -24,7 +24,7 @@
 #include "evaluate_help.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class RequestHeadersNames : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(REQUEST_HEADERS_NAMES);
@@ -78,4 +78,4 @@ public:
   bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

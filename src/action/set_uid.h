@@ -27,7 +27,7 @@
 
 #include "../macro/macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 /**
  * Special-purpose action that initializes the USER collection using the username provided as
@@ -48,4 +48,4 @@ private:
   std::shared_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

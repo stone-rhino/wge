@@ -30,7 +30,7 @@
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 /**
  * Creates, removes, or updates a variable. Variable names are case-insensitive.
@@ -74,4 +74,4 @@ private:
   const std::shared_ptr<Macro::MacroBase> value_macro_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

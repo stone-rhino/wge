@@ -22,7 +22,7 @@
 
 #include <string>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace File {
 /**
@@ -34,4 +34,4 @@ namespace File {
 std::string makeFilePath(std::string_view rule_file_path, const std::string& file_path);
 } // namespace File
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

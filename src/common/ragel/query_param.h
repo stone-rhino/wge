@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 class QueryParam {
@@ -47,4 +47,4 @@ private:
 };
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

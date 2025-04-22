@@ -22,7 +22,7 @@
 
 #include "../log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 thread_local std::unique_ptr<Scratch> Scanner::worker_scratch_;
@@ -64,7 +64,7 @@ void Scanner::blockScan(std::string_view data) const {
         ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
                   worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
     if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
-      SRSECURITY_LOG_ERROR("block mode hs_scan error");
+      WGE_LOG_ERROR("block mode hs_scan error");
     }
   }
 }
@@ -86,7 +86,7 @@ void Scanner::streamScan(std::string_view data) const {
                                       worker_scratch_->stream_scratch_, matchCallback,
                                       const_cast<Scanner*>(this));
     if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
-      SRSECURITY_LOG_ERROR("stream mode hs_scan_stream error");
+      WGE_LOG_ERROR("stream mode hs_scan_stream error");
     }
   }
 }
@@ -189,4 +189,4 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
 }
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

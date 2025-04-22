@@ -29,7 +29,7 @@
 
 #include "scratch.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 class Pattern {
@@ -61,4 +61,4 @@ private:
 };
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

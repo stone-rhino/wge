@@ -30,7 +30,7 @@
 
 #include "pattern.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 class Scanner {
@@ -64,4 +64,4 @@ private:
 };
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

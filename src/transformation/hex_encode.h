@@ -26,7 +26,7 @@
 
 #include "../common/empty_string.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class HexEncode : public TransformBase {
   DECLARE_TRANSFORM_NAME(hexEncode);
@@ -50,4 +50,4 @@ private:
   static constexpr std::string_view hex_table_{"0123456789abcdef"};
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

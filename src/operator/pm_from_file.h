@@ -32,7 +32,7 @@
 #include "../common/hyperscan/scanner.h"
 #include "../common/log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Performs a case-insensitive match of the provided phrases against the desired input value. The
@@ -55,7 +55,7 @@ public:
     if (iter == database_cache_.end()) {
       std::ifstream ifs(file_path);
       if (!ifs.is_open()) {
-        SRSECURITY_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
+        WGE_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
         return;
       }
 
@@ -120,4 +120,4 @@ private:
       database_cache_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

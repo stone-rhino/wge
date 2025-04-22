@@ -32,7 +32,7 @@
 #include "../transformation/transform_include.h"
 #include "../variable/variables_include.h"
 
-namespace SrSecurity::Antlr4 {
+namespace Wge::Antlr4 {
 
 std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
   std::string file_path = ctx->STRING()->getText();
@@ -148,25 +148,25 @@ std::any Visitor::visitSec_response_body_action(
 
 std::any Visitor::visitSec_status_engine(Antlr4Gen::SecLangParser::Sec_status_engineContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecStatusEngine is not supported yet.");
+  WGE_LOG_WARN("SecStatusEngine is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_tmp_dir(Antlr4Gen::SecLangParser::Sec_tmp_dirContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecTmpDir is not supported yet.");
+  WGE_LOG_WARN("SecTmpDir is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_data_dir(Antlr4Gen::SecLangParser::Sec_data_dirContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecDataDir is not supported yet.");
+  WGE_LOG_WARN("SecDataDir is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_cookie_format(Antlr4Gen::SecLangParser::Sec_cookie_formatContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecCookieFormat is not supported yet.");
+  WGE_LOG_WARN("SecCookieFormat is not supported yet.");
   return EMPTY_STRING;
 }
 
@@ -236,14 +236,14 @@ Visitor::visitSec_pcre_match_limit(Antlr4Gen::SecLangParser::Sec_pcre_match_limi
 std::any Visitor::visitSec_pcre_match_limit_recursion(
     Antlr4Gen::SecLangParser::Sec_pcre_match_limit_recursionContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecPcreMatchLimitRecursion is not supported yet.");
+  WGE_LOG_WARN("SecPcreMatchLimitRecursion is not supported yet.");
   return EMPTY_STRING;
 }
 
 std::any
 Visitor::visitSec_collection_timeout(Antlr4Gen::SecLangParser::Sec_collection_timeoutContext* ctx) {
   // Not supported in v3
-  SRSECURITY_LOG_WARN("SecCollectionTimeout is not supported yet.");
+  WGE_LOG_WARN("SecCollectionTimeout is not supported yet.");
   return EMPTY_STRING;
 }
 
@@ -1199,56 +1199,56 @@ std::any Visitor::visitAction_meta_data_maturity(
 
 std::any Visitor::visitAction_meta_data_severity_emergency(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_emergencyContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::EMERGENCY);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::EMERGENCY);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_alert(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_alertContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::ALERT);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::ALERT);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_critical(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_criticalContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::CRITICAL);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::CRITICAL);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_error(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_errorContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::ERROR);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::ERROR);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_waring(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_waringContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::WARNING);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::WARNING);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_notice(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_noticeContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::NOTICE);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::NOTICE);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_info(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_infoContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::INFO);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::INFO);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_debug(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_debugContext* ctx) {
-  (*current_rule_iter_)->severity(SrSecurity::Rule::Severity::DEBUG);
+  (*current_rule_iter_)->severity(Wge::Rule::Severity::DEBUG);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_meta_data_severity_number(
     Antlr4Gen::SecLangParser::Action_meta_data_severity_numberContext* ctx) {
   uint32_t serverity_level = ::atol(ctx->SEVERITY_LEVEL()->getText().c_str());
-  (*current_rule_iter_)->severity(static_cast<SrSecurity::Rule::Severity>(serverity_level));
+  (*current_rule_iter_)->severity(static_cast<Wge::Rule::Severity>(serverity_level));
   return EMPTY_STRING;
 }
 
@@ -1820,7 +1820,7 @@ std::any Visitor::visitAction_non_disruptive_t_trim(
 
 std::any Visitor::visitAction_non_disruptive_ctl_audit_engine(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_engineContext* ctx) {
-  using Option = SrSecurity::AuditLogConfig::AuditEngine;
+  using Option = Wge::AuditLogConfig::AuditEngine;
   Option option = Option::Off;
 
   std::string option_str = ctx->AUDIT_ENGINE()->getText();
@@ -1855,7 +1855,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_force_request_body_variable(
 
 std::any Visitor::visitAction_non_disruptive_ctl_request_body_access(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_accessContext* ctx) {
-  using Option = SrSecurity::EngineConfig::Option;
+  using Option = Wge::EngineConfig::Option;
   Option option = Option::Off;
 
   std::string option_str = ctx->OPTION()->getText();
@@ -1905,7 +1905,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_json(
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_engine(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_engineContext* ctx) {
-  SrSecurity::EngineConfig::Option option = optionStr2EnumValue(ctx->OPTION()->getText());
+  Wge::EngineConfig::Option option = optionStr2EnumValue(ctx->OPTION()->getText());
   auto& actions = (*current_rule_iter_)->actions();
   actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleEngine, option));
   return EMPTY_STRING;
@@ -2135,7 +2135,7 @@ Visitor::visitAction_flow_skip_after(Antlr4Gen::SecLangParser::Action_flow_skip_
 }
 
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
-  using Option = SrSecurity::AuditLogConfig::AuditEngine;
+  using Option = Wge::AuditLogConfig::AuditEngine;
   Option option = Option::Off;
 
   std::string option_str = ctx->AUDIT_ENGINE()->getText();
@@ -2169,7 +2169,7 @@ Visitor::visitSec_audit_log_dir_mode(Antlr4Gen::SecLangParser::Sec_audit_log_dir
 
 std::any
 Visitor::visitSec_audit_log_format(Antlr4Gen::SecLangParser::Sec_audit_log_formatContext* ctx) {
-  using Format = SrSecurity::AuditLogConfig::AuditFormat;
+  using Format = Wge::AuditLogConfig::AuditFormat;
   Format format = Format::Native;
 
   std::string format_str = ctx->AUDIT_FORMAT()->getText().c_str();
@@ -2210,7 +2210,7 @@ std::any Visitor::visitSec_audit_log_storage_dir(
 
 std::any
 Visitor::visitSec_audit_log_type(Antlr4Gen::SecLangParser::Sec_audit_log_typeContext* ctx) {
-  using Type = SrSecurity::AuditLogConfig::AuditLogType;
+  using Type = Wge::AuditLogConfig::AuditLogType;
   Type type = Type::Serial;
 
   std::string type_str = ctx->AUDIT_TYPE()->getText();
@@ -2250,7 +2250,7 @@ EngineConfig::BodyLimitAction Visitor::bodyLimitActionStr2EnumValue(const std::s
 
 std::expected<std::shared_ptr<Macro::MacroBase>, std::string>
 Visitor::getMacro(std::string&& text,
-                  const std::vector<SrSecurity::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
+                  const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
                       macro_ctx_array,
                   bool is_only_macro) {
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string> result;
@@ -2283,4 +2283,4 @@ Visitor::getMacro(std::string&& text,
   visit_variable_mode_ = old_visit_variable_mode;
   return result;
 }
-} // namespace SrSecurity::Antlr4
+} // namespace Wge::Antlr4

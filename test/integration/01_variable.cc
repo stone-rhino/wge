@@ -23,7 +23,7 @@
 #include "engine.h"
 #include "variable/variables_include.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Integration {
 class VariableTest : public testing::Test {
 public:
@@ -574,4 +574,4 @@ TEST_F(VariableTest, XML) {
   // TODO(zhouyu 2025-03-27): add the test cast
 }
 } // namespace Integration
-} // namespace SrSecurity
+} // namespace Wge

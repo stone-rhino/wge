@@ -26,7 +26,7 @@
 
 #include "../config.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class ReqBodyProcessor : public VariableBase {
   DECLARE_VIRABLE_NAME(REQBODY_PROCESSOR);
@@ -60,4 +60,4 @@ private:
   static const std::unordered_map<BodyProcessorType, std::string_view> body_processor_type_map_;
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

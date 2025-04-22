@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class RequestMothod : public VariableBase {
   DECLARE_VIRABLE_NAME(REQUEST_METHOD);
@@ -42,4 +42,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

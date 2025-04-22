@@ -25,7 +25,7 @@
 #include "../common/assert.h"
 #include "../engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 Ctl::Ctl(CtlType type, std::any&& value) : type_(type), value_(std::move(value)) {
   switch (type_) {
@@ -180,4 +180,4 @@ void Ctl::evaluate_rule_remove_target_by_tag(Transaction& t) const {
 }
 
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

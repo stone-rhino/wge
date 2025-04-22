@@ -31,7 +31,7 @@
 #include "../common/log.h"
 #include "../common/variant.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Macro {
 class MultiMacro : public MacroBase {
 public:
@@ -66,7 +66,7 @@ public:
     result.append(std::move(eval));
     assert(eval.empty());
 
-    SRSECURITY_LOG_TRACE("macro {} expanded: {}", literal_value_,
+    WGE_LOG_TRACE("macro {} expanded: {}", literal_value_,
                          VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
@@ -74,4 +74,4 @@ private:
   std::vector<std::shared_ptr<MacroBase>> macros_;
 };
 } // namespace Macro
-} // namespace SrSecurity
+} // namespace Wge

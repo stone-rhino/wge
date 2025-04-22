@@ -1,19 +1,20 @@
-# SrSecurity
-## What is SrSecurity?
-SrSecurity is a high-performance web application firewall (WAF) library based on C++. It is designed to be compatible with the OWASP Core Rule Set (CRS) and can be used as a drop-in replacement for ModSecurity. The library is built using C++23 and is designed to be fast, efficient, and easy to use.
+# WGE
+## What is WGE?
+WGE is a high-performance web application firewall (WAF) library based on C++. It has been successfully applied in the commercial product Stone Rhino - Web Governance Engine (SR-WGE). It is designed to be compatible with the OWASP Core Rule Set (CRS) and can be used as a drop-in replacement for ModSecurity. The library is built using C++23 and is designed to be fast, efficient, and easy to use.
+
 ## Performance Comparison
 CPU: Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz   2.90 GHz  
 RAM: 32GB  
 OS: Ubuntu 20.04.6 LTS (5.15.153.1-microsoft-standard-WSL2)  
 Worker Thread: 8  
 Input: [White requests](benchmarks/test_data/white.data) and [Black requests](benchmarks/test_data/black.data)
-| Test Case         | Enable Memory Pool(TCMalloc) |ModSecurity | SrSecurity |
+| Test Case         | Enable Memory Pool(TCMalloc) |ModSecurity |    WGE     |
 |-------------------|------------------------------|------------|------------|
 | CRS v4.3.0        |         No                   | 4010 QPS   | 17560 QPS  |
 | CRS v4.3.0        |         Yes                  | 4927 QPS   | 18864 QPS  |  
 
 
-The benchmark results show that SrSecurity is significantly faster than ModSecurity, with a performance improvement of over 4 times. This is due to the use of modern C++ features and excellent architecture design and implementation. The library is designed to be easy to use and integrate into existing applications, making it a great choice for developers looking to add WAF functionality to their projects.
+The benchmark results show that WGE is significantly faster than ModSecurity, with a performance improvement of over 4 times. This is due to the use of modern C++ features and excellent architecture design and implementation. The library is designed to be easy to use and integrate into existing applications, making it a great choice for developers looking to add WAF functionality to their projects.
 
 ## Quick Start
 ### Prerequisites
@@ -59,7 +60,7 @@ cmake --build build/release-with-debug-info
 
 ## License
 Copyright (c) 2024-2025 Stone Rhino and contributors.
-The SrSecurity is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) file for full details.
+The WGE is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) file for full details.
 
 ## Documentation
 

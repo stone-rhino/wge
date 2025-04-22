@@ -30,7 +30,7 @@
 
 #include "../pcre/pattern.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 struct Expression {
@@ -114,4 +114,4 @@ private:
 };
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

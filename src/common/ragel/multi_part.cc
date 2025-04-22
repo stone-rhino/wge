@@ -22,7 +22,7 @@
 
 #include <multi_part.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 void MultiPart::init(std::string_view content_type, std::string_view multi_part,
@@ -42,4 +42,4 @@ void MultiPart::init(std::string_view content_type, std::string_view multi_part,
 
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

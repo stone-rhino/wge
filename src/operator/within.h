@@ -27,7 +27,7 @@
 #include "../common/lru_cache.hpp"
 #include "../common/string.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Returns true if the input value (the needle) is found anywhere within the @within parameter (the
@@ -145,4 +145,4 @@ private:
       database_cache_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

@@ -31,7 +31,7 @@ public:                                                                         
 private:                                                                                           \
   static constexpr char name_[] = #n;
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 class ActionBase {
 public:
@@ -42,4 +42,4 @@ public:
   virtual const char* name() const = 0;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

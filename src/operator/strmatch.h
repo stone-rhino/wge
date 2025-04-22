@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class Strmatch : public OperatorBase {
   DECLARE_OPERATOR_NAME(strmatch);
@@ -42,4 +42,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

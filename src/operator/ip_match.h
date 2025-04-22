@@ -27,7 +27,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Performs a fast ipv4 or ipv6 match of REMOTE_ADDR variable data. Can handle the following
@@ -137,4 +137,4 @@ private:
   std::optional<uint32_t> mask_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

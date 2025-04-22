@@ -23,7 +23,7 @@
 #include <functional>
 #include <string_view>
 
-namespace SrSecurity {
+namespace Wge {
 
 /**
  * Header find function.
@@ -65,4 +65,4 @@ struct HttpExtractor {
   size_t request_header_count_;
   size_t response_header_count_;
 };
-} // namespace SrSecurity
+} // namespace Wge

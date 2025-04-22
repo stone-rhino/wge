@@ -25,7 +25,7 @@
 #include "antlr4/parser.h"
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parser {
 class IncludeTest : public testing::Test {
 private:
@@ -74,4 +74,4 @@ TEST_F(IncludeTest, Include) {
   ASSERT_TRUE(result.has_value());
 }
 } // namespace Parser
-} // namespace SrSecurity
+} // namespace Wge

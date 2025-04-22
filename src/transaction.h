@@ -38,7 +38,7 @@
 #include "http_extractor.h"
 #include "variable/full_name.h"
 
-namespace SrSecurity {
+namespace Wge {
 class Engine;
 
 class Rule;
@@ -517,4 +517,4 @@ private:
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
-} // namespace SrSecurity
+} // namespace Wge

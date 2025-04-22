@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Performs a string comparison and returns true if the parameter string is identical to the input
@@ -54,4 +54,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

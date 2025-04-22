@@ -32,7 +32,7 @@ public:                                                                         
 private:                                                                                           \
   static constexpr char name_[] = #n;
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class TransformBase {
 public:
@@ -77,4 +77,4 @@ protected:
   virtual bool convertToInt() const { return false; }
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

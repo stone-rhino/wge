@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartInvalidPart : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_INVALID_PART);
@@ -38,4 +38,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

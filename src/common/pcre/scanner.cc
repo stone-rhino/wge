@@ -35,7 +35,7 @@
 
 #include "../log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 thread_local Scratch Scanner::per_thread_scratch_(99);
@@ -97,10 +97,10 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
   if (rc < 0) [[unlikely]] {
     switch (rc) {
     case PCRE2_ERROR_NOMATCH:
-      SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
+      WGE_LOG_TRACE("pcre no match: {}", subject);
       break;
     case PCRE2_ERROR_MATCHLIMIT:
-      SRSECURITY_LOG_TRACE("pcre match limit", subject);
+      WGE_LOG_TRACE("pcre match limit", subject);
       break;
     default:
       break;
@@ -109,7 +109,7 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
   }
 
   if (rc == 0) [[unlikely]] {
-    SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
+    WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
     return;
   }
 
@@ -130,10 +130,10 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   if (rc < 0) [[unlikely]] {
     switch (rc) {
     case PCRE2_ERROR_NOMATCH:
-      SRSECURITY_LOG_TRACE("pcre no match: {}", subject);
+      WGE_LOG_TRACE("pcre no match: {}", subject);
       break;
     case PCRE2_ERROR_MATCHLIMIT:
-      SRSECURITY_LOG_TRACE("pcre match limit", subject);
+      WGE_LOG_TRACE("pcre match limit", subject);
       break;
     default:
       break;
@@ -142,7 +142,7 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   }
 
   if (rc == 0) [[unlikely]] {
-    SRSECURITY_LOG_ERROR("ovector was not big enough for captured substring", subject);
+    WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
     return false;
   }
 
@@ -201,4 +201,4 @@ void Scanner::setMatchLimit(size_t match_limit) {
 }
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

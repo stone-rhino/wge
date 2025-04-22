@@ -24,7 +24,7 @@
 
 #include "transform_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class TrimRight : public TransformBase {
   DECLARE_TRANSFORM_NAME(trimRight);
@@ -36,4 +36,4 @@ public:
   }
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

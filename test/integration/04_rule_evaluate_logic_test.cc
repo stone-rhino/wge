@@ -22,7 +22,7 @@
 
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Integration {
 TEST(RuleEvaluateLogicTest, evluateLogic) {
   // Test that all variables will be evaluated and the action will be executed every time when the
@@ -180,4 +180,4 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
   }
 }
 } // namespace Integration
-} // namespace SrSecurity
+} // namespace Wge

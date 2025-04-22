@@ -26,7 +26,7 @@
 
 #include "antlr4/parser.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parser {
 class AuditLogConfigTest : public testing::Test {};
 
@@ -173,4 +173,4 @@ TEST_F(AuditLogConfigTest, ComponentSignature) {
   EXPECT_EQ(parser.auditLogConfig().component_signature_, "Hello");
 }
 } // namespace Parser
-} // namespace SrSecurity
+} // namespace Wge

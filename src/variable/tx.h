@@ -26,7 +26,7 @@
 #include "evaluate_help.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class Tx : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(TX);
@@ -103,4 +103,4 @@ private:
   std::optional<size_t> capture_index_;
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

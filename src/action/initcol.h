@@ -24,7 +24,7 @@
 
 #include "../macro/macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 class InitCol : public ActionBase {
   DECLARE_ACTION_NAME(initcol);
@@ -40,4 +40,4 @@ private:
   std::string value_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

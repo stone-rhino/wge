@@ -32,7 +32,7 @@
 #include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Integration {
 class RuleOperatorTest : public testing::Test {
 public:
@@ -366,4 +366,4 @@ SecRule TX:bar "@validateByteRange 65,66-68" "id:2,phase:1,setvar:'tx.false'")";
   EXPECT_FALSE(t->hasVariable("false"));
 }
 } // namespace Integration
-} // namespace SrSecurity
+} // namespace Wge

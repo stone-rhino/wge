@@ -34,7 +34,7 @@
 
 #include "../log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 Pattern::Pattern(const std::string& pattern, bool case_less, bool capture) : db_(nullptr) {
@@ -71,7 +71,7 @@ void Pattern::compile(const std::string_view pattern, bool case_less, bool captu
   if (db_ == nullptr) [[unlikely]] {
     char buffer[256];
     pcre2_get_error_message(error_number, reinterpret_cast<unsigned char*>(buffer), sizeof(buffer));
-    SRSECURITY_LOG_ERROR("pcre compile error: {}", buffer);
+    WGE_LOG_ERROR("pcre compile error: {}", buffer);
     return;
   }
 
@@ -80,7 +80,7 @@ void Pattern::compile(const std::string_view pattern, bool case_less, bool captu
 
 void PatternList::add(const std::string& pattern, bool case_less, bool capture, uint64_t id) {
   if (pattern_map_.find(id) != pattern_map_.end()) [[unlikely]] {
-    SRSECURITY_LOG_ERROR("add pattern failure! there has same id: {} {}", id, pattern);
+    WGE_LOG_ERROR("add pattern failure! there has same id: {} {}", id, pattern);
     return;
   }
 
@@ -98,4 +98,4 @@ const Pattern* PatternList::get(uint64_t id) const {
 }
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

@@ -25,7 +25,7 @@
 #include "../common/variant.h"
 #include "../transaction.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Macro {
 /**
  * Macros allow for using place holders in rules that will be expanded out to their values at
@@ -59,4 +59,4 @@ protected:
   std::string literal_value_;
 };
 } // namespace Macro
-} // namespace SrSecurity
+} // namespace Wge

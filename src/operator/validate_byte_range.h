@@ -24,7 +24,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class ValidateByteRange : public OperatorBase {
   DECLARE_OPERATOR_NAME(validateByteRange);
@@ -95,4 +95,4 @@ private:
   std::bitset<256> byte_range_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

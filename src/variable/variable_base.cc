@@ -20,6 +20,6 @@
  */
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {};
-} // namespace SrSecurity
+} // namespace Wge

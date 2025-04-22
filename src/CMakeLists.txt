@@ -151,7 +151,7 @@ set(antlr4_obj
   ${CMAKE_BINARY_DIR}/antlr4obj/XPathWildcardElement.cpp.o
 )
 
-add_library(srsecurity 
+add_library(wge
   $<TARGET_OBJECTS:action>
   $<TARGET_OBJECTS:antlr4>
   $<TARGET_OBJECTS:common>
@@ -166,7 +166,7 @@ add_library(srsecurity
 )
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(srsecurity PRIVATE spdlog::spdlog_header_only)
+target_link_libraries(wge PRIVATE spdlog::spdlog_header_only)
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
   SET(antlr4_lib ${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/debug/lib/libantlr4-runtime.a)

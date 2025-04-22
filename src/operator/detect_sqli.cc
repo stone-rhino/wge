@@ -24,7 +24,7 @@
 
 #include "../common/evaluate_result.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 bool DetectSqli::evaluate(Transaction& t, const Common::Variant& operand) const {
   if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
@@ -44,4 +44,4 @@ bool DetectSqli::evaluate(Transaction& t, const Common::Variant& operand) const 
   return is_sqli;
 }
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

@@ -44,7 +44,7 @@ protected:
 };
 
 TEST_F(XmlTest, ragle) {
-  SrSecurity::Common::Ragel::Xml xml_parser;
+  Wge::Common::Ragel::Xml xml_parser;
   xml_parser.init(xml_);
   auto& attr_values = xml_parser.getAttrValues();
   auto& tag_values = xml_parser.getTagValues();
@@ -132,9 +132,9 @@ TEST_F(XmlTest, libxml) {
 TEST_F(XmlTest, benchmark) {
   constexpr size_t test_count = 100000;
 
-  SrSecurity::Common::Duration duration;
+  Wge::Common::Duration duration;
   for (size_t i = 0; i < test_count; ++i) {
-    SrSecurity::Common::Ragel::Xml xml_parser;
+    Wge::Common::Ragel::Xml xml_parser;
     xml_parser.init(xml_);
   }
   duration.stop();
@@ -143,7 +143,7 @@ TEST_F(XmlTest, benchmark) {
                    1024 / 1024 / 1024 * 8
             << " Gbps" << std::endl;
 
-  SrSecurity::Common::Duration duration2;
+  Wge::Common::Duration duration2;
   for (size_t i = 0; i < test_count; ++i) {
     xmlDocPtr doc = xmlParseMemory(xml_.data(), xml_.size());
     xmlFreeDoc(doc);

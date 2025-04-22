@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MatchedVarName : public VariableBase {
   DECLARE_VIRABLE_NAME(MATCHED_VAR_NAME);
@@ -56,4 +56,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

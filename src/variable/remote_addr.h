@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class RemoteAddr : public VariableBase {
   DECLARE_VIRABLE_NAME(REMOTE_ADDR);
@@ -41,4 +41,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

@@ -23,7 +23,7 @@
 #include "../common/assert.h"
 #include "../common/log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 SetVar::SetVar(std::string&& key, size_t index, Common::Variant&& value, EvaluateType type)
     : key_(std::move(key)), index_(index), value_(std::move(value)), type_(type) {
@@ -71,10 +71,10 @@ void SetVar::evaluate(Transaction& t) const {
       Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front().variant_);
-      SRSECURITY_LOG_TRACE("setvar(Create): tx.{}=1", key);
+      WGE_LOG_TRACE("setvar(Create): tx.{}=1", key);
       t.setVariable({key.data(), key.size()}, 1);
     } else {
-      SRSECURITY_LOG_TRACE("setvar(Create): tx.{}[{}]=1", key_, index_);
+      WGE_LOG_TRACE("setvar(Create): tx.{}[{}]=1", key_, index_);
       t.setVariable(index_, 1);
     }
 
@@ -87,11 +87,11 @@ void SetVar::evaluate(Transaction& t) const {
       if (value_macro_) [[unlikely]] {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
-        SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
+        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
                              VISTIT_VARIANT_AS_STRING(result.front().variant_));
         t.setVariable({key.data(), key.size()}, result.front().variant_);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
+        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
                              VISTIT_VARIANT_AS_STRING(value_));
         t.setVariable({key.data(), key.size()}, Common::Variant(value_));
       }
@@ -99,11 +99,11 @@ void SetVar::evaluate(Transaction& t) const {
       if (value_macro_) [[unlikely]] {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
-        SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
+        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
                              VISTIT_VARIANT_AS_STRING(result.front().variant_));
         t.setVariable(index_, result.front().variant_);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
+        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
                              VISTIT_VARIANT_AS_STRING(value_));
         t.setVariable(index_, value_);
       }
@@ -114,10 +114,10 @@ void SetVar::evaluate(Transaction& t) const {
       Common::EvaluateResults result;
       key_macro_->evaluate(t, result);
       std::string_view key = std::get<std::string_view>(result.front().variant_);
-      SRSECURITY_LOG_TRACE("setvar(Remove): tx.{}", key);
+      WGE_LOG_TRACE("setvar(Remove): tx.{}", key);
       t.removeVariable({key.data(), key.size()});
     } else {
-      SRSECURITY_LOG_TRACE("setvar(Remove): tx.{}[{}]", key_, index_);
+      WGE_LOG_TRACE("setvar(Remove): tx.{}[{}]", key_, index_);
       t.removeVariable(index_);
     }
 
@@ -131,10 +131,10 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front().variant_);
-        SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}+={}", key, value);
+        WGE_LOG_TRACE("setvar(Increase): tx.{}+={}", key, value);
         t.increaseVariable({key.data(), key.size()}, value);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}+={}", key, std::get<int>(value_));
+        WGE_LOG_TRACE("setvar(Increase): tx.{}+={}", key, std::get<int>(value_));
         t.increaseVariable({key.data(), key.size()}, std::get<int>(value_));
       }
     } else {
@@ -142,10 +142,10 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front().variant_);
-        SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, value);
+        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, value);
         t.increaseVariable(index_, value);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_,
+        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_,
                              std::get<int>(value_));
         t.increaseVariable(index_, std::get<int>(value_));
       }
@@ -161,10 +161,10 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front().variant_);
-        SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, value);
+        WGE_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, value);
         t.increaseVariable({key.data(), key.size()}, -value);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, std::get<int>(value_));
+        WGE_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, std::get<int>(value_));
         t.increaseVariable({key.data(), key.size()}, -std::get<int>(value_));
       }
     } else {
@@ -172,10 +172,10 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         int value = std::get<int>(result.front().variant_);
-        SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
+        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
         t.increaseVariable(index_, -value);
       } else {
-        SRSECURITY_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_,
+        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_,
                              std::get<int>(value_));
         t.increaseVariable(index_, -std::get<int>(value_));
       }
@@ -187,4 +187,4 @@ void SetVar::evaluate(Transaction& t) const {
   }
 }
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

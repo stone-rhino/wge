@@ -22,14 +22,14 @@
 
 #include <spdlog/sinks/rotating_file_sink.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 spdlog::logger* Log::logger_ = spdlog::default_logger_raw();
 std::shared_ptr<spdlog::logger> Log::logger_holder_;
 
 void Log::init(spdlog::level::level_enum level, const std::string& log_file) {
   if (!log_file.empty()) {
-    logger_holder_ = spdlog::rotating_logger_mt("rotating_logger", "srsecurity/srsecurity.log",
+    logger_holder_ = spdlog::rotating_logger_mt("rotating_logger", "wge/wge.log",
                                                 1024 * 1024 * 100, 3);
     logger_ = logger_holder_.get();
   }
@@ -39,7 +39,7 @@ void Log::init(spdlog::level::level_enum level, const std::string& log_file) {
     spdlog::flush_on(level);
   }
 
-  spdlog::set_pattern("[SRSECURITY][%Y-%m-%d %H:%M:%S.%e][%t][%^%l%$] %v");
+  spdlog::set_pattern("[WGE][%Y-%m-%d %H:%M:%S.%e][%t][%^%l%$] %v");
 }
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

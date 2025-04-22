@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class VerifyCC : public OperatorBase {
   DECLARE_OPERATOR_NAME(verifyCC);
@@ -42,4 +42,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

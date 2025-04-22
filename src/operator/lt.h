@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class Lt : public OperatorBase {
   DECLARE_OPERATOR_NAME(lt);
@@ -56,4 +56,4 @@ private:
   int64_t value_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

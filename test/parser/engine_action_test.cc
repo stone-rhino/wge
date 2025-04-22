@@ -25,7 +25,7 @@
 #include "antlr4/parser.h"
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parsr {
 class EngineActionTest : public testing::Test {
 private:
@@ -78,4 +78,4 @@ TEST_F(EngineActionTest, SecDefaultAction) {
   EXPECT_EQ(rule2->disruptive(), Rule::Disruptive::PASS);
 }
 } // namespace Parsr
-} // namespace SrSecurity
+} // namespace Wge

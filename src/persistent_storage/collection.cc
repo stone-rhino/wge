@@ -22,7 +22,7 @@
 
 #include <time.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace PersistentStorage {
 Collection::Collection() { create_time_ = ::time(nullptr); }
 
@@ -41,4 +41,4 @@ const std::string* Collection::get(const std::string& key) const {
   return nullptr;
 }
 } // namespace PersistentStorage
-} // namespace SrSecurity
+} // namespace Wge

@@ -24,7 +24,7 @@
 
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Integration {
 class CrsTest : public testing::Test {
 public:
@@ -177,4 +177,4 @@ TEST_F(CrsTest, crs) {
   t->processResponseBody(response_body_extractor_, nullptr);
 }
 } // namespace Integration
-} // namespace SrSecurity
+} // namespace Wge

@@ -22,7 +22,7 @@
 
 #include <xml.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 void Xml::init(std::string_view xml_str) {
@@ -32,4 +32,4 @@ void Xml::init(std::string_view xml_str) {
 }
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

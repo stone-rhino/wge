@@ -14,8 +14,8 @@
 uint32_t test_count = 0;
 std::mutex mutex;
 
-void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
-  SrSecurity::HeaderFind request_header_find = [&](const std::string& key) {
+void process(Wge::Engine& engine, const HttpInfo& http_info) {
+  Wge::HeaderFind request_header_find = [&](const std::string& key) {
     std::vector<std::string_view> result;
     auto range = http_info.request_headers_.equal_range(key);
     for (auto iter = range.first; iter != range.second; ++iter) {
@@ -29,8 +29,8 @@ void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  SrSecurity::HeaderTraversal request_header_traversal =
-      [&](SrSecurity::HeaderTraversalCallback callback) {
+  Wge::HeaderTraversal request_header_traversal =
+      [&](Wge::HeaderTraversalCallback callback) {
         for (auto& [key, value] : http_info.request_headers_) {
           if (!callback(key, value)) {
             break;
@@ -38,11 +38,11 @@ void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
         }
       };
 
-  SrSecurity::BodyExtractor request_body_extractor = [&]() -> const std::vector<std::string_view>& {
+  Wge::BodyExtractor request_body_extractor = [&]() -> const std::vector<std::string_view>& {
     return http_info.request_body_;
   };
 
-  SrSecurity::HeaderFind response_header_find = [&](const std::string& key) {
+  Wge::HeaderFind response_header_find = [&](const std::string& key) {
     std::vector<std::string_view> result;
     auto range = http_info.response_headers_.equal_range(key);
     for (auto iter = range.first; iter != range.second; ++iter) {
@@ -56,8 +56,8 @@ void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  SrSecurity::HeaderTraversal response_header_traversal =
-      [&](SrSecurity::HeaderTraversalCallback callback) {
+  Wge::HeaderTraversal response_header_traversal =
+      [&](Wge::HeaderTraversalCallback callback) {
         for (auto& [key, value] : http_info.response_headers_) {
           if (!callback(key, value)) {
             break;
@@ -65,30 +65,30 @@ void process(SrSecurity::Engine& engine, const HttpInfo& http_info) {
         }
       };
 
-  SrSecurity::BodyExtractor response_body_extractor =
+  Wge::BodyExtractor response_body_extractor =
       [&]() -> const std::vector<std::string_view>& { return http_info.response_body_; };
 
   auto t = engine.makeTransaction();
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
   t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
   t->processRequestHeaders(request_header_find, request_header_traversal,
-                           http_info.request_headers_.size(), [](const SrSecurity::Rule& rule) {
+                           http_info.request_headers_.size(), [](const Wge::Rule& rule) {
                              // std::cout << rule.getId() << std::endl;
                            });
-  t->processRequestBody(request_body_extractor, [](const SrSecurity::Rule& rule) {
+  t->processRequestBody(request_body_extractor, [](const Wge::Rule& rule) {
     // std::cout << rule.getId() << std::endl;
   });
   t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
                             response_header_find, response_header_traversal,
-                            http_info.response_headers_.size(), [](const SrSecurity::Rule& rule) {
+                            http_info.response_headers_.size(), [](const Wge::Rule& rule) {
                               // std::cout << rule.getId() << std::endl;
                             });
-  t->processResponseBody(response_body_extractor, [](const SrSecurity::Rule& rule) {
+  t->processResponseBody(response_body_extractor, [](const Wge::Rule& rule) {
     // std::cout << rule.getId() << std::endl;
   });
 }
 
-void thread_func(SrSecurity::Engine& engine, uint32_t max_test_count,
+void thread_func(Wge::Engine& engine, uint32_t max_test_count,
                  const TestData& test_data_white, const TestData& test_data_black) {
   while (true) {
     auto& white_data = test_data_white.getHttpInfos();
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Load rules
-  SrSecurity::Engine engine(spdlog::level::trace);
+  Wge::Engine engine(spdlog::level::trace);
   std::expected<bool, std::string> result;
   std::vector<std::string> rule_files = {
       "test/test_data/engin-setup.conf",
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 
   // Start benchmark
   std::vector<std::thread> threads;
-  SrSecurity::Common::Duration duration;
+  Wge::Common::Duration duration;
   for (int i = 0; i < concurrency; ++i) {
     threads.emplace_back(std::thread(thread_func, std::ref(engine), max_test_count,
                                      std::ref(test_data_white), std::ref(test_data_black)));

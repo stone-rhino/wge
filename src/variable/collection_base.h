@@ -25,7 +25,7 @@
 
 #include "../common/pcre/scanner.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 /**
  * Base class for collection variables.
@@ -75,4 +75,4 @@ private:
   std::unique_ptr<Common::Pcre::Scanner> pcre_scanner_;
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

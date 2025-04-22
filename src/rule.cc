@@ -29,7 +29,7 @@
 #include "operator/rx.h"
 #include "variable/collection_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 void Rule::initExceptVariables() {
   ASSERT_IS_MAIN_THREAD();
 
@@ -92,12 +92,12 @@ void Rule::initExceptVariables() {
  * 7. Evaluate the logdata macro
  */
 bool Rule::evaluate(Transaction& t) const {
-  SRSECURITY_LOG_TRACE("------------------------------------");
+  WGE_LOG_TRACE("------------------------------------");
 
   // Check whether the rule is unconditional(SecAction)
   bool is_uncondition = operator_ == nullptr;
   if (is_uncondition) [[unlikely]] {
-    SRSECURITY_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
+    WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
     // Evaluate the actions
     for (auto& action : actions_) {
       action->evaluate(t);
@@ -105,12 +105,12 @@ bool Rule::evaluate(Transaction& t) const {
     return true;
   }
 
-  SRSECURITY_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
+  WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
 
   // If the multi match is enabled, then perform multiple operator invocations for every target,
   // before and after every anti-evasion transformation is performed.
   if (multi_match_.value_or(false)) [[unlikely]] {
-    SRSECURITY_LOG_TRACE("multi match is enabled");
+    WGE_LOG_TRACE("multi match is enabled");
     return evaluateWithMultiMatch(t);
   }
 
@@ -135,7 +135,7 @@ bool Rule::evaluate(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        SRSECURITY_LOG_TRACE([&]() {
+        WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),
                                var->subName().empty() ? "" : "." + var->subName());
@@ -205,10 +205,10 @@ void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
 }
 
 inline void Rule::evaluateVariable(Transaction& t,
-                                   const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                                   const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                    Common::EvaluateResults& result) const {
   var->evaluate(t, result);
-  SRSECURITY_LOG_TRACE([&]() {
+  WGE_LOG_TRACE([&]() {
     if (!var->isCollection()) {
       return std::format("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
                          var->isCounter() ? "&" : "", var->mainName(),
@@ -225,12 +225,12 @@ inline void Rule::evaluateVariable(Transaction& t,
   }());
 }
 
-inline void Rule::evaluateTransform(Transaction& t, const SrSecurity::Variable::VariableBase* var,
+inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
                                     Common::EvaluateResults::Element& data) const {
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
-    const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+    const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
     if (!default_action) [[likely]] {
       return;
     }
@@ -244,20 +244,20 @@ inline void Rule::evaluateTransform(Transaction& t, const SrSecurity::Variable::
     // Evaluate the default transformations
     for (auto& transform : transforms) {
       bool ret = transform->evaluate(t, var, data);
-      SRSECURITY_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
+      WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
     }
   }
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
     bool ret = transform->evaluate(t, var, data);
-    SRSECURITY_LOG_TRACE("evaluate action defined transformation: {} {}", transform->name(), ret);
+    WGE_LOG_TRACE("evaluate action defined transformation: {} {}", transform->name(), ret);
   }
 }
 
 inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
   bool matched = operator_->evaluate(t, var_value);
-  SRSECURITY_LOG_TRACE(
+  WGE_LOG_TRACE(
       "evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
       operator_->isNot() ? "!" : "", operator_->name(),
       operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(), matched);
@@ -267,8 +267,8 @@ inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_va
 inline bool Rule::evaluateChain(Transaction& t) const {
   bool matched = true;
   for (auto& rule : chain_) {
-    SRSECURITY_LOG_TRACE("evaluate chained rule. id: {}", rule->id());
-    SRSECURITY_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
+    WGE_LOG_TRACE("evaluate chained rule. id: {}", rule->id());
+    WGE_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
     matched = rule->evaluate(t);
     if (!matched) {
       break;
@@ -283,7 +283,7 @@ inline void Rule::evaluateMsgMacro(Transaction& t) const {
     Common::EvaluateResults msg_result;
     msg_macro_->evaluate(t, msg_result);
     t.setMsgMacroExpanded(msg_result.move(0));
-    SRSECURITY_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
+    WGE_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
   }
 }
 
@@ -292,13 +292,13 @@ inline void Rule::evaluateLogDataMacro(Transaction& t) const {
     Common::EvaluateResults log_data_result;
     log_data_macro_->evaluate(t, log_data_result);
     t.setLogDataMacroExpanded(log_data_result.move(0));
-    SRSECURITY_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
+    WGE_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
   }
 }
 
 inline void Rule::evaluateActions(Transaction& t) const {
   // Evaluate the default actions
-  const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+  const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
   if (default_action) {
     for (auto& action : default_action->actions()) {
       action->evaluate(t);
@@ -318,7 +318,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   // Get all of the transformations
   std::vector<Transformation::TransformBase*> transforms;
   if (!is_ingnore_default_transform_) {
-    const SrSecurity::Rule* default_action = t.getEngine().defaultActions(phase_);
+    const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
     if (default_action) {
       transforms.reserve(default_action->transforms().size());
       for (auto& transform : default_action->transforms()) {
@@ -349,7 +349,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        SRSECURITY_LOG_TRACE([&]() {
+        WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),
                                var->subName().empty() ? "" : "." + var->subName());
@@ -378,7 +378,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           bool ret = false;
           while (!ret && curr_transform_index < transforms.size()) {
             ret = transforms[curr_transform_index]->evaluate(t, var.get(), variable_value);
-            SRSECURITY_LOG_TRACE("evaluate transformation: {} {}",
+            WGE_LOG_TRACE("evaluate transformation: {} {}",
                                  transforms[curr_transform_index]->name(), ret);
             curr_transform_index++;
           }
@@ -416,4 +416,4 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
   return rule_matched;
 }
-} // namespace SrSecurity
+} // namespace Wge

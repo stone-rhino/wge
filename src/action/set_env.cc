@@ -24,7 +24,7 @@
 
 #include "../common/assert.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 SetEnv::SetEnv(std::string&& key, std::string&& value)
     : key_(std::move(key)), value_(std::move(value)) {
@@ -57,4 +57,4 @@ void SetEnv::evaluate(Transaction& t) const {
   }
 }
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

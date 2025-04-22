@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 
   // Start benchmark
   std::vector<std::thread> threads;
-  SrSecurity::Common::Duration duration;
+  Wge::Common::Duration duration;
   for (int i = 0; i < concurrency; ++i) {
     threads.emplace_back(std::thread(thread_func, std::ref(engine), std::ref(rules_set),
                                      max_test_count, std::ref(test_data_white),

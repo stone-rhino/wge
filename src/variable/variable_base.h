@@ -39,7 +39,7 @@ public:                                                                         
 private:                                                                                           \
   static constexpr std::string_view main_name_{#name};
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 
 /**
@@ -105,4 +105,4 @@ protected:
   bool is_counter_;
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

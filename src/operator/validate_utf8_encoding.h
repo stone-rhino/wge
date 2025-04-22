@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class ValidateUtf8Encoding : public OperatorBase {
   DECLARE_OPERATOR_NAME(validateUtf8Encoding);
@@ -43,4 +43,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

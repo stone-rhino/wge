@@ -32,11 +32,11 @@
 #include "rule.h"
 #include "transaction.h"
 
-namespace SrSecurity::Antlr4 {
+namespace Wge::Antlr4 {
 class Parser;
 }
 
-namespace SrSecurity {
+namespace Wge {
 
 /**
  * The engine is the core of the WAF.
@@ -48,7 +48,7 @@ class Engine final {
 public:
   /**
    * Construct the engine
-   * @param level the debug log level. if the SRSECURITY_LOG_ACTIVE_LEVEL compile-time macro is not
+   * @param level the debug log level. if the WGE_LOG_ACTIVE_LEVEL compile-time macro is not
    * defined, the debug log will be disabled. and the log level will be ignored.
    * @param log_file the log file path. If it is empty, the log will be output to the console
    */
@@ -175,4 +175,4 @@ private:
   std::unordered_map<std::string, Marker&> markers_;
   PersistentStorage::Storage storage_;
 };
-} // namespace SrSecurity
+} // namespace Wge

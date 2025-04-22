@@ -25,7 +25,7 @@
 #include "antlr4/parser.h"
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parsr {
 class EngineConfigTest : public testing::Test {
 private:
@@ -315,4 +315,4 @@ TEST_F(EngineConfigTest, PcreMatchLimit) {
   EXPECT_EQ(engine_config.pcre_match_limit_, 1024);
 }
 } // namespace Parsr
-} // namespace SrSecurity
+} // namespace Wge

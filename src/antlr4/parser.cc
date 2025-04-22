@@ -39,7 +39,7 @@
 #include "../variable/args_get.h"
 #include "../variable/args_post.h"
 
-namespace SrSecurity::Antlr4 {
+namespace Wge::Antlr4 {
 class ParserErrorListener : public antlr4::BaseErrorListener {
 public:
   ParserErrorListener(std::string_view file_path) : file_path_(file_path) {}
@@ -500,4 +500,4 @@ std::string_view Parser::getTxVariableIndexReverse(size_t index) const {
 
   return EMPTY_STRING_VIEW;
 }
-} // namespace SrSecurity::Antlr4
+} // namespace Wge::Antlr4

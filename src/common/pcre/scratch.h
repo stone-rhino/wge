@@ -20,7 +20,7 @@
  */
 #pragma once
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 class Scratch {
@@ -36,4 +36,4 @@ private:
 };
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

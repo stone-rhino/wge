@@ -23,7 +23,7 @@
 #include "../common/log.h"
 #include "../variable/variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* variable,
                              Common::EvaluateResults::Element& data) const {
@@ -50,7 +50,7 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
     if (iter_variable_full_name != transform_cache.end()) {
       auto iter_transform_result = iter_variable_full_name->second.find(name());
       if (iter_transform_result != iter_variable_full_name->second.end()) {
-        SRSECURITY_LOG_TRACE("transform cache hit: {} {}", variable_full_name.tostring(), name());
+        WGE_LOG_TRACE("transform cache hit: {} {}", variable_full_name.tostring(), name());
 
         // The transformation has been evaluated before.
         if (iter_transform_result->second.has_value()) [[likely]] {
@@ -103,4 +103,4 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   }
 }
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

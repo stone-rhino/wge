@@ -22,7 +22,7 @@
 
 #include <hs/hs.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 /**
@@ -103,4 +103,4 @@ public:
 };
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

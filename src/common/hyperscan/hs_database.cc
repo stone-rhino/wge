@@ -25,7 +25,7 @@
 #include "../assert.h"
 #include "../log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 Scratch HsDataBase::main_scratch_;
@@ -91,7 +91,7 @@ void HsDataBase::compile(bool support_stream) {
       }
 
       if (err == HS_COMPILER_ERROR) {
-        SRSECURITY_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
+        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
                              compile_err->message, compile_err->expression,
                              db_.expressions_.getRealId(compile_err->expression),
                              db_.expressions_.exprRawData()[compile_err->expression]);
@@ -117,7 +117,7 @@ void HsDataBase::compile(bool support_stream) {
       }
 
       if (err == HS_COMPILER_ERROR) {
-        SRSECURITY_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
+        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
                              compile_err->message, compile_err->expression,
                              db_.expressions_.getRealId(compile_err->expression),
                              db_.expressions_.exprRawData()[compile_err->expression]);
@@ -149,7 +149,7 @@ void HsDataBase::compile(bool support_stream) {
     }
 
     if (err == HS_COMPILER_ERROR) {
-      SRSECURITY_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
+      WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
                            compile_err->message, compile_err->expression,
                            db_.expressions_.getRealId(compile_err->expression),
                            db_.expressions_.exprRawData()[compile_err->expression]);
@@ -164,4 +164,4 @@ void HsDataBase::compile(bool support_stream) {
 }
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

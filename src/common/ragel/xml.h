@@ -23,7 +23,7 @@
 #include <string_view>
 #include <vector>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 class Xml {
@@ -44,4 +44,4 @@ private:
 };
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

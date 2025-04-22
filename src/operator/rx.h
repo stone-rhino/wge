@@ -32,7 +32,7 @@
 #include "../engine.h"
 #include "../transaction.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Performs a regular expression match of the pattern provided as parameter. This is the default
@@ -129,4 +129,4 @@ private:
   static std::mutex macro_chche_mutex_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

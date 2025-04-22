@@ -22,10 +22,10 @@
 
 #include <compress_whitespace.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 bool CompressWhiteSpace::evaluate(std::string_view data, std::string& result) const {
   return compressWhitespace(data, result);
 }
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

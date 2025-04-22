@@ -31,7 +31,7 @@
   return std::format("[{}:{}:{}] {}", parser_->currLoadFile(), ctx->getStart()->getLine(),         \
                      ctx->getStart()->getCharPositionInLine(), msg);
 
-namespace SrSecurity::Antlr4 {
+namespace Wge::Antlr4 {
 class Visitor : public Antlr4Gen::SecLangParserBaseVisitor {
 public:
   Visitor(Parser* parser) : parser_(parser) {}
@@ -812,7 +812,7 @@ private:
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string>
   getMacro(std::string&& text,
-           const std::vector<SrSecurity::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
+           const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
                macro_ctx_array,
            bool is_only_macro);
 
@@ -902,4 +902,4 @@ private:
   VisitActionMode visit_action_mode_{VisitActionMode::SecRule};
   bool should_visit_next_child_{true};
 };
-} // namespace SrSecurity::Antlr4
+} // namespace Wge::Antlr4

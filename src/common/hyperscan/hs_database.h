@@ -31,7 +31,7 @@
 
 #include "../assert.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 /**
@@ -106,4 +106,4 @@ private:
 };
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

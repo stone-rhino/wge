@@ -24,7 +24,7 @@
 
 #include "transform_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class ParityOdd7Bit : public TransformBase {
   DECLARE_TRANSFORM_NAME(parityOdd7Bit);
@@ -36,4 +36,4 @@ public:
   }
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

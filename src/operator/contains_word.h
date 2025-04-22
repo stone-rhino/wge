@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class ContainsWord : public OperatorBase {
   DECLARE_OPERATOR_NAME(containsWord);
@@ -42,4 +42,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

@@ -23,7 +23,7 @@
 #include <string_view>
 #include <vector>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 static std::vector<std::string_view> SplitTokens(std::string_view value, char delimiter = ' ') {
   std::vector<std::string_view> tokens;
@@ -42,4 +42,4 @@ static std::vector<std::string_view> SplitTokens(std::string_view value, char de
   return tokens;
 }
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

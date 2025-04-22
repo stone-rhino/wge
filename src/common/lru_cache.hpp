@@ -27,7 +27,7 @@
 
 #include "hash_table.hpp"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 /**
  * Use LRU(Least Recently Used) algorithm to clean the cache.
@@ -249,4 +249,4 @@ private:
   }
 };
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

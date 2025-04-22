@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartDataBefore : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_DATA_BEFORE);
@@ -38,4 +38,4 @@ public:
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

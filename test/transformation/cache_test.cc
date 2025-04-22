@@ -24,7 +24,7 @@
 #include "transformation/lowercase.h"
 #include "variable/tx.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class CacheTest : public ::testing::Test {
 protected:
@@ -96,4 +96,4 @@ TEST_F(CacheTest, notHitWithLessThanThreshold) {
   EXPECT_NE(result.data(), result2.data());
 }
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

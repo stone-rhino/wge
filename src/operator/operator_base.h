@@ -43,7 +43,7 @@ private:                                                                        
   macro_->evaluate(t, result);                                                                     \
   int var = std::get<int>(result.front().variant_);
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 /**
  * Base class for all operators.
@@ -99,4 +99,4 @@ protected:
 };
 
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

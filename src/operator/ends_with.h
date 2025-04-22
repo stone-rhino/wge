@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class EndsWith : public OperatorBase {
   DECLARE_OPERATOR_NAME(endsWith);
@@ -50,4 +50,4 @@ public:
   }
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

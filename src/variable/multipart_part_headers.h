@@ -24,7 +24,7 @@
 #include "evaluate_help.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartPartHeaders : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(MULTIPART_PART_HEADERS);
@@ -106,4 +106,4 @@ private:
   bool is_charset_{false};
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

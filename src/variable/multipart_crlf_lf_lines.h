@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartCrlfLfLines : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_CRLF_LF_LINES);
@@ -35,4 +35,4 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override { assert(false); throw "Not implemented!"; };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

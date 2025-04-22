@@ -22,7 +22,7 @@
 
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class DetectSqli : public OperatorBase {
   DECLARE_OPERATOR_NAME(detectSqli);
@@ -39,4 +39,4 @@ public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

@@ -24,7 +24,7 @@
 
 #include "transform_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class Length : public TransformBase {
   DECLARE_TRANSFORM_NAME(length);
@@ -38,4 +38,4 @@ public:
   bool convertToInt() const override { return true; }
 };
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

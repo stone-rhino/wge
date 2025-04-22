@@ -33,7 +33,7 @@
 #include "transformation/transform_base.h"
 #include "variable/variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 
 /**
  * The rule class.
@@ -199,9 +199,9 @@ public:
   // Evaluate the rule
 private:
   inline void evaluateVariable(Transaction& t,
-                               const std::unique_ptr<SrSecurity::Variable::VariableBase>& var,
+                               const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                Common::EvaluateResults& result) const;
-  inline void evaluateTransform(Transaction& t, const SrSecurity::Variable::VariableBase* var,
+  inline void evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
                                 Common::EvaluateResults::Element& data) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
@@ -312,4 +312,4 @@ private:
   // Configures an XML namespace, which will be used in the execution of XPath expressions.
   std::string xml_ns_;
 };
-} // namespace SrSecurity
+} // namespace Wge

@@ -20,6 +20,6 @@
  */
 #include "macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Macro {} // namespace Macro
-} // namespace SrSecurity
+} // namespace Wge

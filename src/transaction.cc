@@ -30,7 +30,7 @@
 #include "common/try.h"
 #include "engine.h"
 
-namespace SrSecurity {
+namespace Wge {
 const Transaction::RandomInitHelper Transaction::random_init_helper_;
 
 // To avoid the dynamic memory allocation, we allocate the memory for the variable vector in
@@ -52,7 +52,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
 
 void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
                                     std::string_view upstream_ip, short upstream_port) {
-  SRSECURITY_LOG_TRACE("====process connection====");
+  WGE_LOG_TRACE("====process connection====");
   connection_info_.downstream_ip_ = downstream_ip;
   connection_info_.downstream_port_ = downstream_port;
   connection_info_.upstream_ip_ = upstream_ip;
@@ -60,7 +60,7 @@ void Transaction::processConnection(std::string_view downstream_ip, short downst
 }
 
 void Transaction::processUri(std::string_view request_line) {
-  SRSECURITY_LOG_TRACE("====process uri====");
+  WGE_LOG_TRACE("====process uri====");
 
   // Parse the request line
   request_line_ = request_line;
@@ -110,7 +110,7 @@ void Transaction::processUri(std::string_view request_line) {
     // Init the query params
     requset_line_info_.query_params_.init(requset_line_info_.query_);
 
-    SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
+    WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                          requset_line_info_.method_, requset_line_info_.uri_,
                          requset_line_info_.query_, requset_line_info_.protocol_,
                          requset_line_info_.version_);
@@ -119,7 +119,7 @@ void Transaction::processUri(std::string_view request_line) {
 
 void Transaction::processUri(std::string_view uri, std::string_view method,
                              std::string_view version) {
-  SRSECURITY_LOG_TRACE("====process uri====");
+  WGE_LOG_TRACE("====process uri====");
 
   // method
   requset_line_info_.method_ = method;
@@ -169,7 +169,7 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   // Init the query params
   requset_line_info_.query_params_.init(requset_line_info_.query_);
 
-  SRSECURITY_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
+  WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                        requset_line_info_.method_, requset_line_info_.uri_,
                        requset_line_info_.query_, requset_line_info_.protocol_,
                        requset_line_info_.version_);
@@ -179,7 +179,7 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
                                         HeaderTraversal request_header_traversal,
                                         size_t header_count,
                                         std::function<void(const Rule&)> log_callback) {
-  SRSECURITY_LOG_TRACE("====process request headers====");
+  WGE_LOG_TRACE("====process request headers====");
   extractor_.request_header_find_ = std::move(request_header_find);
   extractor_.request_header_traversal_ = std::move(request_header_traversal);
   extractor_.request_header_count_ = header_count;
@@ -206,7 +206,7 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
 
 bool Transaction::processRequestBody(BodyExtractor body_extractor,
                                      std::function<void(const Rule&)> log_callback) {
-  SRSECURITY_LOG_TRACE("====process request body====");
+  WGE_LOG_TRACE("====process request body====");
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
   return process(2);
@@ -217,7 +217,7 @@ bool Transaction::processResponseHeaders(std::string_view status_code, std::stri
                                          HeaderTraversal response_header_traversal,
                                          size_t response_header_count,
                                          std::function<void(const Rule&)> log_callback) {
-  SRSECURITY_LOG_TRACE("====process response headers====");
+  WGE_LOG_TRACE("====process response headers====");
   extractor_.response_header_find_ = std::move(response_header_find);
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
   extractor_.response_header_count_ = response_header_count;
@@ -229,7 +229,7 @@ bool Transaction::processResponseHeaders(std::string_view status_code, std::stri
 
 bool Transaction::processResponseBody(BodyExtractor body_extractor,
                                       std::function<void(const Rule&)> log_callback) {
-  SRSECURITY_LOG_TRACE("====process response body====");
+  WGE_LOG_TRACE("====process response body====");
   extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
 
@@ -420,7 +420,7 @@ const Common::Variant& Transaction::getCapture(size_t index) const {
   if (index < captured_.size()) [[likely]] {
     return captured_[index].variant_;
   } else {
-    SRSECURITY_LOG_WARN(
+    WGE_LOG_WARN(
         "The index of captured string is out of range. index: {}, captured size: {}", index,
         captured_.size());
     return EMPTY_VARIANT;
@@ -494,7 +494,7 @@ inline bool Transaction::process(int phase) {
 
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
-  const SrSecurity::Rule* default_action = engine_.defaultActions(phase);
+  const Wge::Rule* default_action = engine_.defaultActions(phase);
 
   // Traverse the rules and evaluate them
   auto begin = rules.begin();
@@ -672,4 +672,4 @@ inline std::optional<bool> Transaction::doDisruptive(const Rule& rule,
 
   return std::nullopt;
 }
-} // namespace SrSecurity
+} // namespace Wge

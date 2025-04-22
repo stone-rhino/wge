@@ -27,7 +27,7 @@
 #include "empty_string.h"
 #include "variant.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 // The evaluate result.Use for the variable and macro to return the result.
 // It is used similar to the SBO(Short Buffer Optimization) to store the result. But it is a little
@@ -185,4 +185,4 @@ inline void EvaluateResults::append(std::string&& value, std::string_view variab
   ++size_;
 }
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

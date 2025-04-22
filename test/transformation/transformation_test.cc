@@ -24,7 +24,7 @@
 
 #include "../../src/common/duration.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 class TransformationTest : public ::testing::Test {};
 
@@ -880,4 +880,4 @@ TEST_F(TransformationTest, utf8ToUnicode) {
   EXPECT_EQ(result, "This is %u4e2d%u6587 ");
 }
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

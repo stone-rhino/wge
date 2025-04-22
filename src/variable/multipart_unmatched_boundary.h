@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartUnmatchedBoundary : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_UNMATCHED_BOUNDARY);
@@ -34,10 +34,10 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     result.append(t.getBodyMultiPart().getError().get(
-                      SrSecurity::MultipartStrictError::ErrorType::UnmatchedBoundary)
+                      Wge::MultipartStrictError::ErrorType::UnmatchedBoundary)
                       ? 1
                       : 0);
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

@@ -32,7 +32,7 @@
 #include "../macro/macro_base.h"
 #include "../variable/variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 /**
  * Changes ModSecurity configuration on transient, per-transaction basis. Any changes made using
@@ -95,4 +95,4 @@ private:
   std::array<std::unordered_set<const Rule*>, PHASE_TOTAL> rules_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

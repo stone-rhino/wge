@@ -17,7 +17,7 @@ set(generated_source
 add_custom_command(
   OUTPUT ${generated_source}
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/antlr4
-  COMMAND java -Xmx500M -cp "/usr/local/lib/antlr-4.13.2-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=Cpp -visitor -no-listener -package SrSecurity::Antlr4::Antlr4Gen -o ${CMAKE_BINARY_DIR}/src/antlr4/antlr4_gen *.g4
+  COMMAND java -Xmx500M -cp "/usr/local/lib/antlr-4.13.2-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=Cpp -visitor -no-listener -package Wge::Antlr4::Antlr4Gen -o ${CMAKE_BINARY_DIR}/src/antlr4/antlr4_gen *.g4
   DEPENDS ${CMAKE_SOURCE_DIR}/src/antlr4/SecLangParser.g4 ${CMAKE_SOURCE_DIR}/src/antlr4/SecLangLexer.g4
 )
 

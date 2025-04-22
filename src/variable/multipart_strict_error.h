@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class MultipartStrictError : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_STRICT_ERROR);
@@ -34,10 +34,10 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     result.append(t.getBodyMultiPart().getError().get(
-                      SrSecurity::MultipartStrictError::ErrorType::MultipartStrictError)
+                      Wge::MultipartStrictError::ErrorType::MultipartStrictError)
                       ? 1
                       : 0);
   };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

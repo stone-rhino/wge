@@ -20,6 +20,6 @@
  */
 #include "operator_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {} // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

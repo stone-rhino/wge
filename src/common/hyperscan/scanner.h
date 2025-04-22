@@ -28,7 +28,7 @@
 
 #include "../pcre/scanner.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 class Scanner {
@@ -57,4 +57,4 @@ private:
 };
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

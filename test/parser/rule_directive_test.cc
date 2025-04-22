@@ -32,7 +32,7 @@
 #include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parser {
 class RuleTest : public testing::Test {
 private:
@@ -418,4 +418,4 @@ TEST_F(RuleTest, NoAction) {
   EXPECT_EQ(parser.rules().back()->actions().size(), 0);
 }
 } // namespace Parser
-} // namespace SrSecurity
+} // namespace Wge

@@ -24,7 +24,7 @@
 #include "evaluate_help.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class Xml : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(XML);
@@ -82,4 +82,4 @@ private:
   Type type_{Type::TagValue};
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

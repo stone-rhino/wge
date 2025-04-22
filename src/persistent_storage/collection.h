@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace PersistentStorage {
 class Collection {
 public:
@@ -88,4 +88,4 @@ private:
   std::unordered_map<std::string, std::string> kv_;
 };
 } // namespace PersistentStorage
-} // namespace SrSecurity
+} // namespace Wge

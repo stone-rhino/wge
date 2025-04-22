@@ -32,7 +32,7 @@
 #include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Parser {
 class RuleOperatorParseTest : public testing::Test {
 private:
@@ -303,4 +303,4 @@ TEST_F(RuleOperatorParseTest, validateByteRange) {
   EXPECT_EQ(op->literalValue(), "65,66-68");
 }
 } // namespace Parser
-} // namespace SrSecurity
+} // namespace Wge

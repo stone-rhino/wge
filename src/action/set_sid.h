@@ -27,7 +27,7 @@
 
 #include "../macro/macro_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Action {
 /**
  * Special-purpose action that initializes the SESSION collection using the session token provided
@@ -48,4 +48,4 @@ private:
   std::shared_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
-} // namespace SrSecurity
+} // namespace Wge

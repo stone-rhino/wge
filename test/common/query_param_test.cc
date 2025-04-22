@@ -24,7 +24,7 @@
 
 TEST(Common, queryParam) {
   {
-    SrSecurity::Common::Ragel::QueryParam query_param;
+    Wge::Common::Ragel::QueryParam query_param;
     query_param.init("a=1&b=2&c=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
@@ -43,7 +43,7 @@ TEST(Common, queryParam) {
   }
 
   {
-    SrSecurity::Common::Ragel::QueryParam query_param;
+    Wge::Common::Ragel::QueryParam query_param;
     query_param.init("a=1&b&c=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
@@ -62,7 +62,7 @@ TEST(Common, queryParam) {
   }
 
   {
-    SrSecurity::Common::Ragel::QueryParam query_param;
+    Wge::Common::Ragel::QueryParam query_param;
     query_param.init("a=&b&c=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 0);

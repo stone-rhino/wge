@@ -28,7 +28,7 @@
 
 #include "rule.h"
 
-namespace SrSecurity {
+namespace Wge {
 /**
  * Adds a fixed rule marker that can be used as a target in a skipAfter action. A SecMarker
  * directive essentially creates a rule that does nothing and whose only purpose is to carry the
@@ -76,4 +76,4 @@ private:
   std::array<const Rule*, phase_total_> prev_rules_;
   std::array<std::optional<std::vector<const Rule*>::iterator>, phase_total_> prev_rules_iter_;
 };
-} // namespace SrSecurity
+} // namespace Wge

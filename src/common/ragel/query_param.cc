@@ -22,7 +22,7 @@
 
 #include <query_param.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 void QueryParam::init(std::string_view query_param_str) {
@@ -33,4 +33,4 @@ void QueryParam::init(std::string_view query_param_str) {
 
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

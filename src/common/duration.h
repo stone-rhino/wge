@@ -24,7 +24,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 class Duration {
 public:
@@ -50,4 +50,4 @@ private:
   uint64_t end_clock_{0};
 };
 } // namespace common
-} // namespace SrSecurity
+} // namespace Wge

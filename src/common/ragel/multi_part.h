@@ -26,7 +26,7 @@
 
 #include "../../config.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Ragel {
 /**
@@ -81,4 +81,4 @@ private:
 };
 } // namespace Ragel
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

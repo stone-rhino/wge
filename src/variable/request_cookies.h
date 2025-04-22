@@ -24,7 +24,7 @@
 #include "request_headers.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class RequestCookies : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(REQUEST_COOKIES);
@@ -79,4 +79,4 @@ public:
   bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

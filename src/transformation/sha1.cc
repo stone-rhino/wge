@@ -26,7 +26,7 @@
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 bool Sha1::evaluate(std::string_view data, std::string& result) const {
   result.clear();
@@ -53,4 +53,4 @@ bool Sha1::evaluate(std::string_view data, std::string& result) const {
   return true;
 }
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

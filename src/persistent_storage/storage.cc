@@ -20,7 +20,7 @@
  */
 #include "storage.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace PersistentStorage {
 
 void Storage::loadFromFile(const std::string& file) {
@@ -50,4 +50,4 @@ Collection* Storage::collection(std::string&& collection_name) {
 }
 
 } // namespace PersistentStorage
-} // namespace SrSecurity
+} // namespace Wge

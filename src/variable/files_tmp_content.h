@@ -23,7 +23,7 @@
 #include "collection_base.h"
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class FilesTmpContent : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(FILES_TMPNAMES);
@@ -41,4 +41,4 @@ public:
   bool isCollection() const override { return sub_name_.empty(); };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

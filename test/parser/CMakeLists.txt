@@ -4,4 +4,4 @@ file(GLOB local_source
 )
 
 add_library(parser ${local_source})
-target_link_libraries(parser PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CMAKE_BINARY_DIR}/src/libsrsecurity.a)
+target_link_libraries(parser PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CMAKE_BINARY_DIR}/src/libwge.a)

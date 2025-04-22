@@ -32,7 +32,7 @@
 #include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Integration {
 class RuleActionTest : public testing::Test {};
 
@@ -590,4 +590,4 @@ TEST_F(RuleActionTest, ActionSetEnv) {
   EXPECT_EQ(std::string("hello"), ::getenv("var1"));
 }
 } // namespace Integration
-} // namespace SrSecurity
+} // namespace Wge

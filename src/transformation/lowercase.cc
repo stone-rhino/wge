@@ -22,11 +22,11 @@
 
 #include <lowercase.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Transformation {
 bool LowerCase::evaluate(std::string_view data, std::string& result) const {
   return lowercase(data, result);
 }
 
 } // namespace Transformation
-} // namespace SrSecurity
+} // namespace Wge

@@ -23,7 +23,7 @@
 #include "operator_base.h"
 #include "within.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Operator {
 class Pm : public OperatorBase {
   DECLARE_OPERATOR_NAME(pm);
@@ -50,4 +50,4 @@ private:
   Within within_;
 };
 } // namespace Operator
-} // namespace SrSecurity
+} // namespace Wge

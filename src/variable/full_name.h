@@ -24,7 +24,7 @@
 
 #include <string.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 struct FullName {
   std::string_view main_name_;
@@ -49,14 +49,14 @@ struct FullName {
   }
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge
 
 /**
  * Hash function for FullName.
  */
 namespace std {
-template <> struct hash<SrSecurity::Variable::FullName> {
-  size_t operator()(const SrSecurity::Variable::FullName& s) const {
+template <> struct hash<Wge::Variable::FullName> {
+  size_t operator()(const Wge::Variable::FullName& s) const {
     size_t h1 = std::hash<const char*>()(s.main_name_.data());
     size_t h2 = std::hash<std::string_view>()(s.sub_name_);
     return h1 ^ (h2 << 1);

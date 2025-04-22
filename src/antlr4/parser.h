@@ -33,7 +33,7 @@
 #include "../marker.h"
 #include "../rule.h"
 
-namespace SrSecurity::Antlr4 {
+namespace Wge::Antlr4 {
 
 /**
  * SecLang parser
@@ -155,4 +155,4 @@ private:
   std::unordered_map<std::string, size_t> tx_variable_index_;
   std::vector<std::string_view> tx_variable_index_reverse_;
 };
-} // namespace SrSecurity::Antlr4
+} // namespace Wge::Antlr4

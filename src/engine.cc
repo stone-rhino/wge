@@ -27,7 +27,7 @@
 
 std::thread::id main_thread_id;
 
-namespace SrSecurity {
+namespace Wge {
 Engine::Engine(spdlog::level::level_enum level, const std::string& log_file)
     : parser_(std::make_shared<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
@@ -154,7 +154,7 @@ void Engine::initDefaultActions() {
     auto phase = rule->phase();
     assert(phase >= 1 && phase <= PHASE_TOTAL);
     if (phase < 1 || phase > PHASE_TOTAL) {
-      SRSECURITY_LOG_WARN("phase {} invalid.", phase);
+      WGE_LOG_WARN("phase {} invalid.", phase);
       continue;
     }
     default_actions_[phase - 1] = rule.get();
@@ -185,7 +185,7 @@ void Engine::initRules() {
     auto phase = rule->phase();
     assert(phase >= 1 && phase <= PHASE_TOTAL);
     if (phase < 1 || phase > PHASE_TOTAL) {
-      SRSECURITY_LOG_WARN("phase {} invalid. rule id:{}", phase, rule->id());
+      WGE_LOG_WARN("phase {} invalid. rule id:{}", phase, rule->id());
       continue;
     }
     rules_.at(phase - 1).emplace_back(rule.get());
@@ -211,4 +211,4 @@ void Engine::initMakers() {
   }
 }
 
-} // namespace SrSecurity
+} // namespace Wge

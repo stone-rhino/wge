@@ -22,7 +22,7 @@
 
 #include "variable_base.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Variable {
 class TimeMin : public VariableBase {
   DECLARE_VIRABLE_NAME(TIME_MIN);
@@ -35,4 +35,4 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override { assert(false); throw "Not implemented!"; };
 };
 } // namespace Variable
-} // namespace SrSecurity
+} // namespace Wge

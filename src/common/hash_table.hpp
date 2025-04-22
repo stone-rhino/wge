@@ -26,7 +26,7 @@
 #include <shared_mutex>
 #include <vector>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 
 /**
@@ -340,4 +340,4 @@ private:
   }
 };
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

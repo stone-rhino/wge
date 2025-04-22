@@ -32,7 +32,7 @@
 
 #include <pcre2.h>
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Pcre {
 Scratch::Scratch(int result_count) { scratch_ = pcre2_match_data_create(result_count, nullptr); }
@@ -45,4 +45,4 @@ Scratch::~Scratch() {
 }
 } // namespace Pcre
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge

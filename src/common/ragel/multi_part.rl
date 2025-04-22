@@ -67,8 +67,8 @@
 
 %% write data;
 
-static std::string_view parseContentType(std::string_view input, SrSecurity::MultipartStrictError& error_code) {
-  using namespace SrSecurity;
+static std::string_view parseContentType(std::string_view input, Wge::MultipartStrictError& error_code) {
+  using namespace Wge;
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -337,9 +337,9 @@ static void parseMultiPart(std::string_view input,
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_filename_linked, 
   std::unordered_multimap<std::string_view, std::string_view>& headers_map,
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& headers_linked, 
-  SrSecurity::MultipartStrictError& error_code, 
+  Wge::MultipartStrictError& error_code, 
   uint32_t max_file_count) {
-  using namespace SrSecurity;
+  using namespace Wge;
 
   name_value_map.clear();
   name_value_linked.clear();

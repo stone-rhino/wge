@@ -27,7 +27,7 @@
 
 #include "../log.h"
 
-namespace SrSecurity {
+namespace Wge {
 namespace Common {
 namespace Hyperscan {
 bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool multi_line) {
@@ -146,4 +146,4 @@ uint64_t ExpressionList::getRealId(unsigned int id) const {
 }
 } // namespace Hyperscan
 } // namespace Common
-} // namespace SrSecurity
+} // namespace Wge
