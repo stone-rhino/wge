@@ -22,4 +22,14 @@ add_subdirectory(test)
 add_subdirectory(benchmarks/wge)
 add_subdirectory(benchmarks/modsecurity)
 add_dependencies(test wge)
-add_dependencies(wge_benchmark wge)
+add_dependencies(wge_install_target wge)
+
+install(
+  TARGETS wge
+)
+
+install(
+  DIRECTORY src/
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h"
+)
