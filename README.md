@@ -148,7 +148,7 @@ t->processResponseHeaders(/*params*/);
 t->processResponseBody(/*params*/);
 ```
 
-Refer to the [wge_benchmark](benchmarks/wge/main.cpp) for usage examples.
+Refer to the [wge_benchmark](benchmarks/wge/main.cc) for usage examples.
 
 ## License
 Copyright (c) 2024-2025 Stone Rhino and contributors.
