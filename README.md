@@ -65,7 +65,6 @@ The WGE_LOG_ACTIVE_LEVEL is a compile-time option that controls the log level:
 ```shell
 cmake --build build/release-with-debug-info
 ```
-
 ### Run Unit Tests
 ```shell
 ./build/release-with-debug-info/test/test
@@ -74,6 +73,66 @@ cmake --build build/release-with-debug-info
 ```shell
 ./build/release-with-debug-info/benchmarks/wge/wge_benchmark
 ```
+### Integrate Into Existing Projects
+* Install WGE
+```shell
+cmake --install build/release-with-debug-info
+```
+After installation, the WGE library and header files will be available in the system include and library paths. We also can install the WGE into another path by specifying the `--prefix` option. For example, to install WGE into `/specified/path`, we can run:
+```shell
+cmake --install build/release-with-debug-info --prefix /specified/path
+```
+* Include WGE in existing projects
+```cpp
+#include <wge/engine.h>
+```
+* Link WGE in existing projects
+```cmake
+# If the WGE installed in the system path
+target_link_libraries(your_target_name PRIVATE wge)
+# If the WGE installed in the specified path
+target_link_libraries(your_target_name PRIVATE /specified/path/lib/libwge.a)
+```
+* Use WGE in existing projects
+1. Construct a WGE engine in the main thread
+```cpp
+Wge::Engine engine(spdlog::level::off);
+```
+2. Load the rules in the main thread
+```cpp
+std::expected<bool, std::string> result = engine.loadFromFile(rule_file);
+if (!result.has_value()) {
+  // Handle the error
+  std::cout << "Load rules error: " << result.error() << std::endl;
+}
+```
+3. Initialize the engine in the main thread
+```cpp
+engine.init();
+``` 
+4. Create a transaction when each request comes in the worker thread
+```cpp
+// Each request has its own transaction
+Wge::TransactionPtr t = engine.makeTransaction();
+```
+5. Process the request in the worker thread
+```cpp
+// Process each transaction is following the flowing steps
+// 1. Process the connection
+t->processConnection(/*params*/);
+// 2. Process the URI
+t->processUri(/*params*/);
+// 3. Process the request headers
+t->processRequestHeaders(/*params*/);
+// 4. Process the request body
+t->processRequestBody(/*params*/);
+// 5. Process the response headers
+t->processResponseHeaders(/*params*/);
+// 6. Process the response body
+t->processResponseBody(/*params*/);
+```
+
+Refer to the [wge_benchmark](benchmarks/wge/main.cpp) for usage examples.
 
 ## License
 Copyright (c) 2024-2025 Stone Rhino and contributors.
