@@ -1,5 +1,5 @@
 #
-# This file is the white data for the test.
+# This file is the black data for the test.
 # The request and response are surrounded by {{ and }}.
 #
 {{
