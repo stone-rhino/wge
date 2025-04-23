@@ -49,6 +49,22 @@ git submodule update --init
 ```shell
 cmake --preset=release-with-debug-info --fresh
 ```
+If the gcc path is not in the default path, we can rename the file `CMakeUserPresets.json.example` to `CMakeUserPresets.json` and modify the gcc path:
+```json
+{
+    "name": "my-release-with-debug-info",
+    "inherits": "release-with-debug-info",
+    "environment": {
+    "CC": "/usr/local/bin/gcc",
+    "CXX": "/usr/local/bin/g++",
+    "LD_LIBRARY_PATH": "/usr/local/lib64"
+    }
+}
+```
+Then we can run the cmake command:
+```shell
+cmake --preset=my-release-with-debug-info --fresh
+```
 If we want to enable the debug log that help us to watch the process of WGE, we can set the `WGE_LOG_ACTIVE_LEVEL` to 1.
 ```shell
 cmake --preset=release-with-debug-info --fresh -DWGE_LOG_ACTIVE_LEVEL=1

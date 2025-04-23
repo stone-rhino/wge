@@ -7,11 +7,6 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-      },
-      "environment": {
-        "CC": "/usr/local/bin/gcc",
-        "CXX": "/usr/local/bin/g++",
-        "LD_LIBRARY_PATH": "/usr/local/lib64"
       }
     },
     {

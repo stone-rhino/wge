@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "my-debug",
+      "inherits": "debug",
+      "environment": {
+        "CC": "/usr/local/bin/gcc",
+        "CXX": "/usr/local/bin/g++",
+        "LD_LIBRARY_PATH": "/usr/local/lib64"
+      }
+    },
+    {
+      "name": "my-release",
+      "inherits": "release",
+      "environment": {
+        "CC": "/usr/local/bin/gcc",
+        "CXX": "/usr/local/bin/g++",
+        "LD_LIBRARY_PATH": "/usr/local/lib64"
+      }
+    },
+    {
+      "name": "my-release-with-debug-info",
+      "inherits": "release-with-debug-info",
+      "environment": {
+        "CC": "/usr/local/bin/gcc",
+        "CXX": "/usr/local/bin/g++",
+        "LD_LIBRARY_PATH": "/usr/local/lib64"
+      }
+    }
+  ]
+}
