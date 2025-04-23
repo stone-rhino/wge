@@ -30,6 +30,6 @@ install(
 
 install(
   DIRECTORY src/
-  DESTINATION include
+  DESTINATION include/wge
   FILES_MATCHING PATTERN "*.h"
 )

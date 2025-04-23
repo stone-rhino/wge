@@ -5,9 +5,8 @@
 #include <vector>
 
 #include <unistd.h>
-
-#include "common/duration.h"
-#include "engine.h"
+#include <wge/common/duration.h>
+#include <wge/engine.h>
 
 #include "../test_data/test_data.h"
 
@@ -29,14 +28,13 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  Wge::HeaderTraversal request_header_traversal =
-      [&](Wge::HeaderTraversalCallback callback) {
-        for (auto& [key, value] : http_info.request_headers_) {
-          if (!callback(key, value)) {
-            break;
-          }
-        }
-      };
+  Wge::HeaderTraversal request_header_traversal = [&](Wge::HeaderTraversalCallback callback) {
+    for (auto& [key, value] : http_info.request_headers_) {
+      if (!callback(key, value)) {
+        break;
+      }
+    }
+  };
 
   Wge::BodyExtractor request_body_extractor = [&]() -> const std::vector<std::string_view>& {
     return http_info.request_body_;
@@ -56,17 +54,17 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  Wge::HeaderTraversal response_header_traversal =
-      [&](Wge::HeaderTraversalCallback callback) {
-        for (auto& [key, value] : http_info.response_headers_) {
-          if (!callback(key, value)) {
-            break;
-          }
-        }
-      };
+  Wge::HeaderTraversal response_header_traversal = [&](Wge::HeaderTraversalCallback callback) {
+    for (auto& [key, value] : http_info.response_headers_) {
+      if (!callback(key, value)) {
+        break;
+      }
+    }
+  };
 
-  Wge::BodyExtractor response_body_extractor =
-      [&]() -> const std::vector<std::string_view>& { return http_info.response_body_; };
+  Wge::BodyExtractor response_body_extractor = [&]() -> const std::vector<std::string_view>& {
+    return http_info.response_body_;
+  };
 
   auto t = engine.makeTransaction();
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
@@ -88,8 +86,8 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
   });
 }
 
-void thread_func(Wge::Engine& engine, uint32_t max_test_count,
-                 const TestData& test_data_white, const TestData& test_data_black) {
+void thread_func(Wge::Engine& engine, uint32_t max_test_count, const TestData& test_data_white,
+                 const TestData& test_data_black) {
   while (true) {
     auto& white_data = test_data_white.getHttpInfos();
     auto& black_data = test_data_black.getHttpInfos();
