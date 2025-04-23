@@ -39,54 +39,54 @@
 #endif
 
 #if (1 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_TRACE(...)                                                                  \
+#define WGE_LOG_TRACE(...)                                                                         \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::trace, __VA_ARGS__);       \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::trace, __VA_ARGS__);              \
   } while (0)
 #else
 #define WGE_LOG_TRACE(...)
 #endif
 
 #if (2 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_DEBUG(...)                                                                  \
+#define WGE_LOG_DEBUG(...)                                                                         \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::debug, __VA_ARGS__);       \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::debug, __VA_ARGS__);              \
   } while (0)
 #else
 #define WGE_LOG_DEBUG(...)
 #endif
 
 #if (3 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_INFO(...)                                                                   \
+#define WGE_LOG_INFO(...)                                                                          \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::info, __VA_ARGS__);        \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::info, __VA_ARGS__);               \
   } while (0)
 #else
 #define WGE_LOG_INFO(...)
 #endif
 
 #if (4 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_WARN(...)                                                                   \
+#define WGE_LOG_WARN(...)                                                                          \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::warn, __VA_ARGS__);        \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::warn, __VA_ARGS__);               \
   } while (0)
 #else
 #define WGE_LOG_WARN(...)
 #endif
 
 #if (5 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_ERROR(...)                                                                  \
+#define WGE_LOG_ERROR(...)                                                                         \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::err, __VA_ARGS__);         \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::err, __VA_ARGS__);                \
   } while (0)
 #else
 #define WGE_LOG_ERROR(...)
 #endif
 
 #if (6 >= WGE_LOG_ACTIVE_LEVEL)
-#define WGE_LOG_CRITICAL(...)                                                               \
+#define WGE_LOG_CRITICAL(...)                                                                      \
   do {                                                                                             \
-    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::critical, __VA_ARGS__);    \
+    SPDLOG_LOGGER_CALL(Wge::Common::Log::logger_, spdlog::level::critical, __VA_ARGS__);           \
   } while (0)
 #else
 #define WGE_LOG_CRITICAL(...)

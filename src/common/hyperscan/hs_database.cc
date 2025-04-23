@@ -91,10 +91,9 @@ void HsDataBase::compile(bool support_stream) {
       }
 
       if (err == HS_COMPILER_ERROR) {
-        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
-                             compile_err->message, compile_err->expression,
-                             db_.expressions_.getRealId(compile_err->expression),
-                             db_.expressions_.exprRawData()[compile_err->expression]);
+        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}", compile_err->message,
+                      compile_err->expression, db_.expressions_.getRealId(compile_err->expression),
+                      db_.expressions_.exprRawData()[compile_err->expression]);
         ::hs_free_compile_error(compile_err);
       }
     });
@@ -117,10 +116,9 @@ void HsDataBase::compile(bool support_stream) {
       }
 
       if (err == HS_COMPILER_ERROR) {
-        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
-                             compile_err->message, compile_err->expression,
-                             db_.expressions_.getRealId(compile_err->expression),
-                             db_.expressions_.exprRawData()[compile_err->expression]);
+        WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}", compile_err->message,
+                      compile_err->expression, db_.expressions_.getRealId(compile_err->expression),
+                      db_.expressions_.exprRawData()[compile_err->expression]);
         ::hs_free_compile_error(compile_err);
       }
     });
@@ -149,10 +147,9 @@ void HsDataBase::compile(bool support_stream) {
     }
 
     if (err == HS_COMPILER_ERROR) {
-      WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}",
-                           compile_err->message, compile_err->expression,
-                           db_.expressions_.getRealId(compile_err->expression),
-                           db_.expressions_.exprRawData()[compile_err->expression]);
+      WGE_LOG_ERROR("compile error: {} index: {} id: {} expression: {}", compile_err->message,
+                    compile_err->expression, db_.expressions_.getRealId(compile_err->expression),
+                    db_.expressions_.exprRawData()[compile_err->expression]);
       ::hs_free_compile_error(compile_err);
     }
 

@@ -74,12 +74,8 @@ public:
   bool literal() const { return literal_; }
 
   // Get raw data of array
-  const char** exprRawData() {
-    return expr_pointers_.data();
-  }
-  const size_t* exprLenRawData() {
-    return expr_lens_.data();
-  }
+  const char** exprRawData() { return expr_pointers_.data(); }
+  const size_t* exprLenRawData() { return expr_lens_.data(); }
   const unsigned int* flagsRawData() { return flags_.data(); }
   const unsigned int* idsRawData() { return ids_.data(); }
 

@@ -37,7 +37,7 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) override {
     variable_->evaluate(t, result);
     WGE_LOG_TRACE("macro %{{{}}} expanded: {}", makeVariableName(),
-                         VISTIT_VARIANT_AS_STRING(result.front().variant_));
+                  VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
 private:

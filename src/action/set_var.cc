@@ -88,11 +88,10 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
-                             VISTIT_VARIANT_AS_STRING(result.front().variant_));
+                      VISTIT_VARIANT_AS_STRING(result.front().variant_));
         t.setVariable({key.data(), key.size()}, result.front().variant_);
       } else {
-        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
-                             VISTIT_VARIANT_AS_STRING(value_));
+        WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key, VISTIT_VARIANT_AS_STRING(value_));
         t.setVariable({key.data(), key.size()}, Common::Variant(value_));
       }
     } else {
@@ -100,11 +99,11 @@ void SetVar::evaluate(Transaction& t) const {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
         WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
-                             VISTIT_VARIANT_AS_STRING(result.front().variant_));
+                      VISTIT_VARIANT_AS_STRING(result.front().variant_));
         t.setVariable(index_, result.front().variant_);
       } else {
         WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
-                             VISTIT_VARIANT_AS_STRING(value_));
+                      VISTIT_VARIANT_AS_STRING(value_));
         t.setVariable(index_, value_);
       }
     }
@@ -145,8 +144,7 @@ void SetVar::evaluate(Transaction& t) const {
         WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, value);
         t.increaseVariable(index_, value);
       } else {
-        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_,
-                             std::get<int>(value_));
+        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, std::get<int>(value_));
         t.increaseVariable(index_, std::get<int>(value_));
       }
     }
@@ -175,8 +173,7 @@ void SetVar::evaluate(Transaction& t) const {
         WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
         t.increaseVariable(index_, -value);
       } else {
-        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_,
-                             std::get<int>(value_));
+        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, std::get<int>(value_));
         t.increaseVariable(index_, -std::get<int>(value_));
       }
     }

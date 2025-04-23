@@ -29,8 +29,8 @@ std::shared_ptr<spdlog::logger> Log::logger_holder_;
 
 void Log::init(spdlog::level::level_enum level, const std::string& log_file) {
   if (!log_file.empty()) {
-    logger_holder_ = spdlog::rotating_logger_mt("rotating_logger", "wge/wge.log",
-                                                1024 * 1024 * 100, 3);
+    logger_holder_ =
+        spdlog::rotating_logger_mt("rotating_logger", "wge/wge.log", 1024 * 1024 * 100, 3);
     logger_ = logger_holder_.get();
   }
 

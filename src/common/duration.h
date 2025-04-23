@@ -49,5 +49,5 @@ private:
   uint64_t start_clock_;
   uint64_t end_clock_{0};
 };
-} // namespace common
+} // namespace Common
 } // namespace Wge

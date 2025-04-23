@@ -91,7 +91,7 @@ TEST(Common, multiPart) {
   EXPECT_EQ(headers_map.find("header1")->second, "header1: value1");
   auto iter_range = headers_map.equal_range("header2");
   int count = 0;
-  for(auto iter = iter_range.first; iter != iter_range.second; ++iter) {
+  for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
     EXPECT_TRUE(iter->second == "header2: value2" || iter->second == "header2: value3");
     ++count;
   }

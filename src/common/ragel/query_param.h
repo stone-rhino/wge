@@ -43,7 +43,8 @@ public:
 
 private:
   std::unordered_multimap<std::string_view, std::string_view> query_param_map_;
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator> query_param_linked_;
+  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
+      query_param_linked_;
 };
 } // namespace Ragel
 } // namespace Common

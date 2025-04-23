@@ -70,13 +70,13 @@ public:
 private:
   std::unordered_multimap<std::string_view, std::string_view> name_value_map_;
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-  name_value_linked_;
+      name_value_linked_;
   std::unordered_multimap<std::string_view, std::string_view> name_filename_map_;
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-  name_filename_linked_;
+      name_filename_linked_;
   std::unordered_multimap<std::string_view, std::string_view> headers_map_;
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-  headers_linked_;
+      headers_linked_;
   MultipartStrictError multipart_strict_error_;
 };
 } // namespace Ragel

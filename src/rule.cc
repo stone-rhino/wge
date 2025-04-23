@@ -257,10 +257,10 @@ inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::Variabl
 
 inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
   bool matched = operator_->evaluate(t, var_value);
-  WGE_LOG_TRACE(
-      "evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
-      operator_->isNot() ? "!" : "", operator_->name(),
-      operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(), matched);
+  WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
+                operator_->isNot() ? "!" : "", operator_->name(),
+                operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(),
+                matched);
   return matched;
 }
 
@@ -379,7 +379,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           while (!ret && curr_transform_index < transforms.size()) {
             ret = transforms[curr_transform_index]->evaluate(t, var.get(), variable_value);
             WGE_LOG_TRACE("evaluate transformation: {} {}",
-                                 transforms[curr_transform_index]->name(), ret);
+                          transforms[curr_transform_index]->name(), ret);
             curr_transform_index++;
           }
 

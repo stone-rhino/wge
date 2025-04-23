@@ -112,16 +112,15 @@ TEST_F(XmlTest, libxml) {
   EXPECT_EQ(attr_values[3], "2");
   EXPECT_EQ(attr_values[4], "non-fiction");
   EXPECT_EQ(attr_values[5], "fr");
-  EXPECT_EQ(tag_values[0], 
-    "\n"
-    "  \n"
-    "    XML Guide\n"
-    "    John Doe\n"
-    "  \n"
-    "  \n"
-    "    Advanced XML\n"
-    "    Jane Smith\n"
-    "  \n");
+  EXPECT_EQ(tag_values[0], "\n"
+                           "  \n"
+                           "    XML Guide\n"
+                           "    John Doe\n"
+                           "  \n"
+                           "  \n"
+                           "    Advanced XML\n"
+                           "    Jane Smith\n"
+                           "  \n");
 
   xmlXPathFreeObject(xpath_obj1);
   xmlXPathFreeObject(xpath_obj2);

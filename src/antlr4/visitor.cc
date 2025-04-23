@@ -2248,11 +2248,10 @@ EngineConfig::BodyLimitAction Visitor::bodyLimitActionStr2EnumValue(const std::s
   return action;
 }
 
-std::expected<std::shared_ptr<Macro::MacroBase>, std::string>
-Visitor::getMacro(std::string&& text,
-                  const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>&
-                      macro_ctx_array,
-                  bool is_only_macro) {
+std::expected<std::shared_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
+    std::string&& text,
+    const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>& macro_ctx_array,
+    bool is_only_macro) {
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string> result;
 
   VisitVariableMode old_visit_variable_mode = visit_variable_mode_;

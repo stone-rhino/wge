@@ -111,9 +111,8 @@ void Transaction::processUri(std::string_view request_line) {
     requset_line_info_.query_params_.init(requset_line_info_.query_);
 
     WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
-                         requset_line_info_.method_, requset_line_info_.uri_,
-                         requset_line_info_.query_, requset_line_info_.protocol_,
-                         requset_line_info_.version_);
+                  requset_line_info_.method_, requset_line_info_.uri_, requset_line_info_.query_,
+                  requset_line_info_.protocol_, requset_line_info_.version_);
   }
 }
 
@@ -170,9 +169,8 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   requset_line_info_.query_params_.init(requset_line_info_.query_);
 
   WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
-                       requset_line_info_.method_, requset_line_info_.uri_,
-                       requset_line_info_.query_, requset_line_info_.protocol_,
-                       requset_line_info_.version_);
+                requset_line_info_.method_, requset_line_info_.uri_, requset_line_info_.query_,
+                requset_line_info_.protocol_, requset_line_info_.version_);
 }
 
 bool Transaction::processRequestHeaders(HeaderFind request_header_find,
@@ -420,9 +418,8 @@ const Common::Variant& Transaction::getCapture(size_t index) const {
   if (index < captured_.size()) [[likely]] {
     return captured_[index].variant_;
   } else {
-    WGE_LOG_WARN(
-        "The index of captured string is out of range. index: {}, captured size: {}", index,
-        captured_.size());
+    WGE_LOG_WARN("The index of captured string is out of range. index: {}, captured size: {}",
+                 index, captured_.size());
     return EMPTY_VARIANT;
   }
 }

@@ -38,6 +38,7 @@ public:
     attr_values_.clear();
     tag_values_.clear();
   }
+
 private:
   std::vector<std::string_view> attr_values_;
   std::vector<std::string_view> tag_values_;

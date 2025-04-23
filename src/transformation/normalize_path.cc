@@ -21,6 +21,7 @@
 #include "normalize_path.h"
 
 #include <filesystem>
+
 #include <normalize_path.h>
 
 namespace Wge {

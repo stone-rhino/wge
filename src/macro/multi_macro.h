@@ -67,7 +67,7 @@ public:
     assert(eval.empty());
 
     WGE_LOG_TRACE("macro {} expanded: {}", literal_value_,
-                         VISTIT_VARIANT_AS_STRING(result.front().variant_));
+                  VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
 private:

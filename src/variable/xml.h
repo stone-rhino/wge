@@ -60,9 +60,7 @@ public:
           }
         },
         // collection regex
-        {
-          UNREACHABLE();
-        },
+        { UNREACHABLE(); },
         // specify subname
         {
           for (auto& elem : *values) {
