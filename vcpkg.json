@@ -7,7 +7,6 @@
     "gperftools",
     "hyperscan",
     "libinjection",
-    "boost-url",
     "libxml2"
   ]
 }

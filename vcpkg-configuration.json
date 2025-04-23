@@ -2,7 +2,7 @@
   "default-registry": {
     "kind": "git",
     "baseline": "9caa434501c1c9bab45140a5d54c574db8e6c092",
-    "repository": "https://git.ouryun.cn/base/vcpkg.git"
+    "repository": "https://github.com/stone-rhino/vcpkg.git"
   },
   "registries": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "kind": "git",
-      "repository": "https://git.ouryun.cn/base/vcpkg.git",
+      "repository": "https://github.com/stone-rhino/vcpkg.git",
       "baseline": "a8954b904ad2a6939ecd8fc213e87702fa1243ea",
       "packages": [ "boost*", "boost-*"]
     }
