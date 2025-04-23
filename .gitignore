@@ -2,3 +2,4 @@ build
 src/antlr4/.antlr
 perf
 doc
+CMakeUserPresets.json
