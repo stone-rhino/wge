@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <mutex>
 #include <unordered_map>
 
 #include "collection.h"
@@ -33,10 +34,11 @@ public:
 
 public:
   void initCollection(std::string&& collection_name);
-  Collection* collection(std::string&& collection_name);
+  Collection* collection(const std::string& collection_name);
 
 private:
   std::unordered_map<std::string, Collection> collections_;
+  std::mutex collections_mutex_;
 };
 } // namespace PersistentStorage
 } // namespace Wge

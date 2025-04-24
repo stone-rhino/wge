@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -86,6 +87,7 @@ private:
   uint64_t update_counter_;
 
   std::unordered_map<std::string, std::string> kv_;
+  mutable std::mutex kv_mutex_;
 };
 } // namespace PersistentStorage
 } // namespace Wge

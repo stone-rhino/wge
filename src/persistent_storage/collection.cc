@@ -27,12 +27,14 @@ namespace PersistentStorage {
 Collection::Collection() { create_time_ = ::time(nullptr); }
 
 void Collection::set(const std::string& key, std::string&& value) {
+  std::lock_guard<std::mutex> lock(kv_mutex_);
   kv_[key] = std::move(value);
   last_update_time_ = ::time(nullptr);
   ++update_counter_;
 }
 
 const std::string* Collection::get(const std::string& key) const {
+  std::lock_guard<std::mutex> lock(kv_mutex_);
   auto iter = kv_.find(key);
   if (iter != nullptr) {
     return &iter->second;

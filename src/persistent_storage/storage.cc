@@ -34,13 +34,12 @@ void Storage::storeToFile(const std::string& file) {
 }
 
 void Storage::initCollection(std::string&& collection_name) {
-  auto iter = collections_.find(collection_name);
-  if (iter == collections_.end()) {
-    collections_.emplace(collection_name, Collection());
-  }
+  std::lock_guard<std::mutex> lock(collections_mutex_);
+  collections_.try_emplace(std::move(collection_name));
 }
 
-Collection* Storage::collection(std::string&& collection_name) {
+Collection* Storage::collection(const std::string& collection_name) {
+  std::lock_guard<std::mutex> lock(collections_mutex_);
   auto iter = collections_.find(collection_name);
   if (iter != collections_.end()) {
     return &iter->second;
