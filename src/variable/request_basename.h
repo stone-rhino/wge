@@ -44,7 +44,7 @@ public:
     } else {
       result.append(t.getRequestLineInfo().uri_.substr(pos + 1));
     }
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

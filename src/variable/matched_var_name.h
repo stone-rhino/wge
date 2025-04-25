@@ -53,7 +53,7 @@ public:
     } else {
       result.append(matched_var.first->fullName().tostring());
     }
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

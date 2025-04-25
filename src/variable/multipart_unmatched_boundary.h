@@ -37,7 +37,7 @@ public:
         t.getBodyMultiPart().getError().get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary)
             ? 1
             : 0);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

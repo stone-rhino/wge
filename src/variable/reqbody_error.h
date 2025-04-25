@@ -34,7 +34,7 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     result.append(t.getReqBodyErrorMsg().empty() ? 0 : 1);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

@@ -38,7 +38,7 @@ public:
     } else {
       result.append(t.getConnectionInfo().downstream_ip_.empty() ? 0 : 1);
     }
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

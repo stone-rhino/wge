@@ -36,7 +36,7 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     assert(false);
     throw "Not implemented!";
-  };
+  }
 
   bool isCollection() const override { return sub_name_.empty(); };
 };

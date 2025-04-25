@@ -54,7 +54,7 @@ public:
     }
 
     result.append(iter->second);
-  };
+  }
 
 private:
   static const std::unordered_map<BodyProcessorType, std::string_view> body_processor_type_map_;

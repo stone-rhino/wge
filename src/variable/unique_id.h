@@ -43,7 +43,7 @@ public:
     } else {
       result.append(t.getUniqueId().empty() ? 0 : 1);
     }
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

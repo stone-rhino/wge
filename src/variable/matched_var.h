@@ -48,7 +48,7 @@ public:
 
     auto& matched_var = t.getMatchedVariables().back();
     result.append(matched_var.second.variant_);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

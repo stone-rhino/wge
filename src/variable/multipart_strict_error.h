@@ -37,7 +37,7 @@ public:
                       Wge::MultipartStrictError::ErrorType::MultipartStrictError)
                       ? 1
                       : 0);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

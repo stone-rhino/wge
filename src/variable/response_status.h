@@ -39,7 +39,7 @@ public:
     }
 
     result.append(t.getResponseLineInfo().status_code_);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge
