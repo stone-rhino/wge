@@ -35,7 +35,7 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     UNREACHABLE();
     throw "Not implemented!";
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

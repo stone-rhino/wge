@@ -90,7 +90,7 @@ public:
             }
           }
         });
-  };
+  }
 
   bool isCollection() const override { return sub_name_.empty(); };
 };

@@ -72,7 +72,7 @@ public:
             result.append(iter->first);
           }
         });
-  };
+  }
 
   bool isCollection() const override { return sub_name_.empty(); };
 };

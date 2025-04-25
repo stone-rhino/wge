@@ -39,7 +39,7 @@ public:
     }
 
     result.append(t.getRequestLineInfo().uri_raw_);
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge

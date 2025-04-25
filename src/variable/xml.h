@@ -67,7 +67,7 @@ public:
             result.append(elem);
           }
         });
-  };
+  }
 
   bool isCollection() const override { return sub_name_.empty(); };
 

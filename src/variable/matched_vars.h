@@ -54,7 +54,7 @@ public:
         { UNREACHABLE(); },
         // specify subname
         { UNREACHABLE(); });
-  };
+  }
 
   bool isCollection() const override { return sub_name_.empty(); };
 };

@@ -37,7 +37,7 @@ public:
     for (const auto& elem : body) {
       result.append(elem);
     }
-  };
+  }
 };
 } // namespace Variable
 } // namespace Wge
