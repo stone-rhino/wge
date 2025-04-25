@@ -20,11 +20,14 @@
  */
 #pragma once
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <unordered_map>
 
 #include <stdint.h>
+
+#include "../common/evaluate_result.h"
 
 namespace Wge {
 namespace PersistentStorage {
@@ -33,8 +36,32 @@ public:
   Collection();
 
 public:
-  void set(const std::string& key, std::string&& value);
-  const std::string* get(const std::string& key) const;
+  /**
+   * Set a key/value pair in the collection.
+   * @param key The key to set
+   * @param value The value to set
+   */
+  void set(const std::string& key, const Common::Variant& value);
+
+  /**
+   * Get a value from the collection by key.
+   * @param key Specifies the key to get
+   * @return The value associated with the key
+   */
+  const Common::Variant& get(const std::string& key) const;
+
+  /**
+   * Get the number of key/value pairs in the collection.
+   * @return The number of key/value pairs in the collection.
+   */
+  size_t size() const { return kv_.size(); }
+
+  /**
+   * Iterate over all key/value pairs in the collection.
+   * @param func A function to call for each key/value pair. The function should return true to
+   * continue iterating, or false to stop.
+   */
+  void travel(std::function<bool(const std::string&, const Common::Variant&)> func) const;
 
   // Built-in attributes
 public:
@@ -51,7 +78,7 @@ public:
   bool isNew() const;
 
   /**
-   * @return The value of the initcol variable (the client's IP address in the example).
+   * @return The value of the initcol variable
    */
   const std::string& key() const;
 
@@ -86,7 +113,7 @@ private:
   uint32_t timeout_{3600};
   uint64_t update_counter_;
 
-  std::unordered_map<std::string, std::string> kv_;
+  std::unordered_map<std::string, Common::EvaluateResults::Element> kv_;
   mutable std::mutex kv_mutex_;
 };
 } // namespace PersistentStorage

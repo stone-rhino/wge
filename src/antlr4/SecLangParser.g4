@@ -223,7 +223,11 @@ variable:
 	| variable_multipart_invalid_quoting
 	| variable_multipart_invalid_part
 	| variable_multipart_invalid_header_folding
-	| variable_multipart_file_limit_exceeded;
+	| variable_multipart_file_limit_exceeded
+	| variable_global
+	| variable_resource
+	| variable_ip
+	| variable_user;
 variable_args: NOT? VAR_COUNT? VAR_ARGS ((COLON | DOT) STRING)?;
 variable_args_combined_size:
 	NOT? VAR_COUNT? VAR_ARGS_COMBINED_SIZE ((COLON | DOT) STRING)?;
@@ -461,6 +465,12 @@ variable_multipart_file_limit_exceeded:
 	NOT? VAR_COUNT? VAR_MULTIPART_FILE_LIMIT_EXCEEDED (
 		(COLON | DOT) STRING
 	)?;
+variable_global:
+	NOT? VAR_COUNT? VAR_GLOBAL ((COLON | DOT) STRING)?;
+variable_resource:
+	NOT? VAR_COUNT? VAR_RESOURCE ((COLON | DOT) STRING)?;
+variable_ip: NOT? VAR_COUNT? VAR_IP ( (COLON | DOT) STRING)?;
+variable_user: NOT? VAR_COUNT? VAR_USER ( (COLON | DOT) STRING)?;
 
 operator:
 	op_begins_with

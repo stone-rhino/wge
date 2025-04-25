@@ -399,6 +399,10 @@ VAR_MULTIPART_INVALID_HEADER_FOLDING:
 VAR_MULTIPART_FILE_LIMIT_EXCEEDED:
 	[mM][uU][lL][tT][iI][pP][aA][rR][tT]'_' [fF][iI][lL][eE]'_' [lL][iI][mM][iI][tT]'_' [eE][xX][cC]
 		[eE][eE][dD][eE][dD];
+VAR_GLOBAL: [gG][lL][oO][bB][aA][lL];
+VAR_RESOURCE: [rR][eE][sS][oO][uU][rR][cC][eE];
+VAR_IP: [iI][pP];
+VAR_USER: [uU][sS][eE][rR];
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);

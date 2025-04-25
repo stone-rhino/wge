@@ -921,6 +921,22 @@ std::any Visitor::visitVariable_multipart_file_limit_exceeded(
   return appendVariable<Variable::MultipartFileLimitExceeded>(ctx);
 }
 
+std::any Visitor::visitVariable_global(Antlr4Gen::SecLangParser::Variable_globalContext* ctx) {
+  return appendVariable<Variable::Global>(ctx);
+}
+
+std::any Visitor::visitVariable_resource(Antlr4Gen::SecLangParser::Variable_resourceContext* ctx) {
+  return appendVariable<Variable::Resource>(ctx);
+}
+
+std::any Visitor::visitVariable_ip(Antlr4Gen::SecLangParser::Variable_ipContext* ctx) {
+  return appendVariable<Variable::Ip>(ctx);
+}
+
+std::any Visitor::visitVariable_user(Antlr4Gen::SecLangParser::Variable_userContext* ctx) {
+  return appendVariable<Variable::User>(ctx);
+}
+
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
   return setOprator<Operator::BeginsWith>(ctx);
 }
