@@ -24,13 +24,13 @@ else()
   set(BUILD_PATH build/release)
 endif()
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/wge_install
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/wge_install/lib/libwge.a
   COMMAND cmake --install ${BUILD_PATH} --prefix ${CMAKE_CURRENT_BINARY_DIR}/wge_install
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 add_custom_target(wge_install_target
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/wge_install
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/wge_install/lib/libwge.a
 )
 
 # whitout tcmalloc
