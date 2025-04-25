@@ -425,6 +425,15 @@ public:
 
   std::any visitVariable_multipart_file_limit_exceeded(
       Antlr4Gen::SecLangParser::Variable_multipart_file_limit_exceededContext* ctx) override;
+
+  std::any visitVariable_global(Antlr4Gen::SecLangParser::Variable_globalContext* ctx) override;
+
+  std::any visitVariable_resource(Antlr4Gen::SecLangParser::Variable_resourceContext* ctx) override;
+
+  std::any visitVariable_ip(Antlr4Gen::SecLangParser::Variable_ipContext* ctx) override;
+
+  std::any visitVariable_user(Antlr4Gen::SecLangParser::Variable_userContext* ctx) override;
+
   // SecRule operators
 public:
   std::any visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) override;

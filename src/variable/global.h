@@ -20,18 +20,19 @@
  */
 #pragma once
 
+#include "evaluate_help.h"
 #include "persistent_collection_base.h"
 #include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class Session : public VariableBase, public PersistentCollectionBase {
-  DECLARE_VIRABLE_NAME(SESSION);
+class Global : public VariableBase, public PersistentCollectionBase {
+  DECLARE_VIRABLE_NAME(GLOBAL);
 
 public:
-  Session(std::string&& sub_name, bool is_not, bool is_counter)
+  Global(std::string&& sub_name, bool is_not, bool is_counter)
       : VariableBase(std::move(sub_name), is_not, is_counter),
-        PersistentCollectionBase(PersistentStorage::Storage::Type::SESSION, sub_name_) {}
+        PersistentCollectionBase(PersistentStorage::Storage::Type::GLOBAL, sub_name_) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {

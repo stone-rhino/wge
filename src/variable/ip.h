@@ -25,13 +25,13 @@
 
 namespace Wge {
 namespace Variable {
-class Session : public VariableBase, public PersistentCollectionBase {
-  DECLARE_VIRABLE_NAME(SESSION);
+class Ip : public VariableBase, public PersistentCollectionBase {
+  DECLARE_VIRABLE_NAME(IP);
 
 public:
-  Session(std::string&& sub_name, bool is_not, bool is_counter)
+  Ip(std::string&& sub_name, bool is_not, bool is_counter)
       : VariableBase(std::move(sub_name), is_not, is_counter),
-        PersistentCollectionBase(PersistentStorage::Storage::Type::SESSION, sub_name_) {}
+        PersistentCollectionBase(PersistentStorage::Storage::Type::IP, sub_name_) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {

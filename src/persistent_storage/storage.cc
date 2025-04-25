@@ -33,16 +33,15 @@ void Storage::storeToFile(const std::string& file) {
   throw "Not implemented!";
 }
 
-void Storage::initCollection(std::string&& collection_name) {
-  auto iter = collections_.find(collection_name);
-  if (iter == collections_.end()) {
-    collections_.emplace(collection_name, Collection());
-  }
+void Storage::initCollection(Type type, std::string&& collection_name) {
+  std::lock_guard<std::mutex> lock(collections_mutex_[static_cast<size_t>(type)]);
+  collections_[static_cast<size_t>(type)].try_emplace(std::move(collection_name));
 }
 
-Collection* Storage::collection(std::string&& collection_name) {
-  auto iter = collections_.find(collection_name);
-  if (iter != collections_.end()) {
+Collection* Storage::collection(Type type, const std::string& collection_name) {
+  std::lock_guard<std::mutex> lock(collections_mutex_[static_cast<size_t>(type)]);
+  auto iter = collections_[static_cast<size_t>(type)].find(collection_name);
+  if (iter != collections_[static_cast<size_t>(type)].end()) {
     return &iter->second;
   }
 

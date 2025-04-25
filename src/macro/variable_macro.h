@@ -34,14 +34,14 @@ public:
       : MacroBase(std::move(literal_value)), variable_(variable) {}
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) override {
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     variable_->evaluate(t, result);
     WGE_LOG_TRACE("macro %{{{}}} expanded: {}", makeVariableName(),
                   VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
 private:
-  std::string makeVariableName() {
+  std::string makeVariableName() const {
     std::string name;
     name = variable_->mainName();
     if (!variable_->subName().empty()) {

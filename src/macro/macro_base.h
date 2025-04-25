@@ -23,9 +23,9 @@
 #include "../common/assert.h"
 #include "../common/evaluate_result.h"
 #include "../common/variant.h"
-#include "../transaction.h"
 
 namespace Wge {
+class Transaction;
 namespace Macro {
 /**
  * Macros allow for using place holders in rules that will be expanded out to their values at
@@ -53,7 +53,7 @@ public:
    * @param t the transaction.
    * @param result the result of the evaluation.
    */
-  virtual void evaluate(Transaction& t, Common::EvaluateResults& result) = 0;
+  virtual void evaluate(Transaction& t, Common::EvaluateResults& result) const = 0;
 
 protected:
   std::string literal_value_;

@@ -20,29 +20,51 @@
  */
 #pragma once
 
-#include "action_base.h"
+#include "collection_base.h"
 
-#include "../macro/macro_base.h"
 #include "../persistent_storage/storage.h"
+#include "../transaction.h"
 
 namespace Wge {
-namespace Action {
-class InitCol : public ActionBase {
-  DECLARE_ACTION_NAME(initcol);
+namespace Variable {
+class PersistentCollectionBase : public CollectionBase {
 
 public:
-  InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value);
-  InitCol(PersistentStorage::Storage::Type type, std::string&& key,
-          const std::shared_ptr<Macro::MacroBase> value);
+  PersistentCollectionBase(PersistentStorage::Storage::Type type, const std::string& sub_name)
+      : type_(type), CollectionBase(sub_name) {}
 
 public:
-  void evaluate(Transaction& t) const override;
+  size_t size(Transaction& t) const {
+    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    auto collection = t.getEngine().storage().collection(type_, collection_name);
+    if (collection) {
+      return collection->size();
+    } else {
+      return 0;
+    }
+  }
+
+  void travel(Transaction& t,
+              std::function<bool(const std::string&, const Common::Variant&)> func) const {
+    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    auto collection = t.getEngine().storage().collection(type_, collection_name);
+    if (collection) {
+      collection->travel(func);
+    }
+  }
+
+  const Common::Variant& get(Transaction& t, const std::string& key) const {
+    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    auto collection = t.getEngine().storage().collection(type_, collection_name);
+    if (collection) {
+      return collection->get(key);
+    } else {
+      return EMPTY_VARIANT;
+    }
+  }
 
 private:
-  std::string key_;
-  std::string value_;
-  const std::shared_ptr<Macro::MacroBase> value_macro_;
   PersistentStorage::Storage::Type type_;
 };
-} // namespace Action
+} // namespace Variable
 } // namespace Wge
