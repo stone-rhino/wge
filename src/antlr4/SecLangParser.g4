@@ -1,17 +1,17 @@
 /**
  * Copyright (c) 2024-2025 Stone Rhino and contributors.
- *
+ * 
  * MIT License (http://opensource.org/licenses/MIT)
- *
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -120,9 +120,9 @@ sec_rule_update_target_by_tag:
 sec_marker: SecMarker ((QUOTE STRING QUOTE) | STRING);
 
 sec_rule:
-	SecRule variables QUOTE operator QUOTE (QUOTE action (
-		COMMA? action
-	)* QUOTE)?;
+	SecRule variables QUOTE operator QUOTE (
+		QUOTE action (COMMA? action)* QUOTE
+	)?;
 
 variables: variable (PIPE variable)*;
 
@@ -529,8 +529,7 @@ op_rx: NOT? AT OP_RX string_with_macro;
 op_rx_global: NOT? AT OP_RX_GLOBAL string_with_macro;
 op_streq: NOT? AT OP_STREQ string_with_macro;
 op_strmatch: NOT? AT OP_STRMATCH string_with_macro;
-op_unconditional_match:
-	NOT? AT OP_UNCONDITIONAL_MATCH;
+op_unconditional_match: NOT? AT OP_UNCONDITIONAL_MATCH;
 op_validate_byte_range:
 	NOT? AT OP_VALIDATE_BYTE_RANGE string_with_macro;
 op_validate_dtd: NOT? AT OP_VALIDATE_DTD string_with_macro;
@@ -856,7 +855,13 @@ action_non_disruptive_logdata:
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
 action_non_disruptive_initcol:
-	Initcol COLON STRING ASSIGN STRING;
+	Initcol COLON persistent_storage_collection ASSIGN string_with_macro;
+persistent_storage_collection:
+	INIT_COL_GLOBAL
+	| INIT_COL_RESOURCE
+	| INIT_COL_IP
+	| INIT_COL_SESSION
+	| INIT_COL_USER;
 
 action_disruptive:
 	action_disruptive_allow

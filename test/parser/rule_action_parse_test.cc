@@ -542,7 +542,8 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
 
 TEST_F(RuleActionParseTest, ActionInitCol) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,initcol:global=global,initcol:ip=%{REMOTE_ADDR}")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,initcol:global=global,initcol:ip=%{remote_addr}_%{MATCHED_VAR}")";
+
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());

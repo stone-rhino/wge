@@ -2062,10 +2062,23 @@ std::any Visitor::visitAction_non_disruptive_multi_match(
 
 std::any Visitor::visitAction_non_disruptive_initcol(
     Antlr4Gen::SecLangParser::Action_non_disruptive_initcolContext* ctx) {
-  std::string name = ctx->STRING(0)->getText();
-  std::string value = ctx->STRING(1)->getText();
+  std::string name = ctx->persistent_storage_collection()->getText();
+  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+      getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+               ctx->string_with_macro()->STRING().empty());
+
+  if (!macro.has_value()) {
+    RETURN_ERROR(macro.error());
+  }
+
   auto& actions = (*current_rule_iter_)->actions();
-  actions.emplace_back(std::make_unique<Action::InitCol>(std::move(name), std::move(value)));
+  if (macro.value()) {
+    actions.emplace_back(std::make_unique<Action::InitCol>(std::move(name), macro.value()));
+  } else {
+    actions.emplace_back(
+        std::make_unique<Action::InitCol>(std::move(name), ctx->string_with_macro()->getText()));
+  }
+
   return EMPTY_STRING;
 }
 
