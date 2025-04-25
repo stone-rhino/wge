@@ -20,11 +20,28 @@
  */
 #include "initcol.h"
 
+#include "../engine.h"
+
 namespace Wge {
 namespace Action {
-InitCol::InitCol(std::string&& key, std::string&& value)
-    : key_(std::move(key)), value_(std::move(value)) {}
+InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value)
+    : type_(type), key_(std::move(key)), value_(std::move(value)) {}
 
-void InitCol::evaluate(Transaction& t) const {}
+InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key,
+                 const std::shared_ptr<Macro::MacroBase> value)
+    : type_(type), key_(std::move(key)), value_macro_(value) {}
+
+void InitCol::evaluate(Transaction& t) const {
+  if (value_macro_) {
+    Common::EvaluateResults result;
+    value_macro_->evaluate(t, result);
+    std::string_view value = std::get<std::string_view>(result.front().variant_);
+    t.getEngine().storage().initCollection(type_, {value.data(), value.size()});
+    t.setPersistentStorageKey(type_, value_macro_.get());
+  } else {
+    t.getEngine().storage().initCollection(type_, std::string(value_));
+    t.setPersistentStorageKey(type_, value_);
+  }
+}
 } // namespace Action
 } // namespace Wge

@@ -23,6 +23,7 @@
 #include "action_base.h"
 
 #include "../macro/macro_base.h"
+#include "../persistent_storage/storage.h"
 
 namespace Wge {
 namespace Action {
@@ -30,7 +31,9 @@ class InitCol : public ActionBase {
   DECLARE_ACTION_NAME(initcol);
 
 public:
-  InitCol(std::string&& key, std::string&& value);
+  InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value);
+  InitCol(PersistentStorage::Storage::Type type, std::string&& key,
+          const std::shared_ptr<Macro::MacroBase> value);
 
 public:
   void evaluate(Transaction& t) const override;
@@ -38,6 +41,8 @@ public:
 private:
   std::string key_;
   std::string value_;
+  const std::shared_ptr<Macro::MacroBase> value_macro_;
+  PersistentStorage::Storage::Type type_;
 };
 } // namespace Action
 } // namespace Wge

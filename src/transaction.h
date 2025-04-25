@@ -36,6 +36,8 @@
 #include "common/variant.h"
 #include "config.h"
 #include "http_extractor.h"
+#include "macro/macro_base.h"
+#include "persistent_storage/storage.h"
 #include "variable/full_name.h"
 
 namespace Wge {
@@ -441,6 +443,29 @@ public:
 
   const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
 
+  const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
+    switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
+    case 1:
+      return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
+    case 2: {
+      const Macro::MacroBase* macro =
+          std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
+      macro->evaluate(*const_cast<Transaction*>(this), persistent_storage_key_buffer_);
+      return persistent_storage_key_buffer_.front().string_buffer_;
+    }
+    default:
+      return EMPTY_STRING;
+    }
+  }
+
+  void setPersistentStorageKey(PersistentStorage::Storage::Type type, const std::string& key) {
+    persistent_storage_keys_[static_cast<size_t>(type)] = key;
+  }
+
+  void setPersistentStorageKey(PersistentStorage::Storage::Type type, const Macro::MacroBase* key) {
+    persistent_storage_keys_[static_cast<size_t>(type)] = key;
+  }
+
 private:
   class RandomInitHelper {
   public:
@@ -469,6 +494,10 @@ private:
   std::vector<Common::EvaluateResults::Element> captured_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
+  std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
+             static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
+      persistent_storage_keys_;
+  mutable Common::EvaluateResults persistent_storage_key_buffer_;
 
   // All of the transaction instances share the same rule instances, and each transaction instance
   // may be removed or updated some different rules by the ctl action. So, we need to mark the rules

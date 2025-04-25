@@ -148,7 +148,7 @@ public:
    * Get persistent storage
    * @return reference of persistent storage
    */
-  PersistentStorage::Storage& storage() { return storage_; }
+  PersistentStorage::Storage& storage() const { return storage_; }
 
 private:
   void initDefaultActions();
@@ -173,6 +173,6 @@ private:
   std::array<std::vector<const Rule*>, PHASE_TOTAL> rules_;
 
   std::unordered_map<std::string, Marker&> markers_;
-  PersistentStorage::Storage storage_;
+  mutable PersistentStorage::Storage storage_;
 };
 } // namespace Wge

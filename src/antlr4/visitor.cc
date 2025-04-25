@@ -29,6 +29,7 @@
 #include "../common/variant.h"
 #include "../macro/macro_include.h"
 #include "../operator/operator_include.h"
+#include "../persistent_storage/storage.h"
 #include "../transformation/transform_include.h"
 #include "../variable/variables_include.h"
 
@@ -2062,7 +2063,23 @@ std::any Visitor::visitAction_non_disruptive_multi_match(
 
 std::any Visitor::visitAction_non_disruptive_initcol(
     Antlr4Gen::SecLangParser::Action_non_disruptive_initcolContext* ctx) {
+  Wge::PersistentStorage::Storage::Type type;
+  if (ctx->persistent_storage_collection()->INIT_COL_GLOBAL()) {
+    type = Wge::PersistentStorage::Storage::Type::GLOBAL;
+  } else if (ctx->persistent_storage_collection()->INIT_COL_RESOURCE()) {
+    type = Wge::PersistentStorage::Storage::Type::RESOURCE;
+  } else if (ctx->persistent_storage_collection()->INIT_COL_IP()) {
+    type = Wge::PersistentStorage::Storage::Type::IP;
+  } else if (ctx->persistent_storage_collection()->INIT_COL_SESSION()) {
+    type = Wge::PersistentStorage::Storage::Type::SESSION;
+  } else if (ctx->persistent_storage_collection()->INIT_COL_USER()) {
+    type = Wge::PersistentStorage::Storage::Type::USER;
+  } else {
+    RETURN_ERROR("Invalid persistent storage collection type");
+  }
+
   std::string name = ctx->persistent_storage_collection()->getText();
+
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
       getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                ctx->string_with_macro()->STRING().empty());
@@ -2073,10 +2090,10 @@ std::any Visitor::visitAction_non_disruptive_initcol(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (macro.value()) {
-    actions.emplace_back(std::make_unique<Action::InitCol>(std::move(name), macro.value()));
+    actions.emplace_back(std::make_unique<Action::InitCol>(type, std::move(name), macro.value()));
   } else {
-    actions.emplace_back(
-        std::make_unique<Action::InitCol>(std::move(name), ctx->string_with_macro()->getText()));
+    actions.emplace_back(std::make_unique<Action::InitCol>(type, std::move(name),
+                                                           ctx->string_with_macro()->getText()));
   }
 
   return EMPTY_STRING;

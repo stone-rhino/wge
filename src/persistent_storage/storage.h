@@ -20,25 +20,51 @@
  */
 #pragma once
 
+#include <array>
 #include <mutex>
-#include <unordered_map>
 
 #include "collection.h"
 
 namespace Wge {
 namespace PersistentStorage {
+/**
+ * The persistent storage is used to store the data that needs to be persisted across requests.
+ * At this time it is only possible to have five types of collections: GLOBAL, RESOURCE, IP,
+ * SESSION, USER.
+ * The internal data structure is as follows:
+ * array
+ * +---------+-----------+---------+----------+---------+
+ * |  GLOBAL |  RESOURCE |   IP    |  SESSION |  USER   |
+ * +---------+-----------+---------+----------+---------+
+ *                 hash table: ↓
+ *                 +-------+-------+-------+
+ *                 | key1  |  key2 |  ...  |
+ *                 +-------+-------+-------+
+ *                 Collection: ↓
+ *                 +-------+-------+-------+
+ *                 | key1  |  key2 |  ...  |
+ *                 +-------+-------+-------+
+ *                      value: ↓
+ *                      +---------------+
+ *                      | string or int |
+ *                      +---------------+
+ */
 class Storage {
+public:
+  enum class Type { GLOBAL = 0, RESOURCE, IP, SESSION, USER, SizeOfType };
+
 public:
   void loadFromFile(const std::string& file);
   void storeToFile(const std::string& file);
 
 public:
-  void initCollection(std::string&& collection_name);
-  Collection* collection(const std::string& collection_name);
+  void initCollection(Type type, std::string&& collection_name);
+  Collection* collection(Type type, const std::string& collection_name);
 
 private:
-  std::unordered_map<std::string, Collection> collections_;
-  std::mutex collections_mutex_;
+  std::array<std::unordered_map<std::string, Collection>, static_cast<size_t>(Type::SizeOfType)>
+      collections_;
+  std::array<std::mutex, static_cast<size_t>(Type::SizeOfType)> collections_mutex_;
 };
 } // namespace PersistentStorage
 } // namespace Wge
