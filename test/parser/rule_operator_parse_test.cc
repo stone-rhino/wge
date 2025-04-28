@@ -302,5 +302,83 @@ TEST_F(RuleOperatorParseTest, validateByteRange) {
   EXPECT_EQ(op->name(), std::string_view("validateByteRange"));
   EXPECT_EQ(op->literalValue(), "65,66-68");
 }
+
+TEST_F(RuleOperatorParseTest, detectSQLiAndSyntaxCheck) {
+  const std::string directive = R"(SecRule TX:bar "@detectSQLiAndSyntaxCheck" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("detectSQLiAndSyntaxCheck"));
+  EXPECT_EQ(op->literalValue(), "");
+}
+
+TEST_F(RuleOperatorParseTest, rxAndSyntaxCheckJava) {
+  const std::string directive = R"(SecRule TX:bar "@rxAndSyntaxCheckJava hello" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("rxAndSyntaxCheckJava"));
+  EXPECT_EQ(op->literalValue(), "hello");
+}
+
+TEST_F(RuleOperatorParseTest, rxAndSyntaxCheckJS) {
+  const std::string directive = R"(SecRule TX:bar "@rxAndSyntaxCheckJS hello" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("rxAndSyntaxCheckJS"));
+  EXPECT_EQ(op->literalValue(), "hello");
+}
+
+TEST_F(RuleOperatorParseTest, rxAndSyntaxCheckPHP) {
+  const std::string directive = R"(SecRule TX:bar "@rxAndSyntaxCheckPHP hello" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("rxAndSyntaxCheckPHP"));
+  EXPECT_EQ(op->literalValue(), "hello");
+}
+
+TEST_F(RuleOperatorParseTest, rxAndSyntaxCheckShell) {
+  const std::string directive = R"(SecRule TX:bar "@rxAndSyntaxCheckShell hello" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("rxAndSyntaxCheckShell"));
+  EXPECT_EQ(op->literalValue(), "hello");
+}
+
+TEST_F(RuleOperatorParseTest, rxAndSyntaxCheckSQL) {
+  const std::string directive = R"(SecRule TX:bar "@rxAndSyntaxCheckSQL hello" "id:1, phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules().back();
+  auto& op = rule->getOperator();
+  EXPECT_EQ(op->name(), std::string_view("rxAndSyntaxCheckSQL"));
+  EXPECT_EQ(op->literalValue(), "hello");
+}
 } // namespace Parser
 } // namespace Wge

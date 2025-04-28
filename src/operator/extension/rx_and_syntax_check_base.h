@@ -20,45 +20,30 @@
  */
 #pragma once
 
-#include "begins_with.h"
-#include "contains.h"
-#include "contains_word.h"
-#include "detect_sqli.h"
-#include "detect_xss.h"
-#include "ends_with.h"
-#include "eq.h"
-#include "extension/detect_sqli_and_syntax_check.h"
-#include "extension/rx_and_syntax_check_java.h"
-#include "extension/rx_and_syntax_check_js.h"
-#include "extension/rx_and_syntax_check_php.h"
-#include "extension/rx_and_syntax_check_shell.h"
-#include "extension/rx_and_syntax_check_sql.h"
-#include "fuzzy_hash.h"
-#include "ge.h"
-#include "geo_lookup.h"
-#include "gt.h"
-#include "inspect_file.h"
-#include "ip_match.h"
-#include "ip_match_from_file.h"
-#include "le.h"
-#include "lt.h"
-#include "no_match.h"
-#include "operator_include.h"
-#include "pm.h"
-#include "pm_from_file.h"
-#include "rbl.h"
-#include "rsub.h"
-#include "rx.h"
-#include "rx_global.h"
-#include "streq.h"
-#include "strmatch.h"
-#include "unconditional_match.h"
-#include "validate_byte_range.h"
-#include "validate_dtd.h"
-#include "validate_schema.h"
-#include "validate_url_encoding.h"
-#include "validate_utf8_encoding.h"
-#include "verify_cc.h"
-#include "verify_cpf.h"
-#include "verify_ssn.h"
-#include "within.h"
+#include "../operator_base.h"
+
+namespace Wge {
+namespace Operator {
+namespace Extension {
+class RxAndSyntaxCheckBase : public OperatorBase {
+public:
+  RxAndSyntaxCheckBase(std::string&& literal_value, bool is_not,
+                       std::string_view curr_rule_file_path)
+      : OperatorBase(std::move(literal_value), is_not) {}
+
+  RxAndSyntaxCheckBase(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+                       std::string_view curr_rule_file_path)
+      : OperatorBase(macro, is_not) {}
+
+public:
+  virtual bool syntaxCheck(Transaction& t, const Common::Variant& operand) const = 0;
+
+public:
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+};
+} // namespace Extension
+} // namespace Operator
+} // namespace Wge

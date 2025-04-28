@@ -140,6 +140,9 @@ SecUploadFileMode: 'SecUploadFileMode';
 SecUploadKeepFiles: 'SecUploadKeepFiles';
 SecWebAppId: 'SecWebAppId';
 SecXmlExternalEntity: 'SecXmlExternalEntity';
+// Extensions
+SecRuleUpdateOperatorById: 'SecRuleUpdateOperatorById';
+SecRuleUpdateOperatorByTag: 'SecRuleUpdateOperatorByTag';
 
 mode ModeInclude;
 ModeInclude_WS: WS -> skip;
@@ -479,6 +482,14 @@ OP_VERIFY_CC: 'verifyCC';
 OP_VERIFY_CPF: 'verifyCPF';
 OP_VERIFY_SSN: 'verifySSN';
 OP_WITHIN: 'within';
+// Extensions
+OP_RX_AND_SYNTAX_CHECK_SQL: 'rxAndSyntaxCheckSQL';
+OP_RX_AND_SYNTAX_CHECK_JS: 'rxAndSyntaxCheckJS';
+OP_RX_AND_SYNTAX_CHECK_SHELL: 'rxAndSyntaxCheckShell';
+OP_RX_AND_SYNTAX_CHECK_JAVA: 'rxAndSyntaxCheckJava';
+OP_RX_AND_SYNTAX_CHECK_PHP: 'rxAndSyntaxCheckPHP';
+OP_DETECT_SQLI_AND_SYNTAX_CHECK:
+	'detectSQLiAndSyntaxCheck' -> popMode, pushMode(ModeSecRuleOperatorValue);
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:

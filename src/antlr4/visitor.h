@@ -518,6 +518,24 @@ public:
 
   std::any visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) override;
 
+  std::any visitOp_rx_and_syntax_check_sql(
+      Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_sqlContext* ctx) override;
+
+  std::any visitOp_rx_and_syntax_check_js(
+      Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_jsContext* ctx) override;
+
+  std::any visitOp_rx_and_syntax_check_shell(
+      Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_shellContext* ctx) override;
+
+  std::any visitOp_rx_and_syntax_check_java(
+      Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_javaContext* ctx) override;
+
+  std::any visitOp_rx_and_syntax_check_php(
+      Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_phpContext* ctx) override;
+
+  std::any visitOp_detect_sqli_and_syntax_check(
+      Antlr4Gen::SecLangParser::Op_detect_sqli_and_syntax_checkContext* ctx) override;
+
   // Action Group: Meta-data
 public:
   std::any

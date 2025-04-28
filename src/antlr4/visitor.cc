@@ -1127,6 +1127,40 @@ std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultCont
   return EMPTY_STRING;
 }
 
+std::any Visitor::visitOp_rx_and_syntax_check_sql(
+    Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_sqlContext* ctx) {
+  return setOprator<Operator::Extension::RxAndSyntaxCheckSQL>(ctx);
+}
+
+std::any Visitor::visitOp_rx_and_syntax_check_js(
+    Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_jsContext* ctx) {
+  return setOprator<Operator::Extension::RxAndSyntaxCheckJS>(ctx);
+}
+
+std::any Visitor::visitOp_rx_and_syntax_check_shell(
+    Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_shellContext* ctx) {
+  return setOprator<Operator::Extension::RxAndSyntaxCheckShell>(ctx);
+}
+
+std::any Visitor::visitOp_rx_and_syntax_check_java(
+    Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_javaContext* ctx) {
+  return setOprator<Operator::Extension::RxAndSyntaxCheckJava>(ctx);
+}
+
+std::any Visitor::visitOp_rx_and_syntax_check_php(
+    Antlr4Gen::SecLangParser::Op_rx_and_syntax_check_phpContext* ctx) {
+  return setOprator<Operator::Extension::RxAndSyntaxCheckPHP>(ctx);
+}
+
+std::any Visitor::visitOp_detect_sqli_and_syntax_check(
+    Antlr4Gen::SecLangParser::Op_detect_sqli_and_syntax_checkContext* ctx) {
+  std::unique_ptr<Operator::OperatorBase> op =
+      std::make_unique<Operator::Extension::DetectSQLiAndSyntaxCheck>(
+          std::string(), ctx->NOT() != nullptr, parser_->currLoadFile());
+  (*current_rule_iter_)->setOperator(std::move(op));
+  return EMPTY_STRING;
+}
+
 std::any
 Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) {
   uint64_t id = 0;

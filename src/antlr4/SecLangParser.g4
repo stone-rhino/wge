@@ -510,7 +510,14 @@ operator:
 	| op_verify_cpf
 	| op_verify_ssn
 	| op_within
-	| op_rx_default;
+	| op_rx_default
+	// Extensions
+	| op_rx_and_syntax_check_sql
+	| op_rx_and_syntax_check_js
+	| op_rx_and_syntax_check_shell
+	| op_rx_and_syntax_check_java
+	| op_rx_and_syntax_check_php
+	| op_detect_sqli_and_syntax_check;
 op_begins_with: NOT? AT OP_BEGINS_WITH string_with_macro;
 op_contains: NOT? AT OP_CONTAINS string_with_macro;
 op_contains_word: NOT? AT OP_CONTAINS_WORD string_with_macro;
@@ -552,6 +559,19 @@ op_verify_cpf: NOT? AT OP_VERIFY_CPF string_with_macro;
 op_verify_ssn: NOT? AT OP_VERIFY_SSN string_with_macro;
 op_within: NOT? AT OP_WITHIN string_with_macro;
 op_rx_default: string_with_macro;
+// Extensions
+op_rx_and_syntax_check_sql:
+	NOT? AT OP_RX_AND_SYNTAX_CHECK_SQL string_with_macro;
+op_rx_and_syntax_check_js:
+	NOT? AT OP_RX_AND_SYNTAX_CHECK_JS string_with_macro;
+op_rx_and_syntax_check_shell:
+	NOT? AT OP_RX_AND_SYNTAX_CHECK_SHELL string_with_macro;
+op_rx_and_syntax_check_java:
+	NOT? AT OP_RX_AND_SYNTAX_CHECK_JAVA string_with_macro;
+op_rx_and_syntax_check_php:
+	NOT? AT OP_RX_AND_SYNTAX_CHECK_PHP string_with_macro;
+op_detect_sqli_and_syntax_check:
+	NOT? AT OP_DETECT_SQLI_AND_SYNTAX_CHECK;
 
 action:
 	action_meta_data
