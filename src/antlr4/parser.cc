@@ -110,21 +110,14 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
     return std::unexpected(lexer_error_listener.error_msg);
   }
 
-  curr_load_file_ = "";
-  auto result = loaded_file_paths_.emplace(file_path);
-  if (result.second) {
-    curr_load_file_ = *result.first;
-  } else {
-    auto iter = loaded_file_paths_.find(file_path);
-    if (iter != loaded_file_paths_.end()) {
-      curr_load_file_ = *iter;
-    }
-  }
+  curr_load_file_.push(file_path);
 
   // visit
   std::string error;
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
+
+  curr_load_file_.pop();
 
   if (!error.empty()) {
     return std::unexpected(error);
@@ -246,12 +239,12 @@ void Parser::secUnicodeMapFile(std::string&& file_path, uint32_t code_point) {
 void Parser::secPcreMatchLimit(uint32_t limit) { engine_config_.pcre_match_limit_ = limit; }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(rules_.end());
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secRule(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(rules_.end());
 }
 
@@ -304,7 +297,7 @@ void Parser::secMarker(std::string&& name) {
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secDefaultAction(int line) {
-  default_actions_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  default_actions_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(default_actions_.end());
 }
 
