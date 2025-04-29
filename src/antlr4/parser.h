@@ -150,6 +150,8 @@ private:
   std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
       rules_index_tag_;
   std::list<Marker> makers_;
+
+  std::set<std::string> loaded_file_paths_;
   std::stack<std::string_view> curr_load_file_;
 
   // Used to store the tx variable index of the vector tx_vec_.

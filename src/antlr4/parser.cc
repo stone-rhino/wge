@@ -82,7 +82,7 @@ Parser::Parser() {
 }
 
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
-  // init
+  // Init
   std::ifstream ifs(file_path);
   if (!ifs.is_open()) {
     return std::unexpected(std::format("open file {} failed", file_path));
@@ -92,7 +92,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   antlr4::CommonTokenStream tokens(&lexer);
   Antlr4Gen::SecLangParser parser(&tokens);
 
-  // sets error listener
+  // Sets error listener
   ParserErrorListener parser_error_listener(file_path);
   LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
@@ -101,7 +101,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   lexer.removeErrorListeners();
   lexer.addErrorListener(&lexer_error_listener);
 
-  // parse
+  // Parse
   auto tree = parser.configuration();
   if (!parser_error_listener.error_msg.empty()) {
     return std::unexpected(parser_error_listener.error_msg);
@@ -110,9 +110,18 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
     return std::unexpected(lexer_error_listener.error_msg);
   }
 
-  curr_load_file_.push(file_path);
+  // Push the file path to the stack
+  auto result = loaded_file_paths_.emplace(file_path);
+  if (result.second) {
+    curr_load_file_.push(*result.first);
+  } else {
+    auto iter = loaded_file_paths_.find(file_path);
+    if (iter != loaded_file_paths_.end()) {
+      curr_load_file_.push(*iter);
+    }
+  }
 
-  // visit
+  // Visit
   std::string error;
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
