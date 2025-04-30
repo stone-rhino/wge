@@ -260,6 +260,8 @@ std::list<std::unique_ptr<Rule>>::iterator Parser::secRule(int line) {
 void Parser::secRuleRemoveById(uint64_t id) {
   auto iter = rules_index_id_.find(id);
   if (iter != rules_index_id_.end()) {
+    clearRuleTagIndex(iter->second);
+    clearRuleMsgIndex(iter->second);
     rules_.erase(iter->second);
     rules_index_id_.erase(iter);
   }
@@ -268,6 +270,8 @@ void Parser::secRuleRemoveById(uint64_t id) {
 void Parser::secRuleRemoveByMsg(const std::string& msg) {
   auto range = rules_index_msg_.equal_range(msg);
   for (auto iter = range.first; iter != range.second; ++iter) {
+    clearRuleIdIndex(iter->second);
+    clearRuleTagIndex(iter->second);
     rules_.erase(iter->second);
   }
   rules_index_msg_.erase(msg);
@@ -276,6 +280,8 @@ void Parser::secRuleRemoveByMsg(const std::string& msg) {
 void Parser::secRuleRemoveByTag(const std::string& tag) {
   auto range = rules_index_tag_.equal_range(tag);
   for (auto iter = range.first; iter != range.second; ++iter) {
+    clearRuleIdIndex(iter->second);
+    clearRuleMsgIndex(iter->second);
     rules_.erase(iter->second);
   }
   rules_index_tag_.erase(tag);
@@ -407,14 +413,7 @@ void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
 }
 
 void Parser::clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  // remove id index
-  std::erase_if(rules_index_id_,
-                [&](const std::pair<uint64_t, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
-                  if (pair.second == iter) {
-                    return true;
-                  }
-                  return false;
-                });
+  rules_index_id_.erase((*iter)->id());
 }
 
 void Parser::setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
