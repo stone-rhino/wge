@@ -190,6 +190,8 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
       request_body_processor_ = BodyProcessorType::UrlEncoded;
     } else if (content_type == "multipart/form-data") {
       request_body_processor_ = BodyProcessorType::MultiPart;
+    } else {
+      request_body_processor_ = BodyProcessorType::UrlEncoded;
     }
     // The xml and json processor must be specified by the ctl action.
     // else if (content_type == "application/xml" || content_type == "text/xml") {
@@ -206,29 +208,6 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
                                      std::function<void(const Rule&)> log_callback) {
   WGE_LOG_TRACE("====process request body====");
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
-  log_callback_ = std::move(log_callback);
-  return process(2);
-}
-
-bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
-                                         HeaderFind response_header_find,
-                                         HeaderTraversal response_header_traversal,
-                                         size_t response_header_count,
-                                         std::function<void(const Rule&)> log_callback) {
-  WGE_LOG_TRACE("====process response headers====");
-  extractor_.response_header_find_ = std::move(response_header_find);
-  extractor_.response_header_traversal_ = std::move(response_header_traversal);
-  extractor_.response_header_count_ = response_header_count;
-  log_callback_ = std::move(log_callback);
-  response_line_info_.status_code_ = status_code;
-  response_line_info_.protocol_ = protocol;
-  return process(3);
-}
-
-bool Transaction::processResponseBody(BodyExtractor body_extractor,
-                                      std::function<void(const Rule&)> log_callback) {
-  WGE_LOG_TRACE("====process response body====");
-  extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
 
   // Parse the query params
@@ -255,6 +234,29 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
     }
   }
 
+  return process(2);
+}
+
+bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                                         HeaderFind response_header_find,
+                                         HeaderTraversal response_header_traversal,
+                                         size_t response_header_count,
+                                         std::function<void(const Rule&)> log_callback) {
+  WGE_LOG_TRACE("====process response headers====");
+  extractor_.response_header_find_ = std::move(response_header_find);
+  extractor_.response_header_traversal_ = std::move(response_header_traversal);
+  extractor_.response_header_count_ = response_header_count;
+  log_callback_ = std::move(log_callback);
+  response_line_info_.status_code_ = status_code;
+  response_line_info_.protocol_ = protocol;
+  return process(3);
+}
+
+bool Transaction::processResponseBody(BodyExtractor body_extractor,
+                                      std::function<void(const Rule&)> log_callback) {
+  WGE_LOG_TRACE("====process response body====");
+  extractor_.response_body_extractor_ = std::move(body_extractor);
+  log_callback_ = std::move(log_callback);
   return process(4);
 }
 
