@@ -63,6 +63,15 @@ public:
         "test/test_data/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
         "test/test_data/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
     };
+
+    // Set the blocking_paranoia_level
+    result = engine_.load(
+        R"(SecAction "id:205, phase:1,nolog,pass,t:none,setvar:tx.blocking_paranoia_level=4")");
+    if (!result.has_value()) {
+      std::cout << "Set blocking_paranoia_level error: " << result.error() << std::endl;
+      return;
+    }
+
     for (auto& rule_file : rule_files) {
       result = engine_.loadFromFile(rule_file);
       if (!result.has_value()) {
