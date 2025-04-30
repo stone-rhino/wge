@@ -71,8 +71,6 @@ public:
 
   /**
    * Initialize the engine
-   * @param level the log level
-   * @param log_file the log file path. If it is empty, the log will be output to the console
    * @note must call once before call makeTransaction, and only once in the life of the engine
    * instance.
    */
