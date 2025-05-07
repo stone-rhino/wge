@@ -491,17 +491,19 @@ inline bool Transaction::process(int phase) {
     return true;
   }
 
+  current_phase_ = phase;
+
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
   const Wge::Rule* default_action = engine_.defaultActions(phase);
 
   // Traverse the rules and evaluate them
   auto begin = rules.begin();
+  auto& rule_remove_flag = rule_remove_flags_[phase - 1];
   for (auto iter = begin; iter != rules.end();) {
     current_rule_index_ = std::distance(begin, iter);
 
     // Skip the rules that have been removed
-    auto& rule_remove_flag = rule_remove_flags_[phase - 1];
     if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_]) [[unlikely]] {
       ++iter;
       continue;
