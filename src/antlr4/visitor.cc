@@ -36,7 +36,16 @@
 namespace Wge::Antlr4 {
 
 std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
-  std::string file_path = ctx->STRING()->getText();
+  std::string_view curr_load_file = parser_->currLoadFile();
+  std::string file_path;
+  if (!curr_load_file.empty() && !curr_load_file.starts_with('/')) {
+    auto pos = curr_load_file.find_last_of('/');
+    if (pos != std::string_view::npos) {
+      file_path = curr_load_file.substr(0, pos + 1);
+    }
+  }
+  file_path += ctx->STRING()->getText();
+
   return parser_->loadFromFile(file_path);
 }
 

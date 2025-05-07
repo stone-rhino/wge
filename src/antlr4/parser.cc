@@ -82,7 +82,7 @@ Parser::Parser() {
 }
 
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
-  // init
+  // Init
   std::ifstream ifs(file_path);
   if (!ifs.is_open()) {
     return std::unexpected(std::format("open file {} failed", file_path));
@@ -92,7 +92,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   antlr4::CommonTokenStream tokens(&lexer);
   Antlr4Gen::SecLangParser parser(&tokens);
 
-  // sets error listener
+  // Sets error listener
   ParserErrorListener parser_error_listener(file_path);
   LexerErrorListener lexer_error_listener;
   // parser.setBuildParseTree(true);
@@ -101,7 +101,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   lexer.removeErrorListeners();
   lexer.addErrorListener(&lexer_error_listener);
 
-  // parse
+  // Parse
   auto tree = parser.configuration();
   if (!parser_error_listener.error_msg.empty()) {
     return std::unexpected(parser_error_listener.error_msg);
@@ -110,21 +110,23 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
     return std::unexpected(lexer_error_listener.error_msg);
   }
 
-  curr_load_file_ = "";
+  // Push the file path to the stack
   auto result = loaded_file_paths_.emplace(file_path);
   if (result.second) {
-    curr_load_file_ = *result.first;
+    curr_load_file_.push(*result.first);
   } else {
     auto iter = loaded_file_paths_.find(file_path);
     if (iter != loaded_file_paths_.end()) {
-      curr_load_file_ = *iter;
+      curr_load_file_.push(*iter);
     }
   }
 
-  // visit
+  // Visit
   std::string error;
   Visitor vistor(this);
   TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
+
+  curr_load_file_.pop();
 
   if (!error.empty()) {
     return std::unexpected(error);
@@ -246,18 +248,20 @@ void Parser::secUnicodeMapFile(std::string&& file_path, uint32_t code_point) {
 void Parser::secPcreMatchLimit(uint32_t limit) { engine_config_.pcre_match_limit_ = limit; }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(rules_.end());
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secRule(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(rules_.end());
 }
 
 void Parser::secRuleRemoveById(uint64_t id) {
   auto iter = rules_index_id_.find(id);
   if (iter != rules_index_id_.end()) {
+    clearRuleTagIndex(iter->second);
+    clearRuleMsgIndex(iter->second);
     rules_.erase(iter->second);
     rules_index_id_.erase(iter);
   }
@@ -266,6 +270,8 @@ void Parser::secRuleRemoveById(uint64_t id) {
 void Parser::secRuleRemoveByMsg(const std::string& msg) {
   auto range = rules_index_msg_.equal_range(msg);
   for (auto iter = range.first; iter != range.second; ++iter) {
+    clearRuleIdIndex(iter->second);
+    clearRuleTagIndex(iter->second);
     rules_.erase(iter->second);
   }
   rules_index_msg_.erase(msg);
@@ -274,6 +280,8 @@ void Parser::secRuleRemoveByMsg(const std::string& msg) {
 void Parser::secRuleRemoveByTag(const std::string& tag) {
   auto range = rules_index_tag_.equal_range(tag);
   for (auto iter = range.first; iter != range.second; ++iter) {
+    clearRuleIdIndex(iter->second);
+    clearRuleMsgIndex(iter->second);
     rules_.erase(iter->second);
   }
   rules_index_tag_.erase(tag);
@@ -304,7 +312,7 @@ void Parser::secMarker(std::string&& name) {
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secDefaultAction(int line) {
-  default_actions_.emplace_back(std::make_unique<Rule>(curr_load_file_, line));
+  default_actions_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
   return std::prev(default_actions_.end());
 }
 
@@ -405,14 +413,7 @@ void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
 }
 
 void Parser::clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  // remove id index
-  std::erase_if(rules_index_id_,
-                [&](const std::pair<uint64_t, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
-                  if (pair.second == iter) {
-                    return true;
-                  }
-                  return false;
-                });
+  rules_index_id_.erase((*iter)->id());
 }
 
 void Parser::setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {

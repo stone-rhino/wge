@@ -18,6 +18,7 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include <future>
 #include <unordered_map>
 
 #include <gtest/gtest.h>
@@ -63,6 +64,15 @@ public:
         "test/test_data/coreruleset/rules/RESPONSE-959-BLOCKING-EVALUATION.conf",
         "test/test_data/coreruleset/rules/RESPONSE-980-CORRELATION.conf",
     };
+
+    // Set the blocking_paranoia_level
+    result = engine_.load(
+        R"(SecAction "id:205, phase:1,nolog,pass,t:none,setvar:tx.blocking_paranoia_level=4")");
+    if (!result.has_value()) {
+      std::cout << "Set blocking_paranoia_level error: " << result.error() << std::endl;
+      return;
+    }
+
     for (auto& rule_file : rule_files) {
       result = engine_.loadFromFile(rule_file);
       if (!result.has_value()) {
@@ -166,15 +176,23 @@ protected:
 };
 
 TEST_F(CrsTest, crs) {
-  auto t = engine_.makeTransaction();
-  t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
-  t->processUri(uri_, method_, version_);
-  t->processRequestHeaders(request_header_find_, request_header_traversal_, request_headers_.size(),
-                           nullptr);
-  t->processRequestBody(request_body_extractor_, nullptr);
-  t->processResponseHeaders("200", "HTTP/1.1", response_header_find_, response_header_traversal_,
-                            response_headers_.size(), nullptr);
-  t->processResponseBody(response_body_extractor_, nullptr);
+  // The test must be run in a separate thread to avoid the thread local scratch space of hyperscan
+  // was not correctly clone from the main thread. Because the other test cases may use the
+  // hyperscan scanner, and the thread local scratch was initialized by the other test cases in the
+  // main thread, so if we run this test in the main thread, the scratch space will be not correctly
+  // initialized.
+  std::future<void> result = std::async(std::launch::async, [&]() {
+    auto t = engine_.makeTransaction();
+    t->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
+    t->processUri(uri_, method_, version_);
+    t->processRequestHeaders(request_header_find_, request_header_traversal_,
+                             request_headers_.size(), nullptr);
+    t->processRequestBody(request_body_extractor_, nullptr);
+    t->processResponseHeaders("200", "HTTP/1.1", response_header_find_, response_header_traversal_,
+                              response_headers_.size(), nullptr);
+    t->processResponseBody(response_body_extractor_, nullptr);
+  });
+  result.get();
 }
 } // namespace Integration
 } // namespace Wge

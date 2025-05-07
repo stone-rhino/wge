@@ -510,7 +510,6 @@ private:
 
   // Current evaluation state
   int current_phase_{1};
-  const std::vector<const Rule*>* current_rules_{nullptr};
   size_t current_rule_index_{0};
   using MatchedVariable =
       std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;

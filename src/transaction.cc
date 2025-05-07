@@ -190,6 +190,8 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
       request_body_processor_ = BodyProcessorType::UrlEncoded;
     } else if (content_type == "multipart/form-data") {
       request_body_processor_ = BodyProcessorType::MultiPart;
+    } else {
+      request_body_processor_ = BodyProcessorType::UrlEncoded;
     }
     // The xml and json processor must be specified by the ctl action.
     // else if (content_type == "application/xml" || content_type == "text/xml") {
@@ -206,29 +208,6 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
                                      std::function<void(const Rule&)> log_callback) {
   WGE_LOG_TRACE("====process request body====");
   extractor_.reqeust_body_extractor_ = std::move(body_extractor);
-  log_callback_ = std::move(log_callback);
-  return process(2);
-}
-
-bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
-                                         HeaderFind response_header_find,
-                                         HeaderTraversal response_header_traversal,
-                                         size_t response_header_count,
-                                         std::function<void(const Rule&)> log_callback) {
-  WGE_LOG_TRACE("====process response headers====");
-  extractor_.response_header_find_ = std::move(response_header_find);
-  extractor_.response_header_traversal_ = std::move(response_header_traversal);
-  extractor_.response_header_count_ = response_header_count;
-  log_callback_ = std::move(log_callback);
-  response_line_info_.status_code_ = status_code;
-  response_line_info_.protocol_ = protocol;
-  return process(3);
-}
-
-bool Transaction::processResponseBody(BodyExtractor body_extractor,
-                                      std::function<void(const Rule&)> log_callback) {
-  WGE_LOG_TRACE("====process response body====");
-  extractor_.response_body_extractor_ = std::move(body_extractor);
   log_callback_ = std::move(log_callback);
 
   // Parse the query params
@@ -255,6 +234,29 @@ bool Transaction::processResponseBody(BodyExtractor body_extractor,
     }
   }
 
+  return process(2);
+}
+
+bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                                         HeaderFind response_header_find,
+                                         HeaderTraversal response_header_traversal,
+                                         size_t response_header_count,
+                                         std::function<void(const Rule&)> log_callback) {
+  WGE_LOG_TRACE("====process response headers====");
+  extractor_.response_header_find_ = std::move(response_header_find);
+  extractor_.response_header_traversal_ = std::move(response_header_traversal);
+  extractor_.response_header_count_ = response_header_count;
+  log_callback_ = std::move(log_callback);
+  response_line_info_.status_code_ = status_code;
+  response_line_info_.protocol_ = protocol;
+  return process(3);
+}
+
+bool Transaction::processResponseBody(BodyExtractor body_extractor,
+                                      std::function<void(const Rule&)> log_callback) {
+  WGE_LOG_TRACE("====process response body====");
+  extractor_.response_body_extractor_ = std::move(body_extractor);
+  log_callback_ = std::move(log_callback);
   return process(4);
 }
 
@@ -489,17 +491,19 @@ inline bool Transaction::process(int phase) {
     return true;
   }
 
+  current_phase_ = phase;
+
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
   const Wge::Rule* default_action = engine_.defaultActions(phase);
 
   // Traverse the rules and evaluate them
   auto begin = rules.begin();
+  auto& rule_remove_flag = rule_remove_flags_[phase - 1];
   for (auto iter = begin; iter != rules.end();) {
     current_rule_index_ = std::distance(begin, iter);
 
     // Skip the rules that have been removed
-    auto& rule_remove_flag = rule_remove_flags_[phase - 1];
     if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_]) [[unlikely]] {
       ++iter;
       continue;
@@ -536,6 +540,10 @@ inline bool Transaction::process(int phase) {
     // Do the disruptive action
     std::optional<bool> disruptive = doDisruptive(*rule, default_action);
     if (disruptive.has_value()) {
+      if (!disruptive.value()) {
+        // Modify the response status code
+        response_line_info_.status_code_ = "403";
+      }
       return disruptive.value();
     }
 
