@@ -487,7 +487,20 @@ TEST_F(VariableTest, RESPONSE_STATUS) {
 }
 
 TEST_F(VariableTest, RULE) {
-  // TODO(zhouyu 2025-03-27): add the test cast
+  const std::string directive =
+      R"(SecRuleEngine On
+      SecRule RULE:id|RULE:phase "@eq 1" "id:1,phase:1,setvar:'tx.test_count=+1',setvar:'tx.operator_value=%{RULE.operator_value}'")";
+
+  Engine engine;
+  auto result = engine.load(directive);
+  engine.init();
+  auto t = engine.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  ASSERT_TRUE(t->hasVariable("test_count"));
+  EXPECT_EQ(std::get<int>(t->getVariable("test_count")), 2);
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("operator_value")), "1");
 }
 
 TEST_F(VariableTest, SERVER_ADDR) {
