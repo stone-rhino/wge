@@ -502,6 +502,7 @@ inline bool Transaction::process(int phase) {
   auto& rule_remove_flag = rule_remove_flags_[phase - 1];
   for (auto iter = begin; iter != rules.end();) {
     current_rule_index_ = std::distance(begin, iter);
+    current_rule_ = *iter;
 
     // Skip the rules that have been removed
     if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_]) [[unlikely]] {
@@ -515,10 +516,10 @@ inline bool Transaction::process(int phase) {
     matched_variables_.clear();
 
     // Evaluate the rule
-    auto& rule = *iter;
-    auto is_matched = rule->evaluate(*this);
+    auto is_matched = current_rule_->evaluate(*this);
 
-    if (!is_matched || rule->getOperator() == nullptr // It's a rule that defined by SecAction
+    if (!is_matched ||
+        current_rule_->getOperator() == nullptr // It's a rule that defined by SecAction
         ) [[likely]] {
       ++iter;
       continue;
@@ -527,35 +528,31 @@ inline bool Transaction::process(int phase) {
     // Log the matched rule
     if (log_callback_) [[likely]] {
       if (default_action) {
-        if (rule->log().value_or(default_action->log().value_or(true))) {
-          log_callback_(*rule);
+        if (current_rule_->log().value_or(default_action->log().value_or(true))) {
+          log_callback_(*current_rule_);
         }
       } else {
-        if (rule->log().value_or(true)) {
-          log_callback_(*rule);
+        if (current_rule_->log().value_or(true)) {
+          log_callback_(*current_rule_);
         }
       }
     }
 
     // Do the disruptive action
-    std::optional<bool> disruptive = doDisruptive(*rule, default_action);
+    std::optional<bool> disruptive = doDisruptive(*current_rule_, default_action);
     if (disruptive.has_value()) {
-      if (!disruptive.value()) {
-        // Modify the response status code
-        response_line_info_.status_code_ = "403";
-      }
       return disruptive.value();
     }
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched
-    int skip = rule->skip();
+    int skip = current_rule_->skip();
     if (skip > 0) [[unlikely]] {
       iter += skip;
       continue;
     }
-    const std::string& skip_after = rule->skipAfter();
+    const std::string& skip_after = current_rule_->skipAfter();
     if (!skip_after.empty()) [[unlikely]] {
-      auto next_rule_iter = engine_.marker(skip_after, rule->phase());
+      auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());
       if (next_rule_iter.has_value()) [[likely]] {
         iter = next_rule_iter.value();
         continue;

@@ -20,25 +20,31 @@
  */
 #pragma once
 
-#include "collection_base.h"
+#include <functional>
+
 #include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class Rule : public VariableBase, public CollectionBase {
+class Rule : public VariableBase {
   DECLARE_VIRABLE_NAME(RULE);
 
 public:
   Rule(std::string&& sub_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_) {}
+      : VariableBase(std::move(sub_name), is_not, is_counter) {
+    initEvaluateFunc();
+  }
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(false);
-    throw "Not implemented!";
+    if (evaluate_func_) {
+      evaluate_func_(t, result, is_counter_);
+    }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+private:
+  void initEvaluateFunc();
+  std::function<void(Transaction&, Common::EvaluateResults&, bool)> evaluate_func_;
 };
 } // namespace Variable
 } // namespace Wge

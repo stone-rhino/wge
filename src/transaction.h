@@ -466,6 +466,8 @@ public:
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
   }
 
+  const Rule* currentEvaluateRule() const { return current_rule_; }
+
 private:
   class RandomInitHelper {
   public:
@@ -511,6 +513,7 @@ private:
   // Current evaluation state
   int current_phase_{1};
   size_t current_rule_index_{0};
+  const Rule* current_rule_{nullptr};
   using MatchedVariable =
       std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
   std::vector<MatchedVariable> matched_variables_;
