@@ -141,8 +141,10 @@ SecUploadKeepFiles: 'SecUploadKeepFiles';
 SecWebAppId: 'SecWebAppId';
 SecXmlExternalEntity: 'SecXmlExternalEntity';
 // Extensions
-SecRuleUpdateOperatorById: 'SecRuleUpdateOperatorById';
-SecRuleUpdateOperatorByTag: 'SecRuleUpdateOperatorByTag';
+SecRuleUpdateOperatorById:
+	'SecRuleUpdateOperatorById' -> pushMode(ModeRuleUpdateOperatorById);
+SecRuleUpdateOperatorByTag:
+	'SecRuleUpdateOperatorByTag' -> pushMode(ModeRuleUpdateOperatorByTag);
 
 mode ModeInclude;
 ModeInclude_WS: WS -> skip;
@@ -204,7 +206,7 @@ ModeRuleUpdateTargetById_INT:
 mode ModeRuleUpdateTargetByMsg;
 ModeRuleUpdateTargetByMsg_WS: WS -> skip;
 ModeRuleUpdateTargetByMsg_QUOTE:
-	'"' -> type(QUOTE), popMode, pushMode(ModeRuleUpdateTargetByMsgString);
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeRuleUpdateTargetByMsgString);
 
 mode ModeRuleUpdateTargetByMsgString;
 ModeRuleUpdateTargetByMsgString_QUOTE:
@@ -213,6 +215,33 @@ ModeRuleUpdateTargetByMsgString_STRING: (('\\"') | ~([" ])) (
 		('\\"')
 		| ~('"')
 	)* -> type(STRING);
+
+mode ModeRuleUpdateOperatorById;
+ModeRuleUpdateOperatorById_WS: WS -> skip;
+ModeRuleUpdateOperatorById_INT: INT -> type(INT);
+ModeRuleUpdateOperatorById_INT_RANGE:
+	INT_RANGE -> type(INT_RANGE);
+ID_AND_CHAIN_INDEX: INT ':' INT;
+ModeRuleUpdateOperatorById_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
+
+mode ModeRuleUpdateOperatorByTag;
+ModeRuleUpdateOperatorByTag_WS: WS -> skip;
+ModeRuleUpdateOperatorByTag_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeRuleUpdateOperatorByTagString);
+
+mode ModeRuleUpdateOperatorByTagString;
+ModeRuleUpdateOperatorByTagString_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeRuleUpdateOperatorValue);
+ModeRuleUpdateOperatorByTagString_STRING: (('\\"') | ~([" ])) (
+		('\\"')
+		| ~('"')
+	)* -> type(STRING);
+
+mode ModeRuleUpdateOperatorValue;
+ModeRuleUpdateOperator_WS: WS -> skip;
+ModeRuleUpdateOperator_QUOTE:
+	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
 
 mode ModeSecRule;
 ModeSecRule_WS: WS -> skip, pushMode(ModeSecRuleVariableName);

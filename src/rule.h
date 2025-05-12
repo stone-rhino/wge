@@ -173,6 +173,14 @@ public:
   }
   void removeBackChainRule() { chain_.erase(std::prev(chain_.end())); }
   std::unique_ptr<Rule>& backChainRule() { return chain_.back(); }
+  std::optional<std::list<std::unique_ptr<Rule>>::iterator> chainRule(size_t index) {
+    if (index >= chain_.size()) {
+      return std::nullopt;
+    }
+    auto it = chain_.begin();
+    std::advance(it, index);
+    return it;
+  }
   int skip() const { return skip_; }
   void skip(int value) { skip_ = value; }
   const std::string& skipAfter() const { return skip_after_; }

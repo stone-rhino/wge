@@ -417,5 +417,168 @@ TEST_F(RuleTest, NoAction) {
   EXPECT_EQ(parser.rules().front()->actions().size(), 0);
   EXPECT_EQ(parser.rules().back()->actions().size(), 0);
 }
+
+TEST_F(RuleTest, RuleUpdateOperatorById) {
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,tag:'tag1',msg:'msg1',chain"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "tag:'tag1',msg:'msg1'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:2,tag:'tag2',msg:'msg2'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:3,tag:'tag3',msg:'msg3'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    const std::string rule_directive_update =
+        R"(SecRuleUpdateOperatorById 1 "@rxAndSyntaxCheckSQL %{RULE.operator_value}")";
+
+    result = parser.load(rule_directive_update);
+    ASSERT_TRUE(result.has_value());
+    auto& rule1 = *(parser.findRuleById(1));
+    auto& rule2 = *(parser.findRuleById(2));
+    auto& rule3 = *(parser.findRuleById(3));
+    EXPECT_EQ(parser.rules().size(), 3);
+    EXPECT_EQ(std::string(rule1->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule1->backChainRule()->getOperator()->name()), "rx");
+    EXPECT_EQ(rule1->backChainRule()->getOperator()->literalValue(), "bar");
+    EXPECT_EQ(std::string(rule2->getOperator()->name()), "rx");
+    EXPECT_EQ(rule2->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule3->getOperator()->name()), "rx");
+    EXPECT_EQ(rule3->getOperator()->literalValue(), "foo");
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,tag:'tag1',msg:'msg1',chain"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "tag:'tag1',msg:'msg1'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:2,tag:'tag2',msg:'msg2'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:3,tag:'tag3',msg:'msg3'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    const std::string rule_directive_update =
+        R"(SecRuleUpdateOperatorById 1:0 "@rxAndSyntaxCheckSQL %{RULE.operator_value}")";
+
+    result = parser.load(rule_directive_update);
+    ASSERT_TRUE(result.has_value());
+    auto& rule1 = *(parser.findRuleById(1));
+    auto& rule2 = *(parser.findRuleById(2));
+    auto& rule3 = *(parser.findRuleById(3));
+    EXPECT_EQ(parser.rules().size(), 3);
+    EXPECT_EQ(std::string(rule1->getOperator()->name()), "rx");
+    EXPECT_EQ(rule1->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule1->backChainRule()->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->backChainRule()->getOperator()->literalValue(), "bar");
+    EXPECT_EQ(std::string(rule2->getOperator()->name()), "rx");
+    EXPECT_EQ(rule2->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule3->getOperator()->name()), "rx");
+    EXPECT_EQ(rule3->getOperator()->literalValue(), "foo");
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,tag:'tag1',msg:'msg1',chain"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "tag:'tag1',msg:'msg1'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:2,tag:'tag2',msg:'msg2'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:3,tag:'tag3',msg:'msg3'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    const std::string rule_directive_update =
+        R"(SecRuleUpdateOperatorById 1 1:0 2 3 "@rxAndSyntaxCheckSQL %{RULE.operator_value}")";
+
+    result = parser.load(rule_directive_update);
+    ASSERT_TRUE(result.has_value());
+    auto& rule1 = *(parser.findRuleById(1));
+    auto& rule2 = *(parser.findRuleById(2));
+    auto& rule3 = *(parser.findRuleById(3));
+    EXPECT_EQ(parser.rules().size(), 3);
+    EXPECT_EQ(std::string(rule1->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule1->backChainRule()->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->backChainRule()->getOperator()->literalValue(), "bar");
+    EXPECT_EQ(std::string(rule2->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule2->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule3->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule3->getOperator()->literalValue(), "foo");
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,tag:'tag1',msg:'msg1',chain"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "tag:'tag1',msg:'msg1'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:2,tag:'tag2',msg:'msg2'"
+      SecRule ARGS:aaa|ARGS:bbb "foo" "id:3,tag:'tag3',msg:'msg3'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    const std::string rule_directive_update =
+        R"(SecRuleUpdateOperatorById 1:0 1-3 "@rxAndSyntaxCheckSQL %{RULE.operator_value}")";
+
+    result = parser.load(rule_directive_update);
+    ASSERT_TRUE(result.has_value());
+    auto& rule1 = *(parser.findRuleById(1));
+    auto& rule2 = *(parser.findRuleById(2));
+    auto& rule3 = *(parser.findRuleById(3));
+    EXPECT_EQ(parser.rules().size(), 3);
+    EXPECT_EQ(std::string(rule1->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule1->backChainRule()->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->backChainRule()->getOperator()->literalValue(), "bar");
+    EXPECT_EQ(std::string(rule2->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule2->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule3->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule3->getOperator()->literalValue(), "foo");
+  }
+}
+
+TEST_F(RuleTest, RuleUpdateOperatorByTag) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,tag:'tag1',msg:'msg1'"
+        SecRule ARGS:aaa|ARGS:bbb "%{tx.aaa}" "id:2,tag:'tag1',msg:'msg2'"
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,tag:'tag2',msg:'msg2'")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  {
+    const std::string rule_directive =
+        R"(SecRuleUpdateOperatorByTag "tag1" "@rxAndSyntaxCheckSQL %{RULE.operator_value}")";
+
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& rule1 = *(parser.findRuleById(1));
+    auto& rule2 = *(parser.findRuleById(2));
+    auto& rule3 = *(parser.findRuleById(3));
+    EXPECT_EQ(parser.rules().size(), 3);
+    EXPECT_EQ(std::string(rule1->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule1->getOperator()->literalValue(), "foo");
+    EXPECT_EQ(std::string(rule2->getOperator()->name()), "rxAndSyntaxCheckSQL");
+    EXPECT_EQ(rule2->getOperator()->literalValue(), "");
+    EXPECT_TRUE(rule2->getOperator()->macro());
+    EXPECT_EQ(std::string(rule3->getOperator()->name()), "rx");
+    EXPECT_EQ(rule3->getOperator()->literalValue(), "bar");
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRuleUpdateOperatorByTag "tag1" "@rxAndSyntaxCheckSQL hello_%{RULE.operator_value}")";
+
+    auto result = parser.load(rule_directive);
+
+    // MultiMacro is not supported yet in SecRuleUpdateOperator
+    ASSERT_FALSE(result.has_value());
+  }
+}
 } // namespace Parser
 } // namespace Wge

@@ -40,6 +40,9 @@ public:
                   VISTIT_VARIANT_AS_STRING(result.front().variant_));
   }
 
+public:
+  const std::shared_ptr<Variable::VariableBase> getVariable() const { return variable_; }
+
 private:
   std::string makeVariableName() const {
     std::string name;
