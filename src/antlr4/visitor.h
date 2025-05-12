@@ -834,6 +834,13 @@ public:
   std::any visitSec_component_signature(
       Antlr4Gen::SecLangParser::Sec_component_signatureContext* ctx) override;
 
+  // Extension directives
+public:
+  std::any visitSec_rule_update_operator_by_id(
+      Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_idContext* ctx) override;
+  std::any visitSec_rule_update_operator_by_tag(
+      Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_tagContext* ctx) override;
+
 private:
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
@@ -897,8 +904,9 @@ private:
   }
 
   template <class VarT, class CtxT> std::any setOprator(CtxT* ctx) {
-    auto macro = getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
-                          ctx->string_with_macro()->STRING().empty());
+    std::expected<std::shared_ptr<Wge::Macro::MacroBase>, std::string> macro =
+        getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+                 ctx->string_with_macro()->STRING().empty());
 
     if (!macro.has_value()) {
       RETURN_ERROR(macro.error());
@@ -906,8 +914,49 @@ private:
 
     std::unique_ptr<Operator::OperatorBase> op;
     if (macro.value()) {
-      op = std::unique_ptr<Operator::OperatorBase>(
-          new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+      auto macro_shared_ptr = macro.value();
+      if (visit_operator_mode_ == VisitOperatorMode::SecRuleUpdateOperator) {
+        // In the SecRuleUpdateOperator mode:
+        // - If the macro type is VariableMacro and the variable is RULE.operator_value, we need
+        // expand the macro to get the original value of the operator.
+        // - If the macro type is VariableMacro but the varaible is not RULE.operator_value, we use
+        // it directly.
+        // - If the macro type is MultiMacro, we don't support it yet.
+        std::shared_ptr<Wge::Macro::VariableMacro> variable_macro_shared_ptr =
+            std::dynamic_pointer_cast<Wge::Macro::VariableMacro>(macro.value());
+        if (variable_macro_shared_ptr) {
+          std::string_view variable_main_name =
+              variable_macro_shared_ptr->getVariable()->mainName();
+          const std::string& variable_sub_name =
+              variable_macro_shared_ptr->getVariable()->subName();
+          if (variable_main_name == "RULE" && variable_sub_name == "operator_value") {
+            std::string original_operator_literal_value =
+                (*current_rule_iter_)->getOperator()->literalValue();
+            if (!original_operator_literal_value.empty()) {
+              op = std::unique_ptr<Operator::OperatorBase>(
+                  new VarT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
+                           parser_->currLoadFile()));
+            } else {
+              op = std::unique_ptr<Operator::OperatorBase>(
+                  new VarT((*current_rule_iter_)->getOperator()->macro(), ctx->NOT() != nullptr,
+                           parser_->currLoadFile()));
+            }
+          } else {
+            op = std::unique_ptr<Operator::OperatorBase>(
+                new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+          }
+        } else if (std::dynamic_pointer_cast<Wge::Macro::MultiMacro>(macro_shared_ptr)) {
+          // We don't support MultiMacro yet.
+          // FIXME(zhouyu 2025-05-09): Add support for MultiMacro in SecRuleUpdateOperator.
+          // It a bit tricky because we need merge the original operator value to a new macro if the
+          // macro has RULE.operator_value and the original operator value is a multi macro. I am
+          // just want to finish the basic feature first.
+          RETURN_ERROR("MultiMacro is not supported yet in SecRuleUpdateOperator.");
+        }
+      } else {
+        op = std::unique_ptr<Operator::OperatorBase>(
+            new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+      }
     } else {
       op = std::unique_ptr<Operator::OperatorBase>(new VarT(
           ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
@@ -924,8 +973,10 @@ private:
   std::unordered_multimap<std::string, std::string> action_map_;
   enum class VisitVariableMode { SecRule, Ctl, Macro };
   enum class VisitActionMode { SecRule, SecRuleUpdateAction, SecAction, SecDefaultAction };
+  enum class VisitOperatorMode { SecRule, SecRuleUpdateOperator };
   VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
   VisitActionMode visit_action_mode_{VisitActionMode::SecRule};
+  VisitOperatorMode visit_operator_mode_{VisitOperatorMode::SecRule};
   bool should_visit_next_child_{true};
 };
 } // namespace Wge::Antlr4

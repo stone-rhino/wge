@@ -30,6 +30,7 @@ configuration: (
 		| engine_action
 		| rule_directive
 		| audit_log_config
+		| extension_directive
 	)* EOF;
 
 include: Include QUOTE? STRING QUOTE?;
@@ -945,3 +946,15 @@ sec_audit_log_storage_dir:
 sec_audit_log_type: SecAuditLogType AUDIT_TYPE;
 sec_component_signature:
 	SecComponentSignature ((QUOTE STRING QUOTE) | STRING);
+
+extension_directive:
+	sec_rule_update_operator_by_id
+	| sec_rule_update_operator_by_tag;
+sec_rule_update_operator_by_id:
+	SecRuleUpdateOperatorById (
+		INT
+		| INT_RANGE
+		| ID_AND_CHAIN_INDEX
+	) (INT | INT_RANGE | ID_AND_CHAIN_INDEX)* QUOTE operator QUOTE;
+sec_rule_update_operator_by_tag:
+	SecRuleUpdateOperatorByTag QUOTE STRING QUOTE QUOTE operator QUOTE;

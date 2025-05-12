@@ -500,6 +500,7 @@ TEST_F(VariableTest, RULE) {
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   ASSERT_TRUE(t->hasVariable("test_count"));
   EXPECT_EQ(std::get<int>(t->getVariable("test_count")), 2);
+  ASSERT_TRUE(t->hasVariable("operator_value"));
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("operator_value")), "1");
 }
 
