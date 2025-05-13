@@ -880,7 +880,7 @@ action_disruptive:
 	| action_disruptive_drop
 	| action_disruptive_pass
 	| action_disruptive_redirect;
-action_disruptive_allow: Allow;
+action_disruptive_allow: Allow | AllowPhase | AllowRequest;
 action_disruptive_block: Block;
 action_disruptive_deny: Deny;
 action_disruptive_drop: Drop;

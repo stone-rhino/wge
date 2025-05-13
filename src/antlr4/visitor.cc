@@ -2126,7 +2126,14 @@ std::any Visitor::visitAction_non_disruptive_initcol(
 
 std::any Visitor::visitAction_disruptive_allow(
     Antlr4Gen::SecLangParser::Action_disruptive_allowContext* ctx) {
-  (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW);
+  if (ctx->Allow()) {
+    (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW);
+  } else if (ctx->AllowPhase()) {
+    (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW_PHASE);
+  } else if (ctx->AllowRequest()) {
+    (*current_rule_iter_)->disruptive(Rule::Disruptive::ALLOW_REQUEST);
+  }
+
   return EMPTY_STRING;
 }
 

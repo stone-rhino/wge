@@ -211,25 +211,27 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
   log_callback_ = std::move(log_callback);
 
   // Parse the query params
-  const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
-  if (!body.empty() && request_body_processor_.has_value()) {
-    switch (request_body_processor_.value()) {
-      {
-      case BodyProcessorType::UrlEncoded: {
-        body_query_param_.init(body.front());
-      } break;
-      case BodyProcessorType::MultiPart: {
-        auto content_type = extractor_.request_header_find_("content-type");
-        body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
-      } break;
-      case BodyProcessorType::Xml:
-        body_xml_.init(body.front());
-        break;
-      case BodyProcessorType::Json:
-        break;
-      default:
-        UNREACHABLE();
-        break;
+  if (extractor_.reqeust_body_extractor_) {
+    const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
+    if (!body.empty() && request_body_processor_.has_value()) {
+      switch (request_body_processor_.value()) {
+        {
+        case BodyProcessorType::UrlEncoded: {
+          body_query_param_.init(body.front());
+        } break;
+        case BodyProcessorType::MultiPart: {
+          auto content_type = extractor_.request_header_find_("content-type");
+          body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
+        } break;
+        case BodyProcessorType::Xml:
+          body_xml_.init(body.front());
+          break;
+        case BodyProcessorType::Json:
+          break;
+        default:
+          UNREACHABLE();
+          break;
+        }
       }
     }
   }
@@ -493,6 +495,11 @@ inline bool Transaction::process(int phase) {
 
   current_phase_ = phase;
 
+  // Skip the phase that is allowed
+  if (allow_phases_.test(phase)) [[unlikely]] {
+    return true;
+  }
+
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
   const Wge::Rule* default_action = engine_.defaultActions(phase);
@@ -615,11 +622,29 @@ void Transaction::initCookies() {
   }
 }
 
-inline std::optional<bool> Transaction::doDisruptive(const Rule& rule,
-                                                     const Rule* default_action) const {
+inline std::optional<bool> Transaction::doDisruptive(const Rule& rule, const Rule* default_action) {
   switch (rule.disruptive()) {
   case Rule::Disruptive::ALLOW: {
-    // Stops rule processing on a successful match and allows the transaction to proceed.
+    // If used on its own, allow will affect the entire transaction, stopping processing of the
+    // current phase but also skipping over all other phases apart from the logging phase. (The
+    // logging phase is special; it is designed to always execute.)
+    allow_phases_.set(1);
+    allow_phases_.set(2);
+    allow_phases_.set(3);
+    allow_phases_.set(4);
+    return true;
+  } break;
+  case Rule::Disruptive::ALLOW_PHASE: {
+    // If used with parameter "phase", allow will cause the engine to stop processing the current
+    // phase. Other phases will continue as normal.
+    allow_phases_.set(rule.phase());
+    return true;
+  } break;
+  case Rule::Disruptive::ALLOW_REQUEST: {
+    // If used with parameter "request", allow will cause the engine to stop processing the current
+    // phase. The next phase to be processed will be phase RESPONSE_HEADERS.
+    allow_phases_.set(1);
+    allow_phases_.set(2);
     return true;
   } break;
   [[likely]] case Rule::Disruptive::BLOCK: {
@@ -628,7 +653,26 @@ inline std::optional<bool> Transaction::doDisruptive(const Rule& rule,
         default_action ? default_action->disruptive() : Rule::Disruptive::PASS;
     switch (disruptive) {
     case Rule::Disruptive::ALLOW: {
-      // Stops rule processing on a successful match and allows the transaction to proceed.
+      // If used on its own, allow will affect the entire transaction, stopping processing of the
+      // current phase but also skipping over all other phases apart from the logging phase. (The
+      // logging phase is special; it is designed to always execute.)
+      allow_phases_.set(1);
+      allow_phases_.set(2);
+      allow_phases_.set(3);
+      allow_phases_.set(4);
+      return true;
+    } break;
+    case Rule::Disruptive::ALLOW_PHASE: {
+      // If used with parameter "phase", allow will cause the engine to stop processing the current
+      // phase. Other phases will continue as normal.
+      allow_phases_.set(rule.phase());
+      return true;
+    } break;
+    case Rule::Disruptive::ALLOW_REQUEST: {
+      // If used with parameter "request", allow will cause the engine to stop processing the
+      // current phase. The next phase to be processed will be phase RESPONSE_HEADERS.
+      allow_phases_.set(1);
+      allow_phases_.set(2);
       return true;
     } break;
     case Rule::Disruptive::BLOCK: {

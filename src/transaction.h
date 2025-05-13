@@ -480,7 +480,7 @@ private:
 
   void initCookies();
 
-  inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action) const;
+  inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
 private:
   std::string unique_id_;
@@ -522,6 +522,7 @@ private:
       transform_cache_;
   bool init_cookies_{false};
   std::unordered_map<std::string_view, std::string_view> cookies_;
+  std::bitset<PHASE_TOTAL> allow_phases_;
 
   // ctl
 private:

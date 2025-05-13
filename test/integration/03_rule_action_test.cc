@@ -589,5 +589,86 @@ TEST_F(RuleActionTest, ActionSetEnv) {
   actions.back()->evaluate(*t);
   EXPECT_EQ(std::string("hello"), ::getenv("var1"));
 }
+
+TEST_F(RuleActionTest, ActionAllow) {
+  const std::string rule_directive =
+      R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.test=1"
+      SecRule TX:test "@eq 1" "allow,id:1,phase:1,setvar:tx.phase1=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:12,phase:1,setvar:tx.phase1_2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:2,phase:2,setvar:tx.phase2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:3,phase:3,setvar:tx.phase3=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:4,phase:4,setvar:tx.phase4=true,msg:'aaa bbb'")";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  t->processRequestBody(nullptr, nullptr);
+  t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
+  t->processResponseBody(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("phase1"));
+  EXPECT_FALSE(t->hasVariable("phase1_2"));
+  EXPECT_FALSE(t->hasVariable("phase2"));
+  EXPECT_FALSE(t->hasVariable("phase3"));
+  EXPECT_FALSE(t->hasVariable("phase4"));
+}
+
+TEST_F(RuleActionTest, ActionAllowPhase) {
+  const std::string rule_directive =
+      R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.test=1"
+      SecRule TX:test "@eq 1" "allow:phase,id:1,phase:1,setvar:tx.phase1=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:12,phase:1,setvar:tx.phase1_2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:2,phase:2,setvar:tx.phase2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:3,phase:3,setvar:tx.phase3=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:4,phase:4,setvar:tx.phase4=true,msg:'aaa bbb'")";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  t->processRequestBody(nullptr, nullptr);
+  t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
+  t->processResponseBody(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("phase1"));
+  EXPECT_FALSE(t->hasVariable("phase1_2"));
+  EXPECT_TRUE(t->hasVariable("phase2"));
+  EXPECT_TRUE(t->hasVariable("phase3"));
+  EXPECT_TRUE(t->hasVariable("phase4"));
+}
+
+TEST_F(RuleActionTest, ActionAllowRequest) {
+  const std::string rule_directive =
+      R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.test=1"
+      SecRule TX:test "@eq 1" "allow:request,id:1,phase:1,setvar:tx.phase1=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:12,phase:1,setvar:tx.phase1_2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:2,phase:2,setvar:tx.phase2=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:3,phase:3,setvar:tx.phase3=true,msg:'aaa bbb'"
+      SecRule TX:test "@eq 1" "id:4,phase:4,setvar:tx.phase4=true,msg:'aaa bbb'")";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  t->processRequestBody(nullptr, nullptr);
+  t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
+  t->processResponseBody(nullptr, nullptr);
+  EXPECT_TRUE(t->hasVariable("phase1"));
+  EXPECT_FALSE(t->hasVariable("phase1_2"));
+  EXPECT_FALSE(t->hasVariable("phase2"));
+  EXPECT_TRUE(t->hasVariable("phase3"));
+  EXPECT_TRUE(t->hasVariable("phase4"));
+}
 } // namespace Integration
 } // namespace Wge

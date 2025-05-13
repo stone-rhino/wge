@@ -508,6 +508,8 @@ ModeSecRuleActionName_INT: INT -> type(INT);
 LEVEL: [1-9];
 Accuracy: 'accuracy';
 Allow: 'allow';
+AllowPhase: 'allow:phase';
+AllowRequest: 'allow:request';
 Auditlog: 'auditlog';
 Block: 'block';
 Capture: 'capture';

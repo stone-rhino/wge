@@ -86,6 +86,10 @@ public:
   enum class Disruptive {
     // Stops rule processing on a successful match and allows the transaction to proceed.
     ALLOW,
+    // Allow will cause the engine to stop processing the current phase. Other phases will continue as normal
+    ALLOW_PHASE,
+    // Allow will cause the engine to stop processing the current phase. The next phase to be processed will be phase RESPONSE_HEADERS.
+    ALLOW_REQUEST,
     // Performs the disruptive action defined by the previous SecDefaultAction.
     BLOCK,
     // Stops rule processing and intercepts transaction.
