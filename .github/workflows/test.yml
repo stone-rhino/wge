@@ -166,7 +166,7 @@ jobs:
         with:
           path: |
             build/release/vcpkg_installed
-            /home/runner/vcpkg
+            # /home/runner/vcpkg
 
             ~/.cache/vcpkg/
   
