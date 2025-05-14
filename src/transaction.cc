@@ -548,6 +548,10 @@ inline bool Transaction::process(int phase) {
     // Do the disruptive action
     std::optional<bool> disruptive = doDisruptive(*current_rule_, default_action);
     if (disruptive.has_value()) {
+      if (!disruptive.value()) {
+        // Modify the response status code
+        response_line_info_.status_code_ = "403";
+      }
       return disruptive.value();
     }
 
