@@ -70,4 +70,23 @@ TEST(Common, queryParam) {
     auto linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 0);
   }
+
+  {
+    Wge::Common::Ragel::QueryParam query_param;
+    query_param.init("a=Can+I+please+have+a+Python+tutorial+for+qr+code+scanning%3f&b=2&%3b%2721io)=3");
+    auto map = query_param.get();
+    EXPECT_EQ(map.size(), 3);
+    EXPECT_EQ(map.find("a")->second, "Can I please have a Python tutorial for qr code scanning?");
+    EXPECT_EQ(map.find("b")->second, "2");
+    EXPECT_EQ(map.find(";'21io)")->second, "3");
+
+    auto linked = query_param.getLinked();
+    EXPECT_EQ(linked.size(), 3);
+    EXPECT_EQ(linked[0]->first, "a");
+    EXPECT_EQ(linked[0]->second, "Can I please have a Python tutorial for qr code scanning?");
+    EXPECT_EQ(linked[1]->first, "b");
+    EXPECT_EQ(linked[1]->second, "2");
+    EXPECT_EQ(linked[2]->first, ";'21io)");
+    EXPECT_EQ(linked[2]->second, "3");
+  }
 }
