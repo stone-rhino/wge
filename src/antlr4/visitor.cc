@@ -51,7 +51,7 @@ std::any Visitor::visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) {
 
 std::any Visitor::visitSec_reqeust_body_access(
     Antlr4Gen::SecLangParser::Sec_reqeust_body_accessContext* ctx) {
-  parser_->secRequestBodyAccess(optionStr2EnumValue(ctx->OPTION()->getText()));
+  parser_->secRequestBodyAccess(optionStr2Bool(ctx->OPTION()->getText()));
   return EMPTY_STRING;
 }
 
@@ -85,7 +85,7 @@ std::any Visitor::visitSec_response_body_mime_type_clear(
 
 std::any Visitor::visitSec_response_body_access(
     Antlr4Gen::SecLangParser::Sec_response_body_accessContext* ctx) {
-  parser_->secResponseBodyAccess(optionStr2EnumValue(ctx->OPTION()->getText()));
+  parser_->secResponseBodyAccess(optionStr2Bool(ctx->OPTION()->getText()));
   return EMPTY_STRING;
 }
 
@@ -96,7 +96,7 @@ std::any Visitor::visitSec_rule_engine(Antlr4Gen::SecLangParser::Sec_rule_engine
 
 std::any Visitor::visitSec_tmp_save_uploaded_files(
     Antlr4Gen::SecLangParser::Sec_tmp_save_uploaded_filesContext* ctx) {
-  parser_->secTmpSaveUploadedFiles(optionStr2EnumValue(ctx->OPTION()->getText()));
+  parser_->secTmpSaveUploadedFiles(optionStr2Bool(ctx->OPTION()->getText()));
   return EMPTY_STRING;
 }
 
@@ -108,13 +108,13 @@ Visitor::visitSec_upload_file_limit(Antlr4Gen::SecLangParser::Sec_upload_file_li
 
 std::any
 Visitor::visitSec_upload_keep_files(Antlr4Gen::SecLangParser::Sec_upload_keep_filesContext* ctx) {
-  parser_->secUploadKeepFiles(optionStr2EnumValue(ctx->OPTION()->getText()));
+  parser_->secUploadKeepFiles(optionStr2Bool(ctx->OPTION()->getText()));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitSec_xml_external_entity(
     Antlr4Gen::SecLangParser::Sec_xml_external_entityContext* ctx) {
-  parser_->secXmlExternalEntity(optionStr2EnumValue(ctx->OPTION()->getText()));
+  parser_->secXmlExternalEntity(optionStr2Bool(ctx->OPTION()->getText()));
   return EMPTY_STRING;
 }
 
@@ -2431,6 +2431,14 @@ std::any Visitor::visitSec_rule_update_operator_by_tag(
   visit_operator_mode_ = old_visit_operator_mode;
 
   return EMPTY_STRING;
+}
+
+bool Visitor::optionStr2Bool(const std::string& option_str) {
+  if (option_str == "On") {
+    return true;
+  }
+
+  return false;
 }
 
 EngineConfig::Option Visitor::optionStr2EnumValue(const std::string& option_str) {

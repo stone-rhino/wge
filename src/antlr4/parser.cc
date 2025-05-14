@@ -172,11 +172,11 @@ std::expected<bool, std::string> Parser::load(const std::string& directive) {
   return true;
 }
 
-void Parser::secRuleEngine(EngineConfig::Option option) { engine_config_.is_rule_engine_ = option; }
-
-void Parser::secRequestBodyAccess(EngineConfig::Option option) {
-  engine_config_.is_request_body_access_ = option;
+void Parser::secRuleEngine(EngineConfig::Option option) {
+  engine_config_.rule_engine_option_ = option;
 }
+
+void Parser::secRequestBodyAccess(bool value) { engine_config_.is_request_body_access_ = value; }
 
 void Parser::secResponseBodyMimeType(const std::vector<std::string>& mime_types) {
   // Multiple SecResponseBodyMimeType directives can be used to add MIME types. Use
@@ -188,25 +188,19 @@ void Parser::secResponseBodyMimeType(const std::vector<std::string>& mime_types)
 
 void Parser::secResponseBodyMimeTypeClear() { engine_config_.response_body_mime_types_.clear(); }
 
-void Parser::secResponseBodyAccess(EngineConfig::Option option) {
-  engine_config_.is_response_body_access_ = option;
-}
+void Parser::secResponseBodyAccess(bool value) { engine_config_.is_response_body_access_ = value; }
 
-void Parser::secTmpSaveUploadedFiles(EngineConfig::Option option) {
-  engine_config_.is_tmp_save_uploaded_files_ = option;
+void Parser::secTmpSaveUploadedFiles(bool value) {
+  engine_config_.is_tmp_save_uploaded_files_ = value;
 }
 
 void Parser::secUploadFileLimit(uint32_t limit_count) {
   engine_config_.upload_file_limit_ = limit_count;
 }
 
-void Parser::secUploadKeepFiles(EngineConfig::Option option) {
-  engine_config_.is_upload_keep_files_ = option;
-}
+void Parser::secUploadKeepFiles(bool value) { engine_config_.is_upload_keep_files_ = value; }
 
-void Parser::secXmlExternalEntity(EngineConfig::Option option) {
-  engine_config_.is_xml_external_entity_ = option;
-}
+void Parser::secXmlExternalEntity(bool value) { engine_config_.is_xml_external_entity_ = value; }
 
 void Parser::secRequestBodyLimit(uint64_t limit_bytes) {
   engine_config_.request_body_limit_ = limit_bytes;

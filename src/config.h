@@ -43,32 +43,31 @@ constexpr size_t PHASE_TOTAL = 5;
 struct EngineConfig {
   enum class Option { On, Off, DetectionOnly };
   enum class BodyLimitAction { Reject, ProcessPartial };
+  // SecRuleEngine
+  // Configures the rules engine.
+  Option rule_engine_option_{Option::Off};
 
   // SecRequestBodyAccess
   // Configures whether request bodies will be buffered and processed by ModSecurity.
-  Option is_request_body_access_{Option::Off};
+  bool is_request_body_access_{false};
 
   // SecResponseBodyAccess
   // Configures whether response bodies are to be buffered.
-  Option is_response_body_access_{Option::Off};
-
-  // SecRuleEngine
-  // Configures the rules engine.
-  Option is_rule_engine_{Option::Off};
+  bool is_response_body_access_{false};
 
   // SecTmpSaveUploadedFiles
   // Configures whether or not files uploaded via a multipart POST request will be temporarily
   // saved to the file system.
-  Option is_tmp_save_uploaded_files_{Option::Off};
+  bool is_tmp_save_uploaded_files_{false};
 
   // SecUploadKeepFiles
   // Configures whether or not the intercepted files will be kept after transaction is processed.
-  Option is_upload_keep_files_{Option::Off};
+  bool is_upload_keep_files_{false};
 
   // SecXmlExternalEntity
   // Enable or Disable the loading process of xml external entity. Loading external entity without
   // correct verifying process can lead to a security issue.
-  Option is_xml_external_entity_{Option::Off};
+  bool is_xml_external_entity_{false};
 
   // SecUploadFileLimit
   // Configures the maximum number of file uploads processed in a multipart POST.

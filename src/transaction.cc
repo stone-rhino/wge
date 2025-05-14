@@ -489,7 +489,7 @@ void Transaction::initUniqueId() {
 }
 
 inline bool Transaction::process(int phase) {
-  if (engine_.config().is_rule_engine_ == EngineConfig::Option::Off) [[unlikely]] {
+  if (engine_.config().rule_engine_option_ == EngineConfig::Option::Off) [[unlikely]] {
     return true;
   }
 
