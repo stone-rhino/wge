@@ -23,6 +23,9 @@
 #include <unordered_map>
 #include <vector>
 #include <string_view>
+#include <cstring>
+#include <url_decode.h>
+#include <list>
 
 %%{
   machine query_param;
@@ -44,7 +47,19 @@
   }
 
   action add_key_value {
-    auto result = query_params.insert({std::string_view(p_start_key,key_len), std::string_view(p_start_value,value_len)});
+    std::string_view raw_key(p_start_key,key_len),raw_value(p_start_value,value_len);
+    std::string decoded_key_str, decoded_value_str;
+    std::string_view final_key = raw_key;
+    std::string_view final_value = raw_value;
+    if (urlDecode(raw_key, decoded_key_str)) {
+      urldecoded_storage.emplace_back(std::move(decoded_key_str));
+      final_key = urldecoded_storage.back();
+    }
+    if (urlDecode(raw_value, decoded_value_str)) {
+      urldecoded_storage.emplace_back(std::move(decoded_value_str));
+      final_value = urldecoded_storage.back();
+    }
+    auto result = query_params.insert({final_key,final_value});
     query_params_linked.emplace_back(result);
 
     p_start_key = nullptr;
@@ -63,7 +78,8 @@
 %% write data;
 
 static void parseQueryParam(std::string_view input,std::unordered_multimap<std::string_view, std::string_view>& query_params,
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& query_params_linked) {
+  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& query_params_linked,
+  std::list<std::string>& urldecoded_storage) {
   query_params.clear();
   query_params_linked.clear();
 

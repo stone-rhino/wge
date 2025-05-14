@@ -23,3 +23,5 @@ endforeach()
 
 add_library(ragel ${GENERATED_FILES})
 set_target_properties(ragel PROPERTIES LINKER_LANGUAGE CXX)
+add_library(ragel_headers INTERFACE)
+target_include_directories(ragel_headers INTERFACE ${OUTPUT_DIR})

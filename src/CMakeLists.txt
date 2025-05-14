@@ -11,6 +11,7 @@ add_subdirectory(operator)
 add_subdirectory(variable)
 add_subdirectory(persistent_storage)
 add_subdirectory(transformation)
+add_subdirectory(transformation/ragel)
 
 set(antlr4_obj
   ${CMAKE_BINARY_DIR}/antlr4obj/ANTLRErrorListener.cpp.o
