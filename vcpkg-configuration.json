@@ -1,7 +1,7 @@
 {
   "default-registry": {
     "kind": "git",
-    "baseline": "9caa434501c1c9bab45140a5d54c574db8e6c092",
+    "baseline": "7604fa8c43f6a963920fbc2a5dd610d01cc6a687",
     "repository": "https://github.com/stone-rhino/vcpkg.git"
   },
   "registries": [
