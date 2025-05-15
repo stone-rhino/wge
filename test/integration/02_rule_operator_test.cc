@@ -305,8 +305,8 @@ TEST_F(RuleOperatorTest, streqWithMacro) {
 TEST_F(RuleOperatorTest, validateUrlEncoding) {
   const std::string directive =
       R"(SecAction "phase:1,setvar:tx.foo=/asdf%20%ab,setvar:tx.bar=/asdf%20%ag"
-  SecRule TX:foo "@validateUrlEncoding" "id:1,phase:1,setvar:'tx.true'"
-  SecRule TX:bar "@validateUrlEncoding" "id:2,phase:1,setvar:'tx.false'")";
+  SecRule TX:foo "@validateUrlEncoding" "id:1,phase:1,setvar:'tx.false'"
+  SecRule TX:bar "@validateUrlEncoding" "id:2,phase:1,setvar:'tx.true'")";
 
   auto result = engine_.load(directive);
   engine_.init();
@@ -314,8 +314,8 @@ TEST_F(RuleOperatorTest, validateUrlEncoding) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
   EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("true"));
 }
 
 TEST_F(RuleOperatorTest, contains) {

@@ -231,20 +231,15 @@ inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::Variabl
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
     const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
-    if (!default_action) [[likely]] {
-      return;
-    }
+    if (default_action) [[unlikely]] {
+      // Get the default transformation
+      auto& transforms = default_action->transforms();
 
-    // Get the default transformation
-    auto& transforms = default_action->transforms();
-    if (transforms.empty()) [[likely]] {
-      return;
-    }
-
-    // Evaluate the default transformations
-    for (auto& transform : transforms) {
-      bool ret = transform->evaluate(t, var, data);
-      WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
+      // Evaluate the default transformations
+      for (auto& transform : transforms) {
+        bool ret = transform->evaluate(t, var, data);
+        WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
+      }
     }
   }
 
@@ -257,6 +252,7 @@ inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::Variabl
 
 inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
   bool matched = operator_->evaluate(t, var_value);
+  matched = operator_->isNot() ^ matched;
   WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
                 operator_->isNot() ? "!" : "", operator_->name(),
                 operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(),

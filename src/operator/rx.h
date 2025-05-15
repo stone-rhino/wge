@@ -97,7 +97,7 @@ public:
       t.addCapture(std::move(value));
     }
 
-    return is_not_ ^ (!result.empty());
+    return !result.empty();
   }
 
 public:

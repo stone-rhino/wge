@@ -1,9 +1,0 @@
-name: Quality Assurance
-
-on:
-  pull_request:
-
-jobs:
-  build:
-    uses: ./.github/workflows/test.yml
-

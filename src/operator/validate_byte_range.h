@@ -74,21 +74,13 @@ public:
     }
 
     std::string_view operand_str = std::get<std::string_view>(operand);
-    if (!is_not_) [[likely]] {
-      for (auto& c : operand_str) {
-        if (!byte_range_.test(static_cast<uint8_t>(c))) {
-          return true;
-        }
+    for (auto& c : operand_str) {
+      if (!byte_range_.test(static_cast<uint8_t>(c))) {
+        return true;
       }
-      return false;
-    } else {
-      for (auto& c : operand_str) {
-        if (byte_range_.test(static_cast<uint8_t>(c))) {
-          return true;
-        }
-      }
-      return false;
     }
+
+    return false;
   }
 
 private:

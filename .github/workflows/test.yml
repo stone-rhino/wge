@@ -154,6 +154,7 @@ jobs:
         run: |
           echo "::group::Check file permissions"
           cat /proc/cpuinfo
+          free
           ls -l /home/runner/work/wge/wge/vcpkg.json
           cat /home/runner/work/wge/wge/vcpkg.json
           echo "vcpkg.json hash: ${{ hashFiles('vcpkg.json') }}"
@@ -166,7 +167,7 @@ jobs:
         with:
           path: |
             build/release/vcpkg_installed
-            /home/runner/vcpkg
+            # /home/runner/vcpkg
 
             ~/.cache/vcpkg/
   

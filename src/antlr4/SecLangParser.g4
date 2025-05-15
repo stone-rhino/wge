@@ -537,7 +537,7 @@ op_ip_match_from_file:
 	NOT? AT OP_IP_MATCH_FROM_FILE string_with_macro;
 op_le: NOT? AT OP_LE string_with_macro;
 op_lt: NOT? AT OP_LT string_with_macro;
-op_no_match: NOT? AT OP_NO_MATCH string_with_macro;
+op_no_match: NOT? AT OP_NO_MATCH;
 op_pm: NOT? AT OP_PM string_with_macro;
 op_pmf: NOT? AT OP_PMF string_with_macro;
 op_pm_from_file: NOT? AT OP_PM_FROM_FILE string_with_macro;

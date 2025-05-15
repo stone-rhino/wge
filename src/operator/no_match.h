@@ -36,10 +36,7 @@ public:
       : OperatorBase(macro, is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    assert(false);
-    throw "Not implemented!";
-  }
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override { return false; }
 };
 } // namespace Operator
 } // namespace Wge

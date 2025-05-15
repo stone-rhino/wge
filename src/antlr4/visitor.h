@@ -842,6 +842,7 @@ public:
       Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_tagContext* ctx) override;
 
 private:
+  static bool optionStr2Bool(const std::string& option_str);
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string> getMacro(
