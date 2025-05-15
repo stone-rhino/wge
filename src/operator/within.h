@@ -118,7 +118,7 @@ public:
       t.addCapture(std::move(value));
     }
 
-    return is_not_ ^ matched;
+    return matched;
   }
 
 private:

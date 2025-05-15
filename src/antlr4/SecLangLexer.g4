@@ -469,56 +469,73 @@ ModeSecRuleOperator_PER_CENT:
 mode ModeSecRuleOperatorName;
 ModeSecRuleOperator_WS:
 	WS -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
-OP_BEGINS_WITH: 'beginsWith';
-OP_CONTAINS: 'contains';
-OP_CONTAINS_WORD: 'containsWord';
+OP_BEGINS_WITH:
+	[bB][eE][gG][iI][nN][sS][wW][iI][tT][hH];
+OP_CONTAINS: [cC][oO][nN][tT][aA][iI][nN][sS];
+OP_CONTAINS_WORD:
+	[cC][oO][nN][tT][aA][iI][nN][sS][wW][oO][rR][dD];
 OP_DETECT_SQLI:
-	'detectSQLi' -> popMode, pushMode(ModeSecRuleOperatorValue);
+	[dD][eE][tT][eE][cC][tT][sS][qQ][lL][iI] -> popMode, pushMode(ModeSecRuleOperatorValue);
 OP_DETECT_XSS:
-	'detectXSS' -> popMode, pushMode(ModeSecRuleOperatorValue);
-OP_ENDS_WITH: 'endsWith';
-OP_FUZZY_HASH: 'fuzzyHash';
-OP_EQ: 'eq';
-OP_GE: 'ge';
-OP_GEO_LOOKUP: 'geoLookup';
-OP_GT: 'gt';
-OP_INSPECT_FILE: 'inspectFile';
-OP_IP_MATCH: 'ipMatch';
-OP_IP_MATCH_F: 'ipMatchF';
-OP_IP_MATCH_FROM_FILE: 'ipMatchFromFile';
-OP_LE: 'le';
-OP_LT: 'lt';
-OP_NO_MATCH: 'noMatch';
-OP_PM: 'pm';
-OP_PMF: 'pmf';
-OP_PM_FROM_FILE: 'pmFromFile';
-OP_RBL: 'rbl';
-OP_RSUB: 'rsub';
-OP_RX: 'rx';
-OP_RX_GLOBAL: 'rxGlobal';
-OP_STREQ: 'streq';
-OP_STRMATCH: 'strmatch';
+	[dD][eE][tT][eE][cC][tT][xX][sS][sS] -> popMode, pushMode(ModeSecRuleOperatorValue);
+OP_ENDS_WITH: [eE][nN][dD][sS][wW][iI][tT][hH];
+OP_FUZZY_HASH: [fF][uU][zZ][zZ][yY][hH][aA][sS][hH];
+OP_EQ: [eE][qQ];
+OP_GE: [gG][eE];
+OP_GEO_LOOKUP: [gG][eE][oO][lL][oO][oO][kK][uU][pP];
+OP_GT: [gG][tT];
+OP_INSPECT_FILE:
+	[iI][nN][sS][pP][eE][cC][tT][fF][iI][lL][eE];
+OP_IP_MATCH: [iI][pP][mM][aA][tT][cC][hH];
+OP_IP_MATCH_F: [iI][pP][mM][aA][tT][cC][hH][fF];
+OP_IP_MATCH_FROM_FILE:
+	[iI][pP][mM][aA][tT][cC][hH][fF][rR][oO][mM][fF][iI][lL][eE];
+OP_LE: [lL][eE];
+OP_LT: [lL][tT];
+OP_NO_MATCH: [nN][oO][mM][aA][tT][cC][hH];
+OP_PM: [pP][mM];
+OP_PMF: [pP][mM][fF];
+OP_PM_FROM_FILE:
+	[pP][mM][fF][rR][oO][mM][fF][iI][lL][eE];
+OP_RBL: [rR][bB][lL];
+OP_RSUB: [rR][sS][uU][bB];
+OP_RX: [rR][xX];
+OP_RX_GLOBAL: [rR][xX][gG][lL][oO][bB][aA][lL];
+OP_STREQ: [sS][tT][rR][eE][qQ];
+OP_STRMATCH: [sS][tT][rR][mM][aA][tT][cC][hH];
 OP_UNCONDITIONAL_MATCH:
-	'unconditionalMatch' -> popMode, pushMode(ModeSecRuleOperatorValue);
-OP_VALIDATE_BYTE_RANGE: 'validateByteRange';
-OP_VALIDATE_DTD: 'validateDTD';
-OP_VALIDATE_SCHEMA: 'validateSchema';
+	[uU][nN][cC][oO][nN][dD][iI][tT][iI][oO][nN][aA][lL][mM][aA][tT][cC][hH] -> popMode, pushMode(
+		ModeSecRuleOperatorValue);
+OP_VALIDATE_BYTE_RANGE:
+	[vV][aA][lL][iI][dD][aA][tT][eE][bB][yY][tT][eE] [rR][aA][nN][gG][eE];
+OP_VALIDATE_DTD:
+	[vV][aA][lL][iI][dD][aA][tT][eE][dD][tT][dD][dD];
+OP_VALIDATE_SCHEMA:
+	[vV][aA][lL][iI][dD][aA][tT][eE][sS][cC][hH][eE][mM][aA];
 OP_VALIDATE_URL_ENCODING:
-	'validateUrlEncoding' -> popMode, pushMode(ModeSecRuleOperatorValue);
+	[vV][aA][lL][iI][dD][aA][tT][eE][uU][rR][lL][eE][nN][cC][oO][dD][iI][nN][gG] -> popMode,
+		pushMode(ModeSecRuleOperatorValue);
 OP_VALIDATE_UTF8_ENCODING:
-	'validateUtf8Encoding' -> popMode, pushMode(ModeSecRuleOperatorValue);
-OP_VERIFY_CC: 'verifyCC';
-OP_VERIFY_CPF: 'verifyCPF';
-OP_VERIFY_SSN: 'verifySSN';
-OP_WITHIN: 'within';
+	[vV][aA][lL][iI][dD][aA][tT][eE][uU][tT][fF]'8' [eE][nN][cC][oO][dD][iI][nN][gG] -> popMode,
+		pushMode(ModeSecRuleOperatorValue);
+OP_VERIFY_CC: [vV][eE][rR][iI][fF][yY][cC][cC];
+OP_VERIFY_CPF: [vV][eE][rR][iI][fF][yY][cC][pP][fF];
+OP_VERIFY_SSN: [vV][eE][rR][iI][fF][yY][sS][sS][nN];
+OP_WITHIN: [wW][iI][tT][hH][iI][nN];
 // Extensions
-OP_RX_AND_SYNTAX_CHECK_SQL: 'rxAndSyntaxCheckSQL';
-OP_RX_AND_SYNTAX_CHECK_JS: 'rxAndSyntaxCheckJS';
-OP_RX_AND_SYNTAX_CHECK_SHELL: 'rxAndSyntaxCheckShell';
-OP_RX_AND_SYNTAX_CHECK_JAVA: 'rxAndSyntaxCheckJava';
-OP_RX_AND_SYNTAX_CHECK_PHP: 'rxAndSyntaxCheckPHP';
+OP_RX_AND_SYNTAX_CHECK_SQL:
+	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][sS][qQ][lL];
+OP_RX_AND_SYNTAX_CHECK_JS:
+	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][jJ][sS];
+OP_RX_AND_SYNTAX_CHECK_SHELL:
+	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][sS][hH][eE][lL][lL];
+OP_RX_AND_SYNTAX_CHECK_JAVA:
+	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][jJ][aA][vV][aA];
+OP_RX_AND_SYNTAX_CHECK_PHP:
+	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][pP][hH][pP];
 OP_DETECT_SQLI_AND_SYNTAX_CHECK:
-	'detectSQLiAndSyntaxCheck' -> popMode, pushMode(ModeSecRuleOperatorValue);
+	[dD][eE][tT][eE][cC][tT][sS][qQ][lL][iI][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK]
+		-> popMode, pushMode(ModeSecRuleOperatorValue);
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:

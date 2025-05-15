@@ -61,15 +61,15 @@ public:
   // Modsecurity configuration directive
 public:
   // Engine configurations
-  void secRequestBodyAccess(EngineConfig::Option option);
+  void secRequestBodyAccess(bool value);
   void secResponseBodyMimeType(const std::vector<std::string>& mime_types);
   void secResponseBodyMimeTypeClear();
-  void secResponseBodyAccess(EngineConfig::Option option);
+  void secResponseBodyAccess(bool value);
   void secRuleEngine(EngineConfig::Option option);
-  void secTmpSaveUploadedFiles(EngineConfig::Option option);
+  void secTmpSaveUploadedFiles(bool value);
   void secUploadFileLimit(uint32_t limit_count);
-  void secUploadKeepFiles(EngineConfig::Option option);
-  void secXmlExternalEntity(EngineConfig::Option option);
+  void secUploadKeepFiles(bool value);
+  void secXmlExternalEntity(bool value);
   void secRequestBodyLimit(uint64_t limit_bytes);
   void secRequestBodyNoFilesLimit(uint64_t limit_bytes);
   void secRequestBodyJsonDepthLimit(uint64_t limit);

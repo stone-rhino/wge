@@ -40,15 +40,14 @@ public:
     bool matched = false;
     if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
       if (!macro_) [[likely]] {
-        matched = is_not_ ^ (std::get<std::string_view>(operand).find(literal_value_) !=
-                             std::string_view::npos);
+        matched =
+            std::get<std::string_view>(operand).find(literal_value_) != std::string_view::npos;
         Common::EvaluateResults::Element value;
         value.variant_ = literal_value_;
         t.addCapture(std::move(value));
       } else {
         MACRO_EXPAND_STRING_VIEW(macro_value);
-        matched = is_not_ ^
-                  (std::get<std::string_view>(operand).find(macro_value) != std::string_view::npos);
+        matched = std::get<std::string_view>(operand).find(macro_value) != std::string_view::npos;
         Common::EvaluateResults::Element value;
         value.string_buffer_ = macro_value;
         value.variant_ = value.string_buffer_;

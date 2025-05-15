@@ -50,12 +50,12 @@ public:
     for (size_t i = 0; i < input.size(); ++i) {
       if (input[i] == '%' && i + 2 < input.size()) {
         if (!::isxdigit(input[i + 1]) || !::isxdigit(input[i + 2])) {
-          return false;
+          return true;
         }
       }
     }
 
-    return true;
+    return false;
   }
 };
 } // namespace Operator

@@ -50,12 +50,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::On);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::On);
+    ASSERT_TRUE(engine_config.is_request_body_access_);
+    ASSERT_TRUE(engine_config.is_response_body_access_);
+    ASSERT_EQ(engine_config.rule_engine_option_, EngineConfig::Option::On);
+    ASSERT_TRUE(engine_config.is_tmp_save_uploaded_files_);
+    ASSERT_TRUE(engine_config.is_upload_keep_files_);
+    ASSERT_TRUE(engine_config.is_xml_external_entity_);
   }
 
   {
@@ -73,12 +73,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::Off);
+    ASSERT_FALSE(engine_config.is_request_body_access_);
+    ASSERT_FALSE(engine_config.is_response_body_access_);
+    ASSERT_EQ(engine_config.rule_engine_option_, EngineConfig::Option::Off);
+    ASSERT_FALSE(engine_config.is_tmp_save_uploaded_files_);
+    ASSERT_FALSE(engine_config.is_upload_keep_files_);
+    ASSERT_FALSE(engine_config.is_xml_external_entity_);
   }
 
   {
@@ -96,12 +96,12 @@ TEST_F(EngineConfigTest, EngineConfig) {
     ASSERT_TRUE(result.has_value());
 
     const auto& engine_config = parser.engineConfig();
-    ASSERT_EQ(engine_config.is_request_body_access_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_response_body_access_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_rule_engine_, EngineConfig::Option::DetectionOnly);
-    ASSERT_EQ(engine_config.is_tmp_save_uploaded_files_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_upload_keep_files_, EngineConfig::Option::Off);
-    ASSERT_EQ(engine_config.is_xml_external_entity_, EngineConfig::Option::Off);
+    ASSERT_FALSE(engine_config.is_request_body_access_);
+    ASSERT_FALSE(engine_config.is_response_body_access_);
+    ASSERT_EQ(engine_config.rule_engine_option_, EngineConfig::Option::DetectionOnly);
+    ASSERT_FALSE(engine_config.is_tmp_save_uploaded_files_);
+    ASSERT_FALSE(engine_config.is_upload_keep_files_);
+    ASSERT_FALSE(engine_config.is_xml_external_entity_);
   }
 
   {
