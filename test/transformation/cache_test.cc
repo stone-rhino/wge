@@ -22,7 +22,10 @@
 
 #include "engine.h"
 #include "transformation/lowercase.h"
+#include "transformation/url_decode.h"
+#include "transformation/html_entity_decode.h"
 #include "variable/tx.h"
+#include "variable/args.h"
 
 namespace Wge {
 namespace Transformation {
@@ -95,5 +98,88 @@ TEST_F(CacheTest, notHitWithLessThanThreshold) {
   std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_NE(result.data(), result2.data());
 }
+
+// issues #24
+TEST_F(CacheTest, getDuplicateArgsCache) {
+  std::unique_ptr<Transformation::TransformBase> url_trans = std::make_unique<UrlDecode>();
+
+  // first_test_data is ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' after being urlencoded.
+  std::string_view first_origin = " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  std::string_view first_test_data = "%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  Common::Variant first_data = first_test_data;
+  Common::EvaluateResults::Element first_transform_buffer{first_data, ""};
+  Variable::Args first_variable(std::string("test"), false, false);
+
+  bool ret = url_trans->evaluate(*t_, &first_variable, first_transform_buffer);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(std::get<std::string_view>(first_transform_buffer.variant_), first_origin);
+
+  // second_test_data is ' bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' after being urlencoded.
+  std::string_view second_origin = " bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  std::string_view second_test_data = "%20bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  Common::Variant second_data = second_test_data;
+  Common::EvaluateResults::Element second_transform_buffer{second_data, ""};
+  Variable::Args second_variable(std::string("test"), false, false);
+
+  ret = url_trans->evaluate(*t_, &second_variable, second_transform_buffer);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(std::get<std::string_view>(second_transform_buffer.variant_), second_origin);
+}
+
+// issues #24
+TEST_F(CacheTest, executeDuplicateTransformation) {
+  std::vector<std::unique_ptr<Transformation::TransformBase>> trans;
+  trans.push_back(std::make_unique<UrlDecode>());
+  trans.push_back(std::make_unique<UrlDecode>());
+
+  // test_data is the result of URL-encoding the string '<><><><><><>' twice.
+  std::string origin_data = "<><><><><><>";
+  std::string_view test_data = "%253c%253e%253c%253e%253c%253e%253c%253e%253c%253e%253c%253e";
+
+  Common::Variant data = test_data;
+  Common::EvaluateResults::Element transform_buffer{data, ""};
+  Variable::Args variable(std::string("test"), false, false);
+  bool ret;
+  for (const auto& transformation : trans) {
+    ret = transformation->evaluate(*t_, &variable, transform_buffer);
+  }
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(std::get<std::string_view>(transform_buffer.variant_), origin_data);
+}
+
+// issues #24
+TEST_F(CacheTest, duplicateArgsDifferentTrans) {
+  std::vector<std::unique_ptr<Transformation::TransformBase>> trans1;
+  trans1.push_back(std::make_unique<UrlDecode>());
+  trans1.push_back(std::make_unique<HtmlEntityDecode>());
+
+  std::vector<std::unique_ptr<Transformation::TransformBase>> trans2;
+  trans2.push_back(std::make_unique<HtmlEntityDecode>());
+
+  // test_data is the HTML entity encoded and URL encoded form of '<><><><><>'.
+  std::string_view test_data =
+      "%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b";
+
+  Common::Variant data1 = test_data;
+  Common::EvaluateResults::Element transform_buffer1{data1, ""};
+  Variable::Args variable(std::string("test"), false, false);
+  bool ret1;
+  for (const auto& tran : trans1) {
+    ret1 = tran->evaluate(*t_, &variable, transform_buffer1);
+  }
+  EXPECT_TRUE(ret1);
+
+  Common::Variant data2 = test_data;
+  Common::EvaluateResults::Element transform_buffer2{data2, ""};
+  bool ret2;
+  for (const auto& tran : trans2) {
+    ret2 = tran->evaluate(*t_, &variable, transform_buffer2);
+  }
+  EXPECT_FALSE(ret2);
+  EXPECT_NE(std::get<std::string_view>(transform_buffer1.variant_),
+            std::get<std::string_view>(transform_buffer2.variant_));
+}
+
+// namespace Transformation
 } // namespace Transformation
 } // namespace Wge
