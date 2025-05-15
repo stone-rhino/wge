@@ -85,16 +85,16 @@ public:
     std::string_view protocol_;
   };
 
-  // used by transform_cache_'s outer unordered_map
+  // Used by transform_cache_'s outer unordered_map
   struct StringViewPtrHash {
-    size_t operator()(const std::string_view& v) const noexcept {
+    size_t operator()(std::string_view v) const noexcept {
       return std::hash<const void*>()(v.data()) ^ std::hash<size_t>()(v.size());
     }
   };
 
-  // used by transform_cache_'s outer unordered_map
+  // Used by transform_cache_'s outer unordered_map
   struct StringViewPtrEqual {
-    bool operator()(const std::string_view& lhs, const std::string_view& rhs) const noexcept {
+    bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
       return lhs.data() == rhs.data() && lhs.size() == rhs.size();
     }
   };
