@@ -21,11 +21,11 @@
 #include <gtest/gtest.h>
 
 #include "engine.h"
+#include "transformation/html_entity_decode.h"
 #include "transformation/lowercase.h"
 #include "transformation/url_decode.h"
-#include "transformation/html_entity_decode.h"
-#include "variable/tx.h"
 #include "variable/args.h"
+#include "variable/tx.h"
 
 namespace Wge {
 namespace Transformation {
@@ -99,11 +99,11 @@ TEST_F(CacheTest, notHitWithLessThanThreshold) {
   EXPECT_NE(result.data(), result2.data());
 }
 
-// issues #24
+// Issues #24
 TEST_F(CacheTest, getDuplicateArgsCache) {
   std::unique_ptr<Transformation::TransformBase> url_trans = std::make_unique<UrlDecode>();
 
-  // first_test_data is ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' after being urlencoded.
+  // First_test_data is ' aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' after being urlencoded.
   std::string_view first_origin = " aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   std::string_view first_test_data = "%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   Common::Variant first_data = first_test_data;
@@ -114,7 +114,7 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   EXPECT_TRUE(ret);
   EXPECT_EQ(std::get<std::string_view>(first_transform_buffer.variant_), first_origin);
 
-  // second_test_data is ' bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' after being urlencoded.
+  // Second_test_data is ' bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' after being urlencoded.
   std::string_view second_origin = " bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   std::string_view second_test_data = "%20bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   Common::Variant second_data = second_test_data;
@@ -126,13 +126,13 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   EXPECT_EQ(std::get<std::string_view>(second_transform_buffer.variant_), second_origin);
 }
 
-// issues #24
+// Issues #24
 TEST_F(CacheTest, executeDuplicateTransformation) {
   std::vector<std::unique_ptr<Transformation::TransformBase>> trans;
   trans.push_back(std::make_unique<UrlDecode>());
   trans.push_back(std::make_unique<UrlDecode>());
 
-  // test_data is the result of URL-encoding the string '<><><><><><>' twice.
+  // Test_data is the result of URL-encoding the string '<><><><><><>' twice.
   std::string origin_data = "<><><><><><>";
   std::string_view test_data = "%253c%253e%253c%253e%253c%253e%253c%253e%253c%253e%253c%253e";
 
@@ -147,7 +147,7 @@ TEST_F(CacheTest, executeDuplicateTransformation) {
   EXPECT_EQ(std::get<std::string_view>(transform_buffer.variant_), origin_data);
 }
 
-// issues #24
+// Issues #24
 TEST_F(CacheTest, duplicateArgsDifferentTrans) {
   std::vector<std::unique_ptr<Transformation::TransformBase>> trans1;
   trans1.push_back(std::make_unique<UrlDecode>());
@@ -156,7 +156,7 @@ TEST_F(CacheTest, duplicateArgsDifferentTrans) {
   std::vector<std::unique_ptr<Transformation::TransformBase>> trans2;
   trans2.push_back(std::make_unique<HtmlEntityDecode>());
 
-  // test_data is the HTML entity encoded and URL encoded form of '<><><><><>'.
+  // Test_data is the HTML entity encoded and URL encoded form of '<><><><><>'.
   std::string_view test_data =
       "%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b%26lt%3b%26gt%3b";
 
