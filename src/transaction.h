@@ -85,6 +85,20 @@ public:
     std::string_view protocol_;
   };
 
+  // used by transform_cache_'s outer unordered_map
+  struct StringViewPtrHash {
+    size_t operator()(const std::string_view& v) const noexcept {
+      return std::hash<const void*>()(v.data()) ^ std::hash<size_t>()(v.size());
+    }
+  };
+
+  // used by transform_cache_'s outer unordered_map
+  struct StringViewPtrEqual {
+    bool operator()(const std::string_view& lhs, const std::string_view& rhs) const noexcept {
+      return lhs.data() == rhs.data() && lhs.size() == rhs.size();
+    }
+  };
+
 public:
   /**
    * Process the connection info.
@@ -400,8 +414,9 @@ public:
    * @return the transformation cache.
    */
   std::unordered_map<
-      Variable::FullName,
-      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>>&
+      std::string_view,
+      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>,
+      StringViewPtrHash, StringViewPtrEqual>&
   getTransformCache() {
     return transform_cache_;
   }
@@ -519,9 +534,11 @@ private:
   std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
+  // Use the detection variable string_view and the result of the subsequent transformation function as the key, and reimplement the hash function and comparison function of the outer unordered_map based on the address and size of the string_view
   std::unordered_map<
-      Variable::FullName,
-      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>>
+      std::string_view,
+      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>,
+      StringViewPtrHash, StringViewPtrEqual>
       transform_cache_;
   bool init_cookies_{false};
   std::unordered_map<std::string_view, std::string_view> cookies_;
