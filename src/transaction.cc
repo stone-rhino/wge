@@ -29,6 +29,7 @@
 #include "common/log.h"
 #include "common/try.h"
 #include "engine.h"
+#include "variable/variables_include.h"
 
 namespace Wge {
 const Transaction::RandomInitHelper Transaction::random_init_helper_;
@@ -476,6 +477,22 @@ void Transaction::removeRule(
 void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
     const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {}
+
+void Transaction::pushMatchedVariable(const Variable::VariableBase* variable,
+                                      Common::EvaluateResults::Element&& result) {
+  // Fixes #27
+  // When the MATCHED_VARS, MATCHED_VARS_NAMES, MATCHED_VAR,MATCHED_VAR_NAME  are evaluated, the
+  // operators should not automatically store the matched variables again.
+  std::string_view var_main_name = variable->mainName();
+  if (var_main_name == Variable::MatchedVars::main_name_ ||
+      var_main_name == Variable::MatchedVarsNames::main_name_ ||
+      var_main_name == Variable::MatchedVar::main_name_ ||
+      var_main_name == Variable::MatchedVarName::main_name_) [[unlikely]] {
+    return;
+  }
+
+  matched_variables_.emplace_back(variable, std::move(result));
+}
 
 void Transaction::initUniqueId() {
   // Generate a unique id for the transaction.

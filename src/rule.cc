@@ -131,10 +131,10 @@ bool Rule::evaluate(Transaction& t) const {
 
       // Evaluate the operator
       variable_matched = evaluateOperator(t, variable_value.variant_);
-      t.pushMatchedVariable(var.get(), result.move(i));
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
+        t.pushMatchedVariable(var.get(), result.move(i));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),
@@ -341,10 +341,10 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // Evaluate the operator
       bool variable_matched = evaluateOperator(t, variable_value.variant_);
-      t.pushMatchedVariable(var.get(), result.move(i));
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
+        t.pushMatchedVariable(var.get(), result.move(i));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),

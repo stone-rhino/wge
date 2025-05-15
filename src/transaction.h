@@ -396,9 +396,7 @@ public:
    * @param result the result of the matched variable.
    */
   void pushMatchedVariable(const Variable::VariableBase* variable,
-                           Common::EvaluateResults::Element&& result) {
-    matched_variables_.emplace_back(variable, std::move(result));
-  }
+                           Common::EvaluateResults::Element&& result);
 
   /**
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).

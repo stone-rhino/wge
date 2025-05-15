@@ -135,10 +135,10 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \
-        logdata:'%{MATCHED_VAR_NAME}=%{MATCHED_VAR} %{MATCHED_VARS_NAMES}=%{MATCHED_VARS}', \
+        logdata:'%{MATCHED_VARS_NAMES}=%{MATCHED_VARS} %{MATCHED_VAR_NAME}=%{MATCHED_VAR}', \
         setvar:tx.test=+1")";
 
-    Engine engine(spdlog::level::off);
+    Engine engine(spdlog::level::trace);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();
@@ -149,7 +149,8 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
     EXPECT_EQ(std::get<int>(t->getVariable("test")), 4);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
-    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:test=2 TX:foo2=bar123");
+    // The first matched variable is TX:foo3, and last matched variable is TX:foo4.
+    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo3=bar TX:foo4=bar");
   }
 
   // Test that the except collection is won't be evaluated.

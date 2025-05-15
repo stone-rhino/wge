@@ -36,7 +36,7 @@ public:                                                                         
   FullName fullName() const override { return {main_name_, sub_name_}; }                           \
   std::string_view mainName() const override { return main_name_; }                                \
                                                                                                    \
-private:                                                                                           \
+public:                                                                                            \
   static constexpr std::string_view main_name_{#name};
 
 namespace Wge {
