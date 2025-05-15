@@ -87,7 +87,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test data");
   }
 
-  // deleting all backslashes [\]
+  // Deleting all backslashes [\]
   {
     std::string data = R"(this is a \test\ \data\)";
     std::string result;
@@ -96,7 +96,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test data");
   }
 
-  // deleting all double quotes ["]
+  // Deleting all double quotes ["]
   {
     std::string data = R"(this is a \"test\ \"data\)";
     std::string result;
@@ -105,7 +105,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test data");
   }
 
-  // deleting all single quotes [']
+  // Deleting all single quotes [']
   {
     std::string data = R"(this is a \"test'\ \"data'\)";
     std::string result;
@@ -114,7 +114,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test data");
   }
 
-  // deleting all carets [^]
+  // Deleting all carets [^]
   {
     std::string data = R"(this is a \"te^st'\ \"da^ta'\)";
     std::string result;
@@ -123,7 +123,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test data");
   }
 
-  // deleting spaces before a slash /
+  // Deleting spaces before a slash /
   {
     std::string data = R"(this is a \"te^st'\           /\"da^ta'\)";
     std::string result;
@@ -132,7 +132,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test/data");
   }
 
-  // deleting spaces before an open parentesis [(]
+  // Deleting spaces before an open parentesis [(]
   {
     std::string data = R"(this is a \"te^st'\           /          (\"da^ta'\)";
     std::string result;
@@ -141,7 +141,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test/(data");
   }
 
-  // replacing all commas [,] and semicolon [;] into a space
+  // Replacing all commas [,] and semicolon [;] into a space
   {
     std::string data = R"(this is a \"te^st'\           /          (,\"da^t;a'\)";
     std::string result;
@@ -150,7 +150,7 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
-  // replacing all multiple spaces (including tab, newline, etc.) into one space
+  // Replacing all multiple spaces (including tab, newline, etc.) into one space
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a'\\";
     std::string result;
@@ -159,13 +159,23 @@ TEST_F(TransformationTest, cmdLine) {
     EXPECT_EQ(result, "this is a test/( dat a");
   }
 
-  // transform all characters to lowercase
+  // Transform all characters to lowercase
   {
     std::string data = "this is a \\\"te^st'\\           /          (,\\\"da^t;\t\r\n  a_HELLO'\\";
     std::string result;
     bool ret = cmd_line.evaluate(data, result);
     EXPECT_TRUE(ret);
     EXPECT_EQ(result, "this is a test/( dat a_hello");
+  }
+
+  // Deleting all double quotes ["] and deleting spaces before a slash /
+  {
+    std::string data = R"(BX4;HyzokkcX "/fQq;AY      V
+b)";
+    std::string result;
+    bool ret = cmd_line.evaluate(data, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "bx4 hyzokkcx/fqq ay v b");
   }
 }
 

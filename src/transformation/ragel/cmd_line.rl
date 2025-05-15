@@ -66,10 +66,10 @@
   *|;
 
   transformation := |*
-    [\\"'^] => skip;
-    [ \t\r\n,;]+'/' => append_slash;
-    [ \t\r\n,;]+'(' => append_open_parenthesis;
+    [ \t\r\n,;\\"'^]+'/' => append_slash;
+    [ \t\r\n,;\\"'^]+'(' => append_open_parenthesis;
     [ \t\r\n,;]+ => append_space;
+    [\\"'^] => skip;
     any => tolower;
   *|;
 }%%
