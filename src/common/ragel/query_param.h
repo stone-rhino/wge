@@ -23,6 +23,8 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+#include <list>
+#include <string>
 
 namespace Wge {
 namespace Common {
@@ -42,6 +44,7 @@ public:
   }
 
 private:
+  std::list<std::string> urldecoded_storage_;
   std::unordered_multimap<std::string_view, std::string_view> query_param_map_;
   std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
       query_param_linked_;
