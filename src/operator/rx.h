@@ -93,7 +93,8 @@ public:
 
     for (const auto& [from, to] : result) {
       Common::EvaluateResults::Element value;
-      value.variant_ = std::string_view(operand_str.data() + from, to - from);
+      value.string_buffer_ = std::string_view(operand_str.data() + from, to - from);
+      value.variant_ = value.string_buffer_;
       t.addCapture(std::move(value));
     }
 
