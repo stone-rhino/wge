@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/docker/Dockerfile'
       - 'vcpkg-configuration.json'
+      - '.github/workflows/build-docker-image.yml'
       - 'vcpkg.json'
   workflow_dispatch:  # 允许手动触发
 
