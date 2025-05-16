@@ -187,9 +187,9 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
   // Set the request body processor
   if (extractor_.request_header_find_) {
     auto content_type = extractor_.request_header_find_("content-type");
-    if (content_type == "application/x-www-form-urlencoded") {
+    if (content_type.starts_with("application/x-www-form-urlencoded")) {
       request_body_processor_ = BodyProcessorType::UrlEncoded;
-    } else if (content_type == "multipart/form-data") {
+    } else if (content_type.starts_with("multipart/form-data")) {
       request_body_processor_ = BodyProcessorType::MultiPart;
     } else {
       request_body_processor_ = BodyProcessorType::UrlEncoded;
