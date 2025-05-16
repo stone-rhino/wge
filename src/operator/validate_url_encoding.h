@@ -47,11 +47,21 @@ public:
 
     // Check that after percent character must be two hexadecimal characters.
     std::string_view input = std::get<std::string_view>(operand);
-    for (size_t i = 0; i < input.size(); ++i) {
-      if (input[i] == '%' && i + 2 < input.size()) {
+    size_t len = input.size();
+    for (size_t i = 0; i < len; ++i) {
+      if (input[i] == '%') {
+
+        // If there are less than two characters after '%', it is not a valid URL encoding (for
+        // example, it ends with "%2" or "%") and is considered illegal.
+        if (i + 2 >= len) {
+          return true;
+        }
+
         if (!::isxdigit(input[i + 1]) || !::isxdigit(input[i + 2])) {
           return true;
         }
+
+        i += 2;
       }
     }
 
