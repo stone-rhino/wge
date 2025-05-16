@@ -1,0 +1,20 @@
+name: PR Check
+
+on:
+  pull_request:
+
+    paths-ignore:
+      - '**.md'
+      - '.github/docker/**'
+      - 'docs/**'
+  # push:
+
+  #   paths-ignore:
+  #     - '**.md'
+  #     - '.github/docker/**'
+  #     - 'docs/**'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  pr_build:
+    uses: ./.github/workflows/test.yml

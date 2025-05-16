@@ -9,259 +9,103 @@ on:
     # secrets:
     #   GITHUB_TOKEN:
     #     required: true
+  workflow_dispatch:  # 允许手动触发
+
+
 
 jobs:
-  common-steps:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+  build-and-test:
+    runs-on: ubuntu-latest
     env:
-      ACTIONS_RUNNER_DEBUG: true
-      ANTLR4_JAR_CACHE: /home/runner/antlr-4.13.2-complete.jar
-      ANTLR4_JAR_PATH: /usr/local/lib/antlr-4.13.2-complete.jar
-      APT_CACHE: /home/runner/apt
-      VCPKG_CACHE: /home/runner/vcpkg
+      ACTIONS_RUNNER_DEBUG: true  
+    container:
+      image: ghcr.io/${{ github.repository }}/wge-build:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - uses: actions/checkout@v4
+      #如果镜像存在相同项目 
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # 
+          fetch-depth: 1
           
-      # 查看目录结构
-      - name: Directory Structure
+      - name: debug cache
         run: |
-          echo "::group::Directory structure"
+          echo "::group::Debug cache information"
+          ls  -lh ./
+          #ls -tlh ./build/release/vcpkg_installed/
+          du -sh /opt/vcpkg 
+          whoami
           echo "Current directory: $(pwd)"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          echo "Directory structure:"
-          ls -tlh
-          ls ../ -tlh
-          git log -n 5
-          echo "::endgroup::"
-  
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-  
-      - name: Cache system packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/apt/archives
-            /home/runner/apt
-            $APT_CACHE
-            
-          key: ${{ runner.os }}-sys-pkgs-
-          restore-keys: |
-            ${{ runner.os }}-sys-pkgs-
-  
-      - name: Install build tools
-        run: |
-          echo "::group::Install system dependencies"
-          echo "Current dir: $(pwd)"
-          echo "Workspace: $GITHUB_WORKSPACE"
-          echo "APT_CACHE: $APT_CACHE"
-          if [ ! -d "$APT_CACHE" ]; then
-            mkdir -p "$APT_CACHE"    
-          fi
-  
-          sudo apt-get update -o Dir::Cache::archives="$APT_CACHE" || true
-          sudo apt-get install -y --no-install-recommends \
-            -o Dir::Cache::archives="$APT_CACHE" \
-            gcc-13 g++-13 wget make automake ragel zip \
-            libyajl-dev liblzma-dev libxml2 libxml2-dev \
-            libcurl4-openssl-dev libpcre3 libpcre3-dev || \
-            (echo "Package installation failed" && exit 1)
-
-          echo "APT_CACHE: $APT_CACHE"
-          ls -tlh $APT_CACHE
-
-          echo "APT_CACHE contents:"
-          sudo chown -R runner:docker $APT_CACHE
-          sudo chmod -R 755 $APT_CACHE
-          sudo chmod 644 $APT_CACHE/*
-          ls -tlh $APT_CACHE
+          echo "Home directory: $HOME"
+          git config --global --add safe.directory /__w/wge/wge
+          mkdir -p $HOME/.cache/
+          ln -s /root/.cache/vcpkg $HOME/.cache/vcpkg
+          du -sh ~/.cache/vcpkg/
+          du -sh /root/.cache/vcpkg/
           echo "::endgroup::"
           
-
-
-          echo "::group::Verify installations"
-          echo "GCC version: $(g++-13 --version | head -n1)"
-          echo "Ragel version: $(ragel -v)"
-          echo "Make version: $(make --version | head -n1)"
-          echo "::endgroup::"
-  
-      # Check Java environment
-      - name: Check Java environment
+      - name: Update submodule
         run: |
-          echo "::group::Check Java environment"
-          echo "Checking Java installation..."
-          java -version
-          javac -version
-          echo "Java environment check completed."
+          echo "::group::Updating submodules"
+          git submodule update --init
           echo "::endgroup::"
-  
-      - name: Cache ANTLR4
-        id: cache-antlr4
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/antlr-4.13.2-complete.jar
-          key: ${{ runner.os }}-antlr-4.13.2
-          restore-keys: |
-            ${{ runner.os }}-antlr-4.13.2
-            ${{ runner.os }}-antlr-
-  
-      # Install ANTLR4
+
       - name: Install ANTLR4
         run: |
           echo "::group::Install ANTLR4"
-          echo "ANTLR4_JAR_CACHE: $ANTLR4_JAR_CACHE"
-          
-          if [ ! -f $ANTLR4_JAR_CACHE ]; then
-            curl -o $ANTLR4_JAR_CACHE https://www.antlr.org/download/antlr-4.13.2-complete.jar
-          fi
-  
-          echo "Checking ANTLR4 cache..."
-          if [ -f $ANTLR4_JAR_CACHE ]; then
-            echo "ANTLR4 cache found."
-            sudo cp $ANTLR4_JAR_CACHE $ANTLR4_JAR_PATH
-          else
-            echo "ANTLR4 cache not found."
-            exit 1
-          fi
-          ls $ANTLR4_JAR_CACHE -tlh
-          echo "Cache check completed."
-  
-          echo 'export CLASSPATH=".:$ANTLR4_JAR_PATH:$CLASSPATH"' | sudo tee -a /etc/profile
-          echo 'alias antlr4='\''java -Xmx500M -cp "$ANTLR4_JAR_PATH":$CLASSPATH" org.antlr.v4.Tool'\''' | sudo tee -a /etc/profile
-          echo 'alias grun='\''java -Xmx500M -cp "$ANTLR4_JAR_PATH:$CLASSPATH" org.antlr.v4.gui.TestRig'\''' | sudo tee -a /etc/profile
-          source /etc/profile
+          source /etc/profile || true
+          antlr4 || true
           export
           cat /etc/profile
           echo "ANTLR4 installation completed."
           echo "::endgroup::"
-      
-      # Update submodule
-      - name: Update submodule
-        run: |
-          echo "::group::Update submodule"
-          git submodule update --init
-          ls -tlh
-          echo "::endgroup::"
-  
-      - name: Check file permissions
-        run: |
-          echo "::group::Check file permissions"
-          cat /proc/cpuinfo
-          free
-          ls -l /home/runner/work/wge/wge/vcpkg.json
-          cat /home/runner/work/wge/wge/vcpkg.json
-          echo "vcpkg.json hash: ${{ hashFiles('vcpkg.json') }}"
-          find . -name vcpkg.json -exec sha1sum {} \;
-          echo "::endgroup::"
-  
-      - name: Cache vcpkg
-        id: cache-vcpkg
-        uses: actions/cache@v4
-        with:
-          path: |
-            build/release/vcpkg_installed
-            # /home/runner/vcpkg
 
-            ~/.cache/vcpkg/
-  
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg- 
-  
-      - name: Debug cache
-        run: |
-          echo "::group::Debug cache"
-          echo "Cache hit status: ${{ steps.cache-vcpkg.outputs.cache-hit }}"
-          if [ "${{ steps.cache-vcpkg.outputs.cache-hit }}" == "true" ]; then
-            echo "Cache hit!"
-          else
-            echo "Cache miss!"
-          fi
-          if [ -d "$VCPKG_CACHE" ]; then
-            echo "Vcpkg directory exists."
-            du -sh $VCPKG_CACHE/
-            echo "$VCPKG_CACHE directory: "
-            ls  $VCPKG_CACHE -tlh   
-            ls  /home/runner/vcpkg/downloads -tlh
-          else
-            echo "Vcpkg directory does not exist."
-          fi
-
-
-          echo "ls /home/runner/ -tlh"
-          ls /home/runner/ -tlh
-          pwd 
-          echo "::endgroup::"
-  
-      # Setup vcpkg
-      - name: Setup vcpkg
-        run: |
-          echo "::group::Setup vcpkg"
-          echo "Current directory:"
-          ls -tlh
-          pwd
-          # 仅在 vcpkg 目录不存在时克隆（避免覆盖缓存）
-          if [ ! -d "$VCPKG_CACHE" ]; then
-            git clone https://github.com/microsoft/vcpkg.git $VCPKG_CACHE    
-          fi
-          $VCPKG_CACHE/bootstrap-vcpkg.sh
-          echo "$VCPKG_CACHE" >> $GITHUB_PATH
-          #打印当前目录下的文件
-          echo "Current directory:"
-          ls -tlh
-          pwd
-          echo "::endgroup::"
-  
-      # Configure CMake
       - name: Configure CMake
-        run:  |
-            echo "::group::CMake configuration"
-            echo "Workspace: $GITHUB_WORKSPACE"
-            set -x
-            export VCPKG_ROOT="$VCPKG_CACHE"
-            export VCPKG_DEFAULT_TRIPLET=x64-linux
-            cmake --preset=release 
-            echo "::endgroup::"
-      
-      #cache modsecurity
-      - name: cache modsecurity
-        id: cache-modsecurity
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{github.workspace}}/benchmarks/modsecurity/modsecurity/build
-            ${{github.workspace}}/benchmarks/modsecurity/modsecurity/install
-          key: ${{ runner.os }}-modsecurity-${{ hashFiles('benchmarks/modsecurity/modsecurity/**') }}
-          restore-keys: |
-            ${{ runner.os }}-modsecurity- 
-  
-      - name: Build
-        working-directory: ${{github.workspace}}
         run: |
-          echo "::group::Build details"
-          echo "Current directory: $(pwd)"
-          echo "Build directory contents:"
-          ls -tlh build/release
+          echo "::group::Configuring CMake"
+          export VCPKG_ROOT="/opt/vcpkg"
+          export VCPKG_DEFAULT_TRIPLET=x64-linux
+          cmake --preset=release
+          echo "Environment variables:"
+          env
+          echo "::endgroup::"
+
+      - name: Build
+        run: |
+          echo "::group::Building project"
           cmake --build build/release -t wge test --verbose
           echo "::endgroup::"
-      
-      # Run tests
+
       - name: Run tests
-        working-directory: ${{github.workspace}}
         run: |
           echo "::group::Running tests"
-          set -e
-          ./build/release/test/test || (echo "Tests failed. Check logs for details." && exit 1)
-          echo  ANTLR4_JAR_CACHE: $ANTLR4_JAR_CACHE
-          ls $ANTLR4_JAR_CACHE -tlh
+          ./build/release/test/test
           echo "::endgroup::"
+
+      - name: Upload build artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build/release/CMakeFiles/CMakeOutput.log
+            build/release/CMakeFiles/CMakeError.log
+            build/release/Testing/Temporary/LastTest.log
+          retention-days: 7
+      
+      # # Run tests
+      # - name: Run tests
+      #   working-directory: ${{github.workspace}}
+      #   run: |
+      #     echo "::group::Running tests"
+      #     set -e
+      #     ./build/release/test/test || (echo "Tests failed. Check logs for details." && exit 1)
+      #     echo  ANTLR4_JAR_CACHE: $ANTLR4_JAR_CACHE
+      #     ls $ANTLR4_JAR_CACHE -tlh
+      #     echo "::endgroup::"
   
       # # Run benchmarks
       # - name: Run benchmarks
