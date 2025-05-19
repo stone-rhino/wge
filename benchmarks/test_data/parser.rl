@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <algorithm>
 
 #ifndef ENABLE_DEBUG_LOG
 #define ENABLE_DEBUG_LOG 0
@@ -30,6 +31,7 @@
     http_info.clear();
     header_name_buffer = {};
     header_value_buffer = {};
+    lower_header_name_buffer.clear();
     body_len = 0;
   }
 
@@ -75,7 +77,9 @@
 
   action request_header_name_end {
     header_name_buffer = std::string_view(header_name_buffer.data(), p - header_name_buffer.data());
-    DEBUG_LOG(std::format("request_header_name_end:{}",header_name_buffer));
+    lower_header_name_buffer.resize(header_name_buffer.size());
+    std::transform(header_name_buffer.begin(), header_name_buffer.end(), lower_header_name_buffer.begin(), ::tolower);
+    DEBUG_LOG(std::format("request_header_name_end:{}",lower_header_name_buffer));
   }
 
   action request_header_value_start {
@@ -85,9 +89,8 @@
 
   action request_header_value_end {
     header_value_buffer = std::string_view(header_value_buffer.data(), p - header_value_buffer.data());
-    http_info.request_headers_.emplace(header_name_buffer, header_value_buffer);
-    if(header_name_buffer == "Content-Length" || 
-       header_name_buffer == "content-length") {
+    http_info.request_headers_.emplace(lower_header_name_buffer, header_value_buffer);
+    if(lower_header_name_buffer == "content-length") {
       body_len = std::stoul(std::string(header_value_buffer));
     }
     DEBUG_LOG(std::format("request_header_value_end:{}",header_value_buffer));
@@ -134,6 +137,8 @@
 
   action response_header_name_end {
     header_name_buffer = std::string_view(header_name_buffer.data(), p - header_name_buffer.data());
+    lower_header_name_buffer.resize(header_name_buffer.size());
+    std::transform(header_name_buffer.begin(), header_name_buffer.end(), lower_header_name_buffer.begin(), ::tolower);
     DEBUG_LOG(std::format("response_header_name_end:{}",header_name_buffer));
   }
 
@@ -144,9 +149,8 @@
 
   action response_header_value_end {
     header_value_buffer = std::string_view(header_value_buffer.data(), p - header_value_buffer.data());
-    http_info.response_headers_.emplace(header_name_buffer, header_value_buffer);
-    if(header_name_buffer == "Content-Length" || 
-       header_name_buffer == "content-length") {
+    http_info.response_headers_.emplace(lower_header_name_buffer, header_value_buffer);
+    if(lower_header_name_buffer == "content-length") {
       body_len = std::stoul(std::string(header_value_buffer));
     }
     DEBUG_LOG(std::format("response_header_value_end:{}",header_value_buffer));
@@ -225,6 +229,7 @@ static void parse(const std::string& input, std::vector<HttpInfo>& result) {
   HttpInfo http_info;
   std::string_view header_name_buffer;
   std::string_view header_value_buffer;
+  std::string lower_header_name_buffer;
   size_t body_len = 0;
 
   %% write init;
