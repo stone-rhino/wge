@@ -293,12 +293,13 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * add a string that is captured by the operator.
+   * Sets a string that is captured by the operator.
+   * @param index the index of the matched string. The range is [0, 99].
    * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void addCapture(Common::EvaluateResults::Element&& value);
+  void setCapture(size_t index, Common::EvaluateResults::Element&& value);
 
   /**
    * Get the captured string that is captured by the operator.

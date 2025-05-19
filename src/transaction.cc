@@ -412,9 +412,12 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::addCapture(Common::EvaluateResults::Element&& value) {
-  if (captured_.size() < max_capture_size_) [[likely]] {
-    captured_.emplace_back(std::move(value));
+void Transaction::setCapture(size_t index, Common::EvaluateResults::Element&& value) {
+  if (index < max_capture_size_) [[likely]] {
+    if (captured_.size() <= index) {
+      captured_.resize(index + 1);
+    }
+    captured_[index] = std::move(value);
   }
 }
 
