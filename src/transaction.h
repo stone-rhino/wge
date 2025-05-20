@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "common/evaluate_result.h"
+#include "common/ragel/json.h"
 #include "common/ragel/multi_part.h"
 #include "common/ragel/query_param.h"
 #include "common/ragel/xml.h"
@@ -455,6 +456,8 @@ public:
 
   const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
 
+  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
+
   const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
 
   const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
@@ -563,6 +566,7 @@ private:
   Common::Ragel::QueryParam body_query_param_;
   Common::Ragel::MultiPart body_multi_part_;
   Common::Ragel::Xml body_xml_;
+  Common::Ragel::Json body_json_;
   std::string req_body_error_msg_;
 };
 

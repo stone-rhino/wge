@@ -230,6 +230,7 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
         body_xml_.init(body.front());
       } break;
       case BodyProcessorType::Json: {
+        body_json_.init(body.front());
       } break;
       default: {
         UNREACHABLE();
