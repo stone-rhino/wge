@@ -803,15 +803,63 @@ TEST_F(TransformationTest, sqlHexDecode) {
 }
 
 TEST_F(TransformationTest, trimLeft) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const TrimLeft trim_left;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim_left.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim_left.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test \t\n\r\f\v\x20");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim_left.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, trimRight) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const TrimRight trim_right;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim_right.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim_right.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "\t\n\r\f\v\x20 This is a test");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim_right.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, trim) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const Trim trim;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, upperCase) {
