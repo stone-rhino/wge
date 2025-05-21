@@ -18,27 +18,18 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "detect_xss.h"
+#include "json.h"
 
-#include <libinjection.h>
+#include <json.h>
 
 namespace Wge {
-namespace Operator {
-bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
-  if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-    return false;
-  }
-
-  std::string_view data = std::get<std::string_view>(operand);
-  bool is_xss = libinjection_xss(data.data(), data.size()) != 0;
-  if (is_xss) {
-    Common::EvaluateResults::Element value;
-    value.string_buffer_ = data;
-    value.variant_ = value.string_buffer_;
-    t.setCapture(0, std::move(value));
-  }
-
-  return is_xss;
+namespace Common {
+namespace Ragel {
+void Json::init(std::string_view json_str) {
+  key_value_map_.reserve(32);
+  key_value_linked_.reserve(32);
+  parseJson(json_str, key_value_map_, key_value_linked_);
 }
-} // namespace Operator
+} // namespace Ragel
+} // namespace Common
 } // namespace Wge

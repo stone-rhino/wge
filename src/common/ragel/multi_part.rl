@@ -145,7 +145,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
 
   action start_boundary {
     MULTI_PART_LOG("start_boundary");
-    boundary_start = p - 2;
+    boundary_start = p;
   }
 
   action end_boundary {
@@ -158,15 +158,14 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     }
   }
 
-  boundary = "--" [^ \t\r\n\-]+ >start_boundary %end_boundary;
+  boundary = '--' [^ \t\r\n]+ >start_boundary %end_boundary;
   data_before = [^\-] >error_data_before;
-  data_after = any >error_data_after;
 
   lf = '\n' >error_lf_line;
   crlf = '\r\n';
 
   main := 
-    ((data_before | boundary ) (("--" data_after?) %{ MULTI_PART_LOG("multipart end"); fbreak; })? (lf | crlf) @{ MULTI_PART_LOG("fcall headers"); fcall headers;})+;
+    ((data_before | boundary ) (lf | crlf) @{ MULTI_PART_LOG("fcall headers"); fcall headers;})+;
 
   headers := |*
     # Header folding
@@ -282,8 +281,9 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
   *|;
 
   body := |*
-    "--" [^ \t\r\n\-]+ => { 
-      if(boundary == std::string_view(ts, te - ts)) {
+    "--" [^ \t\r\n]+ => {
+      std::string_view token = std::string_view(ts + 2, te - ts - 2);
+      if(token.starts_with(boundary)) {
         if(filename.empty()) {
           if(value_len > 0) {
             MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
@@ -296,12 +296,25 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
           name_filename_linked.emplace_back(name, filename);
         }
 
-        parse_complete = true;
+        if(token.size() == boundary.size()){
+          MULTI_PART_LOG("body fret");
+          p = ts;
+          fhold;
+          fret;
+        } else if (token.size() == boundary.size() + 2 && token.ends_with("--")) {
+          if(te != eof) {
+            MULTI_PART_LOG("error_data_after");
+            error_code.set(MultipartStrictError::ErrorType::DataAfter);
+            fbreak;
+          }
 
-        MULTI_PART_LOG("body fret");
-        p = ts;
-        fhold;
-        fret;
+          MULTI_PART_LOG("multipart end"); 
+          parse_complete = true;
+        } else{
+          MULTI_PART_LOG("error_data_after");
+          error_code.set(MultipartStrictError::ErrorType::DataAfter);
+          fbreak;
+        }
       }
     };
     any => { ++value_len; };
@@ -369,6 +382,7 @@ static void parseMultiPart(std::string_view input,
   %% write exec;
 
   if(!parse_complete && !error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+    MULTI_PART_LOG("parse not complete");
     error_code.set(MultipartStrictError::ErrorType::InvalidPart);
   }
 

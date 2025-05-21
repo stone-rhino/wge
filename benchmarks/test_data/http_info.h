@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <unordered_map>
 
@@ -7,12 +8,12 @@ struct HttpInfo {
   std::string_view request_method_;
   std::string_view request_uri_;
   std::string_view request_version_;
-  std::unordered_multimap<std::string_view, std::string_view> request_headers_;
+  std::unordered_multimap<std::string, std::string_view> request_headers_;
   std::vector<std::string_view> request_body_;
   std::string_view response_protocol_;
   std::string_view response_status_code_;
   std::string_view response_status_text_;
-  std::unordered_multimap<std::string_view, std::string_view> response_headers_;
+  std::unordered_multimap<std::string, std::string_view> response_headers_;
   std::vector<std::string_view> response_body_;
 
   void clear() {

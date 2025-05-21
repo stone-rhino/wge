@@ -52,6 +52,10 @@ public:
       body_query_params = &t.getBodyMultiPart().getNameValueLinked();
       body_query_params_map = &t.getBodyMultiPart().getNameValue();
       break;
+    case BodyProcessorType::Json:
+      body_query_params = &t.getBodyJson().getKeyValuesLinked();
+      body_query_params_map = &t.getBodyJson().getKeyValues();
+      break;
     default:
       body_query_params = &t.getBodyQueryParam().getLinked();
       body_query_params_map = &t.getBodyQueryParam().get();

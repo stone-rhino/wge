@@ -18,27 +18,32 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "detect_xss.h"
+#pragma once
 
-#include <libinjection.h>
+#include <string_view>
+#include <vector>
+#include <unordered_map>
 
 namespace Wge {
-namespace Operator {
-bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
-  if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-    return false;
+namespace Common {
+namespace Ragel {
+class Json {
+public:
+  void init(std::string_view json_str);
+
+public:
+  const std::unordered_multimap<std::string_view, std::string_view>& getKeyValues() const { return key_value_map_; }
+  const std::vector<std::pair<std::string_view, std::string_view>>& getKeyValuesLinked() const { return key_value_linked_; }
+
+  void clear() {
+    key_value_map_.clear();
+    key_value_map_.clear();
   }
 
-  std::string_view data = std::get<std::string_view>(operand);
-  bool is_xss = libinjection_xss(data.data(), data.size()) != 0;
-  if (is_xss) {
-    Common::EvaluateResults::Element value;
-    value.string_buffer_ = data;
-    value.variant_ = value.string_buffer_;
-    t.setCapture(0, std::move(value));
-  }
-
-  return is_xss;
-}
-} // namespace Operator
+private:
+  std::unordered_multimap<std::string_view, std::string_view> key_value_map_;
+  std::vector<std::pair<std::string_view, std::string_view>> key_value_linked_;
+};
+} // namespace Ragel
+} // namespace Common
 } // namespace Wge

@@ -50,6 +50,8 @@
     
     main := |*
       WS => skip;
+      '<?' ([^?] | ('?' [^>]))* '?>' => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
+      '<!--' ([^\-] | ('-' [^\-]))*  '-->' => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
       '<' => { XML_LOG("fcall open_tag"); fcall open_tag; };
       any => error;
     *|;
@@ -78,9 +80,17 @@
     tag_value := |*
       WS => skip;
       '</' => { XML_LOG("fnext close_tag"); fnext close_tag; };
+      '<![CDATA[' => { XML_LOG("fcall tag_cdata_value"); fcall tag_cdata_value; };
       '<' => { XML_LOG("fgoto open_tag"); fgoto open_tag; };
       [^<]+ => { XML_LOG(std::format("add tag value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); };
       any => error;
+    *|;
+
+    tag_cdata_value := |*
+      WS => skip;
+      ']]>' => { XML_LOG("fret tag_cdata_value"); fret; };
+      [^\]]+ => { XML_LOG(std::format("add tag cdata value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); };
+      any => error; 
     *|;
 
     close_tag := |*
