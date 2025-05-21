@@ -192,7 +192,7 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
     } else if (content_type.starts_with("multipart/form-data")) {
       request_body_processor_ = BodyProcessorType::MultiPart;
     } else {
-      request_body_processor_ = BodyProcessorType::UrlEncoded;
+      request_body_processor_ = BodyProcessorType::UnknownFormat;
     }
     // The xml and json processor must be specified by the ctl action.
     // else if (content_type == "application/xml" || content_type == "text/xml") {
@@ -216,23 +216,25 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
     const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
     if (!body.empty() && request_body_processor_.has_value()) {
       switch (request_body_processor_.value()) {
-        {
-        case BodyProcessorType::UrlEncoded: {
-          body_query_param_.init(body.front());
-        } break;
-        case BodyProcessorType::MultiPart: {
-          auto content_type = extractor_.request_header_find_("content-type");
-          body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
-        } break;
-        case BodyProcessorType::Xml:
-          body_xml_.init(body.front());
-          break;
-        case BodyProcessorType::Json:
-          break;
-        default:
-          UNREACHABLE();
-          break;
-        }
+      case BodyProcessorType::UnknownFormat: {
+        // Do nothing
+      } break;
+      case BodyProcessorType::UrlEncoded: {
+        body_query_param_.init(body.front());
+      } break;
+      case BodyProcessorType::MultiPart: {
+        auto content_type = extractor_.request_header_find_("content-type");
+        body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
+      } break;
+      case BodyProcessorType::Xml: {
+        body_xml_.init(body.front());
+      } break;
+      case BodyProcessorType::Json: {
+        body_json_.init(body.front());
+      } break;
+      default: {
+        UNREACHABLE();
+      } break;
       }
     }
   }
@@ -412,9 +414,12 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::addCapture(Common::EvaluateResults::Element&& value) {
-  if (captured_.size() < max_capture_size_) [[likely]] {
-    captured_.emplace_back(std::move(value));
+void Transaction::setCapture(size_t index, Common::EvaluateResults::Element&& value) {
+  if (index < max_capture_size_) [[likely]] {
+    if (captured_.size() <= index) {
+      captured_.resize(index + 1);
+    }
+    captured_[index] = std::move(value);
   }
 }
 
@@ -563,14 +568,15 @@ inline bool Transaction::process(int phase) {
     }
 
     // Do the disruptive action
-    std::optional<bool> disruptive = doDisruptive(*current_rule_, default_action);
-    if (disruptive.has_value() &&
-        engine_.config().rule_engine_option_ != EngineConfig::Option::DetectionOnly) {
-      if (!disruptive.value()) {
-        // Modify the response status code
-        response_line_info_.status_code_ = "403";
+    if (engine_.config().rule_engine_option_ != EngineConfig::Option::DetectionOnly) {
+      std::optional<bool> disruptive = doDisruptive(*current_rule_, default_action);
+      if (disruptive.has_value()) {
+        if (!disruptive.value()) {
+          // Modify the response status code
+          response_line_info_.status_code_ = "403";
+        }
+        return disruptive.value();
       }
-      return disruptive.value();
     }
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched

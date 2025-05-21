@@ -27,6 +27,7 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/wge_install/lib/libwge.a
   COMMAND cmake --install ${BUILD_PATH} --prefix ${CMAKE_CURRENT_BINARY_DIR}/wge_install
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  DEPENDS ${CMAKE_BINARY_DIR}/src/libwge.a
 )
 add_custom_target(wge_install_target
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

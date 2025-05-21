@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "common/evaluate_result.h"
+#include "common/ragel/json.h"
 #include "common/ragel/multi_part.h"
 #include "common/ragel/query_param.h"
 #include "common/ragel/xml.h"
@@ -293,12 +294,13 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * add a string that is captured by the operator.
+   * Sets a string that is captured by the operator.
+   * @param index the index of the matched string. The range is [0, 99].
    * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void addCapture(Common::EvaluateResults::Element&& value);
+  void setCapture(size_t index, Common::EvaluateResults::Element&& value);
 
   /**
    * Get the captured string that is captured by the operator.
@@ -454,6 +456,8 @@ public:
 
   const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
 
+  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
+
   const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
 
   const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
@@ -562,6 +566,7 @@ private:
   Common::Ragel::QueryParam body_query_param_;
   Common::Ragel::MultiPart body_multi_part_;
   Common::Ragel::Xml body_xml_;
+  Common::Ragel::Json body_json_;
   std::string req_body_error_msg_;
 };
 

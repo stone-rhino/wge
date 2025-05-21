@@ -65,10 +65,10 @@ TEST(Common, queryParam) {
     Wge::Common::Ragel::QueryParam query_param;
     query_param.init("a=&b&c=3");
     auto map = query_param.get();
-    EXPECT_EQ(map.size(), 0);
+    EXPECT_EQ(map.size(), 3);
 
     auto linked = query_param.getLinked();
-    EXPECT_EQ(linked.size(), 0);
+    EXPECT_EQ(linked.size(), 3);
   }
 
   {

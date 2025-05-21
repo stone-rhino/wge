@@ -228,7 +228,7 @@ struct AuditLogConfig {
 /**
  * The configuration of the request body processor.
  */
-enum class BodyProcessorType { UrlEncoded, MultiPart, Xml, Json };
+enum class BodyProcessorType { UnknownFormat, UrlEncoded, MultiPart, Xml, Json };
 
 struct MultipartStrictError : public std::bitset<16> {
   enum class ErrorType {

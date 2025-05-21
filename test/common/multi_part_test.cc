@@ -25,34 +25,34 @@
 TEST(Common, multiPart) {
   Wge::Common::Ragel::MultiPart multi_part;
   multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=foo1\r\n"
                   "header1: value1\r\n"
                   "\r\n"
                   "bar1\r\n"
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=foo2\r\n"
                   "header2: value2\r\n"
                   "\r\n"
                   "bar2\r\n"
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=foo3\r\n"
                   "header2: value3\r\n"
                   "\r\n"
                   "bar3\r\n"
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=file1; filename=hello1\r\n"
                   "\r\n"
                   "world\r\n"
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=file2; filename=hello2\r\n"
                   "\r\n"
                   "world\r\n"
-                  "--helloworld\r\n"
+                  "----helloworld\r\n"
                   "content-disposition: form-data; name=file3; filename=hello3\r\n"
                   "\r\n"
                   "world\r\n"
-                  "--helloworld--",
+                  "----helloworld--",
                   3);
   auto error = multi_part.getError();
   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
@@ -108,7 +108,7 @@ TEST(Common, multiPartError) {
   // ErrorType::BoundaryQuoted
   {
     Wge::Common::Ragel::MultiPart multi_part;
-    multi_part.init(R"(multipart/form-data; boundary="--helloworld"\r\n)", "");
+    multi_part.init(R"(multipart/form-data; boundary="--helloworld")", "");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -150,7 +150,7 @@ TEST(Common, multiPartError) {
   // ErrorType::DataBefore
   {
     Wge::Common::Ragel::MultiPart multi_part;
-    multi_part.init(R"(multipart/form-data; boundary=--helloworld)", "aa\r\n--helloworld\r\n");
+    multi_part.init(R"(multipart/form-data; boundary=--helloworld)", "aa\r\n----helloworld\r\n");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -172,11 +172,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=\"hello\"\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--aa");
+                    "----helloworld--aa");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -198,12 +198,12 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=\"hello\";\r\n"
                     " filename=\"hello\"\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -225,11 +225,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\n"
+                    "----helloworld\n"
                     "content-disposition: form-data; name=\"hello\"\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -251,11 +251,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data name=\"hello\"\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -277,11 +277,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=\"hello\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -303,11 +303,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=hello\"\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -329,11 +329,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=hel\"lo\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -355,9 +355,9 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=hello\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -379,7 +379,7 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=hello\r\n"
                     "\r\n"
                     "world\r\n");
@@ -404,12 +404,12 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data;name=hello\r\n"
                     "filename=hello\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--");
+                    "----helloworld--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
@@ -431,19 +431,19 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=file1; filename=hello1\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=file2; filename=hello2\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld\r\n"
+                    "----helloworld\r\n"
                     "content-disposition: form-data; name=file2; filename=hello3\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld--",
+                    "----helloworld--",
                     2);
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
@@ -466,11 +466,11 @@ TEST(Common, multiPartError) {
   {
     Wge::Common::Ragel::MultiPart multi_part;
     multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "--helloworld2\r\n"
+                    "----helloworld2\r\n"
                     "content-disposition: form-data; name=hello\r\n"
                     "\r\n"
                     "world\r\n"
-                    "--helloworld2--");
+                    "----helloworld2--");
     auto error = multi_part.getError();
     EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
     EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));

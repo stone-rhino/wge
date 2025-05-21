@@ -41,6 +41,14 @@ protected:
     <author>Jane Smith</author>
   </book>
 </bookstore>)";
+
+  static constexpr std::string_view xml2_ = R"(<?xml version='1.0' encoding='iso-8859-1'?>
+<methodCall>
+    <methodName>pfsense.exec_php</methodName>
+    <params>
+        <param><![CDATA[<?php system('whoami'); ?>]]></param>
+    </params>
+</methodCall>)";
 };
 
 TEST_F(XmlTest, ragle) {
@@ -60,6 +68,17 @@ TEST_F(XmlTest, ragle) {
   EXPECT_EQ(tag_values[1], "John Doe");
   EXPECT_EQ(tag_values[2], "Advanced XML");
   EXPECT_EQ(tag_values[3], "Jane Smith");
+}
+
+TEST_F(XmlTest, ragle2) {
+  Wge::Common::Ragel::Xml xml_parser;
+  xml_parser.init(xml2_);
+  auto& attr_values = xml_parser.getAttrValues();
+  auto& tag_values = xml_parser.getTagValues();
+  EXPECT_EQ(attr_values.size(), 0);
+  EXPECT_EQ(tag_values.size(), 2);
+  EXPECT_EQ(tag_values[0], "pfsense.exec_php");
+  EXPECT_EQ(tag_values[1], "<?php system('whoami'); ?>");
 }
 
 TEST_F(XmlTest, libxml) {
@@ -121,6 +140,62 @@ TEST_F(XmlTest, libxml) {
                            "    Advanced XML\n"
                            "    Jane Smith\n"
                            "  \n");
+
+  xmlXPathFreeObject(xpath_obj1);
+  xmlXPathFreeObject(xpath_obj2);
+  xmlXPathFreeContext(xpath_ctx);
+  xmlFreeDoc(doc);
+}
+
+TEST_F(XmlTest, libxml2) {
+  std::string xpath1 = "/*";
+  std::string xpath2 = "//@*";
+
+  xmlDocPtr doc = xmlParseMemory(xml2_.data(), xml2_.size());
+  ASSERT_NE(doc, nullptr);
+
+  xmlXPathContextPtr xpath_ctx = xmlXPathNewContext(doc);
+  ASSERT_NE(xpath_ctx, nullptr);
+
+  xmlXPathObjectPtr xpath_obj1 =
+      xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(xpath1.c_str()), xpath_ctx);
+  ASSERT_NE(xpath_obj1, nullptr);
+
+  xmlXPathObjectPtr xpath_obj2 =
+      xmlXPathEvalExpression(reinterpret_cast<const xmlChar*>(xpath2.c_str()), xpath_ctx);
+  ASSERT_NE(xpath_obj2, nullptr);
+
+  std::vector<std::string> tag_values;
+  for (int i = 0; i < xpath_obj1->nodesetval->nodeNr; ++i) {
+    xmlNodePtr node = xpath_obj1->nodesetval->nodeTab[i];
+
+    char* content;
+    content = reinterpret_cast<char*>(xmlNodeGetContent(xpath_obj1->nodesetval->nodeTab[i]));
+    if (content != NULL) {
+      tag_values.emplace_back(content);
+      xmlFree(content);
+    }
+  }
+
+  std::vector<std::string> attr_values;
+  for (int i = 0; i < xpath_obj2->nodesetval->nodeNr; ++i) {
+    xmlNodePtr node = xpath_obj2->nodesetval->nodeTab[i];
+
+    char* content;
+    content = reinterpret_cast<char*>(xmlNodeGetContent(xpath_obj2->nodesetval->nodeTab[i]));
+    if (content != NULL) {
+      attr_values.emplace_back(content);
+      xmlFree(content);
+    }
+  }
+
+  EXPECT_EQ(attr_values.size(), 0);
+  EXPECT_EQ(tag_values.size(), 1);
+  EXPECT_EQ(tag_values[0], "\n"
+                           "    pfsense.exec_php\n"
+                           "    \n"
+                           "        <?php system('whoami'); ?>\n"
+                           "    \n");
 
   xmlXPathFreeObject(xpath_obj1);
   xmlXPathFreeObject(xpath_obj2);

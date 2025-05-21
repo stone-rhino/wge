@@ -69,7 +69,7 @@
   }
 
   key = [^&=]+ >start_key %end_key;
-  value = [^&]+ >start_value %end_value;
+  value = [^&]* >start_value %end_value;
   key_value = key ('=' value)? %add_key_value;
   main := 
     key_value ( '&' key_value )*;
