@@ -347,7 +347,8 @@ TEST_F(TransformationTest, htmlEntityDecode) {
     {"&#x54;his is a test", "This is a test"},
     {"&#84;his is a test", "This is a test"},
     {"&amp; &lt; &gt; &quot; &apos; &nbsp;", "& < > \" '  "},
-    {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"}
+    {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"},
+    {"xss src=&#x6a&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3a&#x61&#x6c&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>","xss src=javascript:alert('XSS')>"}
   };
   // clang-format on
 
@@ -378,11 +379,11 @@ TEST_F(TransformationTest, htmlEntityDecode) {
 
   // Test for not valid html entity with invalid number
   {
-    std::string data = "&#23234234234234;";
+    std::string data = "&#23234234234234;&#x6a";
     std::string result;
     bool ret = html_entity_decode.evaluate(data, result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ(result, data);
+    EXPECT_EQ(result, "&#23234234234234;j");
   }
 }
 
