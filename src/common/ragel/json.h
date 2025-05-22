@@ -20,9 +20,10 @@
  */
 #pragma once
 
+#include <forward_list>
 #include <string_view>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace Wge {
 namespace Common {
@@ -32,17 +33,23 @@ public:
   void init(std::string_view json_str);
 
 public:
-  const std::unordered_multimap<std::string_view, std::string_view>& getKeyValues() const { return key_value_map_; }
-  const std::vector<std::pair<std::string_view, std::string_view>>& getKeyValuesLinked() const { return key_value_linked_; }
+  const std::unordered_multimap<std::string_view, std::string_view>& getKeyValues() const {
+    return key_value_map_;
+  }
+  const std::vector<std::pair<std::string_view, std::string_view>>& getKeyValuesLinked() const {
+    return key_value_linked_;
+  }
 
   void clear() {
     key_value_map_.clear();
     key_value_map_.clear();
+    escape_buffer_.clear();
   }
 
 private:
   std::unordered_multimap<std::string_view, std::string_view> key_value_map_;
   std::vector<std::pair<std::string_view, std::string_view>> key_value_linked_;
+  std::forward_list<std::string> escape_buffer_;
 };
 } // namespace Ragel
 } // namespace Common

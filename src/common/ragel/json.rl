@@ -23,6 +23,8 @@
 #include <string_view>
 #include <vector>
 #include <unordered_map>
+#include <escape_seq_decode.h>
+#include <forward_list>
 
 #ifndef ENABLE_JSON_DEBUG_LOG
 #define ENABLE_JSON_DEBUG_LOG 0
@@ -59,76 +61,86 @@
     }
 
     action add_key {
-      key_buffer = std::string_view(ts + 1, te - ts - 3);
-      value_buffer = {};
-      JSON_LOG(std::format("add_key: {}", key_buffer));
+      key_view = std::string_view(ts + 1, te - ts - 3);
+      std::string key_escape_buffer;
+      if(escapeSeqDecode(key_view, key_escape_buffer)) {
+        escape_buffer.emplace_front(std::move(key_escape_buffer));
+        key_view = escape_buffer.front();
+      }
+      value_view = {};
+      JSON_LOG(std::format("add_key: {}", key_view));
       JSON_LOG("fcall value");
       fcall value;
     }
 
     action add_string_value {
-      value_buffer = std::string_view(ts + 1, te - ts - 2);
-      key_value_map.insert({key_buffer, value_buffer});
-      key_value_linked.emplace_back(key_buffer, value_buffer);
-      JSON_LOG(std::format("add_string_value: {}", value_buffer));
+      value_view = std::string_view(ts + 1, te - ts - 2);
+      std::string value_escape_buffer;
+      if(escapeSeqDecode(value_view, value_escape_buffer)) {
+        escape_buffer.emplace_front(std::move(value_escape_buffer));
+        value_view = escape_buffer.front();
+      }
+      key_value_map.insert({key_view, value_view});
+      key_value_linked.emplace_back(key_view, value_view);
+      JSON_LOG(std::format("add_string_value: {}", value_view));
     }
   
     action skip_object_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
-      JSON_LOG(std::format("skip_object_value: {}", key_buffer));
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
+      JSON_LOG(std::format("skip_object_value: {}", key_view));
       JSON_LOG("fret value");
       fret;
     }
 
     action skip_number_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_number_value: {}", std::string_view(ts, te - ts)));
     }
 
     action skip_boolean_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_boolean_value: {}", std::string_view(ts, te - ts)));
     }
 
     action skip_null_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_null_value: {}", std::string_view(ts, te - ts)));
     }
 
     #####################################################
 
     action skip_array_object_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       square_bracket_count = 0;
-      JSON_LOG(std::format("skip_array_object_value: {}", key_buffer));
+      JSON_LOG(std::format("skip_array_object_value: {}", key_view));
       JSON_LOG("fgoto main");
       fgoto main;
     }
 
     action skip_array_number_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_array_number_value: {}", std::string_view(ts, te - ts)));
       JSON_LOG("fnext skip_array_elemt");
       fnext skip_array_elemt;
     }
 
     action skip_array_boolean_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_array_boolean_value: {}", std::string_view(ts, te - ts)));
       JSON_LOG("fnext skip_array_elemt");
       fnext skip_array_elemt;
     }
 
     action skip_array_null_value {
-      key_value_map.insert({key_buffer, {}});
-      key_value_linked.emplace_back(key_buffer, "");
+      key_value_map.insert({key_view, {}});
+      key_value_linked.emplace_back(key_view, "");
       JSON_LOG(std::format("skip_array_null_value: {}", std::string_view(ts, te - ts)));
       JSON_LOG("fnext skip_array_elemt");
       fnext skip_array_elemt;
@@ -142,7 +154,7 @@
       '}' => skip;
       ',' => skip;
       ']' => skip;
-      '"' [^"]* '":' => add_key;
+      '"' ([^"] | ('\\"'))* '":' => add_key;
       any => error;
     *|;
 
@@ -162,7 +174,7 @@
       'false' => skip_boolean_value;
       'null' => skip_null_value;
       '-'? [0-9]+ '.'? [0-9]* => skip_number_value;
-      '"' [^"]* '"' => add_string_value;
+      '"' ([^"] | ('\\"'))* '"' => add_string_value;
       any => error;
     *|;
 
@@ -187,7 +199,7 @@
       'false' => skip_array_boolean_value;
       'null' => skip_array_null_value;
       '-'? [0-9]+ '.'? [0-9]* => skip_array_number_value;
-      '"' [^"]* '"' => add_string_value;
+      '"' ([^"] | ('\\"'))* '"' => add_string_value;
       any => error;
     *|;
 
@@ -212,7 +224,8 @@
 
 static bool parseJson(std::string_view input, 
     std::unordered_multimap<std::string_view, std::string_view>& key_value_map, 
-    std::vector<std::pair<std::string_view, std::string_view>>& key_value_linked) {
+    std::vector<std::pair<std::string_view, std::string_view>>& key_value_linked,
+    std::forward_list<std::string>& escape_buffer) {
   key_value_map.clear();
   key_value_linked.clear();
 
@@ -224,8 +237,8 @@ static bool parseJson(std::string_view input,
   int top = 0;
   int stack[16];
 
-  std::string_view key_buffer;
-  std::string_view value_buffer;
+  std::string_view key_view;
+  std::string_view value_view;
   bool error = false;
 
   // For supporting infinite nested array, we don't use a stack to save the state,

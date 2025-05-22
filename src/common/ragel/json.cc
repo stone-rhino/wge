@@ -28,7 +28,7 @@ namespace Ragel {
 void Json::init(std::string_view json_str) {
   key_value_map_.reserve(32);
   key_value_linked_.reserve(32);
-  parseJson(json_str, key_value_map_, key_value_linked_);
+  parseJson(json_str, key_value_map_, key_value_linked_, escape_buffer_);
 }
 } // namespace Ragel
 } // namespace Common
