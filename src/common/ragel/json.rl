@@ -118,8 +118,8 @@
       key_value_linked.emplace_back(key_view, "");
       square_bracket_count = 0;
       JSON_LOG(std::format("skip_array_object_value: {}", key_view));
-      JSON_LOG("fgoto main");
-      fgoto main;
+      JSON_LOG("fret array");
+      fret;
     }
 
     action skip_array_number_value {
@@ -161,9 +161,9 @@
     value := |*
       WS => skip;
       '[' => { 
-        JSON_LOG("fcall array");
+        JSON_LOG("fnext array");
         ++square_bracket_count;
-        fcall array;
+        fnext array;
       };
       '}' | ',' => {
         JSON_LOG("fret value");
