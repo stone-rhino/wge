@@ -75,16 +75,29 @@
 
   # prescan
   main := |*
+    SLASH DOT+ [^./] => skip; 
     SLASH DOT DOT => exec_transformation;
     SLASH DOT => exec_transformation;
     SLASH SLASH => exec_transformation;
+    DOT [^./] => skip;
     DOT => exec_transformation_if_start_with_dot;
     any => skip;
   *|;
 
   transformation := |*
+
+    SLASH+ DOT+ [^./] => {
+      *r++ = SLASH;
+      *r++ = '.';
+      fhold;
+    };
     SLASH+ DOT DOT {
-      removeLastDir(r, result.data()); 
+      if (ts == ps ) {
+        *r++ = SLASH;
+      } else {
+        removeLastDir(r, result.data()); 
+      }
+
       NORMALIZE_PATH_LOG(std::format("SLASH+ DOT DOT:{}",std::string_view(result.data(), r - result.data())));
     };
     SLASH+ DOT => { 
@@ -113,7 +126,7 @@
   *|;
 
   transformation_if_start_with_dot := |*
-    DOT SLASH* => {
+    DOT SLASH+ => {
       fgoto transformation;
     };
     DOT DOT => {
