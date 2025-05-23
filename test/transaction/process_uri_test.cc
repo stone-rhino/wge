@@ -152,5 +152,36 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.base_name_buffer_, "ind;?+ex.php");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
+
+  {
+    auto trans1 = engine_.makeTransaction();
+    auto trans2 = engine_.makeTransaction();
+    std::string uri = "//LAJG9Ins%22%3E%3Cscript%3Ealert%28document.domain%29%3C/script%3E/..CFIDE/"
+                      "administrator///index.cfm?cd=cd#cdcd";
+    std::string method = "GET";
+    std::string version = "1.1";
+    std::string request_line = method + " " + uri + " HTTP/" + version;
+    trans1->processUri(uri, method, version);
+    trans2->processUri(request_line);
+    auto request_line_info = trans1->getRequestLineInfo();
+    EXPECT_EQ(request_line_info.method_, method);
+    EXPECT_EQ(request_line_info.uri_raw_, uri);
+    EXPECT_EQ(request_line_info.uri_, "//LAJG9Ins\"><script>alert(document.domain)</script>/"
+                                      "..CFIDE/administrator///index.cfm?cd=cd");
+    EXPECT_EQ(
+        request_line_info.relative_uri_,
+        "//LAJG9Ins\"><script>alert(document.domain)</script>/..CFIDE/administrator///index.cfm");
+    EXPECT_EQ(request_line_info.query_, "cd=cd");
+    EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
+    EXPECT_EQ(request_line_info.version_, version);
+    EXPECT_EQ(request_line_info.base_name_, "index.cfm");
+    EXPECT_EQ(request_line_info.uri_buffer_, "//LAJG9Ins\"><script>alert(document.domain)</script>/"
+                                             "..CFIDE/administrator///index.cfm?cd=cd");
+    EXPECT_EQ(
+        request_line_info.relative_uri_buffer_,
+        "//LAJG9Ins\"><script>alert(document.domain)</script>/..CFIDE/administrator///index.cfm");
+    EXPECT_EQ(request_line_info.base_name_buffer_, "");
+    EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
+  }
 }
 } // namespace Wge

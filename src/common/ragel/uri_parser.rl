@@ -57,7 +57,7 @@
   }
 
   host = ("http://" | "https://") [^/]+;
-  path = '/' >start_path ([^/?#]+ '/')*  %end_path;
+  path = '/' >start_path ([^/?#]* '/')*  %end_path;
   base_name = [^/?#]+ >start_base_name %end_base_name;
   query = [^#]+ >start_query %end_query;
   main := 
