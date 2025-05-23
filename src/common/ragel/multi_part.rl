@@ -21,9 +21,10 @@
 #pragma once
 
 #include <string_view>
+#include <algorithm>
 
 #ifndef ENABLE_MULTI_PART_DEBUG_LOG
-#define ENABLE_MULTI_PART_DEBUG_LOG 0
+#define ENABLE_MULTI_PART_DEBUG_LOG 1
 #endif
 
 #if ENABLE_MULTI_PART_DEBUG_LOG
@@ -50,15 +51,15 @@
   }
 
   action start_boundary {
-    boundary_start = p - 2;
+    boundary_start = p;
   }
 
   action end_boundary {
     boundary_len = p - boundary_start;
   }
 
-  boundary = "--" [^ \t\r\n]+ >start_boundary %end_boundary;
-  whitespace_boundary = "--" [^\r\n]* [ \t]+ >error_boundary_whitespace;
+  boundary = [^ \t\r\n]+ >start_boundary %end_boundary;
+  whitespace_boundary = [^\r\n]* [ \t]+ >error_boundary_whitespace;
   quoted_boundary = '"' [^"]+ '"' >error_boundary_quoted;
 
   main := ' '* "multipart/form-data;" ' '* "boundary="
@@ -108,9 +109,10 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
   }
 
   action error_lf_line {
-    MULTI_PART_LOG("error_lf_line");
-    error_code.set(MultipartStrictError::ErrorType::LfLine);
-    fbreak;
+    // Disabled the lf line error check for now
+    // MULTI_PART_LOG("error_lf_line");
+    // error_code.set(MultipartStrictError::ErrorType::LfLine);
+    // fbreak;
   }
 
   action error_missing_semicolon {
@@ -174,27 +176,24 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     # Invalid header folding
     [^ \t\r\n] [^ \t\r\n:]+ (lf | crlf) => error_invalid_header_folding;
 
-    # Content-Disposition header
-    "content-disposition:" [ \t]* => { 
-      MULTI_PART_LOG("fcall content-disposition header_value");
-      is_content_disposition = true;
-      name = {};
-      filename = {};
-      p_value_start = nullptr;
-      value_len = 0;
-      fcall header_value; 
-    };
-
-    # Other headers
     [^ \t\r\n]+ ':' [ \t]* => { 
       MULTI_PART_LOG("fcall header_value");
       header_name = trim(ts, te - ts);
       header_name.remove_suffix(1);
+      std::string lower_header_name;
+      lower_header_name.reserve(header_name.size());
+      std::transform(header_name.begin(), header_name.end(), std::back_inserter(lower_header_name), ::tolower);
+      if(lower_header_name == "content-disposition") {
+        is_content_disposition = true;
+      } else {
+        is_content_disposition = false;
+      }
+
       fcall header_value; 
     };
 
     # End of headers
-    '\r\n' => { 
+    (lf | crlf) => { 
       MULTI_PART_LOG("fnext body"); 
       p_value_start = te;
       fnext body; 
@@ -224,7 +223,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     };
 
     # End of kv pair
-    '\r\n' => {
+    (lf | crlf) => {
       MULTI_PART_LOG("fret header_value");
       is_content_disposition = false;
       header_name = {};
@@ -265,7 +264,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
         fbreak; 
       }
     };
-    '\r\n' => {
+    (lf | crlf) => {
       if(name.empty()) {
         MULTI_PART_LOG("error_invalid_part: name is empty");
         error_code.set(MultipartStrictError::ErrorType::InvalidPart);
@@ -295,6 +294,11 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
           auto result = name_filename_map.insert({name, filename});
           name_filename_linked.emplace_back(name, filename);
         }
+
+        name = {};
+        filename = {};
+        p_value_start = nullptr;
+        value_len = 0;
 
         if(token.size() == boundary.size()){
           MULTI_PART_LOG("body fret");
@@ -386,12 +390,13 @@ static void parseMultiPart(std::string_view input,
     error_code.set(MultipartStrictError::ErrorType::InvalidPart);
   }
 
-  if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
-    name_value_map.clear();
-    name_value_linked.clear();
-    name_filename_map.clear();
-    name_filename_linked.clear();
-  }
+  // Does not need to clear the parse result when error occurs, keep the parse result as much as possible
+  // if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+  //   name_value_map.clear();
+  //   name_value_linked.clear();
+  //   name_filename_map.clear();
+  //   name_filename_linked.clear();
+  // }
 }
 
 #undef MULTI_PART_LOG

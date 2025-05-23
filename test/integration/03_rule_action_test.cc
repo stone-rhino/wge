@@ -607,9 +607,9 @@ TEST_F(RuleActionTest, ActionAllow) {
   auto t = engine.makeTransaction();
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  t->processRequestBody(nullptr, nullptr);
+  t->processRequestBody("", nullptr);
   t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
-  t->processResponseBody(nullptr, nullptr);
+  t->processResponseBody("", nullptr);
   EXPECT_TRUE(t->hasVariable("phase1"));
   EXPECT_FALSE(t->hasVariable("phase1_2"));
   EXPECT_FALSE(t->hasVariable("phase2"));
@@ -634,9 +634,9 @@ TEST_F(RuleActionTest, ActionAllowPhase) {
   auto t = engine.makeTransaction();
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  t->processRequestBody(nullptr, nullptr);
+  t->processRequestBody("", nullptr);
   t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
-  t->processResponseBody(nullptr, nullptr);
+  t->processResponseBody("", nullptr);
   EXPECT_TRUE(t->hasVariable("phase1"));
   EXPECT_FALSE(t->hasVariable("phase1_2"));
   EXPECT_TRUE(t->hasVariable("phase2"));
@@ -661,9 +661,9 @@ TEST_F(RuleActionTest, ActionAllowRequest) {
   auto t = engine.makeTransaction();
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  t->processRequestBody(nullptr, nullptr);
+  t->processRequestBody("", nullptr);
   t->processResponseHeaders("", "", nullptr, nullptr, 0, nullptr);
-  t->processResponseBody(nullptr, nullptr);
+  t->processResponseBody("", nullptr);
   EXPECT_TRUE(t->hasVariable("phase1"));
   EXPECT_FALSE(t->hasVariable("phase1_2"));
   EXPECT_FALSE(t->hasVariable("phase2"));

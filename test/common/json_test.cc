@@ -29,7 +29,7 @@
 class JsonTest : public ::testing::Test {
 protected:
   static constexpr std::string_view json_ = R"({
-    "name": "Trump",
+    "na\"me": "Trump\a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1",
     "age": 18,
     "isStudent": true,
     "weight": 60.5,
@@ -93,8 +93,8 @@ TEST_F(JsonTest, ragle) {
   EXPECT_EQ(key_values_map.size(), 22);
   EXPECT_EQ(key_values_linked.size(), 22);
 
-  EXPECT_EQ(key_values_linked[0].first, "name");
-  EXPECT_EQ(key_values_linked[0].second, "Trump");
+  EXPECT_EQ(key_values_linked[0].first, "na\"me");
+  EXPECT_EQ(key_values_linked[0].second, "Trump\a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1");
 
   EXPECT_EQ(key_values_linked[1].first, "age");
   EXPECT_EQ(key_values_linked[1].second, "");

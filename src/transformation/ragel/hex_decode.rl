@@ -20,6 +20,9 @@
  */
 #pragma once
 
+#include <string>
+#include <string.h>
+
 %%{
   machine hex_decode;
   

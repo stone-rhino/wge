@@ -47,28 +47,30 @@
   }
 
   action add_key_value {
-    std::string_view raw_key(p_start_key, key_len), raw_value(p_start_value, value_len);
-    std::string decoded_key_str, decoded_value_str;
-    std::string_view final_key = raw_key;
-    std::string_view final_value = raw_value;
-    if (urlDecode(raw_key, decoded_key_str)) {
-      urldecoded_storage.emplace_back(std::move(decoded_key_str));
-      final_key = urldecoded_storage.back();
-    }
-    if (urlDecode(raw_value, decoded_value_str)) {
-      urldecoded_storage.emplace_back(std::move(decoded_value_str));
-      final_value = urldecoded_storage.back();
-    }
-    auto result = query_params.insert({final_key, final_value});
-    query_params_linked.emplace_back(final_key, final_value);
+    if (key_len != 0 || value_len != 0) [[likely]] {
+      std::string_view raw_key(p_start_key, key_len), raw_value(p_start_value, value_len);
+      std::string decoded_key_str, decoded_value_str;
+      std::string_view final_key = raw_key;
+      std::string_view final_value = raw_value;
+      if (urlDecode(raw_key, decoded_key_str)) {
+        urldecoded_storage.emplace_back(std::move(decoded_key_str));
+        final_key = urldecoded_storage.back();
+      }
+      if (urlDecode(raw_value, decoded_value_str)) {
+        urldecoded_storage.emplace_back(std::move(decoded_value_str));
+        final_value = urldecoded_storage.back();
+      }
+      auto result = query_params.insert({final_key, final_value});
+      query_params_linked.emplace_back(final_key, final_value);
 
-    p_start_key = nullptr;
-    p_start_value = nullptr;
-    key_len = 0;
-    value_len = 0;
+      p_start_key = nullptr;
+      p_start_value = nullptr;
+      key_len = 0;
+      value_len = 0;
+    }
   }
 
-  key = [^&=]+ >start_key %end_key;
+  key = [^&=]* >start_key %end_key;
   value = [^&]* >start_value %end_value;
   key_value = key ('=' value)? %add_key_value;
   main := 

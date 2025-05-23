@@ -33,9 +33,14 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    const std::vector<std::string_view>& body = t.httpExtractor().reqeust_body_extractor_();
-    for (const auto& elem : body) {
-      result.append(elem);
+    if (is_counter_) [[unlikely]] {
+      result.append(t.getRequestBody().empty() ? 0 : 1);
+      return;
+    }
+
+    std::string_view body = t.getRequestBody();
+    if (!body.empty()) [[likely]] {
+      result.append(body);
     }
   }
 };

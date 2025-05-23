@@ -69,7 +69,14 @@ static bool base64Decode(std::string_view input, std::string& result) {
   result.clear();
 
   if(input.size() % 4 != 0) {
-    return false; // Invalid base64 input
+    // If the input size is not a multiple of 4, it's invalid Base64.
+    // But we can still try to decode it by ignoring the invalid characters. 
+    // Adjust the size to the multiple of 4, then decode.
+    size_t adjusted_size = input.size() - (input.size() % 4);
+    if(adjusted_size == 0) {
+      return false;
+    }
+    input = input.substr(0, adjusted_size);
   }
 
   const char* p = input.data();

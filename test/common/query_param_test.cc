@@ -90,4 +90,23 @@ TEST(Common, queryParam) {
     EXPECT_EQ(linked[2].first, ";'21io)");
     EXPECT_EQ(linked[2].second, "3");
   }
+
+  {
+    Wge::Common::Ragel::QueryParam query_param;
+    query_param.init("&&a=1&&=2&b==c=3&&");
+    auto map = query_param.get();
+    EXPECT_EQ(map.size(), 3);
+    EXPECT_EQ(map.find("a")->second, "1");
+    EXPECT_EQ(map.find("")->second, "2");
+    EXPECT_EQ(map.find("b")->second, "=c=3");
+
+    auto& linked = query_param.getLinked();
+    EXPECT_EQ(linked.size(), 3);
+    EXPECT_EQ(linked[0].first, "a");
+    EXPECT_EQ(linked[0].second, "1");
+    EXPECT_EQ(linked[1].first, "");
+    EXPECT_EQ(linked[1].second, "2");
+    EXPECT_EQ(linked[2].first, "b");
+    EXPECT_EQ(linked[2].second, "=c=3");
+  }
 }

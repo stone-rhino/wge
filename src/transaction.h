@@ -50,6 +50,10 @@ namespace Variable {
 class VariableBase;
 } // namespace Variable
 
+namespace Transformation {
+class TransformBase;
+} // namespace Transformation
+
 class Transaction final {
   friend class Engine;
 
@@ -71,13 +75,17 @@ public:
   // At the ProcessUri method, we will parse the request line and store the method, path, query,
   // protocol, and version.
   struct RequestLineInfo {
-    std::string method_;
+    std::string_view method_;
     std::string_view uri_raw_;
     std::string_view uri_;
     std::string_view relative_uri_;
     std::string_view query_;
-    std::string protocol_;
-    std::string version_;
+    std::string_view protocol_;
+    std::string_view version_;
+    std::string_view base_name_;
+    std::string uri_buffer_;
+    std::string relative_uri_buffer_;
+    std::string base_name_buffer_;
     Common::Ragel::QueryParam query_params_;
   };
 
@@ -98,6 +106,22 @@ public:
     bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
       return lhs.data() == rhs.data() && lhs.size() == rhs.size();
     }
+  };
+
+  // For the MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
+  struct MatchedVariable {
+    const Variable::VariableBase* variable_;
+    Common::EvaluateResults::Element original_value_;
+    Common::EvaluateResults::Element transformed_value_;
+    std::vector<const Transformation::TransformBase*> transform_list_;
+
+    MatchedVariable(const Variable::VariableBase* variable,
+                    Common::EvaluateResults::Element&& original_value,
+                    Common::EvaluateResults::Element&& transformed_value,
+                    std::vector<const Transformation::TransformBase*>&& transform_list)
+        : variable_(variable), original_value_(std::move(original_value)),
+          transformed_value_(std::move(transformed_value)),
+          transform_list_(std::move(transform_list)) {}
   };
 
 public:
@@ -140,12 +164,11 @@ public:
 
   /**
    * Process the request body.
-   * @param body_extractor the request body extractor.
+   * @param body the request body.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool processRequestBody(BodyExtractor body_extractor,
-                          std::function<void(const Rule&)> log_callback);
+  bool processRequestBody(std::string_view body, std::function<void(const Rule&)> log_callback);
 
   /**
    * Process the response headers.
@@ -165,12 +188,11 @@ public:
 
   /**
    * Process the response body.
-   * @param body_extractor the response body extractor.
+   * @param body the response body.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool processResponseBody(BodyExtractor body_extractor,
-                           std::function<void(const Rule&)> log_callback);
+  bool processResponseBody(std::string_view body, std::function<void(const Rule&)> log_callback);
 
 public:
   /**
@@ -398,16 +420,15 @@ public:
    * @param result the result of the matched variable.
    */
   void pushMatchedVariable(const Variable::VariableBase* variable,
-                           Common::EvaluateResults::Element&& result);
+                           Common::EvaluateResults::Element&& original_value,
+                           Common::EvaluateResults::Element&& transformed_value,
+                           std::vector<const Transformation::TransformBase*>&& transform_list);
 
   /**
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
    * @return the matched variables.
    */
-  const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>>&
-  getMatchedVariables() const {
-    return matched_variables_;
-  }
+  const std::vector<MatchedVariable>& getMatchedVariables() const { return matched_variables_; }
 
   /**
    * Get the transformation cache.
@@ -442,7 +463,19 @@ public:
    * Get the request line info.
    * @return the request line info that parsed from the raw request line.
    */
-  const RequestLineInfo& getRequestLineInfo() const { return requset_line_info_; }
+  const RequestLineInfo& getRequestLineInfo() const { return request_line_info_; }
+
+  /**
+   * Get the request body.
+   * @return the string view of the request body.
+   */
+  std::string_view getRequestBody() const { return request_body_; }
+
+  /**
+   * Get the response body.
+   * @return the string view of the response body.
+   */
+  std::string_view getResponseBody() const { return response_body_; }
 
   /**
    * Get the response line info.
@@ -531,8 +564,6 @@ private:
   int current_phase_{1};
   size_t current_rule_index_{0};
   const Rule* current_rule_{nullptr};
-  using MatchedVariable =
-      std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
   std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
@@ -561,8 +592,10 @@ private:
   ConnectionInfo connection_info_;
   std::string_view request_line_;
   std::string request_line_buffer_;
-  RequestLineInfo requset_line_info_;
+  RequestLineInfo request_line_info_;
   ResponseLineInfo response_line_info_;
+  std::string_view request_body_;
+  std::string_view response_body_;
   Common::Ragel::QueryParam body_query_param_;
   Common::Ragel::MultiPart body_multi_part_;
   Common::Ragel::Xml body_xml_;

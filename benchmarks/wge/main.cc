@@ -36,10 +36,6 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  Wge::BodyExtractor request_body_extractor = [&]() -> const std::vector<std::string_view>& {
-    return http_info.request_body_;
-  };
-
   Wge::HeaderFind response_header_find = [&](const std::string& key) {
     std::vector<std::string_view> result;
     auto range = http_info.response_headers_.equal_range(key);
@@ -62,10 +58,6 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
     }
   };
 
-  Wge::BodyExtractor response_body_extractor = [&]() -> const std::vector<std::string_view>& {
-    return http_info.response_body_;
-  };
-
   auto t = engine.makeTransaction();
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
   t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
@@ -73,7 +65,7 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
                            http_info.request_headers_.size(), [](const Wge::Rule& rule) {
                              // std::cout << rule.getId() << std::endl;
                            });
-  t->processRequestBody(request_body_extractor, [](const Wge::Rule& rule) {
+  t->processRequestBody(http_info.request_body_, [](const Wge::Rule& rule) {
     // std::cout << rule.getId() << std::endl;
   });
   t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
@@ -81,7 +73,7 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
                             http_info.response_headers_.size(), [](const Wge::Rule& rule) {
                               // std::cout << rule.getId() << std::endl;
                             });
-  t->processResponseBody(response_body_extractor, [](const Wge::Rule& rule) {
+  t->processResponseBody(http_info.response_body_, [](const Wge::Rule& rule) {
     // std::cout << rule.getId() << std::endl;
   });
 }

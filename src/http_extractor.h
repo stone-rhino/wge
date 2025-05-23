@@ -48,12 +48,6 @@ using HeaderTraversalCallback =
 using HeaderTraversal = std::function<void(HeaderTraversalCallback call)>;
 
 /**
- * Body info extractor.
- * @return vector of string_view, each string_view is a slice of the body.
- */
-using BodyExtractor = std::function<const std::vector<std::string_view>&()>;
-
-/**
  * Http message info extractor
  */
 struct HttpExtractor {
@@ -61,8 +55,6 @@ struct HttpExtractor {
   HeaderTraversal request_header_traversal_;
   HeaderFind response_header_find_;
   HeaderTraversal response_header_traversal_;
-  BodyExtractor reqeust_body_extractor_;
-  BodyExtractor response_body_extractor_;
   size_t request_header_count_;
   size_t response_header_count_;
 };

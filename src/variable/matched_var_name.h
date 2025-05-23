@@ -47,11 +47,11 @@ public:
     }
 
     auto& matched_var = t.getMatchedVariables().back();
-    if (matched_var.first->isCollection()) [[likely]] {
-      result.append(std::format("{}:{}", matched_var.first->mainName(),
-                                matched_var.second.variable_sub_name_));
+    if (matched_var.variable_->isCollection()) [[likely]] {
+      result.append(std::format("{}:{}", matched_var.variable_->mainName(),
+                                matched_var.transformed_value_.variable_sub_name_));
     } else {
-      result.append(matched_var.first->fullName().tostring());
+      result.append(matched_var.variable_->fullName().tostring());
     }
   }
 };

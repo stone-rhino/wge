@@ -27,6 +27,7 @@
 #include "common/assert.h"
 #include "common/empty_string.h"
 #include "common/log.h"
+#include "common/ragel/uri_parser.h"
 #include "common/try.h"
 #include "engine.h"
 #include "variable/variables_include.h"
@@ -61,117 +62,60 @@ void Transaction::processConnection(std::string_view downstream_ip, short downst
 }
 
 void Transaction::processUri(std::string_view request_line) {
-  WGE_LOG_TRACE("====process uri====");
-
-  // Parse the request line
   request_line_ = request_line;
-  auto pos = request_line.find(' ');
-  if (pos != std::string_view::npos) {
-    // Parse the method
-    requset_line_info_.method_ = request_line.substr(0, pos);
+  // Find the first space to extract the HTTP method
+  size_t pos_space1 = request_line.find(' ');
+  if (pos_space1 != std::string_view::npos) [[likely]] {
+    std::string_view method = request_line.substr(0, pos_space1);
+    // Find the second space to extract the URI
+    size_t pos_space2 = request_line.find(' ', pos_space1 + 1);
+    if (pos_space2 != std::string_view::npos) [[likely]] {
+      std::string_view uri = request_line.substr(pos_space1 + 1, pos_space2 - pos_space1 - 1);
+      // Extract the protocol string (e.g., "HTTP/1.1")
+      request_line_info_.protocol_ = request_line.substr(pos_space2 + 1);
 
-    // Parse the uri
-    request_line.remove_prefix(pos + 1);
-    pos = request_line.find(' ');
-    if (pos != std::string_view::npos) {
-      requset_line_info_.uri_ = request_line.substr(0, pos);
-      requset_line_info_.uri_raw_ = requset_line_info_.uri_;
-    }
-
-    // Parse the query
-    auto pos_question = requset_line_info_.uri_.find('?');
-    if (pos_question != std::string_view::npos) {
-      requset_line_info_.query_ = requset_line_info_.uri_.substr(pos_question + 1);
-      requset_line_info_.uri_.remove_suffix(requset_line_info_.uri_.size() - pos_question);
-    }
-
-    // Parse the relative uri
-    requset_line_info_.relative_uri_ = requset_line_info_.uri_;
-    if (requset_line_info_.relative_uri_.starts_with("http://")) {
-      auto pos = requset_line_info_.relative_uri_.find('/', 7);
-      if (pos != std::string_view::npos) {
-        requset_line_info_.relative_uri_.remove_prefix(pos);
-      }
-    } else if (requset_line_info_.relative_uri_.starts_with("https://")) {
-      auto pos = requset_line_info_.relative_uri_.find('/', 8);
-      if (pos != std::string_view::npos) {
-        requset_line_info_.relative_uri_.remove_prefix(pos);
+      // Extract the version part after the '/' in the protocol string
+      auto pos = request_line_info_.protocol_.find('/');
+      if (pos != std::string_view::npos) [[likely]] {
+        processUri(uri, method, request_line_info_.protocol_.substr(pos + 1));
       }
     }
-
-    // Parse the protocol and verison
-    request_line.remove_prefix(pos + 1);
-    pos = request_line.find('/');
-    if (pos != std::string_view::npos) {
-      requset_line_info_.protocol_ = request_line;
-      request_line.remove_prefix(pos + 1);
-      requset_line_info_.version_ = request_line;
-    }
-
-    // Init the query params
-    requset_line_info_.query_params_.init(requset_line_info_.query_);
-
-    WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
-                  requset_line_info_.method_, requset_line_info_.uri_, requset_line_info_.query_,
-                  requset_line_info_.protocol_, requset_line_info_.version_);
   }
 }
 
 void Transaction::processUri(std::string_view uri, std::string_view method,
                              std::string_view version) {
   WGE_LOG_TRACE("====process uri====");
-
+  // If request_line_ is empty, reconstruct it using method, URI, and version
+  if (request_line_.empty()) {
+    request_line_buffer_.reserve(method.size() + uri.size() + version.size() + 7);
+    request_line_buffer_ += method;
+    request_line_buffer_ += ' ';
+    request_line_buffer_ += uri;
+    request_line_buffer_ += " HTTP/";
+    request_line_buffer_ += version;
+    request_line_ = request_line_buffer_;
+    // Extract protocol string from the reconstructed request line
+    request_line_info_.protocol_ = request_line_.substr(method.size() + uri.size() + 2);
+  }
   // method
-  requset_line_info_.method_ = method;
+  request_line_info_.method_ = method;
 
-  // uri
-  requset_line_info_.uri_raw_ = uri;
-  requset_line_info_.uri_ = uri;
+  // uri_raw
+  request_line_info_.uri_raw_ = uri;
 
-  // Parse the query
-  auto pos_question = requset_line_info_.uri_.find('?');
-  if (pos_question != std::string_view::npos) {
-    requset_line_info_.query_ = requset_line_info_.uri_.substr(pos_question + 1);
-    requset_line_info_.uri_.remove_suffix(requset_line_info_.uri_.size() - pos_question);
-  }
+  // version
+  request_line_info_.version_ = version;
 
-  // Parse the relative uri
-  requset_line_info_.relative_uri_ = requset_line_info_.uri_;
-  if (requset_line_info_.relative_uri_.starts_with("http://")) {
-    auto pos = requset_line_info_.relative_uri_.find('/', 7);
-    if (pos != std::string_view::npos) {
-      requset_line_info_.relative_uri_.remove_prefix(pos);
-    }
-  } else if (requset_line_info_.relative_uri_.starts_with("https://")) {
-    auto pos = requset_line_info_.relative_uri_.find('/', 8);
-    if (pos != std::string_view::npos) {
-      requset_line_info_.relative_uri_.remove_prefix(pos);
-    }
-  }
-
-  // protocol and verison
-  requset_line_info_.protocol_ = "HTTP";
-  requset_line_info_.version_ = version;
-
-  // Combine the request line
-  request_line_buffer_.reserve(
-      requset_line_info_.method_.size() + requset_line_info_.uri_raw_.size() +
-      requset_line_info_.protocol_.size() + requset_line_info_.version_.size() + 3);
-  request_line_buffer_ += requset_line_info_.method_;
-  request_line_buffer_ += ' ';
-  request_line_buffer_ += requset_line_info_.uri_raw_;
-  request_line_buffer_ += ' ';
-  request_line_buffer_ += requset_line_info_.protocol_;
-  request_line_buffer_ += '/';
-  request_line_buffer_ += requset_line_info_.version_;
-  request_line_ = request_line_buffer_;
+  Common::Ragel::UriParser uri_parser;
+  uri_parser.init(uri, request_line_info_);
 
   // Init the query params
-  requset_line_info_.query_params_.init(requset_line_info_.query_);
+  request_line_info_.query_params_.init(request_line_info_.query_);
 
   WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
-                requset_line_info_.method_, requset_line_info_.uri_, requset_line_info_.query_,
-                requset_line_info_.protocol_, requset_line_info_.version_);
+                request_line_info_.method_, request_line_info_.uri_, request_line_info_.query_,
+                request_line_info_.protocol_, request_line_info_.version_);
 }
 
 bool Transaction::processRequestHeaders(HeaderFind request_header_find,
@@ -205,37 +149,34 @@ bool Transaction::processRequestHeaders(HeaderFind request_header_find,
   return process(1);
 }
 
-bool Transaction::processRequestBody(BodyExtractor body_extractor,
+bool Transaction::processRequestBody(std::string_view body,
                                      std::function<void(const Rule&)> log_callback) {
   WGE_LOG_TRACE("====process request body====");
-  extractor_.reqeust_body_extractor_ = std::move(body_extractor);
+  request_body_ = body;
   log_callback_ = std::move(log_callback);
 
   // Parse the query params
-  if (extractor_.reqeust_body_extractor_) {
-    const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
-    if (!body.empty() && request_body_processor_.has_value()) {
-      switch (request_body_processor_.value()) {
-      case BodyProcessorType::UnknownFormat: {
-        // Do nothing
-      } break;
-      case BodyProcessorType::UrlEncoded: {
-        body_query_param_.init(body.front());
-      } break;
-      case BodyProcessorType::MultiPart: {
-        auto content_type = extractor_.request_header_find_("content-type");
-        body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
-      } break;
-      case BodyProcessorType::Xml: {
-        body_xml_.init(body.front());
-      } break;
-      case BodyProcessorType::Json: {
-        body_json_.init(body.front());
-      } break;
-      default: {
-        UNREACHABLE();
-      } break;
-      }
+  if (!request_body_.empty() && request_body_processor_.has_value()) {
+    switch (request_body_processor_.value()) {
+    case BodyProcessorType::UnknownFormat: {
+      // Do nothing
+    } break;
+    case BodyProcessorType::UrlEncoded: {
+      body_query_param_.init(request_body_);
+    } break;
+    case BodyProcessorType::MultiPart: {
+      auto content_type = extractor_.request_header_find_("content-type");
+      body_multi_part_.init(content_type, request_body_, engine_.config().upload_file_limit_);
+    } break;
+    case BodyProcessorType::Xml: {
+      body_xml_.init(request_body_);
+    } break;
+    case BodyProcessorType::Json: {
+      body_json_.init(request_body_);
+    } break;
+    default: {
+      UNREACHABLE();
+    } break;
     }
   }
 
@@ -257,10 +198,10 @@ bool Transaction::processResponseHeaders(std::string_view status_code, std::stri
   return process(3);
 }
 
-bool Transaction::processResponseBody(BodyExtractor body_extractor,
+bool Transaction::processResponseBody(std::string_view body,
                                       std::function<void(const Rule&)> log_callback) {
   WGE_LOG_TRACE("====process response body====");
-  extractor_.response_body_extractor_ = std::move(body_extractor);
+  response_body_ = body;
   log_callback_ = std::move(log_callback);
   return process(4);
 }
@@ -483,8 +424,10 @@ void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
     const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {}
 
-void Transaction::pushMatchedVariable(const Variable::VariableBase* variable,
-                                      Common::EvaluateResults::Element&& result) {
+void Transaction::pushMatchedVariable(
+    const Variable::VariableBase* variable, Common::EvaluateResults::Element&& original_value,
+    Common::EvaluateResults::Element&& transformed_value,
+    std::vector<const Transformation::TransformBase*>&& transform_list) {
   // Fixes #27
   // When the MATCHED_VARS, MATCHED_VARS_NAMES, MATCHED_VAR,MATCHED_VAR_NAME  are evaluated, the
   // operators should not automatically store the matched variables again.
@@ -496,7 +439,12 @@ void Transaction::pushMatchedVariable(const Variable::VariableBase* variable,
     return;
   }
 
-  matched_variables_.emplace_back(variable, std::move(result));
+  matched_variables_.emplace_back(variable, std::move(original_value), std::move(transformed_value),
+                                  std::move(transform_list));
+  if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_)) [[unlikely]] {
+    matched_variables_.back().transformed_value_.variant_ =
+        matched_variables_.back().original_value_.variant_;
+  }
 }
 
 void Transaction::initUniqueId() {

@@ -43,10 +43,10 @@ public:
     RETURN_VALUE(
         // collection
         {
-          for (auto& [variable, value] : t.getMatchedVariables()) {
-            auto full_name = variable->fullName();
+          for (auto& matched_variable : t.getMatchedVariables()) {
+            auto full_name = matched_variable.variable_->fullName();
             if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
-              result.append(value.variant_);
+              result.append(matched_variable.transformed_value_.variant_);
             }
           }
         },

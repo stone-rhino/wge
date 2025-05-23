@@ -67,11 +67,9 @@ public:
         },
         // specify subname
         {
-          if (!hasExceptVariable(sub_name_)) [[likely]] {
-            auto iter = cookies.find(sub_name_);
-            if (iter != cookies.end()) {
-              result.append(iter->second);
-            }
+          auto iter = cookies.find(sub_name_);
+          if (iter != cookies.end()) {
+            result.append(iter->second);
           }
         });
   }

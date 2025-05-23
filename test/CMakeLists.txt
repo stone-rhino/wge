@@ -7,8 +7,9 @@ add_subdirectory(common)
 add_subdirectory(parser)
 add_subdirectory(transformation)
 add_subdirectory(integration)
+add_subdirectory(transaction)
 
-add_executable(test $<TARGET_OBJECTS:common_test> $<TARGET_OBJECTS:parser> $<TARGET_OBJECTS:transformation_test> $<TARGET_OBJECTS:integration>)
+add_executable(test $<TARGET_OBJECTS:common_test> $<TARGET_OBJECTS:parser> $<TARGET_OBJECTS:transformation_test> $<TARGET_OBJECTS:transaction_test> $<TARGET_OBJECTS:integration>)
 # add_executable(test $<TARGET_OBJECTS:parser> $<TARGET_OBJECTS:rule>)
 target_link_libraries(test PRIVATE GTest::gtest GTest::gtest_main GTest::gmock GTest::gmock_main ${CMAKE_BINARY_DIR}/src/libwge.a)
 

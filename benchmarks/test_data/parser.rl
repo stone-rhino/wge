@@ -98,7 +98,7 @@
 
   action request_body {
     if(body_len > 0 && p + body_len <= eof) {
-      http_info.request_body_.emplace_back(p, body_len);
+      http_info.request_body_ = std::string_view(p, body_len);
       p += body_len;
       DEBUG_LOG(std::format("request_body:{}",http_info.request_body_.back()));
     } else {
@@ -158,7 +158,7 @@
 
   action response_body {
     if(body_len > 0 && p + body_len <= eof) {
-      http_info.response_body_.emplace_back(p, body_len);
+      http_info.response_body_ = std::string_view(p, body_len);
       p += body_len;
       DEBUG_LOG(std::format("response_body:{}",http_info.response_body_.back()));
     } else {

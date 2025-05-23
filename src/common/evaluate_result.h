@@ -57,12 +57,15 @@ public:
         : string_buffer_(std::move(value)), variant_(string_buffer_),
           variable_sub_name_(variable_sub_name) {}
     Element(Element&& element) {
-      variant_ = std::move(element.variant_);
+      variant_.swap(element.variant_);
       if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
-        string_buffer_ = std::move(element.string_buffer_);
+        string_buffer_.swap(element.string_buffer_);
         variant_ = string_buffer_;
       }
-      variable_sub_name_ = element.variable_sub_name_;
+      variable_sub_name_.swap(element.variable_sub_name_);
+      assert(element.string_buffer_.empty());
+      assert(IS_EMPTY_VARIANT(element.variant_));
+      assert(element.variable_sub_name_.empty());
     }
     void operator=(const Element& element) {
       variant_ = element.variant_;

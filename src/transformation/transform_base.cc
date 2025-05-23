@@ -26,34 +26,36 @@
 namespace Wge {
 namespace Transformation {
 bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* variable,
-                             Common::EvaluateResults::Element& data) const {
+                             const Common::EvaluateResults::Element& input,
+                             Common::EvaluateResults::Element& output) const {
   // We don't always use the cache, because the transformation may be too simple, and it's perfmance
   // than search the cache in the hash table.
   // The threshold is 32 bytes, may be it's not a good choice, but it's a good start.
   // TODO(zhouyu 2025-04-11): We can use a better algorithm to choose the threshold.
   constexpr size_t use_cache_limit = 32;
-  std::string_view data_view = std::get<std::string_view>(data.variant_);
-  bool use_cache = data_view.size() > use_cache_limit;
+  std::string_view input_data_view = std::get<std::string_view>(input.variant_);
+  bool use_cache = input_data_view.size() > use_cache_limit;
 
   if (use_cache) [[likely]] {
     assert(variable);
 
     // Check the cache
     auto& transform_cache = t.getTransformCache();
-    auto iter_data = transform_cache.find(data_view);
+    auto iter_data = transform_cache.find(input_data_view);
     if (iter_data != transform_cache.end()) {
       auto iter_transform_result = iter_data->second.find(name());
       if (iter_transform_result != iter_data->second.end()) {
-        if (!data.variable_sub_name_.empty()) [[unlikely]] {
+        if (!input.variable_sub_name_.empty()) [[unlikely]] {
           WGE_LOG_TRACE("transform cache hit: {}:{} {}", variable->fullName().main_name_,
-                        data.variable_sub_name_, name());
+                        input.variable_sub_name_, name());
         } else {
           WGE_LOG_TRACE("transform cache hit: {} {}", variable->fullName().main_name_, name());
         }
 
         // The transformation has been evaluated before.
         if (iter_transform_result->second.has_value()) [[likely]] {
-          data.variant_ = iter_transform_result->second.value().variant_;
+          output.variant_ = iter_transform_result->second.value().variant_;
+          output.variable_sub_name_ = input.variable_sub_name_;
           return true;
         } else {
           return false;
@@ -62,7 +64,7 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
     } else {
       iter_data =
           transform_cache
-              .emplace(data_view,
+              .emplace(input_data_view,
                        std::unordered_map<const char*,
                                           std::optional<Common::EvaluateResults::Element>>{})
               .first;
@@ -71,30 +73,29 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
     }
 
     // Evaluate the transformation and store the result in the cache
-    std::string buffer;
-    bool ret = evaluate(data_view, buffer);
+    bool ret = evaluate(input_data_view, output.string_buffer_);
     if (ret) {
       auto iter_transform_result =
           iter_data->second.emplace(name(), Common::EvaluateResults::Element()).first;
       Common::EvaluateResults::Element& result = iter_transform_result->second.value();
-      result.string_buffer_ = std::move(buffer);
+      result.string_buffer_ = std::move(output.string_buffer_);
       result.variant_ = result.string_buffer_;
-      data.variant_ = result.variant_;
+      output.variant_ = result.variant_;
+      output.variable_sub_name_ = input.variable_sub_name_;
     } else {
       auto iter_transform_result = iter_data->second.emplace(name(), std::nullopt).first;
     }
 
     return ret;
   } else {
-    std::string buffer;
-    bool ret = evaluate(data_view, buffer);
+    bool ret = evaluate(input_data_view, output.string_buffer_);
     if (ret) [[likely]] {
       if (convertToInt()) [[unlikely]] {
-        data.variant_ = ::atoi(buffer.c_str());
+        output.variant_ = ::atoi(output.string_buffer_.c_str());
       } else {
-        data.string_buffer_ = std::move(buffer);
-        data.variant_ = data.string_buffer_;
+        output.variant_ = output.string_buffer_;
       }
+      output.variable_sub_name_ = input.variable_sub_name_;
     }
 
     return ret;

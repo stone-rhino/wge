@@ -33,8 +33,12 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(false);
-    throw "Not implemented!";
+    if (is_counter_) [[unlikely]] {
+      result.append(t.getRequestLineInfo().relative_uri_.empty() ? 0 : 1);
+      return;
+    }
+
+    result.append(t.getRequestLineInfo().relative_uri_);
   }
 };
 } // namespace Variable

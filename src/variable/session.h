@@ -67,11 +67,9 @@ public:
         },
         // specify subname
         {
-          if (!hasExceptVariable(sub_name_)) [[likely]] {
-            auto& value = get(t, sub_name_);
-            if (!IS_EMPTY_VARIANT(value)) [[likely]] {
-              result.append(value);
-            }
+          auto& value = get(t, sub_name_);
+          if (!IS_EMPTY_VARIANT(value)) [[likely]] {
+            result.append(value);
           }
         });
   }

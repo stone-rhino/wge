@@ -18,39 +18,22 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include <gtest/gtest.h>
 
-#include <forward_list>
-#include <string_view>
-#include <unordered_map>
-#include <vector>
+#include "transaction.h"
+#include "engine.h"
 
 namespace Wge {
-namespace Common {
-namespace Ragel {
-class Json {
-public:
-  void init(std::string_view json_str);
-
-public:
-  const std::unordered_multimap<std::string_view, std::string_view>& getKeyValues() const {
-    return key_value_map_;
-  }
-  const std::vector<std::pair<std::string_view, std::string_view>>& getKeyValuesLinked() const {
-    return key_value_linked_;
+class TransactionTest : public ::testing::Test {
+protected:
+  void SetUp() override {
+    engine_.init();
+    t_ = engine_.makeTransaction();
   }
 
-  void clear() {
-    key_value_map_.clear();
-    key_value_map_.clear();
-    escape_buffer_.clear();
-  }
-
-private:
-  std::unordered_multimap<std::string_view, std::string_view> key_value_map_;
-  std::vector<std::pair<std::string_view, std::string_view>> key_value_linked_;
-  std::forward_list<std::string> escape_buffer_;
+protected:
+  Wge::Engine engine_;
+  std::unique_ptr<Transaction> t_;
 };
-} // namespace Ragel
-} // namespace Common
+
 } // namespace Wge

@@ -53,10 +53,6 @@ public:
       }
     };
 
-    request_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
-      return request_body_;
-    };
-
     engine_.init();
     t_ = engine_.makeTransaction();
     t_->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
@@ -70,10 +66,8 @@ protected:
   TransactionPtr t_;
   HeaderFind request_header_find_;
   HeaderTraversal request_header_traversal_;
-  BodyExtractor request_body_extractor_;
   HeaderFind response_header_find_;
   HeaderTraversal response_header_traversal_;
-  BodyExtractor response_body_extractor_;
 
 protected:
   std::string downstream_ip_{"192.168.1.100"};

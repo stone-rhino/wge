@@ -93,11 +93,9 @@ public:
         },
         // specify subname
         {
-          if (!hasExceptVariable(sub_name_)) [[likely]] {
-            auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name_);
-            for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
-              result.append(iter->second);
-            }
+          auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name_);
+          for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
+            result.append(iter->second);
           }
         });
   }
