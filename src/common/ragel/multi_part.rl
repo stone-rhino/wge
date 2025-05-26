@@ -24,7 +24,7 @@
 #include <algorithm>
 
 #ifndef ENABLE_MULTI_PART_DEBUG_LOG
-#define ENABLE_MULTI_PART_DEBUG_LOG 1
+#define ENABLE_MULTI_PART_DEBUG_LOG 0
 #endif
 
 #if ENABLE_MULTI_PART_DEBUG_LOG
