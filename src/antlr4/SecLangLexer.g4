@@ -522,20 +522,6 @@ OP_VERIFY_CC: [vV][eE][rR][iI][fF][yY][cC][cC];
 OP_VERIFY_CPF: [vV][eE][rR][iI][fF][yY][cC][pP][fF];
 OP_VERIFY_SSN: [vV][eE][rR][iI][fF][yY][sS][sS][nN];
 OP_WITHIN: [wW][iI][tT][hH][iI][nN];
-// Extensions
-OP_RX_AND_SYNTAX_CHECK_SQL:
-	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][sS][qQ][lL];
-OP_RX_AND_SYNTAX_CHECK_JS:
-	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][jJ][sS];
-OP_RX_AND_SYNTAX_CHECK_SHELL:
-	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][sS][hH][eE][lL][lL];
-OP_RX_AND_SYNTAX_CHECK_JAVA:
-	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][jJ][aA][vV][aA];
-OP_RX_AND_SYNTAX_CHECK_PHP:
-	[rR][xX][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK][pP][hH][pP];
-OP_DETECT_SQLI_AND_SYNTAX_CHECK:
-	[dD][eE][tT][eE][cC][tT][sS][qQ][lL][iI][aA][nN][dD][sS][yY][nN][tT][aA][xX][cC][hH][eE][cC][kK]
-		-> popMode, pushMode(ModeSecRuleOperatorValue);
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:
