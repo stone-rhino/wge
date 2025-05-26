@@ -31,8 +31,27 @@ class TrimLeft : public TransformBase {
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
+    result.clear();
+
+    if (data.empty()) {
+      return false;
+    }
+    
+    constexpr auto white_space = " \t\n\r\f\v";
+
+    size_t start = data.find_first_not_of(white_space);
+
+    // The characters in the string are all spaces
+    if (start == std::string_view::npos) {
+      return true;
+    }
+
+    if (start == 0) {
+      return false;
+    }
+
+    result.assign(data.substr(start));
+    return true;
   }
 };
 } // namespace Transformation

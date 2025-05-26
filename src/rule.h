@@ -86,9 +86,11 @@ public:
   enum class Disruptive {
     // Stops rule processing on a successful match and allows the transaction to proceed.
     ALLOW,
-    // Allow will cause the engine to stop processing the current phase. Other phases will continue as normal
+    // Allow will cause the engine to stop processing the current phase. Other phases will continue
+    // as normal
     ALLOW_PHASE,
-    // Allow will cause the engine to stop processing the current phase. The next phase to be processed will be phase RESPONSE_HEADERS.
+    // Allow will cause the engine to stop processing the current phase. The next phase to be
+    // processed will be phase RESPONSE_HEADERS.
     ALLOW_REQUEST,
     // Performs the disruptive action defined by the previous SecDefaultAction.
     BLOCK,
@@ -213,8 +215,11 @@ private:
   inline void evaluateVariable(Transaction& t,
                                const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                Common::EvaluateResults& result) const;
-  inline void evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
-                                Common::EvaluateResults::Element& data) const;
+  inline void
+  evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
+                    const Common::EvaluateResults::Element& input,
+                    Common::EvaluateResults::Element& output,
+                    std::vector<const Transformation::TransformBase*>& transform_list) const;
   inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateMsgMacro(Transaction& t) const;

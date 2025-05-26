@@ -31,8 +31,27 @@ class TrimRight : public TransformBase {
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
+    result.clear();
+
+    if (data.empty()) {
+      return false;
+    }
+
+    constexpr auto white_space = " \t\n\r\f\v";
+
+    size_t end = data.find_last_not_of(white_space);
+
+    // The characters in the string are all spaces
+    if (end == std::string_view::npos) {
+      return true;
+    }
+
+    if (end == data.size() - 1) {
+      return false;
+    }
+
+    result.assign(data.substr(0, end + 1));
+    return true;
   }
 };
 } // namespace Transformation

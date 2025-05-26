@@ -68,9 +68,7 @@ public:
         {
           std::string_view value = t.httpExtractor().request_header_find_(sub_name_);
           if (!value.empty()) {
-            if (!hasExceptVariable(sub_name_)) [[likely]] {
-              result.append(sub_name_);
-            }
+            result.append(sub_name_);
           }
         });
   }

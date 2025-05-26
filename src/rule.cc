@@ -37,6 +37,17 @@ void Rule::initExceptVariables() {
   // the except variable to the collection except list.
   for (auto& except_var : except_variables_) {
     auto except_var_name = except_var->fullName();
+
+    // Init the except scanner
+    std::unique_ptr<Common::Pcre::Scanner> except_scanner_;
+    if (!except_var_name.sub_name_.empty() && except_var_name.sub_name_.front() == '/' &&
+        except_var_name.sub_name_.back() == '/') {
+      except_scanner_ = std::make_unique<Common::Pcre::Scanner>(
+          std::string_view{except_var_name.sub_name_.data() + 1,
+                           except_var_name.sub_name_.size() - 2},
+          false, false);
+    }
+
     for (auto iter = variables_.begin(); iter != variables_.end();) {
       auto var_name = (*iter)->fullName();
 
@@ -49,6 +60,13 @@ void Rule::initExceptVariables() {
       // The specific exception is collection or they are the same variable, we remove the variable
       // directly for the performance.
       if (except_var_name.sub_name_.empty() || var_name.sub_name_ == except_var_name.sub_name_) {
+        variables_index_by_full_name_.erase(var_name);
+        iter = variables_.erase(iter);
+        continue;
+      }
+
+      // The specific exception is a regex, if matched, we remove the variable directly
+      if (except_scanner_ && except_scanner_->match(var_name.sub_name_)) {
         variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;
@@ -124,17 +142,24 @@ bool Rule::evaluate(Transaction& t) const {
     for (size_t i = 0; i < result.size(); i++) {
       Common::EvaluateResults::Element& variable_value = result.get(i);
       bool variable_matched = false;
+      Common::EvaluateResults::Element transformed_value;
+      std::vector<const Transformation::TransformBase*> transform_list;
       if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
         // Evaluate the transformations
-        evaluateTransform(t, var.get(), variable_value);
+        evaluateTransform(t, var.get(), variable_value, transformed_value, transform_list);
       }
 
       // Evaluate the operator
-      variable_matched = evaluateOperator(t, variable_value.variant_);
+      if (transform_list.empty()) [[unlikely]] {
+        variable_matched = evaluateOperator(t, variable_value.variant_);
+      } else {
+        variable_matched = evaluateOperator(t, transformed_value.variant_);
+      }
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        t.pushMatchedVariable(var.get(), result.move(i));
+        t.pushMatchedVariable(var.get(), result.move(i), std::move(transformed_value),
+                              std::move(transform_list));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),
@@ -142,7 +167,7 @@ bool Rule::evaluate(Transaction& t) const {
           } else {
             auto& matched_var = t.getMatchedVariables().back();
             return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                               matched_var.second.variable_sub_name_);
+                               matched_var.transformed_value_.variable_sub_name_);
           }
         }());
 
@@ -225,8 +250,11 @@ inline void Rule::evaluateVariable(Transaction& t,
   }());
 }
 
-inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
-                                    Common::EvaluateResults::Element& data) const {
+inline void
+Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
+                        const Common::EvaluateResults::Element& input,
+                        Common::EvaluateResults::Element& output,
+                        std::vector<const Transformation::TransformBase*>& transform_list) const {
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
@@ -237,7 +265,10 @@ inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::Variabl
 
       // Evaluate the default transformations
       for (auto& transform : transforms) {
-        bool ret = transform->evaluate(t, var, data);
+        bool ret = transform->evaluate(t, var, input, output);
+        if (ret) {
+          transform_list.emplace_back(transform.get());
+        }
         WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
       }
     }
@@ -245,7 +276,10 @@ inline void Rule::evaluateTransform(Transaction& t, const Wge::Variable::Variabl
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
-    bool ret = transform->evaluate(t, var, data);
+    bool ret = transform->evaluate(t, var, input, output);
+    if (ret) {
+      transform_list.emplace_back(transform.get());
+    }
     WGE_LOG_TRACE("evaluate action defined transformation: {} {}", transform->name(), ret);
   }
 }
@@ -336,15 +370,21 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     size_t curr_transform_index = 0;
 
     // Evaluate each variable result
+    Common::EvaluateResults::Element transformed_value;
+    std::vector<const Transformation::TransformBase*> transform_list;
+    Common::EvaluateResults::Element* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
-      Common::EvaluateResults::Element& variable_value = result.get(i);
+      if (evaluated_value == nullptr) {
+        evaluated_value = &result.get(i);
+      }
 
       // Evaluate the operator
-      bool variable_matched = evaluateOperator(t, variable_value.variant_);
+      bool variable_matched = evaluateOperator(t, evaluated_value->variant_);
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        t.pushMatchedVariable(var.get(), result.move(i));
+        t.pushMatchedVariable(var.get(), result.move(i), std::move(transformed_value),
+                              std::move(transform_list));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
             return std::format("variable is matched. {}{}", var->mainName(),
@@ -352,7 +392,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           } else {
             auto& matched_var = t.getMatchedVariables().back();
             return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                               matched_var.second.variable_sub_name_);
+                               matched_var.transformed_value_.variable_sub_name_);
           }
         }());
 
@@ -366,25 +406,31 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         curr_transform_index = 0;
       } else {
         // The variable value is not matched, perf transformation and try to match again
-        if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
+        if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_)) [[likely]] {
           // Evaluate the transformation
           bool ret = false;
           while (!ret && curr_transform_index < transforms.size()) {
-            ret = transforms[curr_transform_index]->evaluate(t, var.get(), variable_value);
+            ret = transforms[curr_transform_index]->evaluate(t, var.get(), *evaluated_value,
+                                                             transformed_value);
             WGE_LOG_TRACE("evaluate transformation: {} {}",
                           transforms[curr_transform_index]->name(), ret);
             curr_transform_index++;
           }
 
-          // All of the transformations have been evaluated, and the variable value is not matched
-          // We need to evaluate the next variable value
           if (!ret) {
+            // All of the transformations have been evaluated, and the variable value is not matched
+            // We need to evaluate the next variable value
             i++;
             curr_transform_index = 0;
+            evaluated_value = nullptr;
+          } else {
+            evaluated_value = &transformed_value;
+            transform_list.emplace_back(transforms[curr_transform_index - 1]);
           }
         } else {
           i++;
           curr_transform_index = 0;
+          evaluated_value = nullptr;
         }
       }
     }

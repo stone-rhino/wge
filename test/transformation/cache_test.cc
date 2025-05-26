@@ -48,13 +48,13 @@ TEST_F(CacheTest, hit) {
 
   Common::EvaluateResults::Element transform_buffer(data, "");
   Variable::Tx variable(std::string("test"), std::nullopt, false, false);
-  bool ret = trans->evaluate(*t_, &variable, transform_buffer);
+  bool ret = trans->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
   EXPECT_EQ(result, "hello, world!hello, world!hello, world!hello, world!hello, world!");
 
   Common::EvaluateResults::Element transform_buffe2(data, "");
-  ret = trans->evaluate(*t_, &variable, transform_buffe2);
+  ret = trans->evaluate(*t_, &variable, transform_buffe2, transform_buffe2);
   EXPECT_TRUE(ret);
   std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_EQ(result.data(), result2.data());
@@ -66,14 +66,14 @@ TEST_F(CacheTest, notHitWithDifferentVaraible) {
 
   Common::EvaluateResults::Element transform_buffer(data, "");
   Variable::Tx variable(std::string("test"), std::nullopt, false, false);
-  bool ret = trans->evaluate(*t_, &variable, transform_buffer);
+  bool ret = trans->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
   EXPECT_EQ(result, "hello, world!");
 
   Common::EvaluateResults::Element transform_buffe2(data, "");
   Variable::Tx variable2(std::string("test2"), std::nullopt, false, false);
-  ret = trans->evaluate(*t_, &variable2, transform_buffe2);
+  ret = trans->evaluate(*t_, &variable2, transform_buffe2, transform_buffe2);
   EXPECT_TRUE(ret);
   std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_EQ(result, result2);
@@ -87,13 +87,13 @@ TEST_F(CacheTest, notHitWithLessThanThreshold) {
 
   Common::EvaluateResults::Element transform_buffer(data, "");
   Variable::Tx variable(std::string("test"), std::nullopt, false, false);
-  bool ret = trans->evaluate(*t_, &variable, transform_buffer);
+  bool ret = trans->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
   EXPECT_EQ(result, "hello, world!");
 
   Common::EvaluateResults::Element transform_buffe2(data, "");
-  ret = trans->evaluate(*t_, &variable, transform_buffe2);
+  ret = trans->evaluate(*t_, &variable, transform_buffe2, transform_buffe2);
   EXPECT_TRUE(ret);
   std::string_view result2 = std::get<std::string_view>(transform_buffe2.variant_);
   EXPECT_NE(result.data(), result2.data());
@@ -110,7 +110,8 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   Common::EvaluateResults::Element first_transform_buffer{first_data, ""};
   Variable::Args first_variable(std::string("test"), false, false);
 
-  bool ret = url_trans->evaluate(*t_, &first_variable, first_transform_buffer);
+  bool ret =
+      url_trans->evaluate(*t_, &first_variable, first_transform_buffer, first_transform_buffer);
   EXPECT_TRUE(ret);
   EXPECT_EQ(std::get<std::string_view>(first_transform_buffer.variant_), first_origin);
 
@@ -121,7 +122,8 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   Common::EvaluateResults::Element second_transform_buffer{second_data, ""};
   Variable::Args second_variable(std::string("test"), false, false);
 
-  ret = url_trans->evaluate(*t_, &second_variable, second_transform_buffer);
+  ret =
+      url_trans->evaluate(*t_, &second_variable, second_transform_buffer, second_transform_buffer);
   EXPECT_TRUE(ret);
   EXPECT_EQ(std::get<std::string_view>(second_transform_buffer.variant_), second_origin);
 }
@@ -141,7 +143,7 @@ TEST_F(CacheTest, executeDuplicateTransformation) {
   Variable::Args variable(std::string("test"), false, false);
   bool ret;
   for (const auto& transformation : trans) {
-    ret = transformation->evaluate(*t_, &variable, transform_buffer);
+    ret = transformation->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   }
   EXPECT_TRUE(ret);
   EXPECT_EQ(std::get<std::string_view>(transform_buffer.variant_), origin_data);
@@ -165,7 +167,7 @@ TEST_F(CacheTest, duplicateArgsDifferentTrans) {
   Variable::Args variable(std::string("test"), false, false);
   bool ret1;
   for (const auto& tran : trans1) {
-    ret1 = tran->evaluate(*t_, &variable, transform_buffer1);
+    ret1 = tran->evaluate(*t_, &variable, transform_buffer1, transform_buffer1);
   }
   EXPECT_TRUE(ret1);
 
@@ -173,7 +175,7 @@ TEST_F(CacheTest, duplicateArgsDifferentTrans) {
   Common::EvaluateResults::Element transform_buffer2{data2, ""};
   bool ret2;
   for (const auto& tran : trans2) {
-    ret2 = tran->evaluate(*t_, &variable, transform_buffer2);
+    ret2 = tran->evaluate(*t_, &variable, transform_buffer2, transform_buffer2);
   }
   EXPECT_FALSE(ret2);
   EXPECT_NE(std::get<std::string_view>(transform_buffer1.variant_),

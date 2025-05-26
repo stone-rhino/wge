@@ -105,10 +105,6 @@ public:
       }
     };
 
-    request_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
-      return request_body_;
-    };
-
     response_header_find_ = [&](const std::string& key) {
       std::vector<std::string_view> result;
       auto range = response_headers_.equal_range(key);
@@ -130,20 +126,14 @@ public:
         }
       }
     };
-
-    response_body_extractor_ = [&]() -> const std::vector<std::string_view>& {
-      return response_body_;
-    };
   }
 
 protected:
   Engine engine_;
   HeaderFind request_header_find_;
   HeaderTraversal request_header_traversal_;
-  BodyExtractor request_body_extractor_;
   HeaderFind response_header_find_;
   HeaderTraversal response_header_traversal_;
-  BodyExtractor response_body_extractor_;
 
 protected:
   std::string downstream_ip_{"192.168.1.100"};
@@ -171,8 +161,8 @@ protected:
       {"set-cookie", "c1=v1;c2=v2"},
       {"set-cookie", "c3=v4"}};
 
-  std::vector<std::string_view> request_body_;
-  std::vector<std::string_view> response_body_{{"hello world"}};
+  std::string request_body_;
+  std::string response_body_{"hello world"};
 };
 
 TEST_F(CrsTest, crs) {
@@ -187,10 +177,10 @@ TEST_F(CrsTest, crs) {
     t->processUri(uri_, method_, version_);
     t->processRequestHeaders(request_header_find_, request_header_traversal_,
                              request_headers_.size(), nullptr);
-    t->processRequestBody(request_body_extractor_, nullptr);
+    t->processRequestBody(request_body_, nullptr);
     t->processResponseHeaders("200", "HTTP/1.1", response_header_find_, response_header_traversal_,
                               response_headers_.size(), nullptr);
-    t->processResponseBody(response_body_extractor_, nullptr);
+    t->processResponseBody(response_body_, nullptr);
   });
   result.get();
 }

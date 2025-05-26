@@ -108,7 +108,6 @@ public:
         },
         // specify subname
         {
-          if (!hasExceptVariable(sub_name_)) [[likely]] {
             auto range = line_query_params_map.equal_range(sub_name_);
             for (auto iter = range.first; iter != range.second; ++iter) {
               result.append(iter->second);
@@ -117,7 +116,6 @@ public:
             for (auto iter = range2.first; iter != range2.second; ++iter) {
               result.append(iter->second);
             }
-          }
         });
   }
 

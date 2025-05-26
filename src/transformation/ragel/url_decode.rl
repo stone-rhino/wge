@@ -49,6 +49,14 @@
     }
   }
 
+  action decode_plus {
+    if (decode_plus) [[likely]] {
+      *r++ = ' ';
+    } else {
+      *r++ = fc;
+    }
+  }
+
   HEX = [0-9a-fA-F];
 
   # prescan
@@ -59,7 +67,7 @@
   *|;
   
   transformation := |*
-    '+' => { *r++ = ' '; };
+    '+' => decode_plus;
     '%' HEX HEX => decode_hex;
     any => { *r++ = fc; };
   *|;
@@ -67,7 +75,7 @@
 
 %% write data;
 
-static bool urlDecode(std::string_view input, std::string& result) {
+static bool urlDecode(std::string_view input, std::string& result, bool decode_plus = true) {
   result.clear();
   char* r = nullptr;
 

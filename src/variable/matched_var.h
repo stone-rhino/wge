@@ -47,7 +47,7 @@ public:
     }
 
     auto& matched_var = t.getMatchedVariables().back();
-    result.append(matched_var.second.variant_);
+    result.append(matched_var.transformed_value_.variant_);
   }
 };
 } // namespace Variable

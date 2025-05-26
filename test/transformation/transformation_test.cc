@@ -41,10 +41,12 @@ TEST_F(TransformationTest, base64Decode) {
   EXPECT_FALSE(ret);
   EXPECT_TRUE(result.empty());
 
+  // If the length of the data is not a multiple of 4, it is a invalid base64 string. But the
+  // Base64Decode can still try to decode it possibly.
   data = "VGhpcyBpcyBhIHRlc3Q";
   ret = base64_decode.evaluate(data, result);
-  EXPECT_FALSE(ret);
-  EXPECT_TRUE(result.empty());
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a te");
 
   data = "VGhpcyBpcyBhIHRlc3=Q";
   ret = base64_decode.evaluate(data, result);
@@ -345,7 +347,8 @@ TEST_F(TransformationTest, htmlEntityDecode) {
     {"&#x54;his is a test", "This is a test"},
     {"&#84;his is a test", "This is a test"},
     {"&amp; &lt; &gt; &quot; &apos; &nbsp;", "& < > \" '  "},
-    {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"}
+    {"&amp;&apos;this&apos;&nbsp;&quot;is&quot;&nbsp;a&nbsp;&lt;te&#115;&#116;&gt;", "&'this' \"is\" a <test>"},
+    {"xss src=&#x6a&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3a&#x61&#x6c&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>","xss src=javascript:alert('XSS')>"}
   };
   // clang-format on
 
@@ -376,16 +379,40 @@ TEST_F(TransformationTest, htmlEntityDecode) {
 
   // Test for not valid html entity with invalid number
   {
-    std::string data = "&#23234234234234;";
+    std::string data = "&#23234234234234;&#x6a";
     std::string result;
     bool ret = html_entity_decode.evaluate(data, result);
     EXPECT_TRUE(ret);
-    EXPECT_EQ(result, data);
+    EXPECT_EQ(result, "&#23234234234234;j");
   }
 }
 
 TEST_F(TransformationTest, jsDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const JsDecode js_decode;
+
+  {
+    std::string data = R"(This is a test data)";
+    std::string result;
+    bool ret = js_decode.evaluate(data, result);
+    EXPECT_FALSE(ret);
+    EXPECT_TRUE(result.empty());
+  }
+
+  {
+    std::string data = R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)";
+    std::string result;
+    bool ret = js_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1");
+  }
+
+  {
+    std::string data = R"(\u0054\u0068\u0069\u0073 \u0069\u0073 \u0061 \u0074\u0065\u0073\u0074 \u0064\u0061\u0074\u0061)";
+    std::string result;
+    bool ret = js_decode.evaluate(data, result);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(result, "\u0054\u0068\u0069\u0073 \u0069\u0073 \u0061 \u0074\u0065\u0073\u0074 \u0064\u0061\u0074\u0061");
+  }
 }
 
 TEST_F(TransformationTest, length) {
@@ -800,15 +827,63 @@ TEST_F(TransformationTest, sqlHexDecode) {
 }
 
 TEST_F(TransformationTest, trimLeft) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const TrimLeft trim_left;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim_left.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim_left.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test \t\n\r\f\v\x20");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim_left.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, trimRight) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const TrimRight trim_right;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim_right.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim_right.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "\t\n\r\f\v\x20 This is a test");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim_right.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, trim) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const Trim trim;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = trim.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20";
+  ret = trim.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
+
+  data = "\t\n\r\f\v\x20 ";
+  ret = trim.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "");
 }
 
 TEST_F(TransformationTest, upperCase) {
@@ -848,6 +923,11 @@ TEST_F(TransformationTest, urlDecodeUni) {
   ret = url_decode_uni.evaluate(data, result);
   EXPECT_TRUE(ret);
   EXPECT_EQ(result, "\u4E2D \u6587 \u4E2D \u6587 ");
+
+  data = R"(%uff1cscript%uff1ealert(%uff07XSS%uff07);%uff1c/script%uff1e)";
+  ret = url_decode_uni.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "<script>alert('XSS');</script>");
 }
 
 TEST_F(TransformationTest, urlDecode) {
