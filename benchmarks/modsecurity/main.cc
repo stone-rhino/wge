@@ -28,20 +28,14 @@ void process(modsecurity::ModSecurity& engine, modsecurity::RulesSet& rules_set,
     t.addRequestHeader({key.data(), key.length()}, {value.data(), value.length()});
   }
   t.processRequestHeaders();
-
-  for (auto value : http_info.request_body_) {
-    t.appendRequestBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
-  }
+  t.appendRequestBody(reinterpret_cast<const unsigned char*>(http_info.request_body_.data()), http_info.request_body_.length());
   t.processRequestBody();
 
   for (auto& [key, value] : http_info.response_headers_) {
     t.addResponseHeader({key.data(), key.length()}, {value.data(), value.length()});
   }
   t.processResponseHeaders(200, "HTTP/1.1");
-
-  for (auto value : http_info.response_body_) {
-    t.appendResponseBody(reinterpret_cast<const unsigned char*>(value.data()), value.length());
-  }
+  t.appendResponseBody(reinterpret_cast<const unsigned char*>(http_info.response_body_.data()), http_info.response_body_.length());
   t.processResponseBody();
 }
 
