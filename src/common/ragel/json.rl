@@ -61,7 +61,9 @@
     }
 
     action add_key {
-      key_view = std::string_view(ts + 1, te - ts - 3);
+      key_view = std::string_view(ts + 1, te - ts - 2);
+      key_view = trimRight(key_view.data(), key_view.size());
+      key_view.remove_suffix(1);
       std::string key_escape_buffer;
       if(escapeSeqDecode(key_view, key_escape_buffer)) {
         escape_buffer.emplace_front(std::move(key_escape_buffer));
@@ -154,7 +156,7 @@
       '}' => skip;
       ',' => skip;
       ']' => skip;
-      '"' ([^"] | ('\\"'))* '":' => add_key;
+      '"' ([^"] | ('\\"'))* '"' WS ':' => add_key;
       any => error;
     *|;
 
@@ -221,6 +223,18 @@
 }%%
 
 %% write data;
+
+// Trims trailing whitespace
+static std::string_view trimRight(const char* start, size_t size) {
+  const char* end = start + size;
+
+  // Trim trailing whitespace
+  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '\r' || *(end - 1) == '\n')) {
+    --end;
+  }
+
+  return std::string_view(start, end - start);
+}
 
 static bool parseJson(std::string_view input, 
     std::unordered_multimap<std::string_view, std::string_view>& key_value_map, 
