@@ -58,17 +58,26 @@ TEST(Common, multiPart) {
   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
   auto& name_value_map = multi_part.getNameValue();
   auto& name_value_linked = multi_part.getNameValueLinked();
-  EXPECT_EQ(name_value_map.size(), 3);
-  EXPECT_EQ(name_value_linked.size(), 3);
+  EXPECT_EQ(name_value_map.size(), 6);
+  EXPECT_EQ(name_value_linked.size(), 6);
   EXPECT_EQ(name_value_map.find("foo1")->second, "bar1\r\n");
   EXPECT_EQ(name_value_map.find("foo2")->second, "bar2\r\n");
   EXPECT_EQ(name_value_map.find("foo3")->second, "bar3\r\n");
+  EXPECT_EQ(name_value_map.find("file1")->second, "world\r\n");
+  EXPECT_EQ(name_value_map.find("file2")->second, "world\r\n");
+  EXPECT_EQ(name_value_map.find("file3")->second, "world\r\n");
   EXPECT_EQ(name_value_linked[0].first, "foo1");
   EXPECT_EQ(name_value_linked[1].first, "foo2");
   EXPECT_EQ(name_value_linked[2].first, "foo3");
+  EXPECT_EQ(name_value_linked[3].first, "file1");
+  EXPECT_EQ(name_value_linked[4].first, "file2");
+  EXPECT_EQ(name_value_linked[5].first, "file3");
   EXPECT_EQ(name_value_linked[0].second, "bar1\r\n");
   EXPECT_EQ(name_value_linked[1].second, "bar2\r\n");
   EXPECT_EQ(name_value_linked[2].second, "bar3\r\n");
+  EXPECT_EQ(name_value_linked[3].second, "world\r\n");
+  EXPECT_EQ(name_value_linked[4].second, "world\r\n");
+  EXPECT_EQ(name_value_linked[5].second, "world\r\n");
 
   auto& name_filename_map = multi_part.getNameFileName();
   auto& name_filename_linked = multi_part.getNameFileNameLinked();

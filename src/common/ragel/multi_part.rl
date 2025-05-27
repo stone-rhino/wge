@@ -305,6 +305,11 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
           MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
           auto result = name_filename_map.insert({name, filename});
           name_filename_linked.emplace_back(name, filename);
+          if(value_len > 0) {
+            MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
+            auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
+            name_value_linked.emplace_back(name, std::string_view(p_value_start, value_len));
+          }
         }
 
         name = {};
