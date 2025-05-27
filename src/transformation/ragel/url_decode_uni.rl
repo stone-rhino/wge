@@ -87,14 +87,14 @@
   main := |*
     '+' => exec_transformation;
     '%' HEX HEX => exec_transformation;
-    '%' 'u' HEX HEX HEX HEX => exec_transformation;
+    '%' [uU] HEX HEX HEX HEX => exec_transformation;
     any => skip;
   *|;
   
   transformation := |*
     '+' => { *r++ = ' '; };
     '%' HEX HEX => decode_hex;
-    '%' 'u' HEX HEX HEX HEX => decode_unicode;
+    '%' [uU] HEX HEX HEX HEX => decode_unicode;
     any => { *r++ = fc; };
   *|;
 }%%
