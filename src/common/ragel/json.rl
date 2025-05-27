@@ -141,6 +141,7 @@
       '{' => skip;
       '}' => skip;
       ',' => skip;
+      '[' => skip;
       ']' => skip;
       '"' ([^"] | ('\\"'))* '"' WS ':' => find_key;
       any => error;
