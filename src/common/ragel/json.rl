@@ -141,7 +141,12 @@
       '{' => skip;
       '}' => skip;
       ',' => skip;
-      '[' => skip;
+      '[' => {
+        JSON_LOG("start with array. fcall value");
+        p = ts;
+        fhold;
+        fcall value;
+      };
       ']' => skip;
       '"' ([^"] | ('\\"'))* '"' WS ':' => find_key;
       any => error;
