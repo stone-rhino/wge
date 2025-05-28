@@ -293,7 +293,7 @@ inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_va
   matched = operator_->isNot() ^ matched;
 
   // Call additional conditions if they are defined
-  if (t.getAdditionalCond()) {
+  if (matched && t.getAdditionalCond()) {
     if (IS_STRING_VIEW_VARIANT(var_value)) {
       matched = t.getAdditionalCond()(*this, std::get<std::string_view>(var_value));
       WGE_LOG_TRACE("call additional condition: {}", matched);
