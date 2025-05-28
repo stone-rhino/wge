@@ -10,6 +10,7 @@ pkg_check_modules(TCMALLOC REQUIRED libtcmalloc)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HYPERSCAN REQUIRED libhs)
 find_library(INJECTION_LIB injection)
+find_package(antlr4-runtime CONFIG REQUIRED)
 
 if (NOT TARGET test_data)
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../test_data test_data)
@@ -44,6 +45,7 @@ target_link_libraries(wge_benchmark PRIVATE PCRE2::8BIT)
 target_link_directories(wge_benchmark PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(wge_benchmark PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(wge_benchmark PRIVATE ${INJECTION_LIB})
+target_link_libraries(wge_benchmark PRIVATE antlr4_static)
 target_link_libraries(wge_benchmark PRIVATE test_data)
 
 
@@ -60,5 +62,6 @@ target_link_libraries(wge_benchmark_tcmalloc PRIVATE ${TCMALLOC_LIBRARIES})
 target_link_directories(wge_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE ${INJECTION_LIB})
+target_link_libraries(wge_benchmark_tcmalloc PRIVATE antlr4_static)
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE test_data)
 

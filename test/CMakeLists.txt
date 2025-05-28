@@ -30,3 +30,6 @@ target_link_libraries(test PRIVATE ${INJECTION_LIB})
 
 find_package(LibXml2 REQUIRED)
 target_link_libraries(test PRIVATE LibXml2::LibXml2)
+
+find_package(antlr4-runtime CONFIG REQUIRED)
+target_link_libraries(test PRIVATE antlr4_static)
