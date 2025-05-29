@@ -29,6 +29,8 @@
 #include <variant>
 #include <vector>
 
+#include <boost/unordered/unordered_flat_map.hpp>
+
 #include "common/evaluate_result.h"
 #include "common/ragel/json.h"
 #include "common/ragel/multi_part.h"
@@ -448,9 +450,9 @@ public:
    * Get the transformation cache.
    * @return the transformation cache.
    */
-  std::unordered_map<
+  boost::unordered_flat_map<
       std::string_view,
-      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>,
+      boost::unordered_flat_map<const char*, std::optional<Common::EvaluateResults::Element>>,
       StringViewPtrHash, StringViewPtrEqual>&
   getTransformCache() {
     return transform_cache_;
@@ -589,9 +591,9 @@ private:
   // Use the detection variable string_view and the result of the subsequent transformation function
   // as the key, and reimplement the hash function and comparison function of the outer
   // unordered_map based on the address and size of the string_view
-  std::unordered_map<
+  boost::unordered_flat_map<
       std::string_view,
-      std::unordered_map<const char*, std::optional<Common::EvaluateResults::Element>>,
+      boost::unordered_flat_map<const char*, std::optional<Common::EvaluateResults::Element>>,
       StringViewPtrHash, StringViewPtrEqual>
       transform_cache_;
   bool init_cookies_{false};

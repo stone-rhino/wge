@@ -8,6 +8,7 @@
     "hyperscan",
     "libinjection",
     "libxml2",
-    "boost-uuid"
+    "boost-uuid",
+    "boost-unordered"
   ]
 }
