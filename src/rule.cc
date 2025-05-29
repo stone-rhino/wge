@@ -256,6 +256,8 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
                         const Common::EvaluateResults::Element& input,
                         Common::EvaluateResults::Element& output,
                         std::vector<const Transformation::TransformBase*>& transform_list) const {
+  const Common::EvaluateResults::Element* p_input = &input;
+
   // Check if the default transformation should be ignored
   if (!is_ingnore_default_transform_) [[unlikely]] {
     // Check that the default action is defined
@@ -265,7 +267,6 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
       auto& transforms = default_action->transforms();
 
       // Evaluate the default transformations
-      const Common::EvaluateResults::Element* p_input = &input;
       for (auto& transform : transforms) {
         bool ret = transform->evaluate(t, var, *p_input, output);
         if (ret) {
@@ -278,7 +279,6 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   }
 
   // Evaluate the action defined transformations
-  const Common::EvaluateResults::Element* p_input = &input;
   for (auto& transform : transforms_) {
     bool ret = transform->evaluate(t, var, *p_input, output);
     if (ret) {
