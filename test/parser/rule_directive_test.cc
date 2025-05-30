@@ -43,7 +43,7 @@ private:
 
 TEST_F(RuleTest, Rule) {
   const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:1,tag:'foo',msg:'bar'")";
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|ARGS:'foo|bar'|&ARGS "bar" "id:1,tag:'foo',msg:'bar'")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
@@ -52,7 +52,7 @@ TEST_F(RuleTest, Rule) {
   // Variables pool
   EXPECT_EQ(parser.rules().size(), 1);
   auto& rule_var_pool = parser.rules().back()->variables();
-  ASSERT_EQ(rule_var_pool.size(), 3);
+  ASSERT_EQ(rule_var_pool.size(), 4);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
   EXPECT_FALSE(rule_var_pool[0]->isCounter());
@@ -64,9 +64,14 @@ TEST_F(RuleTest, Rule) {
   EXPECT_FALSE(rule_var_pool[1]->isNot());
 
   EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[2].get()));
-  EXPECT_EQ(rule_var_pool[2]->subName(), "");
-  EXPECT_TRUE(rule_var_pool[2]->isCounter());
+  EXPECT_EQ(rule_var_pool[2]->subName(), "foo|bar");
+  EXPECT_FALSE(rule_var_pool[2]->isCounter());
   EXPECT_FALSE(rule_var_pool[2]->isNot());
+
+  EXPECT_NE(nullptr, dynamic_cast<Variable::Args*>(rule_var_pool[3].get()));
+  EXPECT_EQ(rule_var_pool[3]->subName(), "");
+  EXPECT_TRUE(rule_var_pool[3]->isCounter());
+  EXPECT_FALSE(rule_var_pool[3]->isNot());
 
   auto& except_var_pool = parser.rules().back()->exceptVariables();
   ASSERT_EQ(except_var_pool.size(), 1);

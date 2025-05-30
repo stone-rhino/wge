@@ -451,7 +451,16 @@ ModeSecRuleVariableName_RIGHT_BRACKET:
 
 mode ModeSecRuleVariableSubName;
 ModeSecRuleVariableSubName_VAR_SUB_NAME:
-	~[ :!&|",%{}\n]+ -> type(STRING), popMode;
+	~[ :!&|"',%{}\n]+ -> type(STRING), popMode;
+ModeSecRuleVariableSubName_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleVariableSubNameWithSingleQuote)
+		;
+
+mode ModeSecRuleVariableSubNameWithSingleQuote;
+ModeSecRuleVariableSubNameWithSingleQuote_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode;
+ModeSecRuleVariableSubNameWithSingleQuote_VAR_SUB_NAME:
+	~[']+ -> type(STRING);
 
 mode ModeSecRuleOperator;
 ModeSecRuleOperator_NOT: NOT -> type(NOT);
