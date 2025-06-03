@@ -73,10 +73,20 @@ jobs:
           env
           echo "::endgroup::"
 
+          # 查找unordered_flat_map.hpp
+          echo "::group::Find unordered_flat_map.hpp"
+          find /opt/vcpkg/ -name "unordered_flat_map.hpp" || true
+
+          ls /opt/vcpkg/buildtrees/boost-unordered || true
+          ls /opt/vcpkg/packages/boost-unordered* || true
+          echo "::endgroup::"
+
       - name: Build
         run: |
           echo "::group::Building project"
-          cmake --build build/release -t wge test --verbose
+          cmake --build build/release -t wge test --verbose 
+ 
+          find ./ -name "unordered_flat_map.hpp" || true
           echo "::endgroup::"
 
       - name: Run tests

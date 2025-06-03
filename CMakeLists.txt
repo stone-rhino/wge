@@ -17,6 +17,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug"  AND WGE_LOG_ACTIVE_LEVEL EQUAL 7)
   add_definitions(-DWGE_LOG_ACTIVE_LEVEL=1)
 endif()
 
+
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(benchmarks/wge)
