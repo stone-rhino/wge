@@ -388,7 +388,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     std::vector<const Transformation::TransformBase*> transform_list;
     Common::EvaluateResults::Element* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
-      if (evaluated_value == nullptr) {
+      if (evaluated_value == nullptr || IS_EMPTY_VARIANT(evaluated_value->variant_)) {
         evaluated_value = &result.get(i);
       }
 
