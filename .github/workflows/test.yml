@@ -73,6 +73,13 @@ jobs:
           env
           echo "::endgroup::"
 
+          # 查找unordered_flat_map.hpp
+          echo "::group::Find unordered_flat_map.hpp"
+          ls build/release-with-debug-info/vcpkg_installed/x64-linux/include/boost/
+          ls build/release-with-debug-info/vcpkg_installed/x64-linux/include/boost/unordered/
+          find ./ -name "unordered_flat_map.hpp"
+          echo "::endgroup::"
+
       - name: Build
         run: |
           echo "::group::Building project"
