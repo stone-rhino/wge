@@ -388,7 +388,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     std::vector<const Transformation::TransformBase*> transform_list;
     Common::EvaluateResults::Element* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
-      if (evaluated_value == nullptr || IS_EMPTY_VARIANT(evaluated_value->variant_)) {
+      if (evaluated_value == nullptr) {
         evaluated_value = &result.get(i);
       }
 
@@ -418,6 +418,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         // The variable value is matched, evaluate next variable value
         i++;
         curr_transform_index = 0;
+        evaluated_value = nullptr;
       } else {
         // The variable value is not matched, evaluate the transformation and try to match again
         if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_)) [[likely]] {
