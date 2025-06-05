@@ -63,7 +63,7 @@ OPTION: ('On' | 'Off');
 BODY_LIMIT_ACTION: ('Reject' | 'ProcessPartial');
 COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
 NL: '\\' '\r'? '\n' -> skip;
-WS: (([ \t\r\n]+) | NL) -> skip;
+WS: (([ \t\r\n]+) | NL)+ -> skip;
 
 Include: 'Include' -> pushMode(ModeInclude);
 SecAction: 'SecAction' -> pushMode(ModeSecRuleAction);
@@ -545,8 +545,9 @@ ModeSecRuleOperatorValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleAction;
-ModeSecRuleAction_WS: (([ \t]+) | NL) -> skip;
-ModeSecRuleAction_END: '\r'? '\n' -> skip, popMode;
+ModeSecRuleAction_WS: WS { _input->LA(1) == '"' }? -> skip;
+ModeSecRuleAction_END:
+	WS { _input->LA(1) != '"' }? -> skip, popMode;
 ModeSecRuleAction_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleActionName);
 
