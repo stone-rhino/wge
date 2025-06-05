@@ -1,0 +1,125 @@
+/**
+ * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ *
+ * MIT License (http://opensource.org/licenses/MIT)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+#pragma once
+
+#include <iostream>
+
+%%{
+  machine remove_comments;
+
+  action skip {}
+
+  action exec_transformation { 
+    result.resize(input.size());
+    r = result.data();
+    if(ts > input.data()){
+      memcpy(r, input.data(), ts - input.data());
+      r += ts - input.data();
+    }
+    p = ts;
+    fhold;
+    fgoto transformation;
+  }
+
+  action exec_transformation_if_newline {
+    if(*ts == '\n' || ts == ps) {
+      result.resize(input.size());
+      r = result.data();
+      if(ts > input.data()){
+        memcpy(r, input.data(), ts - input.data());
+        r += ts - input.data();
+      }
+      p = ts;
+      fhold;
+      fgoto transformation;
+    }
+  }
+
+  action exec_transformation_if_eof {
+    if(te == eof) {
+      result.resize(input.size());
+      r = result.data();
+      if(ts > input.data()){
+        memcpy(r, input.data(), ts - input.data());
+        r += ts - input.data();
+      }
+      p = ts;
+      fhold;
+      fgoto transformation;
+    }
+  }
+
+  # prescan
+  main := |*
+    '/*' => exec_transformation;
+    '<!--' => exec_transformation;
+    '--' [^\r\n]* '\r'? '\n' => exec_transformation;
+    '--' [^\r\n]* => exec_transformation_if_eof;
+    '\n'? [ \t]* '#' [^\r\n]* '\r'? '\n' => exec_transformation_if_newline;
+    '\n'? [ \t]* '#' [^\r\n]* => exec_transformation_if_eof;
+    any => skip;
+  *|;
+
+  # transformation
+  transformation := |*
+    '/*' => { fgoto remove; };
+    '<!--' => { fgoto remove; };
+    '--' [^\r\n]* '\r'? '\n'? => skip;
+    '\n'? [ \t]* '#' [^\r\n]* '\r'? '\n'? => {
+      // The '#' comment is a special case, only remove it if it is at the start of a line
+      if(*ts != '\n' && ts != ps) {
+        memcpy(r, ts, te - ts);
+        r += te - ts;
+      }
+    };
+    any => { *r++ = fc; };
+  *|;
+
+  remove := |*
+    '*/' => { fgoto transformation; };
+    '-->' => { fgoto transformation; };
+    any => skip;
+  *|;
+}%%
+
+%% write data;
+
+static bool removeComments(std::string_view input, std::string& result) {
+  result.clear();
+  char* r = nullptr;
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = pe;
+  const char* ts, *te;
+  int cs,act;
+
+  %% write init;
+  %% write exec;
+
+  if(r) {
+    result.resize(r - result.data());
+    return true;
+  }
+
+  return false;
+}

@@ -702,6 +702,47 @@ TEST_F(TransformationTest, ParityZero7Bit) {
 }
 
 TEST_F(TransformationTest, removeComments) {
+  const RemoveComments remove_comments;
+
+  std::string data = R"(This is a test)";
+  std::string result;
+  bool ret = remove_comments.evaluate(data, result);
+  EXPECT_FALSE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(#This is a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(--This is a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_TRUE(result.empty());
+
+  data = R"(This is /* comment */ a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is  a test");
+
+  data = R"(# comment
+This is # comment a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is # comment a test");
+
+  data = R"(This is -- comment a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is ");
+
+  data = R"(This is <!-- comment a test)";
+  ret = remove_comments.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is ");
+}
+
+TEST_F(TransformationTest, removeCommentChar) {
   const RemoveCommentsChar remove_comments_char;
 
   std::string data = R"(This is a test)";
@@ -729,10 +770,6 @@ TEST_F(TransformationTest, removeComments) {
   ret = remove_comments_char.evaluate(data, result);
   EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is  comment a test");
-}
-
-TEST_F(TransformationTest, removeCommentChar) {
-  // TODO(zhouyu 2025-03-21): Implement this test
 }
 
 TEST_F(TransformationTest, removeNulls) {

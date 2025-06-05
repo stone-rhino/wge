@@ -18,19 +18,14 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "remove_comments.h"
 
-#include <string>
-
-#include "transform_base.h"
+#include <remove_comments.h>
 
 namespace Wge {
 namespace Transformation {
-class RemoveComments : public TransformBase {
-  DECLARE_TRANSFORM_NAME(removeComments);
-
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-};
+bool RemoveComments::evaluate(std::string_view data, std::string& result) const {
+  return removeComments(data, result);
+}
 } // namespace Transformation
 } // namespace Wge
