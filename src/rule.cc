@@ -39,10 +39,10 @@ void Rule::initExceptVariables() {
     auto except_var_name = except_var->fullName();
 
     // Init the except scanner
-    std::unique_ptr<Common::Pcre::Scanner> except_scanner_;
+    std::unique_ptr<Common::Pcre::Scanner> except_scanner;
     if (!except_var_name.sub_name_.empty() && except_var_name.sub_name_.front() == '/' &&
         except_var_name.sub_name_.back() == '/') {
-      except_scanner_ = std::make_unique<Common::Pcre::Scanner>(
+      except_scanner = std::make_unique<Common::Pcre::Scanner>(
           std::string_view{except_var_name.sub_name_.data() + 1,
                            except_var_name.sub_name_.size() - 2},
           false, false);
@@ -66,8 +66,8 @@ void Rule::initExceptVariables() {
       }
 
       // The specific exception is a regex, if matched, we remove the variable directly
-      if (!var_name.sub_name_.empty() && except_scanner_ &&
-          except_scanner_->match(var_name.sub_name_)) {
+      if (!var_name.sub_name_.empty() && except_scanner &&
+          except_scanner->match(var_name.sub_name_)) {
         variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;

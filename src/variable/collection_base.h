@@ -47,9 +47,9 @@ public:
    */
   void addExceptVariable(std::string_view variable_sub_name) {
     if (variable_sub_name.front() == '/' && variable_sub_name.back() == '/') {
-      except_scanner_ = std::make_unique<Common::Pcre::Scanner>(
+      except_scanners_.emplace_back(std::make_unique<Common::Pcre::Scanner>(
           std::string_view{variable_sub_name.data() + 1, variable_sub_name.size() - 2}, false,
-          false);
+          false));
     } else {
       except_variables_.insert(variable_sub_name);
     }
@@ -61,11 +61,17 @@ public:
    * @return true if the variable is in the exception list, false otherwise.
    */
   bool hasExceptVariable(std::string_view variable_sub_name) const {
-    if (!except_scanner_) [[likely]] {
-      return except_variables_.find(variable_sub_name) != except_variables_.end();
-    } else {
-      return except_scanner_->match(variable_sub_name);
+    if (except_variables_.find(variable_sub_name) != except_variables_.end()) {
+      return true;
     }
+
+    for (auto& except_scanner : except_scanners_) {
+      if (except_scanner->match(variable_sub_name)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   bool isRegex() const { return accept_scanner_ != nullptr; }
@@ -83,7 +89,7 @@ protected:
 
 private:
   std::unique_ptr<Common::Pcre::Scanner> accept_scanner_;
-  std::unique_ptr<Common::Pcre::Scanner> except_scanner_;
+  std::vector<std::unique_ptr<Common::Pcre::Scanner>> except_scanners_;
 };
 } // namespace Variable
 } // namespace Wge
