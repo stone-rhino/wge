@@ -55,20 +55,22 @@ public:
    * @param ifs the file stream
    * @param utf8 whether the pattern is utf8
    * @param som_leftmost whether the pattern is som_leftmost
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param multi_line whether the pattern is multi_line
    * @note:
    * Starts with charactor '#' means comment this line
    * Starts with double charactor '#' means comment all of follow
    */
-  bool load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool multi_line);
+  bool load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool prefilter, bool multi_line);
 
   /**
    * Add a pattern to the list
    * @param exp the pattern
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param init_raw_data whether init raw data now. we must specify true at last call add() for the
    * list to get raw data.
    */
-  void add(Expression&& exp, bool init_raw_data);
+  void add(Expression&& exp, bool prefilter, bool init_raw_data);
   size_t size() const;
   void clear();
   bool literal() const { return literal_; }

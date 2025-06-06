@@ -53,7 +53,8 @@ public:
           scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
         },
         [&]() {
-          auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true);
+          auto hs_db =
+              std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, false, false);
           scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
           return hs_db;
         });
@@ -90,7 +91,10 @@ public:
             macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
             scanner = macro_scanner.get();
           },
-          [&]() { return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true); });
+          [&]() {
+            return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, false,
+                                                                   false);
+          });
     }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.

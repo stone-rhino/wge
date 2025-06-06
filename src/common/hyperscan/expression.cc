@@ -30,7 +30,8 @@
 namespace Wge {
 namespace Common {
 namespace Hyperscan {
-bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool multi_line) {
+bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool prefilter,
+                          bool multi_line) {
   assert(ifs.is_open());
   if (!ifs.is_open()) {
     return false;
@@ -73,7 +74,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
       continue;
     }
 
-    add({std::move(buffer), flag, id}, false);
+    add({std::move(buffer), flag, id}, prefilter, false);
     ++id;
   }
 
@@ -83,19 +84,21 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool som_leftmost, bool
   return true;
 }
 
-void ExpressionList::add(Expression&& exp, bool init_raw_data) {
+void ExpressionList::add(Expression&& exp, bool prefilter, bool init_raw_data) {
   auto iter = logic_id_map_.find(exp.id_);
   if (iter == logic_id_map_.end()) {
-    // The hyperscan not supported complete pcre syntax, that means it can't process some
-    // expression such as lookaround ahead/behind and backreference.
-    // To support these pcre syntax, we use HS_FLAG_PREFILTER to complie first, hyperscan
-    // transform the expressions so it can be processed. E.g the pattern (?<=hello)world may be
-    // transform to \w+world. After the hyperscan matched the pattern, we use pcre to scan again
-    // exactly.
-    bool is_pre_filter = false;
+    bool is_pre_filter = prefilter;
     unsigned int local_flag = exp.flag_;
     if (!literal_) {
-      is_pre_filter = isPcre(exp.exp_);
+      if (!is_pre_filter) {
+        // The hyperscan not supported complete pcre syntax, that means it can't process some
+        // expression such as lookaround ahead/behind and backreference.
+        // To support these pcre syntax, we use HS_FLAG_PREFILTER to complie first, hyperscan
+        // transform the expressions so it can be processed. E.g the pattern (?<=hello)world may be
+        // transform to \w+world. After the hyperscan matched the pattern, we use pcre to scan again
+        // exactly.
+        is_pre_filter = isPcre(exp.exp_);
+      }
       if (is_pre_filter) {
         // the HS_FLAG_PREFILTER flag can't be used in combination whit HS_FLAG_SOM_LEFTMOST.
         local_flag &= ~HS_FLAG_SOM_LEFTMOST;

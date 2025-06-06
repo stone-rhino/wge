@@ -59,7 +59,7 @@ public:
         return;
       }
 
-      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, true);
+      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, true, false, false);
       scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
       database_cache_.emplace(file_path, hs_db);
     } else {

@@ -44,10 +44,11 @@ public:
    * @param pattern the pattern
    * @param literal whether the pattern is literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param support_stream whether support stream mode
    */
-  HsDataBase(const std::string& pattern, bool literal, bool som_leftmost,
-             bool support_stream = false);
+  HsDataBase(const std::string& pattern, bool literal, bool som_leftmost, bool prefilter,
+             bool support_stream);
 
   /**
    * Load patterns form a vector of string_view without pattern id. The id of patterns will be
@@ -55,10 +56,11 @@ public:
    * @param patterns the patterns
    * @param literal whether the patterns are literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param support_stream whether support stream mode
    */
   HsDataBase(const std::vector<std::string_view>& patterns, bool literal, bool som_leftmost,
-             bool support_stream = false);
+             bool prefilter, bool support_stream);
 
   /**
    * Load patterns form a vector of string_view with pattern id.
@@ -66,10 +68,11 @@ public:
    * @param ids the pattern ids
    * @param literal whether the patterns are literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param support_stream whether support stream mode
    */
   HsDataBase(const std::vector<std::string_view>& patterns, const std::vector<uint64_t>& ids,
-             bool literal, bool som_leftmost, bool support_stream = false);
+             bool literal, bool som_leftmost, bool prefilter, bool support_stream);
 
   /**
    * Load patterns from the specified file.
@@ -77,9 +80,11 @@ public:
    * @param ifs the file stream
    * @param literal whether the patterns are literal
    * @param som_leftmost whether enable HS_FLAG_SOM_LEFTMOST flag when compile
+   * @param prefilter whether enable HS_FLAG_PREFILTER flag when compile
    * @param support_stream whether support stream mode
    */
-  HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool support_stream = false);
+  HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool prefilter,
+             bool support_stream);
 
 public:
   const hs_database_t* blockNative() const { return db_.block_db_; }

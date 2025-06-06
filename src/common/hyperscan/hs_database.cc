@@ -30,7 +30,7 @@ namespace Common {
 namespace Hyperscan {
 Scratch HsDataBase::main_scratch_;
 
-HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmost,
+HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmost, bool prefilter,
                        bool support_stream)
     : db_(literal) {
   unsigned int flag = HS_FLAG_CASELESS;
@@ -40,12 +40,12 @@ HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmo
   if (!db_.expressions_.literal()) {
     flag |= HS_FLAG_UTF8;
   }
-  db_.expressions_.add({pattern, flag, 0}, true);
+  db_.expressions_.add({pattern, flag, 0}, prefilter, true);
   compile(support_stream);
 }
 
 HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool literal,
-                       bool som_leftmost, bool support_stream)
+                       bool som_leftmost, bool prefilter, bool support_stream)
     : db_(literal) {
   unsigned int flag = HS_FLAG_CASELESS;
   if (som_leftmost) {
@@ -56,16 +56,16 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool liter
   }
   size_t i = 0;
   for (; i < patterns.size() - 1; ++i) {
-    db_.expressions_.add({std::string(patterns[i]), flag, i}, false);
+    db_.expressions_.add({std::string(patterns[i]), flag, i}, prefilter, false);
   }
-  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, i}, true);
+  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, i}, prefilter, true);
 
   compile(support_stream);
 }
 
 HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
                        const std::vector<uint64_t>& ids, bool literal, bool som_leftmost,
-                       bool support_stream)
+                       bool prefilter, bool support_stream)
     : db_(literal) {
   assert(patterns.size() == ids.size());
 
@@ -78,16 +78,17 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
   }
   size_t i = 0;
   for (; i < patterns.size() - 1; ++i) {
-    db_.expressions_.add({std::string(patterns[i]), flag, ids[i]}, false);
+    db_.expressions_.add({std::string(patterns[i]), flag, ids[i]}, prefilter, false);
   }
-  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, ids[i]}, true);
+  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, ids[i]}, prefilter, true);
 
   compile(support_stream);
 }
 
-HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool support_stream)
+HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool prefilter,
+                       bool support_stream)
     : db_(literal) {
-  if (db_.expressions_.load(ifs, true, som_leftmost, false)) {
+  if (db_.expressions_.load(ifs, true, som_leftmost, prefilter, false)) {
     compile(support_stream);
   }
 }

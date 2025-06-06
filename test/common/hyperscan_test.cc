@@ -27,7 +27,7 @@
 
 TEST(HyperscanTest, greedy) {
   Wge::Common::Hyperscan::Scanner scanner(
-      std::make_shared<Wge::Common::Hyperscan::HsDataBase>("a+", false, true, false));
+      std::make_shared<Wge::Common::Hyperscan::HsDataBase>("a+", false, true, false, false));
   int count = 0;
 
   std::future<void> result = std::async([&]() {
