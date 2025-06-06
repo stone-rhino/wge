@@ -82,18 +82,12 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
     }
   }
 
-  // Reset the match callback and user data
-  if (cb) {
-    std::swap(worker_scratch_->match_cb_, cb);
-    std::swap(worker_scratch_->match_cb_user_data_, user_data);
-  }
-
   // Process the greedy match cache
   if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy) {
     for (const auto& [id, from_to_map] : greedy_match_cache) {
       int cease = 0;
       if (mode == ScanMode::GreedyAndGlobal) {
-        for (const auto& [from, to] : from_to_map) {
+        for (auto [from, to] : from_to_map) {
           // Notify matched
           cease = matchCallback(id, from, to, 0, const_cast<Scanner*>(this));
           if (cease) {
@@ -113,6 +107,12 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
         break;
       }
     }
+  }
+
+  // Reset the match callback and user data
+  if (cb) {
+    std::swap(worker_scratch_->match_cb_, cb);
+    std::swap(worker_scratch_->match_cb_user_data_, user_data);
   }
 }
 
@@ -238,6 +238,7 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
 int Scanner::greedyMatchCallback(unsigned int id, unsigned long long from, unsigned long long to,
                                  unsigned int flags, void* user_data) {
   GreedyMatchCache* match_cache = reinterpret_cast<GreedyMatchCache*>(user_data);
+  assert(match_cache);
 
   auto cache_iter = match_cache->try_emplace(id).first;
   auto pos_iter = cache_iter->second.try_emplace(from).first;

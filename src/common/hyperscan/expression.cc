@@ -93,9 +93,9 @@ void ExpressionList::add(Expression&& exp, bool init_raw_data) {
     // transform to \w+world. After the hyperscan matched the pattern, we use pcre to scan again
     // exactly.
     bool is_pre_filter = false;
+    unsigned int local_flag = exp.flag_;
     if (!literal_) {
       is_pre_filter = isPcre(exp.exp_);
-      unsigned int local_flag = exp.flag_;
       if (is_pre_filter) {
         // the HS_FLAG_PREFILTER flag can't be used in combination whit HS_FLAG_SOM_LEFTMOST.
         local_flag &= ~HS_FLAG_SOM_LEFTMOST;
@@ -104,7 +104,7 @@ void ExpressionList::add(Expression&& exp, bool init_raw_data) {
     }
 
     exprs_.emplace_back(std::move(exp.exp_));
-    flags_.emplace_back(exp.flag_);
+    flags_.emplace_back(local_flag);
     ids_.emplace_back(static_cast<unsigned int>(ids_.size()));
     real_ids_.emplace_back(exp.id_);
     logic_id_map_.insert({exp.id_, ids_.size()});
