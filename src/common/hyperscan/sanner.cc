@@ -166,11 +166,11 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
     // As you can see from the above solution, there is
     // a possibility of duplicate matching results, because a few bytes are retraced each time.
     // To solve such problems, we need remove duplicate information based on the from and to values.
-    constexpr unsigned long long max_pcre_scan_front_len = 512;
-    constexpr unsigned long long max_pcre_scan_back_len = 256;
+    const unsigned long long max_pcre_scan_front_len = scanner->max_pcre_scan_front_len_;
+    const unsigned long long max_pcre_scan_back_len = scanner->max_pcre_scan_back_len_;
 
-    // ensure that matched info does not duplicate
-    // remove duplicate information based on the from and to values.
+    // Remove duplicate information based on the from and to values to ensure that matched info
+    // does not duplicate.
     bool match_global = false;
     if (worker_scratch_->pcre_remove_duplicate_cb_) [[unlikely]] {
       match_global = true;

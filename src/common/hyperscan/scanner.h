@@ -39,6 +39,8 @@ public:
   void registMatchCallback(Scratch::MatchCallback cb, void* user_data) const;
   void registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCallbak cb,
                                          void* user_data) const;
+  void setMaxPcreScanFrontLen(unsigned long long len) { max_pcre_scan_front_len_ = len; }
+  void setMaxPcreScanBackLen(unsigned long long len) { max_pcre_scan_back_len_ = len; }
 
 public:
   enum class ScanMode {
@@ -69,6 +71,8 @@ private:
   static thread_local std::unique_ptr<Scratch> worker_scratch_;
   const std::shared_ptr<HsDataBase> hs_db_;
   std::unique_ptr<Pcre::Scanner> pcre_;
+  unsigned long long max_pcre_scan_front_len_{std::numeric_limits<unsigned long long>::max()};
+  unsigned long long max_pcre_scan_back_len_{std::numeric_limits<unsigned long long>::max()};
 };
 } // namespace Hyperscan
 } // namespace Common
