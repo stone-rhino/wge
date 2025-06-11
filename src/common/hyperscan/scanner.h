@@ -41,6 +41,7 @@ public:
                                          void* user_data) const;
   void setMaxPcreScanFrontLen(unsigned long long len) { max_pcre_scan_front_len_ = len; }
   void setMaxPcreScanBackLen(unsigned long long len) { max_pcre_scan_back_len_ = len; }
+  void setPcreMatchLimit(size_t match_limit) const { pcre_->setMatchLimit(match_limit); }
 
 public:
   enum class ScanMode {
