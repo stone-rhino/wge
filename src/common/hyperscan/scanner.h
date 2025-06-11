@@ -71,8 +71,8 @@ private:
   static thread_local std::unique_ptr<Scratch> worker_scratch_;
   const std::shared_ptr<HsDataBase> hs_db_;
   std::unique_ptr<Pcre::Scanner> pcre_;
-  unsigned long long max_pcre_scan_front_len_{std::numeric_limits<unsigned long>::max()};
-  unsigned long long max_pcre_scan_back_len_{std::numeric_limits<unsigned long>::max()};
+  unsigned long long max_pcre_scan_front_len_{std::numeric_limits<unsigned long long>::max()};
+  unsigned long long max_pcre_scan_back_len_{std::numeric_limits<unsigned long long>::max()};
 };
 } // namespace Hyperscan
 } // namespace Common
