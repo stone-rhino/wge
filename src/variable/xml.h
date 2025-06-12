@@ -55,12 +55,20 @@ public:
     if (type_ == Type::TagValue) {
       RETURN_VALUE(
           // collection
-          { result.append(t.getBodyXml().getTagValuesStr()); },
+          {
+            auto& tag_value_str = t.getBodyXml().getTagValuesStr();
+            if (!tag_value_str.empty()) {
+              result.append(tag_value_str);
+            }
+          },
           // collection regex
           { UNREACHABLE(); },
           // specify subname
           {
-            result.append(t.getBodyXml().getTagValuesStr());
+            auto& tag_value_str = t.getBodyXml().getTagValuesStr();
+            if (!tag_value_str.empty()) {
+              result.append(tag_value_str);
+            }
           });
     } else {
       RETURN_VALUE(
