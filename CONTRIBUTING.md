@@ -3,7 +3,7 @@ We welcome contributions to WGE! Please follow these guidelines to maximize the 
 - Before starting work on a new feature, please open an issue to discuss your idea. This helps us avoid duplicated efforts and ensures that your contribution aligns with the project's goals.
 - If you find a bug, please open an issue follow the [bug_report.md](.github/ISSUE_TEMPLATE/bug_report.md). This helps us address issues more effectively. And if you have a fix, feel free to submit a pull request and reference the issue in your PR description.
 ## Code Style
-- Follow the existing code style in the project. This includes naming conventions, indentation, and formatting. See [STYLE.md](STYLE.md) for detailed style guidelines.
+- Follow the existing code style in the project. This includes naming conventions, indentation, and formatting. For the most part, we follow the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
 - Use `clang-format` to format your code. The project uses a [.clang-format](./.clang-format) file to define the coding style. You can run the following command to format your code:
   ```bash
   ./clang-format.sh 
