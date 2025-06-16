@@ -156,7 +156,8 @@ The WGE is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) fil
 
 ## Documentation
 
-## Contribute
+## Contributing
+We welcome contributions to WGE! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request on GitHub. Before contributing, please read our [CONTRIBUTING](CONTRIBUTING.md) guidelines.
 
 ## Contact
 [Stone Rhino](https://www.srhino.com/)
