@@ -105,5 +105,8 @@
     "C_Cpp.intelliSenseCacheSize": 0,
     "files.exclude": {
         "src/antlr4/.antlr": true
-    }
+    },
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_path": "/usr/bin/clang-format",
 }
