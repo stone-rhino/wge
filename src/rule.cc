@@ -115,23 +115,25 @@ bool Rule::evaluate(Transaction& t) const {
 
   // Check whether the rule is unconditional(SecAction)
   bool is_uncondition = operator_ == nullptr;
-  if (is_uncondition) [[unlikely]] {
-    WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
-    // Evaluate the actions
-    for (auto& action : actions_) {
-      action->evaluate(t);
+  if (is_uncondition)
+    [[unlikely]] {
+      WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
+      // Evaluate the actions
+      for (auto& action : actions_) {
+        action->evaluate(t);
+      }
+      return true;
     }
-    return true;
-  }
 
   WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
 
   // If the multi match is enabled, then perform multiple operator invocations for every target,
   // before and after every anti-evasion transformation is performed.
-  if (multi_match_.value_or(false)) [[unlikely]] {
-    WGE_LOG_TRACE("multi match is enabled");
-    return evaluateWithMultiMatch(t);
-  }
+  if (multi_match_.value_or(false))
+    [[unlikely]] {
+      WGE_LOG_TRACE("multi match is enabled");
+      return evaluateWithMultiMatch(t);
+    }
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -145,15 +147,16 @@ bool Rule::evaluate(Transaction& t) const {
       bool variable_matched = false;
       Common::EvaluateResults::Element transformed_value;
       std::vector<const Transformation::TransformBase*> transform_list;
-      if (IS_STRING_VIEW_VARIANT(variable_value.variant_)) [[likely]] {
-        // Evaluate the transformations
-        evaluateTransform(t, var.get(), variable_value, transformed_value, transform_list);
-      }
+      if (IS_STRING_VIEW_VARIANT(variable_value.variant_))
+        [[likely]] {
+          // Evaluate the transformations
+          evaluateTransform(t, var.get(), variable_value, transformed_value, transform_list);
+        }
 
       // Evaluate the operator
-      if (transform_list.empty()) [[unlikely]] {
-        variable_matched = evaluateOperator(t, variable_value.variant_, var);
-      } else {
+      if (transform_list.empty())
+        [[unlikely]] { variable_matched = evaluateOperator(t, variable_value.variant_, var); }
+      else {
         variable_matched = evaluateOperator(t, transformed_value.variant_, var);
       }
 
@@ -182,13 +185,14 @@ bool Rule::evaluate(Transaction& t) const {
 
   // Evaluate the chained rules
   if (rule_matched) {
-    if (!chain_.empty()) [[unlikely]] {
-      // If the chained rules are matched means the rule is matched, otherwise the rule is not
-      // matched
-      if (!evaluateChain(t)) {
-        rule_matched = false;
+    if (!chain_.empty())
+      [[unlikely]] {
+        // If the chained rules are matched means the rule is matched, otherwise the rule is not
+        // matched
+        if (!evaluateChain(t)) {
+          rule_matched = false;
+        }
       }
-    }
   }
 
   // Evaluate the msg macro and logdata macro
@@ -259,24 +263,26 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   const Common::EvaluateResults::Element* p_input = &input;
 
   // Check if the default transformation should be ignored
-  if (!is_ingnore_default_transform_) [[unlikely]] {
-    // Check that the default action is defined
-    const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
-    if (default_action) [[unlikely]] {
-      // Get the default transformation
-      auto& transforms = default_action->transforms();
+  if (!is_ingnore_default_transform_)
+    [[unlikely]] {
+      // Check that the default action is defined
+      const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
+      if (default_action)
+        [[unlikely]] {
+          // Get the default transformation
+          auto& transforms = default_action->transforms();
 
-      // Evaluate the default transformations
-      for (auto& transform : transforms) {
-        bool ret = transform->evaluate(t, var, *p_input, output);
-        if (ret) {
-          transform_list.emplace_back(transform.get());
-          p_input = &output;
+          // Evaluate the default transformations
+          for (auto& transform : transforms) {
+            bool ret = transform->evaluate(t, var, *p_input, output);
+            if (ret) {
+              transform_list.emplace_back(transform.get());
+              p_input = &output;
+            }
+            WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
+          }
         }
-        WGE_LOG_TRACE("evaluate default transformation: {} {}", transform->name(), ret);
-      }
     }
-  }
 
   // Evaluate the action defined transformations
   for (auto& transform : transforms_) {
@@ -324,21 +330,23 @@ inline bool Rule::evaluateChain(Transaction& t) const {
 }
 
 inline void Rule::evaluateMsgMacro(Transaction& t) const {
-  if (msg_macro_) [[unlikely]] {
-    Common::EvaluateResults msg_result;
-    msg_macro_->evaluate(t, msg_result);
-    t.setMsgMacroExpanded(msg_result.move(0));
-    WGE_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
-  }
+  if (msg_macro_)
+    [[unlikely]] {
+      Common::EvaluateResults msg_result;
+      msg_macro_->evaluate(t, msg_result);
+      t.setMsgMacroExpanded(msg_result.move(0));
+      WGE_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
+    }
 }
 
 inline void Rule::evaluateLogDataMacro(Transaction& t) const {
-  if (log_data_macro_) [[unlikely]] {
-    Common::EvaluateResults log_data_result;
-    log_data_macro_->evaluate(t, log_data_result);
-    t.setLogDataMacroExpanded(log_data_result.move(0));
-    WGE_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
-  }
+  if (log_data_macro_)
+    [[unlikely]] {
+      Common::EvaluateResults log_data_result;
+      log_data_macro_->evaluate(t, log_data_result);
+      t.setLogDataMacroExpanded(log_data_result.move(0));
+      WGE_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
+    }
 }
 
 inline void Rule::evaluateActions(Transaction& t) const {
@@ -422,28 +430,30 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         evaluated_value = nullptr;
       } else {
         // The variable value is not matched, evaluate the transformation and try to match again
-        if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_)) [[likely]] {
-          // Evaluate the transformation
-          bool ret = false;
-          while (!ret && curr_transform_index < transforms.size()) {
-            ret = transforms[curr_transform_index]->evaluate(t, var.get(), *evaluated_value,
-                                                             transformed_value);
-            WGE_LOG_TRACE("evaluate transformation: {} {}",
-                          transforms[curr_transform_index]->name(), ret);
-            curr_transform_index++;
-          }
+        if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_))
+          [[likely]] {
+            // Evaluate the transformation
+            bool ret = false;
+            while (!ret && curr_transform_index < transforms.size()) {
+              ret = transforms[curr_transform_index]->evaluate(t, var.get(), *evaluated_value,
+                                                               transformed_value);
+              WGE_LOG_TRACE("evaluate transformation: {} {}",
+                            transforms[curr_transform_index]->name(), ret);
+              curr_transform_index++;
+            }
 
-          if (!ret) {
-            // All of the transformations have been evaluated, and the variable value is not matched
-            // We need to evaluate the next variable value
-            i++;
-            curr_transform_index = 0;
-            evaluated_value = nullptr;
-          } else {
-            evaluated_value = &transformed_value;
-            transform_list.emplace_back(transforms[curr_transform_index - 1]);
+            if (!ret) {
+              // All of the transformations have been evaluated, and the variable value is not
+              // matched We need to evaluate the next variable value
+              i++;
+              curr_transform_index = 0;
+              evaluated_value = nullptr;
+            } else {
+              evaluated_value = &transformed_value;
+              transform_list.emplace_back(transforms[curr_transform_index - 1]);
+            }
           }
-        } else {
+        else {
           i++;
           curr_transform_index = 0;
           evaluated_value = nullptr;
@@ -454,13 +464,14 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
   // Evaluate the chained rules
   if (rule_matched) {
-    if (!chain_.empty()) [[unlikely]] {
-      // If the chained rules are matched means the rule is matched, otherwise the rule is not
-      // matched
-      if (!evaluateChain(t)) {
-        rule_matched = false;
+    if (!chain_.empty())
+      [[unlikely]] {
+        // If the chained rules are matched means the rule is matched, otherwise the rule is not
+        // matched
+        if (!evaluateChain(t)) {
+          rule_matched = false;
+        }
       }
-    }
   }
 
   // Evaluate the msg macro and logdata macro

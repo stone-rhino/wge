@@ -33,9 +33,8 @@ Scanner::Scanner(const std::shared_ptr<HsDataBase> hs_db) : hs_db_(hs_db) {
 
 void Scanner::registMatchCallback(Scratch::MatchCallback cb, void* user_data) const {
   // Clone the main scratch space
-  if (!worker_scratch_) [[unlikely]] {
-    worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
-  }
+  if (!worker_scratch_)
+    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
 
   worker_scratch_->match_cb_ = cb;
   worker_scratch_->match_cb_user_data_ = user_data;
@@ -44,9 +43,8 @@ void Scanner::registMatchCallback(Scratch::MatchCallback cb, void* user_data) co
 void Scanner::registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCallbak cb,
                                                 void* user_data) const {
   // Clone the main scratch space
-  if (!worker_scratch_) [[unlikely]] {
-    worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
-  }
+  if (!worker_scratch_)
+    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
 
   worker_scratch_->pcre_remove_duplicate_cb_ = cb;
   worker_scratch_->pcre_remove_duplicate_cb_user_data_ = user_data;
@@ -55,9 +53,8 @@ void Scanner::registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCall
 void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCallback cb,
                         void* user_data) const {
   // Clone the main scratch space
-  if (!worker_scratch_) [[unlikely]] {
-    worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
-  }
+  if (!worker_scratch_)
+    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
 
   // Overwrite the match callback and user data
   if (cb) {
@@ -66,21 +63,24 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
   }
 
   GreedyMatchCache greedy_match_cache;
-  if (!data.empty()) [[likely]] {
-    worker_scratch_->curr_match_data_ = data;
-    hs_error_t err;
-    if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy) [[likely]] {
-      greedy_match_cache.reserve(64);
-      err = ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
-                      worker_scratch_->block_scratch_, greedyMatchCallback, &greedy_match_cache);
-    } else {
-      err = ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
-                      worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
+  if (!data.empty())
+    [[likely]] {
+      worker_scratch_->curr_match_data_ = data;
+      hs_error_t err;
+      if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy)
+        [[likely]] {
+          greedy_match_cache.reserve(64);
+          err =
+              ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
+                        worker_scratch_->block_scratch_, greedyMatchCallback, &greedy_match_cache);
+        }
+      else {
+        err = ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
+                        worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
+      }
+      if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED)
+        [[unlikely]] { WGE_LOG_ERROR("block mode hs_scan error"); }
     }
-    if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
-      WGE_LOG_ERROR("block mode hs_scan error");
-    }
-  }
 
   // Process the greedy match cache
   if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy) {
@@ -96,11 +96,12 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
         }
       } else {
         // Get the first match only
-        if (!from_to_map.empty()) [[likely]] {
-          auto first_match = from_to_map.begin();
-          cease = matchCallback(id, first_match->first, first_match->second, 0,
-                                const_cast<Scanner*>(this));
-        }
+        if (!from_to_map.empty())
+          [[likely]] {
+            auto first_match = from_to_map.begin();
+            cease = matchCallback(id, first_match->first, first_match->second, 0,
+                                  const_cast<Scanner*>(this));
+          }
       }
 
       if (cease) {
@@ -118,24 +119,23 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
 
 void Scanner::streamScanStart() const {
   // clone the main scratch space
-  if (!worker_scratch_) [[unlikely]] {
-    worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
-  }
+  if (!worker_scratch_)
+    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
 
   assert(worker_scratch_->stream_id_ == nullptr);
   ::hs_open_stream(hs_db_->streamNative(), 0, &worker_scratch_->stream_id_);
 }
 
 void Scanner::streamScan(std::string_view data) const {
-  if (!data.empty()) [[likely]] {
-    worker_scratch_->curr_match_data_ = data;
-    hs_error_t err = ::hs_scan_stream(worker_scratch_->stream_id_, data.data(), data.length(), 0,
-                                      worker_scratch_->stream_scratch_, matchCallback,
-                                      const_cast<Scanner*>(this));
-    if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
-      WGE_LOG_ERROR("stream mode hs_scan_stream error");
+  if (!data.empty())
+    [[likely]] {
+      worker_scratch_->curr_match_data_ = data;
+      hs_error_t err = ::hs_scan_stream(worker_scratch_->stream_id_, data.data(), data.length(), 0,
+                                        worker_scratch_->stream_scratch_, matchCallback,
+                                        const_cast<Scanner*>(this));
+      if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED)
+        [[unlikely]] { WGE_LOG_ERROR("stream mode hs_scan_stream error"); }
     }
-  }
 }
 
 void Scanner::streamScanStop() const {
@@ -158,76 +158,81 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
   // it is thread safe. We use it directly.
   auto& pcre = *(scanner->pcre_);
   auto pcre_pattern = pcre.getPattern(real_id);
-  if (pcre_pattern) [[unlikely]] {
-    // Format of the data to be scanned by pcre:
-    // +----------------------------------+---------------------------------+
-    // to - max_pcre_scan_front_len       to                 to + max_pcre_scan_back_len
-    // note:
-    // As you can see from the above solution, there is
-    // a possibility of duplicate matching results, because a few bytes are retraced each time.
-    // To solve such problems, we need remove duplicate information based on the from and to values.
-    const unsigned long long max_pcre_scan_front_len = scanner->max_pcre_scan_front_len_;
-    const unsigned long long max_pcre_scan_back_len = scanner->max_pcre_scan_back_len_;
+  if (pcre_pattern)
+    [[unlikely]] {
+      // Format of the data to be scanned by pcre:
+      // +----------------------------------+---------------------------------+
+      // to - max_pcre_scan_front_len       to                 to + max_pcre_scan_back_len
+      // note:
+      // As you can see from the above solution, there is
+      // a possibility of duplicate matching results, because a few bytes are retraced each time.
+      // To solve such problems, we need remove duplicate information based on the from and to
+      // values.
+      const unsigned long long max_pcre_scan_front_len = scanner->max_pcre_scan_front_len_;
+      const unsigned long long max_pcre_scan_back_len = scanner->max_pcre_scan_back_len_;
 
-    // Remove duplicate information based on the from and to values to ensure that matched info
-    // does not duplicate.
-    bool match_global = false;
-    if (worker_scratch_->pcre_remove_duplicate_cb_) [[unlikely]] {
-      match_global = true;
-      if (worker_scratch_->pcre_remove_duplicate_cb_(
-              real_id, to, worker_scratch_->pcre_remove_duplicate_cb_user_data_)) {
-        return 0;
-      }
-    }
-
-    unsigned long long pcre_scan_from =
-        to > max_pcre_scan_front_len ? to - max_pcre_scan_front_len : 0;
-    unsigned long long pcre_scan_to =
-        to + max_pcre_scan_back_len < worker_scratch_->curr_match_data_.length()
-            ? to + max_pcre_scan_back_len
-            : worker_scratch_->curr_match_data_.length();
-    std::string_view pcre_scan_data =
-        worker_scratch_->curr_match_data_.substr(pcre_scan_from, pcre_scan_to - pcre_scan_from);
-
-    if (match_global) {
-      std::vector<std::pair<size_t, size_t>> pcre_match_info;
-      pcre.matchGlobal(pcre_pattern, pcre_scan_data, pcre_match_info);
-      for (const auto& [ovector_from, ovector_to] : pcre_match_info) {
-        // Initialize the from and to values
-        from = pcre_scan_from + ovector_from;
-        to = from + (ovector_to - ovector_from);
-
-        // Ensure that matched info does not duplicate
-        // Remove duplicate information based on the from and to values.
-        if (worker_scratch_->pcre_remove_duplicate_cb_) {
+      // Remove duplicate information based on the from and to values to ensure that matched info
+      // does not duplicate.
+      bool match_global = false;
+      if (worker_scratch_->pcre_remove_duplicate_cb_)
+        [[unlikely]] {
+          match_global = true;
           if (worker_scratch_->pcre_remove_duplicate_cb_(
                   real_id, to, worker_scratch_->pcre_remove_duplicate_cb_user_data_)) {
-            continue;
+            return 0;
           }
         }
 
-        // Notify matched
-        cease = worker_scratch_->match_cb_(real_id, from, to, flags,
-                                           worker_scratch_->match_cb_user_data_);
-        if (cease) {
-          break;
+      unsigned long long pcre_scan_from =
+          to > max_pcre_scan_front_len ? to - max_pcre_scan_front_len : 0;
+      unsigned long long pcre_scan_to =
+          to + max_pcre_scan_back_len < worker_scratch_->curr_match_data_.length()
+              ? to + max_pcre_scan_back_len
+              : worker_scratch_->curr_match_data_.length();
+      std::string_view pcre_scan_data =
+          worker_scratch_->curr_match_data_.substr(pcre_scan_from, pcre_scan_to - pcre_scan_from);
+
+      if (match_global) {
+        std::vector<std::pair<size_t, size_t>> pcre_match_info;
+        pcre.matchGlobal(pcre_pattern, pcre_scan_data, pcre_match_info);
+        for (const auto& [ovector_from, ovector_to] : pcre_match_info) {
+          // Initialize the from and to values
+          from = pcre_scan_from + ovector_from;
+          to = from + (ovector_to - ovector_from);
+
+          // Ensure that matched info does not duplicate
+          // Remove duplicate information based on the from and to values.
+          if (worker_scratch_->pcre_remove_duplicate_cb_) {
+            if (worker_scratch_->pcre_remove_duplicate_cb_(
+                    real_id, to, worker_scratch_->pcre_remove_duplicate_cb_user_data_)) {
+              continue;
+            }
+          }
+
+          // Notify matched
+          cease = worker_scratch_->match_cb_(real_id, from, to, flags,
+                                             worker_scratch_->match_cb_user_data_);
+          if (cease) {
+            break;
+          }
         }
-      }
-    } else {
-      uint64_t new_from, new_to;
-      std::vector<std::pair<size_t, size_t>> result;
-      pcre.match(pcre_pattern, pcre_scan_data, result);
-      for (auto [from, to] : result) [[likely]] {
-        // Recalculate the offset
-        size_t new_from = from;
-        size_t new_to = to;
-        from = pcre_scan_from + new_from;
-        to = from + (new_to - new_from);
-        cease = worker_scratch_->match_cb_(real_id, from, to, flags,
-                                           worker_scratch_->match_cb_user_data_);
+      } else {
+        uint64_t new_from, new_to;
+        std::vector<std::pair<size_t, size_t>> result;
+        pcre.match(pcre_pattern, pcre_scan_data, result);
+        for (auto [from, to] : result)
+          [[likely]] {
+            // Recalculate the offset
+            size_t new_from = from;
+            size_t new_to = to;
+            from = pcre_scan_from + new_from;
+            to = from + (new_to - new_from);
+            cease = worker_scratch_->match_cb_(real_id, from, to, flags,
+                                               worker_scratch_->match_cb_user_data_);
+          }
       }
     }
-  } else {
+  else {
     cease =
         worker_scratch_->match_cb_(real_id, from, to, flags, worker_scratch_->match_cb_user_data_);
   }

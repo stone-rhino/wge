@@ -33,11 +33,12 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (is_counter_) [[unlikely]] {
-      result.append(t.getRequestLineInfo().base_name_.empty() ? 0 : 1);
-      return;
-    }
-    
+    if (is_counter_)
+      [[unlikely]] {
+        result.append(t.getRequestLineInfo().base_name_.empty() ? 0 : 1);
+        return;
+      }
+
     result.append(t.getRequestLineInfo().base_name_);
   }
 };

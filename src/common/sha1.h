@@ -18,7 +18,7 @@ namespace Common {
 class Sha1 {
 public:
   Sha1();
-  ~Sha1() {};
+  ~Sha1(){};
 
 public:
   void update(const void* data, size_t size);

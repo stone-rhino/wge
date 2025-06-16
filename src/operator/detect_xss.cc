@@ -25,9 +25,8 @@
 namespace Wge {
 namespace Operator {
 bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
-  if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-    return false;
-  }
+  if (!IS_STRING_VIEW_VARIANT(operand))
+    [[unlikely]] { return false; }
 
   std::string_view data = std::get<std::string_view>(operand);
   bool is_xss = libinjection_xss(data.data(), data.size()) != 0;

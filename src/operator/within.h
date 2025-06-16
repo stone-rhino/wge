@@ -66,36 +66,37 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     std::unique_ptr<Common::Hyperscan::Scanner> macro_scanner;
     Common::Hyperscan::Scanner* scanner = scanner_.get();
 
     // If there is a macro, expand it and create or reuse a scanner.
-    if (macro_) [[unlikely]] {
-      MACRO_EXPAND_STRING_VIEW(macro_value);
+    if (macro_)
+      [[unlikely]] {
+        MACRO_EXPAND_STRING_VIEW(macro_value);
 
-      // Split the literal value into tokens.
-      std::vector<std::string_view> tokens = Common::SplitTokens(macro_value);
+        // Split the literal value into tokens.
+        std::vector<std::string_view> tokens = Common::SplitTokens(macro_value);
 
-      // Calculate the order independent hash value of all tokens.
-      int64_t hash = calcOrderIndependentHash(tokens);
+        // Calculate the order independent hash value of all tokens.
+        int64_t hash = calcOrderIndependentHash(tokens);
 
-      // Load the hyperscan database and create a scanner.
-      // We cache the hyperscan database to avoid loading(complie) the same database multiple times.
-      database_cache_.access(
-          hash,
-          [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
-            macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-            scanner = macro_scanner.get();
-          },
-          [&]() {
-            return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, true, false,
-                                                                   false);
-          });
-    }
+        // Load the hyperscan database and create a scanner.
+        // We cache the hyperscan database to avoid loading(complie) the same database multiple
+        // times.
+        database_cache_.access(
+            hash,
+            [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
+              macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+              scanner = macro_scanner.get();
+            },
+            [&]() {
+              return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, true,
+                                                                     false, false);
+            });
+      }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
     // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a

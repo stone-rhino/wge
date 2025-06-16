@@ -37,14 +37,16 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (IS_STRING_VIEW_VARIANT(operand)) [[likely]] {
-      if (!macro_) [[likely]] {
-        return std::get<std::string_view>(operand).ends_with(literal_value_);
-      } else {
-        MACRO_EXPAND_STRING_VIEW(macro_value);
-        return std::get<std::string_view>(operand).ends_with(macro_value);
+    if (IS_STRING_VIEW_VARIANT(operand))
+      [[likely]] {
+        if (!macro_)
+          [[likely]] { return std::get<std::string_view>(operand).ends_with(literal_value_); }
+        else {
+          MACRO_EXPAND_STRING_VIEW(macro_value);
+          return std::get<std::string_view>(operand).ends_with(macro_value);
+        }
       }
-    } else {
+    else {
       return false;
     }
   }

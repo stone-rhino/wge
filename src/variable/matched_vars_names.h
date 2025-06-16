@@ -45,14 +45,16 @@ public:
         {
           for (auto& matched_variable : t.getMatchedVariables()) {
             auto full_name = matched_variable.variable_->fullName();
-            if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
-              if (matched_variable.variable_->isCollection()) {
-                result.append(std::format("{}:{}", matched_variable.variable_->mainName(),
-                                          matched_variable.transformed_value_.variable_sub_name_));
-              } else {
-                result.append(full_name.tostring());
+            if (!hasExceptVariable(full_name.sub_name_))
+              [[likely]] {
+                if (matched_variable.variable_->isCollection()) {
+                  result.append(
+                      std::format("{}:{}", matched_variable.variable_->mainName(),
+                                  matched_variable.transformed_value_.variable_sub_name_));
+                } else {
+                  result.append(full_name.tostring());
+                }
               }
-            }
           }
         },
         // collection regex

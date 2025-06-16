@@ -20,8 +20,8 @@
  */
 #include <gtest/gtest.h>
 
-#include "transaction.h"
 #include "engine.h"
+#include "transaction.h"
 
 namespace Wge {
 class TransactionTest : public ::testing::Test {

@@ -38,9 +38,9 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_) [[likely]] {
-      result.append(t.getUniqueId());
-    } else {
+    if (!is_counter_)
+      [[likely]] { result.append(t.getUniqueId()); }
+    else {
       result.append(t.getUniqueId().empty() ? 0 : 1);
     }
   }

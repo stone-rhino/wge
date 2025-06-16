@@ -172,7 +172,8 @@ TEST_F(JsonTest, benchmark) {
     json_parser.init(json_);
   }
   duration.stop();
-  std::cout << "RAGLE Json parsing time: " << duration.milliseconds() << " ms" << " throughput: "
+  std::cout << "RAGLE Json parsing time: " << duration.milliseconds() << " ms"
+            << " throughput: "
             << static_cast<double>(test_count) * json_.size() / duration.milliseconds() * 1000 /
                    1024 / 1024 / 1024 * 8
             << " Gbps" << std::endl;

@@ -43,14 +43,17 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     // Process capture that definded by TX:[1-99]
-    if (capture_index_.has_value()) [[unlikely]] {
-      if (is_counter_) [[unlikely]] {
-        result.append(IS_EMPTY_VARIANT(t.getCapture(capture_index_.value())) ? 1 : 0);
-      } else {
-        result.append(t.getCapture(capture_index_.value()));
+    if (capture_index_.has_value())
+      [[unlikely]] {
+        if (is_counter_)
+          [[unlikely]] {
+            result.append(IS_EMPTY_VARIANT(t.getCapture(capture_index_.value())) ? 1 : 0);
+          }
+        else {
+          result.append(t.getCapture(capture_index_.value()));
+        }
+        return;
       }
-      return;
-    }
 
     // Process single variable and collection
     RETURN_IF_COUNTER(
@@ -58,9 +61,9 @@ public:
         { result.append(t.getVariablesCount()); },
         // specify subname
         {
-          if (index_.has_value()) [[likely]] {
-            t.hasVariable(index_.value()) ? result.append(1) : result.append(0);
-          } else {
+          if (index_.has_value())
+            [[likely]] { t.hasVariable(index_.value()) ? result.append(1) : result.append(0); }
+          else {
             t.hasVariable(sub_name_) ? result.append(1) : result.append(0);
           }
         });
@@ -70,27 +73,27 @@ public:
         {
           auto variables = t.getVariables();
           for (auto variable : variables) {
-            if (!hasExceptVariable(variable.first)) [[likely]] {
-              result.append(*variable.second, variable.first);
-            }
+            if (!hasExceptVariable(variable.first))
+              [[likely]] { result.append(*variable.second, variable.first); }
           }
         },
         // collection regex
         {
           auto variables = t.getVariables();
           for (auto variable : variables) {
-            if (!hasExceptVariable(variable.first)) [[likely]] {
-              if (match(variable.first)) {
-                result.append(*variable.second, variable.first);
+            if (!hasExceptVariable(variable.first))
+              [[likely]] {
+                if (match(variable.first)) {
+                  result.append(*variable.second, variable.first);
+                }
               }
-            }
           }
         },
         // specify subname
         {
-          if (index_.has_value()) [[likely]] {
-            result.append(t.getVariable(index_.value()));
-          } else {
+          if (index_.has_value())
+            [[likely]] { result.append(t.getVariable(index_.value())); }
+          else {
             result.append(t.getVariable(sub_name_));
           }
         });

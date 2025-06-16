@@ -20,10 +20,10 @@
  */
 #pragma once
 
+#include <forward_list>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <forward_list>
 
 namespace Wge {
 namespace Common {

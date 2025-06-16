@@ -40,18 +40,18 @@ public:
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
 
-    if (is_counter_) [[unlikely]] {
-      if (iter != body_processor_type_map_.end()) {
-        result.append(1);
-      } else {
-        result.append(0);
+    if (is_counter_)
+      [[unlikely]] {
+        if (iter != body_processor_type_map_.end()) {
+          result.append(1);
+        } else {
+          result.append(0);
+        }
+        return;
       }
-      return;
-    }
 
-    if (iter == body_processor_type_map_.end()) [[unlikely]] {
-      return;
-    }
+    if (iter == body_processor_type_map_.end())
+      [[unlikely]] { return; }
 
     result.append(iter->second);
   }

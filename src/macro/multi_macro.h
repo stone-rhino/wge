@@ -54,12 +54,14 @@ public:
         } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
           auto& sv = std::get<std::string_view>(result.front().variant_);
           eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
-        } else [[unlikely]] {
-          // UNREACHABLE();
-          WGE_LOG_WARN("macro {} expanded: unexpected variant type {}, expected int or string_view",
-                       literal_value_, VISTIT_VARIANT_AS_STRING(result.front().variant_));
-          eval = eval.replace(pos1, pos2 - pos1 + 1, "");
-        }
+        } else
+          [[unlikely]] {
+            // UNREACHABLE();
+            WGE_LOG_WARN(
+                "macro {} expanded: unexpected variant type {}, expected int or string_view",
+                literal_value_, VISTIT_VARIANT_AS_STRING(result.front().variant_));
+            eval = eval.replace(pos1, pos2 - pos1 + 1, "");
+          }
 
         // Clear the result for the next macro.
         result.clear();

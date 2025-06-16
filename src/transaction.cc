@@ -66,22 +66,23 @@ void Transaction::processUri(std::string_view request_line) {
   request_line_ = request_line;
   // Find the first space to extract the HTTP method
   size_t pos_space1 = request_line.find(' ');
-  if (pos_space1 != std::string_view::npos) [[likely]] {
-    std::string_view method = request_line.substr(0, pos_space1);
-    // Find the second space to extract the URI
-    size_t pos_space2 = request_line.find(' ', pos_space1 + 1);
-    if (pos_space2 != std::string_view::npos) [[likely]] {
-      std::string_view uri = request_line.substr(pos_space1 + 1, pos_space2 - pos_space1 - 1);
-      // Extract the protocol string (e.g., "HTTP/1.1")
-      request_line_info_.protocol_ = request_line.substr(pos_space2 + 1);
+  if (pos_space1 != std::string_view::npos)
+    [[likely]] {
+      std::string_view method = request_line.substr(0, pos_space1);
+      // Find the second space to extract the URI
+      size_t pos_space2 = request_line.find(' ', pos_space1 + 1);
+      if (pos_space2 != std::string_view::npos)
+        [[likely]] {
+          std::string_view uri = request_line.substr(pos_space1 + 1, pos_space2 - pos_space1 - 1);
+          // Extract the protocol string (e.g., "HTTP/1.1")
+          request_line_info_.protocol_ = request_line.substr(pos_space2 + 1);
 
-      // Extract the version part after the '/' in the protocol string
-      auto pos = request_line_info_.protocol_.find('/');
-      if (pos != std::string_view::npos) [[likely]] {
-        processUri(uri, method, request_line_info_.protocol_.substr(pos + 1));
-      }
+          // Extract the version part after the '/' in the protocol string
+          auto pos = request_line_info_.protocol_.find('/');
+          if (pos != std::string_view::npos)
+            [[likely]] { processUri(uri, method, request_line_info_.protocol_.substr(pos + 1)); }
+        }
     }
-  }
 }
 
 void Transaction::processUri(std::string_view uri, std::string_view method,
@@ -259,9 +260,9 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
     auto& tx_variable = tx_variables_[index];
-    if (IS_INT_VARIANT(value)) [[likely]] {
-      tx_variable.variant_ = std::get<int>(value);
-    } else if (IS_STRING_VIEW_VARIANT(value)) {
+    if (IS_INT_VARIANT(value))
+      [[likely]] { tx_variable.variant_ = std::get<int>(value); }
+    else if (IS_STRING_VIEW_VARIANT(value)) {
       // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid
       // if it's reference is invalid. So we copy the value to the string_buffer_. The
       // string_buffer_ store the value as a string, and it will be valid until the
@@ -283,14 +284,13 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
 
 void Transaction::setVariable(std::string&& name, const Common::Variant& value) {
   auto index = engine_.getTxVariableIndex(name);
-  if (index.has_value()) [[likely]] {
-    setVariable(index.value(), value);
-  } else {
+  if (index.has_value())
+    [[likely]] { setVariable(index.value(), value); }
+  else {
     auto local_index = getLocalVariableIndex(name, true);
     assert(local_index.has_value());
-    if (local_index.has_value()) [[likely]] {
-      setVariable(local_index.value(), value);
-    }
+    if (local_index.has_value())
+      [[likely]] { setVariable(local_index.value(), value); }
   }
 }
 
@@ -309,9 +309,8 @@ void Transaction::removeVariable(const std::string& name) {
   } else {
     auto local_index = getLocalVariableIndex(name, false);
     assert(local_index.has_value());
-    if (local_index.has_value()) [[likely]] {
-      removeVariable(local_index.value());
-    }
+    if (local_index.has_value())
+      [[likely]] { removeVariable(local_index.value()); }
   }
 }
 
@@ -319,9 +318,9 @@ void Transaction::increaseVariable(size_t index, int value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
     auto& variant = tx_variables_[index].variant_;
-    if (IS_INT_VARIANT(variant)) [[likely]] {
-      variant = std::get<int>(variant) + value;
-    } else if (IS_EMPTY_VARIANT(variant)) {
+    if (IS_INT_VARIANT(variant))
+      [[likely]] { variant = std::get<int>(variant) + value; }
+    else if (IS_EMPTY_VARIANT(variant)) {
       variant = value;
     }
   }
@@ -334,9 +333,8 @@ void Transaction::increaseVariable(const std::string& name, int value) {
   } else {
     auto local_index = getLocalVariableIndex(name, true);
     assert(local_index.has_value());
-    if (local_index.has_value()) [[likely]] {
-      increaseVariable(local_index.value(), value);
-    }
+    if (local_index.has_value())
+      [[likely]] { increaseVariable(local_index.value(), value); }
   }
 }
 
@@ -356,9 +354,8 @@ const Common::Variant& Transaction::getVariable(const std::string& name) {
   } else {
     auto local_index = getLocalVariableIndex(name, false);
     assert(local_index.has_value());
-    if (local_index.has_value()) [[likely]] {
-      return getVariable(local_index.value());
-    }
+    if (local_index.has_value())
+      [[likely]] { return getVariable(local_index.value()); }
   }
 
   return EMPTY_VARIANT;
@@ -405,19 +402,20 @@ bool Transaction::hasVariable(const std::string& name) const {
 }
 
 void Transaction::setCapture(size_t index, Common::EvaluateResults::Element&& value) {
-  if (index < max_capture_size_) [[likely]] {
-    if (captured_.size() <= index) {
-      captured_.resize(index + 1);
+  if (index < max_capture_size_)
+    [[likely]] {
+      if (captured_.size() <= index) {
+        captured_.resize(index + 1);
+      }
+      captured_[index] = std::move(value);
     }
-    captured_[index] = std::move(value);
-  }
 }
 
 const Common::Variant& Transaction::getCapture(size_t index) const {
   // assert(index < matched_size_);
-  if (index < captured_.size()) [[likely]] {
-    return captured_[index].variant_;
-  } else {
+  if (index < captured_.size())
+    [[likely]] { return captured_[index].variant_; }
+  else {
     WGE_LOG_WARN("The index of captured string is out of range. index: {}, captured size: {}",
                  index, captured_.size());
     return EMPTY_VARIANT;
@@ -441,16 +439,14 @@ void Transaction::removeRule(
   // havebeen evaluated.
   for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
-    if (rule_set.empty()) [[likely]] {
-      continue;
-    }
+    if (rule_set.empty())
+      [[likely]] { continue; }
 
     // For performance reasons, we use a flag array that is the same size as the rules array to
     // mark the rules that need to be removed.
     auto& rule_remove_flag = rule_remove_flags_[phase - 1];
-    if (rule_remove_flag.empty()) [[unlikely]] {
-      rule_remove_flag.resize(engine_.rules(phase).size());
-    }
+    if (rule_remove_flag.empty())
+      [[unlikely]] { rule_remove_flag.resize(engine_.rules(phase).size()); }
 
     // We record the current rule index, make sure that the rules that have been evaluated will
     // not be removed. As above, it makes no sense to remove the rules that have been evaluated.
@@ -484,16 +480,16 @@ void Transaction::pushMatchedVariable(
   if (var_main_name == Variable::MatchedVars::main_name_ ||
       var_main_name == Variable::MatchedVarsNames::main_name_ ||
       var_main_name == Variable::MatchedVar::main_name_ ||
-      var_main_name == Variable::MatchedVarName::main_name_) [[unlikely]] {
-    return;
-  }
+      var_main_name == Variable::MatchedVarName::main_name_)
+    [[unlikely]] { return; }
 
   matched_variables_.emplace_back(variable, std::move(original_value), std::move(transformed_value),
                                   std::move(transform_list));
-  if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_)) [[unlikely]] {
-    matched_variables_.back().transformed_value_.variant_ =
-        matched_variables_.back().original_value_.variant_;
-  }
+  if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_))
+    [[unlikely]] {
+      matched_variables_.back().transformed_value_.variant_ =
+          matched_variables_.back().original_value_.variant_;
+    }
 }
 
 void Transaction::initUniqueId() {
@@ -508,16 +504,14 @@ void Transaction::initUniqueId() {
 }
 
 inline bool Transaction::process(int phase) {
-  if (engine_.config().rule_engine_option_ == EngineConfig::Option::Off) [[unlikely]] {
-    return true;
-  }
+  if (engine_.config().rule_engine_option_ == EngineConfig::Option::Off)
+    [[unlikely]] { return true; }
 
   current_phase_ = phase;
 
   // Skip the phase that is allowed
-  if (allow_phases_.test(phase)) [[unlikely]] {
-    return true;
-  }
+  if (allow_phases_.test(phase))
+    [[unlikely]] { return true; }
 
   // Get the rules in the given phase
   auto& rules = engine_.rules(phase);
@@ -531,10 +525,11 @@ inline bool Transaction::process(int phase) {
     current_rule_ = *iter;
 
     // Skip the rules that have been removed
-    if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_]) [[unlikely]] {
-      ++iter;
-      continue;
-    }
+    if (!rule_remove_flag.empty() && rule_remove_flag[current_rule_index_])
+      [[unlikely]] {
+        ++iter;
+        continue;
+      }
 
     // Clean the current captured and matched, there are:
     // TX.[0-99], MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
@@ -546,23 +541,25 @@ inline bool Transaction::process(int phase) {
 
     if (!is_matched ||
         current_rule_->getOperator() == nullptr // It's a rule that defined by SecAction
-        ) [[likely]] {
-      ++iter;
-      continue;
-    }
+    )
+      [[likely]] {
+        ++iter;
+        continue;
+      }
 
     // Log the matched rule
-    if (log_callback_) [[likely]] {
-      if (default_action) {
-        if (current_rule_->log().value_or(default_action->log().value_or(true))) {
-          log_callback_(*current_rule_);
-        }
-      } else {
-        if (current_rule_->log().value_or(true)) {
-          log_callback_(*current_rule_);
+    if (log_callback_)
+      [[likely]] {
+        if (default_action) {
+          if (current_rule_->log().value_or(default_action->log().value_or(true))) {
+            log_callback_(*current_rule_);
+          }
+        } else {
+          if (current_rule_->log().value_or(true)) {
+            log_callback_(*current_rule_);
+          }
         }
       }
-    }
 
     // Do the disruptive action
     if (engine_.config().rule_engine_option_ != EngineConfig::Option::DetectionOnly) {
@@ -578,18 +575,21 @@ inline bool Transaction::process(int phase) {
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched
     int skip = current_rule_->skip();
-    if (skip > 0) [[unlikely]] {
-      iter += skip;
-      continue;
-    }
-    const std::string& skip_after = current_rule_->skipAfter();
-    if (!skip_after.empty()) [[unlikely]] {
-      auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());
-      if (next_rule_iter.has_value()) [[likely]] {
-        iter = next_rule_iter.value();
+    if (skip > 0)
+      [[unlikely]] {
+        iter += skip;
         continue;
       }
-    }
+    const std::string& skip_after = current_rule_->skipAfter();
+    if (!skip_after.empty())
+      [[unlikely]] {
+        auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());
+        if (next_rule_iter.has_value())
+          [[likely]] {
+            iter = next_rule_iter.value();
+            continue;
+          }
+      }
 
     // If skip and skipAfter are not set, then continue to the next rule
     ++iter;
@@ -606,24 +606,26 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   std::transform(key.begin(), key.end(), std::back_inserter(less_case_key), ::tolower);
 
   auto iter = local_tx_variable_index_.find(less_case_key);
-  if (iter == local_tx_variable_index_.end()) [[unlikely]] {
-    if (force_create) [[likely]] {
-      local_tx_variable_index_.insert({less_case_key, tx_variables_.size()});
-      local_tx_variable_index_reverse_.insert({tx_variables_.size(), less_case_key});
-      tx_variables_.emplace_back();
-      return tx_variables_.size() - 1;
-    } else {
-      return std::nullopt;
+  if (iter == local_tx_variable_index_.end())
+    [[unlikely]] {
+      if (force_create)
+        [[likely]] {
+          local_tx_variable_index_.insert({less_case_key, tx_variables_.size()});
+          local_tx_variable_index_reverse_.insert({tx_variables_.size(), less_case_key});
+          tx_variables_.emplace_back();
+          return tx_variables_.size() - 1;
+        }
+      else {
+        return std::nullopt;
+      }
     }
-  }
 
   return iter->second;
 }
 
 void Transaction::initCookies() {
-  if (init_cookies_) [[likely]] {
-    return;
-  }
+  if (init_cookies_)
+    [[likely]] { return; }
 
   init_cookies_ = true;
 
@@ -673,58 +675,59 @@ inline std::optional<bool> Transaction::doDisruptive(const Rule& rule, const Rul
     allow_phases_.set(2);
     return true;
   } break;
-  [[likely]] case Rule::Disruptive::BLOCK: {
-    // Performs the disruptive action defined by the previous SecDefaultAction.
-    Rule::Disruptive disruptive =
-        default_action ? default_action->disruptive() : Rule::Disruptive::PASS;
-    switch (disruptive) {
-    case Rule::Disruptive::ALLOW: {
-      // If used on its own, allow will affect the entire transaction, stopping processing of the
-      // current phase but also skipping over all other phases apart from the logging phase. (The
-      // logging phase is special; it is designed to always execute.)
-      allow_phases_.set(1);
-      allow_phases_.set(2);
-      allow_phases_.set(3);
-      allow_phases_.set(4);
-      return true;
-    } break;
-    case Rule::Disruptive::ALLOW_PHASE: {
-      // If used with parameter "phase", allow will cause the engine to stop processing the current
-      // phase. Other phases will continue as normal.
-      allow_phases_.set(rule.phase());
-      return true;
-    } break;
-    case Rule::Disruptive::ALLOW_REQUEST: {
-      // If used with parameter "request", allow will cause the engine to stop processing the
-      // current phase. The next phase to be processed will be phase RESPONSE_HEADERS.
-      allow_phases_.set(1);
-      allow_phases_.set(2);
-      return true;
-    } break;
-    case Rule::Disruptive::BLOCK: {
+    [[likely]] case Rule::Disruptive::BLOCK : {
       // Performs the disruptive action defined by the previous SecDefaultAction.
-      // We do nothing here, and continue to the next rule.
-    } break;
-    case Rule::Disruptive::DENY:
-    case Rule::Disruptive::DROP: {
-      // Stops rule processing and intercepts transaction.
-      return false;
-    } break;
-    case Rule::Disruptive::PASS: {
-      // Continues processing with the next rule in spite of a successful match.
-      // We do nothing here, and continue to the next rule.
-    } break;
-    case Rule::Disruptive::REDIRECT: {
-      // Intercepts transaction by issuing an external (client-visible) redirection to the given
-      // location..
-      // FIXME(zhouyu 2025-03-28): implement the redirect action
-      UNREACHABLE();
-    } break;
-    default:
-      UNREACHABLE();
-      break;
+      Rule::Disruptive disruptive =
+          default_action ? default_action->disruptive() : Rule::Disruptive::PASS;
+      switch (disruptive) {
+      case Rule::Disruptive::ALLOW: {
+        // If used on its own, allow will affect the entire transaction, stopping processing of the
+        // current phase but also skipping over all other phases apart from the logging phase. (The
+        // logging phase is special; it is designed to always execute.)
+        allow_phases_.set(1);
+        allow_phases_.set(2);
+        allow_phases_.set(3);
+        allow_phases_.set(4);
+        return true;
+      } break;
+      case Rule::Disruptive::ALLOW_PHASE: {
+        // If used with parameter "phase", allow will cause the engine to stop processing the
+        // current phase. Other phases will continue as normal.
+        allow_phases_.set(rule.phase());
+        return true;
+      } break;
+      case Rule::Disruptive::ALLOW_REQUEST: {
+        // If used with parameter "request", allow will cause the engine to stop processing the
+        // current phase. The next phase to be processed will be phase RESPONSE_HEADERS.
+        allow_phases_.set(1);
+        allow_phases_.set(2);
+        return true;
+      } break;
+      case Rule::Disruptive::BLOCK: {
+        // Performs the disruptive action defined by the previous SecDefaultAction.
+        // We do nothing here, and continue to the next rule.
+      } break;
+      case Rule::Disruptive::DENY:
+      case Rule::Disruptive::DROP: {
+        // Stops rule processing and intercepts transaction.
+        return false;
+      } break;
+      case Rule::Disruptive::PASS: {
+        // Continues processing with the next rule in spite of a successful match.
+        // We do nothing here, and continue to the next rule.
+      } break;
+      case Rule::Disruptive::REDIRECT: {
+        // Intercepts transaction by issuing an external (client-visible) redirection to the given
+        // location..
+        // FIXME(zhouyu 2025-03-28): implement the redirect action
+        UNREACHABLE();
+      } break;
+      default:
+        UNREACHABLE();
+        break;
+      }
     }
-  } break;
+    break;
   case Rule::Disruptive::DENY:
   case Rule::Disruptive::DROP: {
     // Stops rule processing and intercepts transaction.

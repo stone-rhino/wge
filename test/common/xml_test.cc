@@ -263,7 +263,8 @@ TEST_F(XmlTest, benchmark) {
     xml_parser.init(xml_);
   }
   duration.stop();
-  std::cout << "RAGLE XML parsing time: " << duration.milliseconds() << " ms" << " throughput: "
+  std::cout << "RAGLE XML parsing time: " << duration.milliseconds() << " ms"
+            << " throughput: "
             << static_cast<double>(test_count) * xml_.size() / duration.milliseconds() * 1000 /
                    1024 / 1024 / 1024 * 8
             << " Gbps" << std::endl;
@@ -274,7 +275,8 @@ TEST_F(XmlTest, benchmark) {
     xmlFreeDoc(doc);
   }
   duration2.stop();
-  std::cout << "LIBXML parsing time: " << duration2.milliseconds() << " ms" << " throughput: "
+  std::cout << "LIBXML parsing time: " << duration2.milliseconds() << " ms"
+            << " throughput: "
             << static_cast<double>(test_count) * xml_.size() / duration2.milliseconds() * 1000 /
                    1024 / 1024 / 1024 * 8
             << " Gbps" << std::endl;

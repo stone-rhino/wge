@@ -33,24 +33,26 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (is_counter_) [[unlikely]] {
-      if (!t.getMatchedVariables().empty()) [[likely]] {
-        result.append(1);
-      } else {
-        result.append(0);
+    if (is_counter_)
+      [[unlikely]] {
+        if (!t.getMatchedVariables().empty())
+          [[likely]] { result.append(1); }
+        else {
+          result.append(0);
+        }
+        return;
       }
-      return;
-    }
 
-    if (t.getMatchedVariables().empty()) [[unlikely]] {
-      return;
-    }
+    if (t.getMatchedVariables().empty())
+      [[unlikely]] { return; }
 
     auto& matched_var = t.getMatchedVariables().back();
-    if (matched_var.variable_->isCollection()) [[likely]] {
-      result.append(std::format("{}:{}", matched_var.variable_->mainName(),
-                                matched_var.transformed_value_.variable_sub_name_));
-    } else {
+    if (matched_var.variable_->isCollection())
+      [[likely]] {
+        result.append(std::format("{}:{}", matched_var.variable_->mainName(),
+                                  matched_var.transformed_value_.variable_sub_name_));
+      }
+    else {
       result.append(matched_var.variable_->fullName().tostring());
     }
   }

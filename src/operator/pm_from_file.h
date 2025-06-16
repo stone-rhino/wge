@@ -77,13 +77,11 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!scanner_) [[unlikely]] {
-      return false;
-    }
+    if (!scanner_)
+      [[unlikely]] { return false; }
 
-    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
     // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a

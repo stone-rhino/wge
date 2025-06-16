@@ -45,9 +45,8 @@ public:
         {
           for (auto& matched_variable : t.getMatchedVariables()) {
             auto full_name = matched_variable.variable_->fullName();
-            if (!hasExceptVariable(full_name.sub_name_)) [[likely]] {
-              result.append(matched_variable.transformed_value_.variant_);
-            }
+            if (!hasExceptVariable(full_name.sub_name_))
+              [[likely]] { result.append(matched_variable.transformed_value_.variant_); }
           }
         },
         // collection regex

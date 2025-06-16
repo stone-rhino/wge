@@ -41,9 +41,8 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     // Check that after percent character must be two hexadecimal characters.
     std::string_view input = std::get<std::string_view>(operand);

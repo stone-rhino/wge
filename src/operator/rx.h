@@ -52,35 +52,36 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     Common::Pcre::Scanner* scanner = pcre_.get();
 
     // If there is a macro, expand it and create or reuse a scanner.
-    if (macro_) [[unlikely]] {
-      MACRO_EXPAND_STRING_VIEW(macro_value);
+    if (macro_)
+      [[unlikely]] {
+        MACRO_EXPAND_STRING_VIEW(macro_value);
 
-      // All the threads will try to access the macro_pcre_cache_ at the same time, so we need to
-      // lock the macro_chche_mutex_.
-      // May be we can use thread local storage to store the scanner, to avoid the lock. But the
-      // probablity of the macro expansion is very low, so we use the lock here.
-      std::lock_guard<std::mutex> lock(macro_chche_mutex_);
+        // All the threads will try to access the macro_pcre_cache_ at the same time, so we need to
+        // lock the macro_chche_mutex_.
+        // May be we can use thread local storage to store the scanner, to avoid the lock. But the
+        // probablity of the macro expansion is very low, so we use the lock here.
+        std::lock_guard<std::mutex> lock(macro_chche_mutex_);
 
-      auto iter = macro_pcre_cache_.find(macro_value);
-      if (iter == macro_pcre_cache_.end()) {
-        // To avoid copying the macro value when we find scanner in the macro_pcre_cache_ by
-        // std::string type key, we use std::string_view type key to find scanner in the
-        // macro_pcre_cache_, And store the macro value in the macro_value_cache_.
-        macro_value_cache_.emplace_front(macro_value);
-        auto macro_scanner = std::make_unique<Common::Pcre::Scanner>(macro_value, false, capture_);
-        scanner = macro_scanner.get();
-        macro_pcre_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner));
-      } else {
-        scanner = iter->second.get();
+        auto iter = macro_pcre_cache_.find(macro_value);
+        if (iter == macro_pcre_cache_.end()) {
+          // To avoid copying the macro value when we find scanner in the macro_pcre_cache_ by
+          // std::string type key, we use std::string_view type key to find scanner in the
+          // macro_pcre_cache_, And store the macro value in the macro_value_cache_.
+          macro_value_cache_.emplace_front(macro_value);
+          auto macro_scanner =
+              std::make_unique<Common::Pcre::Scanner>(macro_value, false, capture_);
+          scanner = macro_scanner.get();
+          macro_pcre_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner));
+        } else {
+          scanner = iter->second.get();
+        }
       }
-    }
 
     if (t.getEngine().config().pcre_match_limit_) {
       scanner->setMatchLimit(t.getEngine().config().pcre_match_limit_);

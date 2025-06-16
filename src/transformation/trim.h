@@ -36,7 +36,7 @@ public:
     if (data.empty()) {
       return false;
     }
-    
+
     constexpr auto white_space = " \t\n\r\f\v";
 
     size_t start = data.find_first_not_of(white_space);

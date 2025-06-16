@@ -44,14 +44,13 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_INT_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_INT_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     int64_t operand_value = std::get<int>(operand);
-    if (!macro_) [[likely]] {
-      return operand_value == value_;
-    } else {
+    if (!macro_)
+      [[likely]] { return operand_value == value_; }
+    else {
       MACRO_EXPAND_INT(macro_value);
       return operand_value == macro_value;
     }

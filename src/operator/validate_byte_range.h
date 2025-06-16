@@ -69,9 +69,8 @@ public:
 
 public:
   bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand)) [[unlikely]] {
-      return false;
-    }
+    if (!IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] { return false; }
 
     std::string_view operand_str = std::get<std::string_view>(operand);
     for (auto& c : operand_str) {

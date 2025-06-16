@@ -37,19 +37,23 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   if (iter_data != transform_cache.end()) {
     auto iter_transform_result = iter_data->second.find(name());
     if (iter_transform_result != iter_data->second.end()) {
-      if (!input.variable_sub_name_.empty()) [[unlikely]] {
-        WGE_LOG_TRACE("transform cache hit: {}:{} {}", variable->fullName().main_name_,
-                      input.variable_sub_name_, name());
-      } else {
+      if (!input.variable_sub_name_.empty())
+        [[unlikely]] {
+          WGE_LOG_TRACE("transform cache hit: {}:{} {}", variable->fullName().main_name_,
+                        input.variable_sub_name_, name());
+        }
+      else {
         WGE_LOG_TRACE("transform cache hit: {} {}", variable->fullName().main_name_, name());
       }
 
       // The transformation has been evaluated before.
-      if (iter_transform_result->second.has_value()) [[likely]] {
-        output.variant_ = iter_transform_result->second.value().variant_;
-        output.variable_sub_name_ = input.variable_sub_name_;
-        return true;
-      } else {
+      if (iter_transform_result->second.has_value())
+        [[likely]] {
+          output.variant_ = iter_transform_result->second.value().variant_;
+          output.variable_sub_name_ = input.variable_sub_name_;
+          return true;
+        }
+      else {
         return false;
       }
     }

@@ -56,9 +56,8 @@ Scanner::~Scanner() {
 
 const Pattern* Scanner::getPattern(uint64_t id) {
   assert(pattern_list_);
-  if (!pattern_list_) [[unlikely]] {
-    return nullptr;
-  }
+  if (!pattern_list_)
+    [[unlikely]] { return nullptr; }
 
   return pattern_list_->get(id);
 }
@@ -66,9 +65,8 @@ const Pattern* Scanner::getPattern(uint64_t id) {
 void Scanner::match(std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);
-  if (!pattern_) [[unlikely]] {
-    return;
-  }
+  if (!pattern_)
+    [[unlikely]] { return; }
 
   match(pattern_.get(), subject, result);
 }
@@ -76,14 +74,12 @@ void Scanner::match(std::string_view subject,
 void Scanner::match(uint64_t id, std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_list_);
-  if (!pattern_list_) [[unlikely]] {
-    return;
-  }
+  if (!pattern_list_)
+    [[unlikely]] { return; }
 
   auto pattern = pattern_list_->get(id);
-  if (pattern) [[likely]] {
-    match(pattern, subject, result);
-  }
+  if (pattern)
+    [[likely]] { match(pattern, subject, result); }
 }
 
 void Scanner::match(const Pattern* pattern, std::string_view subject,
@@ -94,24 +90,26 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
                            reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
                            0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
                            static_cast<pcre2_match_context*>(match_context_));
-  if (rc < 0) [[unlikely]] {
-    switch (rc) {
-    case PCRE2_ERROR_NOMATCH:
-      WGE_LOG_TRACE("pcre no match: {}", subject);
-      break;
-    case PCRE2_ERROR_MATCHLIMIT:
-      WGE_LOG_TRACE("pcre match limit", subject);
-      break;
-    default:
-      break;
+  if (rc < 0)
+    [[unlikely]] {
+      switch (rc) {
+      case PCRE2_ERROR_NOMATCH:
+        WGE_LOG_TRACE("pcre no match: {}", subject);
+        break;
+      case PCRE2_ERROR_MATCHLIMIT:
+        WGE_LOG_TRACE("pcre match limit", subject);
+        break;
+      default:
+        break;
+      }
+      return;
     }
-    return;
-  }
 
-  if (rc == 0) [[unlikely]] {
-    WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
-    return;
-  }
+  if (rc == 0)
+    [[unlikely]] {
+      WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
+      return;
+    }
 
   auto ovector = pcre2_get_ovector_pointer(
       reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()));
@@ -127,24 +125,26 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
                            reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
                            0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
                            static_cast<pcre2_match_context*>(match_context_));
-  if (rc < 0) [[unlikely]] {
-    switch (rc) {
-    case PCRE2_ERROR_NOMATCH:
-      WGE_LOG_TRACE("pcre no match: {}", subject);
-      break;
-    case PCRE2_ERROR_MATCHLIMIT:
-      WGE_LOG_TRACE("pcre match limit", subject);
-      break;
-    default:
-      break;
+  if (rc < 0)
+    [[unlikely]] {
+      switch (rc) {
+      case PCRE2_ERROR_NOMATCH:
+        WGE_LOG_TRACE("pcre no match: {}", subject);
+        break;
+      case PCRE2_ERROR_MATCHLIMIT:
+        WGE_LOG_TRACE("pcre match limit", subject);
+        break;
+      default:
+        break;
+      }
+      return false;
     }
-    return false;
-  }
 
-  if (rc == 0) [[unlikely]] {
-    WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
-    return false;
-  }
+  if (rc == 0)
+    [[unlikely]] {
+      WGE_LOG_ERROR("ovector was not big enough for captured substring", subject);
+      return false;
+    }
 
   return rc > 0;
 }
@@ -154,9 +154,8 @@ bool Scanner::match(std::string_view subject) const { return match(pattern_.get(
 void Scanner::matchGlobal(std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);
-  if (!pattern_) [[unlikely]] {
-    return;
-  }
+  if (!pattern_)
+    [[unlikely]] { return; }
 
   return matchGlobal(pattern_.get(), subject, result);
 }
@@ -164,14 +163,12 @@ void Scanner::matchGlobal(std::string_view subject,
 void Scanner::matchGlobal(uint64_t id, std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_list_);
-  if (!pattern_list_) [[unlikely]] {
-    return;
-  }
+  if (!pattern_list_)
+    [[unlikely]] { return; }
 
   auto pattern = pattern_list_->get(id);
-  if (pattern) [[likely]] {
-    return matchGlobal(pattern, subject, result);
-  }
+  if (pattern)
+    [[likely]] { return matchGlobal(pattern, subject, result); }
 }
 
 void Scanner::matchGlobal(const Pattern* pattern, std::string_view subject,

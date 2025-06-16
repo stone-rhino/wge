@@ -99,12 +99,12 @@ public:
    */
   Element& get(size_t index) {
     assert(index < size_);
-    if (index < size_) [[likely]] {
-      if (index < stack_result_size) [[likely]] {
-        return stack_results_[index];
+    if (index < size_)
+      [[likely]] {
+        if (index < stack_result_size)
+          [[likely]] { return stack_results_[index]; }
+        return heap_results_[index - stack_result_size];
       }
-      return heap_results_[index - stack_result_size];
-    }
     return stack_results_[0];
   }
 
@@ -113,10 +113,12 @@ public:
    * @param value the value to append.
    */
   template <class T> void append(T&& value, std::string_view variable_sub_name = "") {
-    if (size_ < stack_result_size) [[likely]] {
-      stack_results_[size_].variant_ = std::forward<T>(value);
-      stack_results_[size_].variable_sub_name_ = variable_sub_name;
-    } else {
+    if (size_ < stack_result_size)
+      [[likely]] {
+        stack_results_[size_].variant_ = std::forward<T>(value);
+        stack_results_[size_].variable_sub_name_ = variable_sub_name;
+      }
+    else {
       heap_results_.emplace_back(std::forward<T>(value), variable_sub_name);
     }
     ++size_;
@@ -142,9 +144,8 @@ public:
    * @note The size is the size of the heap result. The stack result size is fixed.
    */
   void reserve(size_t size) {
-    if (size > stack_result_size) [[likely]] {
-      heap_results_.reserve(size - stack_result_size);
-    }
+    if (size > stack_result_size)
+      [[likely]] { heap_results_.reserve(size - stack_result_size); }
   }
 
   /**
@@ -155,18 +156,19 @@ public:
   Element move(size_t index) {
     assert(index < size_);
     Element element;
-    if (index < size_) [[likely]] {
-      EvaluateResults::Element* p = index < stack_result_size
-                                        ? &stack_results_[index]
-                                        : &heap_results_[index - stack_result_size];
-      element.variable_sub_name_ = p->variable_sub_name_;
-      element.variant_ = std::move(p->variant_);
-      element.string_buffer_ = std::move(p->string_buffer_);
-      if (!element.string_buffer_.empty() && IS_STRING_VIEW_VARIANT(p->variant_)) {
-        element.variant_ = element.string_buffer_;
+    if (index < size_)
+      [[likely]] {
+        EvaluateResults::Element* p = index < stack_result_size
+                                          ? &stack_results_[index]
+                                          : &heap_results_[index - stack_result_size];
+        element.variable_sub_name_ = p->variable_sub_name_;
+        element.variant_ = std::move(p->variant_);
+        element.string_buffer_ = std::move(p->string_buffer_);
+        if (!element.string_buffer_.empty() && IS_STRING_VIEW_VARIANT(p->variant_)) {
+          element.variant_ = element.string_buffer_;
+        }
+        p->variant_ = EMPTY_VARIANT;
       }
-      p->variant_ = EMPTY_VARIANT;
-    }
     return element;
   }
 
@@ -178,11 +180,13 @@ private:
 
 template <>
 inline void EvaluateResults::append(std::string&& value, std::string_view variable_sub_name) {
-  if (size_ < stack_result_size) [[likely]] {
-    auto& result = stack_results_[size_];
-    result.string_buffer_ = std::move(value);
-    result.variant_ = result.string_buffer_;
-  } else {
+  if (size_ < stack_result_size)
+    [[likely]] {
+      auto& result = stack_results_[size_];
+      result.string_buffer_ = std::move(value);
+      result.variant_ = result.string_buffer_;
+    }
+  else {
     heap_results_.emplace_back(std::move(value), variable_sub_name);
   }
   ++size_;

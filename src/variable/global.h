@@ -49,29 +49,28 @@ public:
         // collection
         {
           travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(key)) [[likely]] {
-              result.append(value, key);
-            }
+            if (!hasExceptVariable(key))
+              [[likely]] { result.append(value, key); }
             return true;
           });
         },
         // collection regex
         {
           travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(key)) [[likely]] {
-              if (match(key)) {
-                result.append(value, key);
+            if (!hasExceptVariable(key))
+              [[likely]] {
+                if (match(key)) {
+                  result.append(value, key);
+                }
               }
-            }
             return true;
           });
         },
         // specify subname
         {
           auto& value = get(t, sub_name_);
-          if (!IS_EMPTY_VARIANT(value)) [[likely]] {
-            result.append(value);
-          }
+          if (!IS_EMPTY_VARIANT(value))
+            [[likely]] { result.append(value); }
         });
   }
 

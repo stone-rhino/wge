@@ -50,19 +50,19 @@ public:
         // collection
         {
           for (auto& elem : cookies) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              result.append(elem.second, elem.first);
-            }
+            if (!hasExceptVariable(elem.first))
+              [[likely]] { result.append(elem.second, elem.first); }
           }
         },
         // collection regex
         {
           for (auto& elem : cookies) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              if (match(elem.first)) {
-                result.append(elem.second, elem.first);
+            if (!hasExceptVariable(elem.first))
+              [[likely]] {
+                if (match(elem.first)) {
+                  result.append(elem.second, elem.first);
+                }
               }
-            }
           }
         },
         // specify subname

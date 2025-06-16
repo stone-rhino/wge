@@ -79,43 +79,43 @@ public:
         // collection
         {
           for (auto& elem : line_query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              result.append(elem.second, elem.first);
-            }
+            if (!hasExceptVariable(elem.first))
+              [[likely]] { result.append(elem.second, elem.first); }
           }
           for (auto& elem : *body_query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              result.append(elem.second, elem.first);
-            }
+            if (!hasExceptVariable(elem.first))
+              [[likely]] { result.append(elem.second, elem.first); }
           }
         },
         // collection regex
         {
           for (auto& elem : line_query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              if (match(elem.first)) {
-                result.append(elem.second, elem.first);
+            if (!hasExceptVariable(elem.first))
+              [[likely]] {
+                if (match(elem.first)) {
+                  result.append(elem.second, elem.first);
+                }
               }
-            }
           }
           for (auto& elem : *body_query_params) {
-            if (!hasExceptVariable(elem.first)) [[likely]] {
-              if (match(elem.first)) {
-                result.append(elem.second, elem.first);
+            if (!hasExceptVariable(elem.first))
+              [[likely]] {
+                if (match(elem.first)) {
+                  result.append(elem.second, elem.first);
+                }
               }
-            }
           }
         },
         // specify subname
         {
-            auto range = line_query_params_map.equal_range(sub_name_);
-            for (auto iter = range.first; iter != range.second; ++iter) {
-              result.append(iter->second);
-            }
-            auto range2 = body_query_params_map->equal_range(sub_name_);
-            for (auto iter = range2.first; iter != range2.second; ++iter) {
-              result.append(iter->second);
-            }
+          auto range = line_query_params_map.equal_range(sub_name_);
+          for (auto iter = range.first; iter != range.second; ++iter) {
+            result.append(iter->second);
+          }
+          auto range2 = body_query_params_map->equal_range(sub_name_);
+          for (auto iter = range2.first; iter != range2.second; ++iter) {
+            result.append(iter->second);
+          }
         });
   }
 
