@@ -35,33 +35,30 @@ TEST_F(TransformationTest, base64DecodeExt) {
 TEST_F(TransformationTest, base64Decode) {
   const Base64Decode base64_decode;
 
-  std::string data = R"(This is a@ test)";
   std::string result;
+  std::string data = "VGhpcyBpcyBhIHRlc3Q=";
   bool ret = base64_decode.evaluate(data, result);
-  EXPECT_FALSE(ret);
-  EXPECT_TRUE(result.empty());
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a test");
 
   // If the length of the data is not a multiple of 4, it is a invalid base64 string. But the
   // Base64Decode can still try to decode it possibly.
   data = "VGhpcyBpcyBhIHRlc3Q";
   ret = base64_decode.evaluate(data, result);
   EXPECT_TRUE(ret);
-  EXPECT_EQ(result, "This is a te");
+  EXPECT_EQ(result, "This is a test");
 
-  data = "VGhpcyBpcyBhIHRlc3=Q";
-  ret = base64_decode.evaluate(data, result);
-  EXPECT_FALSE(ret);
-  EXPECT_TRUE(result.empty());
-
-  data = "VGhpcyBpcyBhIHRlc===";
-  ret = base64_decode.evaluate(data, result);
-  EXPECT_FALSE(ret);
-  EXPECT_TRUE(result.empty());
-
-  data = "VGhpcyBpcyBhIHRlc3Q=";
+  // If the data contains invalid characters, they will be ignored.
+  data = R"(VGhpcy(Bp)cyB#hIH@Rl!c3Q=)";
   ret = base64_decode.evaluate(data, result);
   EXPECT_TRUE(ret);
   EXPECT_EQ(result, "This is a test");
+
+  // If behind the '=' there are some invalid characters, then they will be ignored.
+  data = "VGhpcyBpcyBhIHRlc3=VGhpcyBpcyBhIHRlc3";
+  ret = base64_decode.evaluate(data, result);
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a tes");
 }
 
 TEST_F(TransformationTest, base64Encode) {

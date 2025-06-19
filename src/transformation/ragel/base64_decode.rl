@@ -26,6 +26,8 @@
 %%{
   machine base64_decode;
   
+  action skip {}
+
   action decode_char {
     buffer = (buffer << 6) | base64_table[fc];
     count++;
@@ -39,8 +41,9 @@
   }
 
   main := |*
-    [A-Za-z0-9+/] => decode_char;
-    any => { result.clear(); fbreak; };
+    [+/0-9A-Za-z] => decode_char;
+    '=' => { fbreak; };
+    any => skip;
   *|;
 }%%
 
@@ -68,31 +71,10 @@ static const char base64_table[256] = {
 static bool base64Decode(std::string_view input, std::string& result) {
   result.clear();
 
-  if(input.size() % 4 != 0) {
-    // If the input size is not a multiple of 4, it's invalid Base64.
-    // But we can still try to decode it by ignoring the invalid characters. 
-    // Adjust the size to the multiple of 4, then decode.
-    size_t adjusted_size = input.size() - (input.size() % 4);
-    if(adjusted_size == 0) {
-      return false;
-    }
-    input = input.substr(0, adjusted_size);
-  }
-
   const char* p = input.data();
   const char* pe = p + input.size();
 
-  // Remove the '=' padding
-  for(int i = 0; pe > p && *(pe - 1) == '='; ++i) {
-    --pe;
-
-    // The max padding is 2
-    if(i >= 2) {
-      return false;
-    }
-  }
-
-  result.resize(input.size() / 4 * 3);
+  result.resize(input.size() / 4 * 3 + 3);
   char* r = result.data();
 
   const char* eof = pe;
