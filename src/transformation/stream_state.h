@@ -20,23 +20,36 @@
  */
 #pragma once
 
-#include <string>
-
-#include "transform_base.h"
+#include <bitset>
 
 namespace Wge {
 namespace Transformation {
-class Base64Decode : public TransformBase {
-  DECLARE_TRANSFORM_NAME(base64Decode);
+// Used to store the state of a Ragel stream parser
+struct StreamState {
+  enum class State {
+    // The stream is not valid, it contains invalid data
+    INVALID = 1,
+    // The stream is complete, no more data to process
+    COMPLETE = 2
+  };
+  std::bitset<8> state_;
+  // The current state of the Ragel parser
+  int cs_{0};
+  // The buffer for neighboring data that is not yet processed
+  std::string buffer_;
 
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-  std::unique_ptr<StreamState> evaluateStreamStart() const override;
-  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
-                              Common::EvaluateResults::Element& output,
-                              StreamState& state) const override;
-  void evaluateStreamStop(Common::EvaluateResults::Element& output,
-                          StreamState& state) const override;
+  StreamState(size_t max_buffer_size) { buffer_.reserve(max_buffer_size); }
+};
+
+// The result of stream transformation
+enum class StreamResult {
+  // The current input was successfully transformed
+  SUCCESS = 0,
+  // The current input was partially transformed, but more data is needed to complete the
+  // transformation
+  NEED_MORE_DATA = 1,
+  // The current input was not transformed due to invalid input
+  INVALID_INPUT = 2
 };
 } // namespace Transformation
 } // namespace Wge

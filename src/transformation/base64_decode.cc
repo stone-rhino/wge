@@ -27,5 +27,24 @@ namespace Transformation {
 bool Base64Decode::evaluate(std::string_view data, std::string& result) const {
   return base64Decode(data, result);
 }
+
+std::unique_ptr<StreamState> Base64Decode::evaluateStreamStart() const {
+  return base64DecodeStreamStart();
+}
+
+StreamResult Base64Decode::evaluateStream(const Common::EvaluateResults::Element& input,
+                                          Common::EvaluateResults::Element& output,
+                                          StreamState& state) const {
+  auto result =
+      base64DecodeStream(std::get<std::string_view>(input.variant_), output.string_buffer_, state);
+  output.variant_ = output.string_buffer_;
+  return result;
+}
+
+void Base64Decode::evaluateStreamStop(Common::EvaluateResults::Element& output,
+                                      StreamState& state) const {
+  base64DecodeStreamStop(output.string_buffer_, state);
+  output.variant_ = output.string_buffer_;
+}
 } // namespace Transformation
 } // namespace Wge

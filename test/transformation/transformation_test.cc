@@ -61,6 +61,25 @@ TEST_F(TransformationTest, base64Decode) {
   EXPECT_EQ(result, "This is a tes");
 }
 
+TEST_F(TransformationTest, base64DecodeStream) {
+  const Base64Decode base64_decode;
+
+  std::string data = "VGhpcy(Bp)cyB#hIH@Rl!c3Q=VGhpcyBpcyBhIHRlc3Q";
+  auto state = base64_decode.evaluateStreamStart();
+  ASSERT_TRUE(state);
+
+  Common::EvaluateResults::Element output;
+  for (auto c : data) {
+    Common::EvaluateResults::Element input;
+    input.variant_ = std::string_view(&c, 1);
+    auto stream_result = base64_decode.evaluateStream(input, output, *state);
+    EXPECT_NE(stream_result, StreamResult::INVALID_INPUT);
+  }
+
+  base64_decode.evaluateStreamStop(output, *state);
+  EXPECT_EQ(std::get<std::string_view>(output.variant_), "This is a test");
+}
+
 TEST_F(TransformationTest, base64Encode) {
   // TODO(zhouyu 2025-03-21): Implement this test
 }

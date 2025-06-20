@@ -22,6 +22,8 @@
 
 #include <string>
 
+#include "stream_state.h"
+
 #include "../common/evaluate_result.h"
 #include "../transaction.h"
 
@@ -55,6 +57,23 @@ public:
   bool evaluate(Transaction& t, const Variable::VariableBase* variable,
                 const Common::EvaluateResults::Element& input,
                 Common::EvaluateResults::Element& output) const;
+
+  virtual std::unique_ptr<StreamState> evaluateStreamStart() const {
+    UNREACHABLE();
+    return nullptr;
+  }
+
+  virtual StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
+                                      Common::EvaluateResults::Element& output,
+                                      StreamState& state) const {
+    UNREACHABLE();
+    return StreamResult::INVALID_INPUT;
+  }
+
+  virtual void evaluateStreamStop(Common::EvaluateResults::Element& output,
+                                  StreamState& state) const {
+    UNREACHABLE();
+  }
 
   /**
    * Get the name of the transform.
