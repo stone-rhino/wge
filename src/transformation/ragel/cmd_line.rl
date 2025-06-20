@@ -20,9 +20,9 @@
  */
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <string_view>
-#include <iostream>
 
 // deleting all backslashes [\]
 // deleting all double quotes ["]
@@ -33,6 +33,7 @@
 // replacing all commas [,] and semicolon [;] into a space
 // replacing all multiple spaces (including tab, newline, etc.) into one space
 // transform all characters to lowercase
+// clang-format off
 %%{
   machine cmd_line;
 
@@ -75,6 +76,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool cmdLine(std::string_view input, std::string& result) {
   result.clear();
@@ -83,13 +85,15 @@ static bool cmdLine(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
+  // clang-format off
   %% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

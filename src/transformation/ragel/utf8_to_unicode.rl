@@ -23,6 +23,7 @@
 #include <string>
 #include <string_view>
 
+// clang-format off
 %%{
   machine utf8_to_unicode;
   
@@ -91,6 +92,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static constexpr std::string_view table{"0123456789abcdef"};
 
@@ -101,13 +103,15 @@ static bool utf8ToUnicode(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     return true;
   }
 

@@ -22,6 +22,7 @@
 
 #include "hex_decode.h"
 
+// clang-format off
 %%{
   machine css_decode;
   
@@ -57,38 +58,43 @@
 }%%
 
 %% write data;
+// clang-format on
 
 void emitNumericEntity(char** r, const std::string& entity_value) {
   std::string decoded;
   std::string_view data(entity_value);
 
   // If length of entity_value is greater than 2, then use the last two from the end
-  if(entity_value.size() > 2){
+  if (entity_value.size() > 2) {
     data = {entity_value.data() + entity_value.size() - 2, 2};
   }
 
-  // If the length of entity_value is greater than 3, and the value of entity_value 
+  // If the length of entity_value is greater than 3, and the value of entity_value
   // is like "FFxx","0FFxx","00FFxx", we need do full width conversion
   bool full_width = false;
-  if(entity_value.size() > 3){
-    switch(entity_value.size()){
-      case 4:
-        full_width = (entity_value[0] == 'f' || entity_value[0] == 'F') && (entity_value[1] == 'f' || entity_value[1] == 'F');
-        break;
-      case 5:
-        full_width = entity_value[0] == '0' && (entity_value[1] == 'f' || entity_value[1] == 'F') && (entity_value[2] == 'f' || entity_value[2] == 'F');
-        break;
-      case 6:
-        full_width = entity_value[0] == '0' && entity_value[1] == '0' && (entity_value[1] == 'f' || entity_value[1] == 'F') && (entity_value[2] == 'f' || entity_value[2] == 'F');
-        break;
-      default:
-        assert(false);
-        break;
+  if (entity_value.size() > 3) {
+    switch (entity_value.size()) {
+    case 4:
+      full_width = (entity_value[0] == 'f' || entity_value[0] == 'F') &&
+                   (entity_value[1] == 'f' || entity_value[1] == 'F');
+      break;
+    case 5:
+      full_width = entity_value[0] == '0' && (entity_value[1] == 'f' || entity_value[1] == 'F') &&
+                   (entity_value[2] == 'f' || entity_value[2] == 'F');
+      break;
+    case 6:
+      full_width = entity_value[0] == '0' && entity_value[1] == '0' &&
+                   (entity_value[1] == 'f' || entity_value[1] == 'F') &&
+                   (entity_value[2] == 'f' || entity_value[2] == 'F');
+      break;
+    default:
+      assert(false);
+      break;
     }
   }
- 
-  hexDecode(data,decoded);
-  if(full_width){
+
+  hexDecode(data, decoded);
+  if (full_width) {
     decoded.front() += 0x20;
   }
   memcpy(*r, decoded.data(), decoded.size());
@@ -102,17 +108,19 @@ static bool cssDecode(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
   std::string entity_name;
   std::string entity_value;
   bool is_hex = false;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

@@ -20,19 +20,20 @@
  */
 #pragma once
 
-#include <string_view>
-#include <vector>
-#include <unordered_map>
-#include <js_decode.h>
 #include <forward_list>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
+
+#include <js_decode.h>
 
 #ifndef ENABLE_JSON_DEBUG_LOG
 #define ENABLE_JSON_DEBUG_LOG 0
 #endif
 
 #if ENABLE_JSON_DEBUG_LOG
-#include <iostream>
 #include <format>
+#include <iostream>
 #define JSON_LOG(x) std::cout << x << std::endl;
 #else
 #define JSON_LOG(x)
@@ -49,6 +50,7 @@
 // the flat map/vector, and the value is an empty string.
 // 5. If the elements of the array are strings, there are multiple string values in the flat
 // map/vector with the same key.
+// clang-format off
 %%{
     machine json;
 
@@ -201,31 +203,33 @@
 }%%
 
 %% write data;
+// clang-format on
 
 // Trims trailing whitespace
 static std::string_view trimRight(const char* start, size_t size) {
   const char* end = start + size;
 
   // Trim trailing whitespace
-  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '\r' || *(end - 1) == '\n')) {
+  while (end > start &&
+         (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '\r' || *(end - 1) == '\n')) {
     --end;
   }
 
   return std::string_view(start, end - start);
 }
 
-static bool parseJson(std::string_view input, 
-    std::unordered_multimap<std::string_view, std::string_view>& key_value_map, 
-    std::vector<std::pair<std::string_view, std::string_view>>& key_value_linked,
-    std::forward_list<std::string>& escape_buffer) {
+static bool parseJson(std::string_view input,
+                      std::unordered_multimap<std::string_view, std::string_view>& key_value_map,
+                      std::vector<std::pair<std::string_view, std::string_view>>& key_value_linked,
+                      std::forward_list<std::string>& escape_buffer) {
   key_value_map.clear();
   key_value_linked.clear();
 
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
   int top = 0;
   int stack[16];
 
@@ -237,9 +241,10 @@ static bool parseJson(std::string_view input,
   // but only use the number of square brackets to determine the level of nesting
   size_t square_bracket_count = 0;
 
-
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
   return error;
 }

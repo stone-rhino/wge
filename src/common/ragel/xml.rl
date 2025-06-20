@@ -20,23 +20,25 @@
  */
 #pragma once
 
+#include <forward_list>
 #include <string_view>
 #include <vector>
+
 #include <html_entity_decode.h>
-#include <forward_list>
 
 #ifndef ENABLE_XML_DEBUG_LOG
 #define ENABLE_XML_DEBUG_LOG 0
 #endif
 
 #if ENABLE_XML_DEBUG_LOG
-#include <iostream>
 #include <format>
+#include <iostream>
 #define XML_LOG(x) std::cout << x << std::endl;
 #else
 #define XML_LOG(x)
 #endif
 
+// clang-format off
 %%{
     machine xml;
 
@@ -163,29 +165,31 @@
 }%%
 
 %% write data;
+      // clang-format on
 
-static bool parseXml(std::string_view input, std::vector<std::string_view>& attr_values,
-  std::vector<std::string_view>& tag_values,
-  std::string& tag_values_str,
-  std::forward_list<std::string> html_decode_buffer) {
+      static bool parseXml(std::string_view input, std::vector<std::string_view>& attr_values,
+                           std::vector<std::string_view>& tag_values, std::string& tag_values_str,
+                           std::forward_list<std::string> html_decode_buffer) {
 
-  const char* p = input.data();
-  const char* pe = p + input.size();
-  const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
-  int top = 0;
-  int stack[16];
+        const char* p = input.data();
+        const char* pe = p + input.size();
+        const char* eof = pe;
+        const char *ts, *te;
+        int cs, act;
+        int top = 0;
+        int stack[16];
 
-  bool error = false;
-  std::string_view last_tag_name;
-  const char* tag_value_start = nullptr;
-  size_t tag_value_len = 0;
+        bool error = false;
+        std::string_view last_tag_name;
+        const char* tag_value_start = nullptr;
+        size_t tag_value_len = 0;
 
-  %% write init;
+        // clang-format off
+	%% write init;
   %% write exec;
+        // clang-format on
 
-  return error;
-}
+        return error;
+      }
 
 #undef XML_LOG

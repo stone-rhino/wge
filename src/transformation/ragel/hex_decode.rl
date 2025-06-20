@@ -21,8 +21,10 @@
 #pragma once
 
 #include <string>
+
 #include <string.h>
 
+// clang-format off
 %%{
   machine hex_decode;
   
@@ -67,6 +69,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool hexDecode(std::string_view input, std::string& result) {
   result.clear();
@@ -76,17 +79,19 @@ static bool hexDecode(std::string_view input, std::string& result) {
   const char* po = p;
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
 
     // If the input length is odd, we assume the last character is a low 4 bits of a byte
-    if((p - po) % 2 != 0){
+    if ((p - po) % 2 != 0) {
       result.back() = result.back() >> 4 & 0x0F;
     }
     return true;

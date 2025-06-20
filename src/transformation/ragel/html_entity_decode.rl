@@ -20,12 +20,13 @@
  */
 #pragma once
 
+#include <cstring>
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <iostream>
-#include <cstring>
 
+// clang-format off
 %%{
   machine html_entity_decode;
 
@@ -112,6 +113,7 @@
 }%%
   
 %% write data;
+// clang-format on
 
 static void emitNumericEntity(char** r, const std::string& entity_value, bool is_hex) {
   try {
@@ -139,17 +141,19 @@ static bool htmlEntityDecode(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
   std::string entity_name;
   std::string entity_value;
   bool is_hex = false;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

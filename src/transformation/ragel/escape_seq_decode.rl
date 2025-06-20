@@ -22,8 +22,9 @@
 
 #include "hex_decode.h"
 
-// Decodes ANSI C escape sequences: \a, \b, \f, \n, \r, \t, \v, \\, \?, \', \", \xHH (hexadecimal), \0OOO (octal). 
-// Invalid encodings are left in the output.
+// Decodes ANSI C escape sequences: \a, \b, \f, \n, \r, \t, \v, \\, \?, \', \", \xHH (hexadecimal),
+// \0OOO (octal). Invalid encodings are left in the output.
+// clang-format off
 %%{
   machine escape_seq_decode;
   
@@ -93,6 +94,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool escapeSeqDecode(std::string_view input, std::string& result) {
   result.clear();
@@ -101,13 +103,15 @@ static bool escapeSeqDecode(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

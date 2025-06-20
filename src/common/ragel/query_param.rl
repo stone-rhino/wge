@@ -20,13 +20,15 @@
  */
 #pragma once
 
+#include <cstring>
+#include <list>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <string_view>
-#include <cstring>
-#include <url_decode.h>
-#include <list>
 
+#include <url_decode.h>
+
+// clang-format off
 %%{
   machine query_param;
 
@@ -78,10 +80,13 @@
 }%%
 
 %% write data;
+// clang-format on
 
-static void parseQueryParam(std::string_view input,std::unordered_multimap<std::string_view, std::string_view>& query_params,
-  std::vector<std::pair<std::string_view, std::string_view>>& query_params_linked,
-  std::list<std::string>& urldecoded_storage) {
+static void
+parseQueryParam(std::string_view input,
+                std::unordered_multimap<std::string_view, std::string_view>& query_params,
+                std::vector<std::pair<std::string_view, std::string_view>>& query_params_linked,
+                std::list<std::string>& urldecoded_storage) {
   query_params.clear();
   query_params_linked.clear();
 
@@ -95,6 +100,8 @@ static void parseQueryParam(std::string_view input,std::unordered_multimap<std::
   size_t key_len = 0;
   size_t value_len = 0;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 }

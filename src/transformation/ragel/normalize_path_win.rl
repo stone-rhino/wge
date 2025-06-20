@@ -22,9 +22,11 @@
 
 #include <string>
 #include <string_view>
+
 #include <normalize_path.h>
 
 // Same as normalizePath, but first converts backslash characters to forward slashes.
+// clang-format off
 %%{
   machine normalize_path_win;
 
@@ -57,8 +59,10 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool normalizePathWin(std::string_view input, std::string& result2) {
+
   std::string result;
   char* r = nullptr;
 
@@ -66,16 +70,18 @@ static bool normalizePathWin(std::string_view input, std::string& result2) {
   const char* ps = p;
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     bool ret = ::normalizePath(result, result2);
-    if(!ret) {
+    if (!ret) {
       result2 = std::move(result);
     }
 

@@ -26,7 +26,8 @@
 // width ASCII codes), then the higher byte is used to detect and adjust the lower byte.
 // Otherwise, only the lower byte will be used and the higher byte zeroed (leading to possible
 // loss of information).
-// And other decoding rule is similar to ANSI C escape sequences, Refer to escape_seq_decode.rl.  
+// And other decoding rule is similar to ANSI C escape sequences, Refer to escape_seq_decode.rl.
+// clang-format off
 %%{
   machine js_decode;
   
@@ -124,6 +125,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool jsDecode(std::string_view input, std::string& result) {
   result.clear();
@@ -132,13 +134,15 @@ static bool jsDecode(std::string_view input, std::string& result) {
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

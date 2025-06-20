@@ -20,10 +20,12 @@
  */
 #pragma once
 
-#include <string_view>
 #include <cstring>
+#include <string_view>
+
 #include <url_decode.h>
 
+// clang-format off
 %%{
   machine uri_parser;
 
@@ -65,11 +67,11 @@
 }%%
 
 %% write data;
+// clang-format on
 
-static void uriParser(std::string_view input, std::string_view& uri,
-                            std::string_view& relative_uri, std::string_view& query,
-                            std::string_view& base_name, std::string& uri_buffer,
-                            std::string& relative_uri_buffer, std::string& base_name_buffer) {
+static void uriParser(std::string_view input, std::string_view& uri, std::string_view& relative_uri,
+                      std::string_view& query, std::string_view& base_name, std::string& uri_buffer,
+                      std::string& relative_uri_buffer, std::string& base_name_buffer) {
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -82,17 +84,17 @@ static void uriParser(std::string_view input, std::string_view& uri,
   size_t relative_uri_len = 0;
   size_t uri_len = 0;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
   uri = std::string_view(p_start_path, uri_len);
   relative_uri = std::string_view(input.data(), relative_uri_len);
-  if (!base_name.empty() && urlDecode(base_name, base_name_buffer, false)) [[unlikely]] {
-    base_name = base_name_buffer;
-  }
-  if (urlDecode(relative_uri, relative_uri_buffer, false)) [[unlikely]] {
-    relative_uri = relative_uri_buffer;
-  }
+  if (!base_name.empty() && urlDecode(base_name, base_name_buffer, false))
+    [[unlikely]] { base_name = base_name_buffer; }
+  if (urlDecode(relative_uri, relative_uri_buffer, false))
+    [[unlikely]] { relative_uri = relative_uri_buffer; }
   if (urlDecode(uri, uri_buffer, false)) {
     uri = uri_buffer;
   }

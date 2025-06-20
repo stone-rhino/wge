@@ -20,9 +20,9 @@
  */
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <string_view>
-#include <iostream>
 
 #define SLASH '/'
 
@@ -31,14 +31,16 @@
 #endif
 
 #if ENABLE_NORMALIZE_PATH_DEBUG_LOG
-#include <iostream>
 #include <format>
+#include <iostream>
 #define NORMALIZE_PATH_LOG(x) std::cout << x << std::endl;
 #else
 #define NORMALIZE_PATH_LOG(x)
 #endif
 
-// Removes multiple slashes, directory self-references, and directory back-references (except when at the beginning of the input) from input string.
+// Removes multiple slashes, directory self-references, and directory back-references (except when
+// at the beginning of the input) from input string.
+// clang-format off
 %%{
   machine normalize_path;
 
@@ -138,26 +140,27 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static void removeLastDir(char*& input, char* start_input) {
-  if(input > start_input){
+  if (input > start_input) {
     char* p = input - 1;
-    while(p > start_input && *p != SLASH){
+    while (p > start_input && *p != SLASH) {
       p--;
     }
 
-    if(p + 2 == input && *p == '.' && *(p + 1) == '.'){
+    if (p + 2 == input && *p == '.' && *(p + 1) == '.') {
       *input++ = SLASH;
       *input++ = '.';
       *input++ = '.';
     } else {
       input = p;
-      if(input == start_input && *input == SLASH) {
+      if (input == start_input && *input == SLASH) {
         input++;
       }
-    } 
+    }
   } else {
-    if(*start_input == SLASH) {
+    if (*start_input == SLASH) {
       *input++ = SLASH;
     }
     *input++ = '.';
@@ -173,13 +176,15 @@ static bool normalizePath(std::string_view input, std::string& result) {
   const char* ps = p;
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }

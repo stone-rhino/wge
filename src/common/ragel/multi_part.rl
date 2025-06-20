@@ -20,21 +20,22 @@
  */
 #pragma once
 
-#include <string_view>
 #include <algorithm>
+#include <string_view>
 
 #ifndef ENABLE_MULTI_PART_DEBUG_LOG
 #define ENABLE_MULTI_PART_DEBUG_LOG 0
 #endif
 
 #if ENABLE_MULTI_PART_DEBUG_LOG
-#include <iostream>
 #include <format>
+#include <iostream>
 #define MULTI_PART_LOG(x) std::cout << x << std::endl;
 #else
 #define MULTI_PART_LOG(x)
 #endif
 
+// clang-format off
 %%{
   machine multipart_content_type;
   
@@ -77,8 +78,10 @@
 }%%
 
 %% write data;
+// clang-format on
 
-static std::string_view parseContentType(std::string_view input, Wge::MultipartStrictError& error_code) {
+static std::string_view parseContentType(std::string_view input,
+                                         Wge::MultipartStrictError& error_code) {
   using namespace Wge;
 
   const char* p = input.data();
@@ -89,12 +92,15 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
   const char* boundary_start = nullptr;
   size_t boundary_len = 0;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  return { boundary_start, boundary_len };
+  return {boundary_start, boundary_len};
 }
 
+// clang-format off
 %%{
   machine multipart;
 
@@ -338,93 +344,95 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
 }%%
 
 %% write data;
+    // clang-format on
 
+    // Trims leading and trailing whitespace or quotes from a string.
+    static std::string_view trim(const char* start, size_t size) {
+      const char* end = start + size;
 
+      // Trim leading whitespace or quotes
+      while (start < end && (*start == ' ' || *start == '\t' || *start == '"')) {
+        ++start;
+      }
 
-// Trims leading and trailing whitespace or quotes from a string.
-static std::string_view trim(const char* start, size_t size) {
-  const char* end = start + size;
+      // Trim trailing whitespace
+      while (end > start &&
+             (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '"' || *(end - 1) == ';')) {
+        --end;
+      }
 
-  // Trim leading whitespace or quotes
-  while (start < end && (*start == ' ' || *start == '\t' || *start == '"')) {
-    ++start;
-  }
-
-  // Trim trailing whitespace
-  while (end > start && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '"' || *(end - 1) == ';')) {
-    --end;
-  }
-
-  return std::string_view(start, end - start);
-}
-
-static void parseMultiPart(std::string_view input, 
-  std::string_view boundary, 
-  std::unordered_multimap<std::string_view, std::string_view>& name_value_map,
-  std::vector<std::pair<std::string_view, std::string_view>>& name_value_linked, 
-  std::unordered_multimap<std::string_view, std::string_view>& name_filename_map,
-  std::vector<std::pair<std::string_view, std::string_view>>& name_filename_linked, 
-  std::unordered_multimap<std::string_view, std::string_view>& headers_map,
-  std::vector<std::pair<std::string_view, std::string_view>>& headers_linked, 
-  Wge::MultipartStrictError& error_code, 
-  uint32_t max_file_count) {
-  using namespace Wge;
-
-  name_value_map.clear();
-  name_value_linked.clear();
-  name_filename_map.clear();
-  name_filename_linked.clear();
-
-  const char* p = input.data();
-  const char* pe = p + input.size();
-  const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
-  int top = 0;
-  int stack[16];
-
-  const char* boundary_start = nullptr;
-  size_t boundary_len = 0;
-  bool is_content_disposition = false;
-  std::string_view name;
-  std::string_view filename;
-  const char* p_value_start = nullptr;
-  size_t value_len = 0;
-  uint32_t file_count = 0;
-  bool parse_complete = false;
-  std::string_view header_name;
-
-  %% write init;
-  %% write exec;
-
-  // If there is no end boundary, process the last part
-  if(filename.empty()) {
-    if(p_value_start && value_len > 0) {
-      MULTI_PART_LOG("no end boundary, process last part");
-      MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
-      auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
-      name_value_linked.emplace_back(name, std::string_view(p_value_start, value_len));
+      return std::string_view(start, end - start);
     }
-  } else {
-    MULTI_PART_LOG("no end boundary, process last part");
-    MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
-    auto result = name_filename_map.insert({name, filename});
-    name_filename_linked.emplace_back(name, filename);
-  }
 
+    static void
+    parseMultiPart(std::string_view input, std::string_view boundary,
+                   std::unordered_multimap<std::string_view, std::string_view>& name_value_map,
+                   std::vector<std::pair<std::string_view, std::string_view>>& name_value_linked,
+                   std::unordered_multimap<std::string_view, std::string_view>& name_filename_map,
+                   std::vector<std::pair<std::string_view, std::string_view>>& name_filename_linked,
+                   std::unordered_multimap<std::string_view, std::string_view>& headers_map,
+                   std::vector<std::pair<std::string_view, std::string_view>>& headers_linked,
+                   Wge::MultipartStrictError& error_code, uint32_t max_file_count) {
+      using namespace Wge;
 
-  if(!parse_complete && !error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
-    MULTI_PART_LOG("error_invalid_part: parse not complete");
-    error_code.set(MultipartStrictError::ErrorType::InvalidPart);
-  }
+      name_value_map.clear();
+      name_value_linked.clear();
+      name_filename_map.clear();
+      name_filename_linked.clear();
 
-  // Does not need to clear the parse result when error occurs, keep the parse result as much as possible
-  // if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
-  //   name_value_map.clear();
-  //   name_value_linked.clear();
-  //   name_filename_map.clear();
-  //   name_filename_linked.clear();
-  // }
-}
+      const char* p = input.data();
+      const char* pe = p + input.size();
+      const char* eof = pe;
+      const char *ts, *te;
+      int cs, act;
+      int top = 0;
+      int stack[16];
+
+      const char* boundary_start = nullptr;
+      size_t boundary_len = 0;
+      bool is_content_disposition = false;
+      std::string_view name;
+      std::string_view filename;
+      const char* p_value_start = nullptr;
+      size_t value_len = 0;
+      uint32_t file_count = 0;
+      bool parse_complete = false;
+      std::string_view header_name;
+
+      // clang-format off
+	%% write init;
+  %% write exec;
+      // clang-format on
+
+      // If there is no end boundary, process the last part
+      if (filename.empty()) {
+        if (p_value_start && value_len > 0) {
+          MULTI_PART_LOG("no end boundary, process last part");
+          MULTI_PART_LOG(std::format("add name:{}, value:{}", name,
+                                     std::string_view(p_value_start, value_len)));
+          auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
+          name_value_linked.emplace_back(name, std::string_view(p_value_start, value_len));
+        }
+      } else {
+        MULTI_PART_LOG("no end boundary, process last part");
+        MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
+        auto result = name_filename_map.insert({name, filename});
+        name_filename_linked.emplace_back(name, filename);
+      }
+
+      if (!parse_complete &&
+          !error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+        MULTI_PART_LOG("error_invalid_part: parse not complete");
+        error_code.set(MultipartStrictError::ErrorType::InvalidPart);
+      }
+
+      // Does not need to clear the parse result when error occurs, keep the parse result as much as
+      // possible if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+      //   name_value_map.clear();
+      //   name_value_linked.clear();
+      //   name_filename_map.clear();
+      //   name_filename_linked.clear();
+      // }
+    }
 
 #undef MULTI_PART_LOG

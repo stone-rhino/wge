@@ -25,6 +25,7 @@
 
 #include "hex_decode.h"
 
+// clang-format off
 %%{
   machine url_decode;
   
@@ -74,6 +75,7 @@
 }%%
 
 %% write data;
+// clang-format on
 
 static bool urlDecode(std::string_view input, std::string& result, bool decode_plus = true) {
   result.clear();
@@ -82,13 +84,15 @@ static bool urlDecode(std::string_view input, std::string& result, bool decode_p
   const char* p = input.data();
   const char* pe = p + input.size();
   const char* eof = pe;
-  const char* ts, *te;
-  int cs,act;
+  const char *ts, *te;
+  int cs, act;
 
-  %% write init;
+  // clang-format off
+	%% write init;
   %% write exec;
+  // clang-format on
 
-  if(r) {
+  if (r) {
     result.resize(r - result.data());
     return true;
   }
