@@ -20,13 +20,14 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <string_view>
 
 #include <assert.h>
 
-#include "src/transformation/stream_state.h"
+#include "src/transformation/stream_util.h"
 
 // clang-format off
 %%{
@@ -48,12 +49,7 @@
 
   main := |*
     [+/0-9A-Za-z] => decode_char;
-    '=' => { 
-      if(has_equal_sign) {
-        *has_equal_sign = true;
-      } 
-      fbreak;
-    };
+    '=' => { fbreak; };
     any => skip;
   *|;
 }%%
@@ -80,12 +76,8 @@ static const char base64_table[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1  // 240-255
 };
 
-static bool base64Decode(std::string_view input, std::string& result,
-                         std::string* remaining = nullptr, bool* has_equal_sign = nullptr) {
+static bool base64Decode(std::string_view input, std::string& result) {
   result.clear();
-  if (remaining) {
-    remaining->clear();
-  }
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -105,48 +97,84 @@ static bool base64Decode(std::string_view input, std::string& result,
   %% write exec;
   // clang-format on
 
-  if (!result.empty()) {
-    // Process remaining bytes
-    if (!remaining) {
-      if (count == 2) {
-        *r++ = (buffer >> 4) & 0xFF;
-      } else if (count == 3) {
-        *r++ = (buffer >> 10) & 0xFF;
-        *r++ = (buffer >> 2) & 0xFF;
-      }
-    } else {
-      // Encode remaining bytes to base64 format
-      static constexpr std::string_view base64encode_table =
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-      if (count == 2) {
-        remaining->push_back(base64encode_table[(buffer >> 6) & 0x3F]);
-        remaining->push_back(base64encode_table[buffer & 0x3F]);
-      } else if (count == 3) {
-        remaining->push_back(base64encode_table[(buffer >> 12) & 0x3F]);
-        remaining->push_back(base64encode_table[(buffer >> 6) & 0x3F]);
-        remaining->push_back(base64encode_table[buffer & 0x3F]);
-      }
-    }
-
-    result.resize(r - result.data());
-    return true;
+  // Process remaining bytes
+  if (count == 2) {
+    *r++ = (buffer >> 4) & 0xFF;
+  } else if (count == 3) {
+    *r++ = (buffer >> 10) & 0xFF;
+    *r++ = (buffer >> 2) & 0xFF;
   }
 
-  return false;
+  result.resize(r - result.data());
+  return true;
 }
 
-static std::unique_ptr<Wge::Transformation::StreamState> base64DecodeStreamStart() {
-  return std::make_unique<Wge::Transformation::StreamState>(4);
+// clang-format off
+%%{
+  machine base64_decode_stream;
+  
+  action skip {}
+
+  action decode_char {
+    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
+    extra->buffer_ = (extra->buffer_ << 6) | base64_table[fc];
+    extra->count_++;
+    if (extra->count_ == 4) {
+      result.reserve(result.size() + 3);
+      result += (extra->buffer_ >> 16) & 0xFF;
+      result += (extra->buffer_ >> 8) & 0xFF;
+      result += extra->buffer_ & 0xFF;
+      extra->buffer_ = 0;
+      extra->count_ = 0;
+    }
+  }
+
+  action stream_complete {
+    // Process remaining bytes
+    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
+    if (extra->count_ == 2) {
+      result += (extra->buffer_ >> 4) & 0xFF;
+    } else if (extra->count_ == 3) {
+      result += (extra->buffer_ >> 10) & 0xFF;
+      result += (extra->buffer_ >> 2) & 0xFF;
+    }
+    extra->buffer_ = 0;
+    extra->count_ = 0;
+    state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
+    fbreak;
+  }
+
+  main := |*
+    [+/0-9A-Za-z] => decode_char;
+    '=' => stream_complete;
+    any => skip;
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+struct Base64DecodeBuffer {
+  unsigned int buffer_;
+  int count_;
+};
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+base64DecodeNewStream() {
+  auto state = std::make_unique<Wge::Transformation::StreamState>();
+  state->extra_state_buffer_.resize(sizeof(Base64DecodeBuffer));
+  auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state->extra_state_buffer_.data());
+  extra->buffer_ = 0;
+  extra->count_ = 0;
+  return std::move(state);
 }
 
-static Wge::Transformation::StreamResult
-base64DecodeStream(std::string_view input, std::string& result,
-                   Wge::Transformation::StreamState& state) {
+static Wge::Transformation::StreamResult base64DecodeStream(std::string_view input,
+                                                            std::string& result,
+                                                            Wge::Transformation::StreamState& state,
+                                                            bool end_stream) {
   using namespace Wge::Transformation;
-
-  // A valid base64 data must be multiple of 4 bytes, so we need at least 4 bytes to process a data
-  // slice
-  static constexpr size_t MIN_DATA_SIZE = 4;
 
   // The stream is not valid
   if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
@@ -156,82 +184,73 @@ base64DecodeStream(std::string_view input, std::string& result,
   if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
     [[unlikely]] { return StreamResult::SUCCESS; }
 
-  // Process the buffered data first
-  if (!state.buffer_.empty()) {
-    std::string remaining;
-    do {
-      // Fill the buffer to full 4-byte chunk
-      size_t needed = MIN_DATA_SIZE - state.buffer_.size();
-      if (input.size() < needed) {
-        // Not enough data to fill the buffer, append what we have and return
-        state.buffer_.append(input);
-        return StreamResult::NEED_MORE_DATA;
-      }
-      state.buffer_.append(input.substr(0, needed));
-      input.remove_prefix(needed);
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
 
-      // Decode the buffered data
-      std::string temp_result;
-      bool has_equal_sign = false;
-      if (base64Decode(state.buffer_, temp_result, &remaining, &has_equal_sign)) {
-        if (has_equal_sign) {
-          state.state_.set(static_cast<size_t>(StreamState::State::COMPLETE));
-        }
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
 
-        result.append(temp_result);
+  // clang-format off
+  %% write init;
 
-        if (!remaining.empty()) {
-          state.buffer_ = remaining;
-        } else {
-          state.buffer_.clear();
-        }
-
-      } else {
-        state.buffer_.clear();
-        state.state_.set(static_cast<size_t>(StreamState::State::INVALID));
-        return StreamResult::INVALID_INPUT;
-      }
-    } while (!remaining.empty());
+  // Recover the state
+  if(state.cs_.has_value()) {
+    cs = state.cs_.value();
   }
+  act = state.act_.value_or(0);
+  if(state.ts_offset_.has_value()) {
+    ts = ps + state.ts_offset_.value();
+  }
+  if(state.te_offset_.has_value()) {
+    te = ps + state.te_offset_.value();
+  }
+  
+  %% write exec;
+  // clang-format on
 
-  // Not enough data to process
-  if (input.size() < MIN_DATA_SIZE) {
-    state.buffer_.append(input);
+  if (end_stream) {
+    // Process remaining bytes
+    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
+    if (extra->count_ == 2) {
+      result += (extra->buffer_ >> 4) & 0xFF;
+    } else if (extra->count_ == 3) {
+      result += (extra->buffer_ >> 10) & 0xFF;
+      result += (extra->buffer_ >> 2) & 0xFF;
+    }
+    state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
+    return StreamResult::SUCCESS;
+  } else {
+    state.cs_ = cs;
+    state.act_ = act;
+    state.ts_offset_.reset();
+    state.te_offset_.reset();
+
+    // If ts is not null, it means ragel in the middle of processing a pattern, we need to
+    // save the remaining data in the buffer for the next call.
+    if (ts) {
+      if (state.buffer_.empty()) {
+        state.buffer_.append(ts, pe);
+      }
+
+      // If ts is greater than ps, it means that the last pattern was matched complete,
+      // and next pattern is matched from ts now.
+      if (ts > ps) {
+        ps = ts;
+      }
+
+      state.ts_offset_ = ts - ps;
+      if (te) {
+        state.te_offset_ = te - ps;
+      }
+    }
     return StreamResult::NEED_MORE_DATA;
   }
-
-  // Now process the input data
-  std::string temp_result;
-  std::string remaining;
-  bool has_equal_sign = false;
-  if (base64Decode(input, temp_result, &remaining, &has_equal_sign)) {
-    if (has_equal_sign) {
-      state.state_.set(static_cast<size_t>(StreamState::State::COMPLETE));
-    }
-
-    result.append(temp_result);
-    state.buffer_.clear();
-
-    if (!remaining.empty()) {
-      state.buffer_.append(remaining);
-      return StreamResult::NEED_MORE_DATA;
-    }
-  } else {
-    state.state_.set(static_cast<size_t>(StreamState::State::INVALID));
-    return StreamResult::INVALID_INPUT;
-  }
-
-  return StreamResult::SUCCESS;
-}
-
-static void base64DecodeStreamStop(std::string& result, Wge::Transformation::StreamState& state) {
-  // We process the remaining buffered data possibly left in the state
-  if (!state.buffer_.empty()) {
-    std::string temp_result;
-    if (base64Decode(state.buffer_, temp_result)) {
-      result.append(temp_result);
-    }
-  }
-
-  state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
 }

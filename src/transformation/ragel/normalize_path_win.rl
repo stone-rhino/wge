@@ -25,6 +25,8 @@
 
 #include <normalize_path.h>
 
+#include "src/transformation/stream_util.h"
+
 // Same as normalizePath, but first converts backslash characters to forward slashes.
 // clang-format off
 %%{
@@ -89,4 +91,86 @@ static bool normalizePathWin(std::string_view input, std::string& result2) {
   } else {
     return normalizePath(input, result2);
   }
+}
+
+// clang-format off
+%%{
+  machine normalize_path_win_stream;
+
+  SLASH = '\\';
+
+  main := |*
+    SLASH => { chunk_result += '/'; };
+    any => { chunk_result += fc; };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+normalizePathWinNewStream() {
+  auto state = std::unique_ptr<Wge::Transformation::StreamState,
+                               std::function<void(Wge::Transformation::StreamState*)>>(
+      new Wge::Transformation::StreamState(), [](Wge::Transformation::StreamState* state) {
+        std::unique_ptr<Wge::Transformation::StreamState,
+                        std::function<void(Wge::Transformation::StreamState*)>>*
+            second_stream_state = reinterpret_cast<
+                std::unique_ptr<Wge::Transformation::StreamState,
+                                std::function<void(Wge::Transformation::StreamState*)>>*>(
+                state->extra_state_buffer_.data());
+        second_stream_state->~unique_ptr();
+        delete state;
+      });
+
+  state->extra_state_buffer_.resize(
+      sizeof(std::unique_ptr<Wge::Transformation::StreamState,
+                             std::function<void(Wge::Transformation::StreamState*)>>));
+  std::unique_ptr<Wge::Transformation::StreamState,
+                  std::function<void(Wge::Transformation::StreamState*)>>* second_stream_state =
+      reinterpret_cast<std::unique_ptr<Wge::Transformation::StreamState,
+                                       std::function<void(Wge::Transformation::StreamState*)>>*>(
+          state->extra_state_buffer_.data());
+  *second_stream_state = normalizePathNewStream();
+  return state;
+}
+
+static Wge::Transformation::StreamResult
+normalizePathWinStream(std::string_view input, std::string& result,
+                       Wge::Transformation::StreamState& state, bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  std::string chunk_result;
+  chunk_result.reserve(input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
+
+  std::unique_ptr<Wge::Transformation::StreamState,
+                  std::function<void(Wge::Transformation::StreamState*)>>* second_stream_state =
+      reinterpret_cast<std::unique_ptr<Wge::Transformation::StreamState,
+                                       std::function<void(Wge::Transformation::StreamState*)>>*>(
+          state.extra_state_buffer_.data());
+  return normalizePathStream(chunk_result, result, *(second_stream_state->get()), end_stream);
 }

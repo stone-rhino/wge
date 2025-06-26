@@ -32,5 +32,6 @@ add_library(common_ragel ${local_source} ${GENERATED_FILES})
 set_target_properties(common_ragel PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(common_ragel PRIVATE ${CMAKE_BINARY_DIR}/src/common/ragel/ragel_gen)
 target_include_directories(common_ragel PRIVATE ${CMAKE_BINARY_DIR}/src/transformation/ragel/ragel_gen)
+target_include_directories(common_ragel PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(common_ragel PUBLIC Boost::unordered)
 

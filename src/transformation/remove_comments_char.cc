@@ -28,5 +28,18 @@ bool RemoveCommentsChar::evaluate(std::string_view data, std::string& result) co
   return removeCommentsChar(data, result);
 }
 
+std::unique_ptr<StreamState, std::function<void(StreamState*)>>
+RemoveCommentsChar::newStream() const {
+  return removeCommentsCharNewStream();
+}
+
+StreamResult RemoveCommentsChar::evaluateStream(const Common::EvaluateResults::Element& input,
+                                                Common::EvaluateResults::Element& output,
+                                                StreamState& state, bool end_stream) const {
+  auto result = removeCommentsCharStream(std::get<std::string_view>(input.variant_),
+                                         output.string_buffer_, state, end_stream);
+  output.variant_ = output.string_buffer_;
+  return result;
+}
 } // namespace Transformation
 } // namespace Wge

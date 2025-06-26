@@ -25,6 +25,7 @@
 #include <unordered_map>
 
 #include "hex_decode.h"
+#include "src/transformation/stream_util.h"
 
 // clang-format off
 %%{
@@ -188,4 +189,108 @@ static bool urlDecodeUni(std::string_view input, std::string& result) {
   }
 
   return false;
+}
+
+// clang-format off
+%%{
+  machine url_decode_uni_stream;
+  
+  action skip {}
+
+  action decode_hex {
+    std::string decode;
+    if(hexDecode({ts + 1, 2},decode) && !decode.empty()){
+      result += decode.front();
+    }
+
+    state.buffer_.clear();
+  }
+
+  action decode_unicode {
+    std::string decode;
+    if(hexDecode({ts + 2, 4},decode) && decode.size() == 2){
+      unsigned short value = static_cast<unsigned char>(decode[0]) << 8 | static_cast<unsigned char>(decode[1]);
+      
+      // Find the corresponding character in the unicode map
+      // TODO(zhouyu 2025-05-21): The current implementation only supports 20127 codepage, 
+      // it's ingnore the configuration that specifyed by SecUnicodeMapFile directive.
+      // Please support other unicode maps in the future.
+      auto it = unicode_map_20127.find(value);
+      if(it != unicode_map_20127.end()) {
+        value = it->second;
+      }else {
+        // If not found, use lower 8 bits of the value if the high byte is zero
+        if((value & 0xff00) == 0) {
+          value &= 0xff;
+        } else {
+          // If the high byte is not zero, set to 0x20 (space)
+          value = 0x20;
+        }
+
+        // Then convert the full-width character to half-width
+        // This step is not necessary, because the unicode_map_20127 already contains the conversion. 
+        // TODO(zhouyu 2025-05-27): Convert the full-width character to half-width. If 
+        // adding new unicode maps, please ensure that the conversion is done.
+      }
+
+      result += static_cast<char>(value);
+    }
+
+    state.buffer_.clear();
+  }
+
+  HEX = [0-9a-fA-F];
+
+  main := |*
+    '+' => {  result += ' ';  state.buffer_.clear(); };
+    '%' HEX HEX => decode_hex;
+    '%' [uU] HEX HEX HEX HEX => decode_unicode;
+    any => { result += fc; state.buffer_.clear(); };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+urlDecodeUniNewStream() {
+  return std::make_unique<Wge::Transformation::StreamState>();
+}
+
+static Wge::Transformation::StreamResult urlDecodeUniStream(std::string_view input,
+                                                            std::string& result,
+                                                            Wge::Transformation::StreamState& state,
+                                                            bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  return saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
 }

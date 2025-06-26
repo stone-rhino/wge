@@ -27,5 +27,18 @@ namespace Transformation {
 bool UrlDecode::evaluate(std::string_view data, std::string& result) const {
   return urlDecode(data, result);
 }
+
+std::unique_ptr<StreamState, std::function<void(StreamState*)>> UrlDecode::newStream() const {
+  return urlDecodeNewStream();
+}
+
+StreamResult UrlDecode::evaluateStream(const Common::EvaluateResults::Element& input,
+                                       Common::EvaluateResults::Element& output, StreamState& state,
+                                       bool end_stream) const {
+  auto result = urlDecodeStream(std::get<std::string_view>(input.variant_), output.string_buffer_,
+                                state, end_stream);
+  output.variant_ = output.string_buffer_;
+  return result;
+}
 } // namespace Transformation
 } // namespace Wge

@@ -49,19 +49,29 @@ template <class T> void evaluate(const std::vector<TestCase>& test_cases) {
   }
 }
 
-template <class T> void evaluateStream(const std::vector<TestCase>& test_cases) {
+template <class T> void evaluateStream(const std::vector<TestCase>& test_cases, size_t step) {
   const T transform;
   for (const auto& test_case : test_cases) {
-    auto state = transform.evaluateStreamStart();
+    auto state = transform.newStream();
     Common::EvaluateResults::Element output;
-    for (auto c : test_case.input_) {
+    for (size_t i = 0; i < test_case.input_.size();) {
+      size_t input_step = std::min(step, test_case.input_.size() - i);
       Common::EvaluateResults::Element input;
-      input.variant_ = std::string_view(&c, 1);
-      auto stream_result = transform.evaluateStream(input, output, *state);
+      input.variant_ = std::string_view(&test_case.input_[i], input_step);
+      auto stream_result = transform.evaluateStream(input, output, *state,
+                                                    i + input_step >= test_case.input_.size());
       EXPECT_NE(stream_result, Wge::Transformation::StreamResult::INVALID_INPUT);
+      i += input_step;
     }
-    transform.evaluateStreamStop(output, *state);
+    ASSERT_FALSE(IS_EMPTY_VARIANT(output.variant_));
     EXPECT_EQ(std::get<std::string_view>(output.variant_), test_case.output_);
+  }
+}
+
+template <class T> void evaluateStream(const std::vector<TestCase>& test_cases) {
+  static constexpr size_t max_step = 10;
+  for (size_t step = 1; step <= max_step; ++step) {
+    evaluateStream<T>(test_cases, step);
   }
 }
 
@@ -92,7 +102,7 @@ TEST_F(TransformationTest, cmdLine) {
       // Test that prescan is working, and that will hold the token if there is a transformation
       {true, "this        is a ;;;;;;;;;test data", "this is a test data"},
       // Deleting all backslashes [\]
-      {true, R"(this is a \test\ \data\)", "this is a test data"},
+      {true, R"(This is a \test\ \data\)", "this is a test data"},
       // Deleting all double quotes ["]
       {true, R"(this is a \"test\ \"data\)", "this is a test data"},
       // Deleting all single quotes [']
@@ -116,6 +126,7 @@ TEST_F(TransformationTest, cmdLine) {
   };
 
   evaluate<Wge::Transformation::CmdLine>(test_cases);
+  evaluateStream<Wge::Transformation::CmdLine>(test_cases);
 }
 
 TEST_F(TransformationTest, compressWhiteSpace) {
@@ -125,11 +136,13 @@ TEST_F(TransformationTest, compressWhiteSpace) {
       {true, "This \f\t\n\r\v\xa0 is \f\t\n\r\v\xa0 a \f\t\n\r\v\xa0 test", "This is a test"}};
 
   evaluate<Wge::Transformation::CompressWhiteSpace>(test_cases);
+  evaluateStream<Wge::Transformation::CompressWhiteSpace>(test_cases);
 }
 
 TEST_F(TransformationTest, cssDecode) {
+  // clang-format off
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, R"(This\ is\ a\ test)", "This is a test"},
       {true, R"(T\hi\s is a test)", "This is a test"},
       {true, R"(This\ is\ a\ test\)", "This is a test"},
@@ -137,24 +150,25 @@ TEST_F(TransformationTest, cssDecode) {
       {true, R"(\1254\3468 is\ is\ a\ test\ \ \)", "This is a test  "},
       {true, R"(\12354\123468is\ is\ a\ test\ \ \)", "This is a test  "},
       {true, R"(\12354\123468\6is\ is\ a\ test\ \ \)", "Th\u0006is is a test  "},
-      {false, "Test\u0000Case", ""},
-      {true,
-       "test\\a\\b\\f\\n\\r\\t\\v\\?\\'"
-       "\\\"\\\u0000\\12\\123\\1234\\12345\\123456\\ff01\\ff5e\\\n\\\u0000  string",
-       "test\n\u000b\u000fnrtv?'\"\u0000\u0012#4EV!~\u0000  string"},
-      {true, "\\1A\\1 A\\1234567\\123456 7\\1x\\1 x", "\u001a\u0001AV7V7\u0001x\u0001x"}};
+      {false, std::string("Test\u0000Case", 9), std::string("Test\u0000Case", 9)},
+      {true, std::string("test\\a\\b\\f\\n\\r\\t\\v\\?\\'\\\"\\\u0000\\12\\123\\1234\\12345\\123456\\ff01\\ff5e\\\n\\\u0000  string", 73),std::string("test\n\u000b\u000fnrtv?'\"\u0000\u0012#4EV!~\u0000  string", 31)},
+      {true, std::string("\\1A\\1 A\\1234567\\123456 7\\1x\\1 x", 31), std::string("\u001a\u0001AV7V7\u0001x\u0001x", 11)}
+  };
+  // clang-format on
 
   evaluate<Wge::Transformation::CssDecode>(test_cases);
+  evaluateStream<Wge::Transformation::CssDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, escapeSeqDecode) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)",
        "This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1"},
   };
 
   evaluate<Wge::Transformation::EscapeSeqDecode>(test_cases);
+  evaluateStream<Wge::Transformation::EscapeSeqDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, hexDecode) {
@@ -165,6 +179,7 @@ TEST_F(TransformationTest, hexDecode) {
       {true, "5468697320697320612074657374", "This is a test"}};
 
   evaluate<Wge::Transformation::HexDecode>(test_cases);
+  evaluateStream<Wge::Transformation::HexDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, hexEncode) {
@@ -177,7 +192,7 @@ TEST_F(TransformationTest, hexEncode) {
 TEST_F(TransformationTest, htmlEntityDecode) {
   // clang-format off
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test data", ""},
+    {false, "This is a test data", "This is a test data"},
     {true,"&#x54;&#x68;&#x69;&#x73;&#x20;&#x69;&#x73;&#x20;&#x61;&#x20;&#x74;&#x65;&#x73;&#x74;", "This is a test"},
     {true,"&#84;&#104;&#105;&#115;&#32;&#105;&#115;&#32;&#97;&#32;&#116;&#101;&#115;&#116;", "This is a test"},
     {true,"&#x54;his is a test", "This is a test"},
@@ -195,11 +210,12 @@ TEST_F(TransformationTest, htmlEntityDecode) {
   // clang-format on
 
   evaluate<Wge::Transformation::HtmlEntityDecode>(test_cases);
+  evaluateStream<Wge::Transformation::HtmlEntityDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, jsDecode) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test data", ""},
+      {false, "This is a test data", "This is a test data"},
       {true, R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)",
        "This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab A \1 \1"},
       {true,
@@ -207,27 +223,27 @@ TEST_F(TransformationTest, jsDecode) {
        "\u0054\u0068\u0069\u0073 \u0069\u0073 \u0061 \u0074\u0065\u0073\u0074"}};
 
   evaluate<Wge::Transformation::JsDecode>(test_cases);
+  evaluateStream<Wge::Transformation::JsDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, length) {
-  const Wge::Transformation::Length length;
-  std::string data = R"(This is a test)";
-  std::string result;
-  bool ret = length.evaluate(data, result);
-  EXPECT_TRUE(ret);
-  EXPECT_EQ(result, "14");
-  EXPECT_TRUE(length.convertToInt());
-  int length_value = ::atoi(result.c_str());
-  EXPECT_EQ(length_value, 14);
+  const std::vector<TestCase> test_cases = {
+      {true, "This is a test", "14"},
+      {true, "This is a test data", "19"},
+      {true, R"(This is a test data. \a \b \f \n \r \t \v \\ \? \' \" \xab \101 \01 \1)", "70"}};
+
+  evaluate<Wge::Transformation::Length>(test_cases);
+  evaluateStream<Wge::Transformation::Length>(test_cases);
 }
 
 TEST_F(TransformationTest, lowercase) {
   const std::vector<TestCase> test_cases = {
-      {false, "this is a test", ""},
+      {false, "this is a test", "this is a test"},
       {true, "THIS IS A TEST", "this is a test"},
       {true, R"(ThiS iS A TeSt~!@#$%^&*()_+)", "this is a test~!@#$%^&*()_+"}};
 
   evaluate<Wge::Transformation::LowerCase>(test_cases);
+  evaluateStream<Wge::Transformation::LowerCase>(test_cases);
 }
 
 TEST_F(TransformationTest, md5) {
@@ -239,9 +255,10 @@ TEST_F(TransformationTest, normalisePathWin) {
 
   // clang-format off
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", ""},
+    {false, "This is a test", "This is a test"},
     {true, R"(\path\to\file)", "/path/to/file"},
     {true,".",""},
+    {true, "..",".."},
     {true,".\\",""},
     {true,".\\..", ".."},
     {true,".\\..\\", "../"},
@@ -251,8 +268,13 @@ TEST_F(TransformationTest, normalisePathWin) {
     {true,"..\\.\\", "../"},
     {true,"..\\..", "../.."},
     {true,"..\\..\\", "../../"},
+    {true,".atom\\",".atom/"},
+    {true,"dir\\.atom.\\","dir/.atom./"},
+    {true,"dir.atom\\","dir.atom/"},
     {true,"\\dir\\foo\\\\bar", "/dir/foo/bar"},
     {true,"dir\\foo\\\\bar\\", "dir/foo/bar/"},
+    {true,"dir\\..\\", ""},
+    {true,"dir\\..", ""},
     {true,"dir\\..\\foo", "foo"},
     {true,"dir\\..\\..\\foo", "../foo"},
     {true,"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
@@ -268,18 +290,23 @@ TEST_F(TransformationTest, normalisePathWin) {
     {true,"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
     {true,"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
     {true,"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+    {true,"\\..\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+    {true,"\\etc\\..","/"},
+    {true, "\\..", "/"},
   };
   // clang-format on
 
   evaluate<Wge::Transformation::NormalisePathWin>(test_cases);
+  evaluateStream<Wge::Transformation::NormalisePathWin>(test_cases);
 }
 
 TEST_F(TransformationTest, normalisePath) {
   // clang-format off
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", ""},
-    {false, R"(/path/to/file)", ""},
+    {false, "This is a test", "This is a test"},
+    {false, R"(/path/to/file)", "/path/to/file"},
     {true,".",""},
+    {true, "..",".."},
     {true,"./",""},
     {true,"./..", ".."},
     {true,"./../", "../"},
@@ -289,8 +316,13 @@ TEST_F(TransformationTest, normalisePath) {
     {true,".././", "../"},
     {true,"../..", "../.."},
     {true,"../../", "../../"},
+    {false,".atom/",".atom/"},
+    {false,"dir/.atom./","dir/.atom./"},
+    {false,"dir.atom/","dir.atom/"},
     {true,"/dir/foo//bar", "/dir/foo/bar"},
     {true,"dir/foo//bar/", "dir/foo/bar/"},
+    {true,"dir/../", ""},
+    {true,"dir/..", ""},
     {true,"dir/../foo", "foo"},
     {true,"dir/../../foo", "../foo"},
     {true,"dir/./.././../../foo/bar", "../../foo/bar"},
@@ -305,19 +337,24 @@ TEST_F(TransformationTest, normalisePath) {
     {true,"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
     {true,"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
     {true,"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
-    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"}
+    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+    {true,"/../.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+    {true,"/etc/..","/"},
+    {true, "/..", "/"},
   };
   // clang-format on
 
   evaluate<Wge::Transformation::NormalisePath>(test_cases);
+  evaluateStream<Wge::Transformation::NormalisePath>(test_cases);
 }
 
 TEST_F(TransformationTest, normalizePathWin) {
   // clang-format off
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", ""},
+    {false, "This is a test", "This is a test"},
     {true, R"(\path\to\file)", "/path/to/file"},
     {true,".",""},
+    {true, "..",".."},
     {true,".\\",""},
     {true,".\\..", ".."},
     {true,".\\..\\", "../"},
@@ -327,8 +364,13 @@ TEST_F(TransformationTest, normalizePathWin) {
     {true,"..\\.\\", "../"},
     {true,"..\\..", "../.."},
     {true,"..\\..\\", "../../"},
+    {true,".atom\\",".atom/"},
+    {true,"dir\\.atom.\\","dir/.atom./"},
+    {true,"dir.atom\\","dir.atom/"},
     {true,"\\dir\\foo\\\\bar", "/dir/foo/bar"},
     {true,"dir\\foo\\\\bar\\", "dir/foo/bar/"},
+    {true,"dir\\..\\", ""},
+    {true,"dir\\..", ""},
     {true,"dir\\..\\foo", "foo"},
     {true,"dir\\..\\..\\foo", "../foo"},
     {true,"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
@@ -344,18 +386,23 @@ TEST_F(TransformationTest, normalizePathWin) {
     {true,"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
     {true,"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
     {true,"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+    {true,"\\..\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
+    {true,"\\etc\\..","/"},
+    {true, "\\..", "/"},
   };
   // clang-format on
 
   evaluate<Wge::Transformation::NormalizePathWin>(test_cases);
+  evaluateStream<Wge::Transformation::NormalizePathWin>(test_cases);
 }
 
 TEST_F(TransformationTest, normalizePath) {
   // clang-format off
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", ""},
-    {false, R"(/path/to/file)", ""},
+    {false, "This is a test", "This is a test"},
+    {false, R"(/path/to/file)", "/path/to/file"},
     {true,".",""},
+    {true, "..",".."},
     {true,"./",""},
     {true,"./..", ".."},
     {true,"./../", "../"},
@@ -365,8 +412,13 @@ TEST_F(TransformationTest, normalizePath) {
     {true,".././", "../"},
     {true,"../..", "../.."},
     {true,"../../", "../../"},
+    {false,".atom/",".atom/"},
+    {false,"dir/.atom./","dir/.atom./"},
+    {false,"dir.atom/","dir.atom/"},
     {true,"/dir/foo//bar", "/dir/foo/bar"},
     {true,"dir/foo//bar/", "dir/foo/bar/"},
+    {true,"dir/../", ""},
+    {true,"dir/..", ""},
     {true,"dir/../foo", "foo"},
     {true,"dir/../../foo", "../foo"},
     {true,"dir/./.././../../foo/bar", "../../foo/bar"},
@@ -381,11 +433,15 @@ TEST_F(TransformationTest, normalizePath) {
     {true,"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
     {true,"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
     {true,"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
-    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"}
+    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+    {true,"/../.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
+    {true,"/etc/..","/"},
+    {true, "/..", "/"},
   };
   // clang-format on
 
   evaluate<Wge::Transformation::NormalizePath>(test_cases);
+  evaluateStream<Wge::Transformation::NormalizePath>(test_cases);
 }
 
 TEST_F(TransformationTest, parityEven7Bit) {
@@ -401,7 +457,7 @@ TEST_F(TransformationTest, ParityZero7Bit) {
 }
 
 TEST_F(TransformationTest, removeComments) {
-  std::vector<TestCase> test_cases = {{false, "This is a test", ""},
+  std::vector<TestCase> test_cases = {{false, "This is a test", "This is a test"},
                                       {true, "#This is a test", ""},
                                       {true, "--This is a test", ""},
                                       {true, "This is /* comment */ a test", "This is  a test"},
@@ -410,58 +466,64 @@ TEST_F(TransformationTest, removeComments) {
                                       {true, "This is <!-- comment a test", "This is "}};
 
   evaluate<Wge::Transformation::RemoveComments>(test_cases);
+  evaluateStream<Wge::Transformation::RemoveComments>(test_cases);
 }
 
 TEST_F(TransformationTest, removeCommentChar) {
   std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "This is /* comment */ a test", "This is  comment  a test"},
       {true, "This is # comment a test", "This is  comment a test"},
       {true, "This is -- comment a test", "This is  comment a test"},
       {true, "This is <!-- comment a test", "This is  comment a test"}};
 
   evaluate<Wge::Transformation::RemoveCommentsChar>(test_cases);
+  evaluateStream<Wge::Transformation::RemoveCommentsChar>(test_cases);
 }
 
 TEST_F(TransformationTest, removeNulls) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, {"This is a test \0", 16}, "This is a test "},
       {true, {"\0\0\0\0This is a test \0", 20}, "This is a test "},
       {true, {"\0\0\0\0This\0\0\0\0 is\0\0\0\0 a\0\0\0\0 test \0", 32}, "This is a test "},
   };
 
   evaluate<Wge::Transformation::RemoveNulls>(test_cases);
+  evaluateStream<Wge::Transformation::RemoveNulls>(test_cases);
 }
 
 TEST_F(TransformationTest, removeWhitespace) {
   const std::vector<TestCase> test_cases = {
-      {false, "Thisisatest", ""},
+      {false, "Thisisatest", "Thisisatest"},
       {true, "This is a test", "Thisisatest"},
       {true, "This \t\r\n\f\vis \t\r\n\f\va\xa0 test", "Thisisatest"}};
 
   evaluate<Wge::Transformation::RemoveWhitespace>(test_cases);
+  evaluateStream<Wge::Transformation::RemoveWhitespace>(test_cases);
 }
 
 TEST_F(TransformationTest, replaceComments) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "This is a test /* comment */", "This is a test  "},
       {true, "This is /* comment */ a test", "This is   a test"},
       {true, "This is /* comment a test", "This is  "},
-      {false, "This is */ comment a test", ""}};
+      {false, "This is */ comment a test", "This is */ comment a test"}};
 
   evaluate<Wge::Transformation::ReplaceComments>(test_cases);
+  evaluateStream<Wge::Transformation::ReplaceComments>(test_cases);
 }
 
 TEST_F(TransformationTest, replaceNulls) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, {"This is a test \0", 16}, "This is a test  "},
       {true, {"\0\0\0\0This is a test \0", 20}, " This is a test  "},
       {true, {"\0\0\0\0This\0\0\0\0 is\0\0\0\0 a\0\0\0\0 test \0", 32}, " This  is  a  test  "}};
 
   evaluate<Wge::Transformation::ReplaceNulls>(test_cases);
+  evaluateStream<Wge::Transformation::ReplaceNulls>(test_cases);
 }
 
 TEST_F(TransformationTest, sha1) {
@@ -505,7 +567,7 @@ TEST_F(TransformationTest, upperCase) {
 
 TEST_F(TransformationTest, urlDecodeUni) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "This%20is%20a%20test", "This is a test"},
       {true, "This+is+a+test", "This is a test"},
       {true, "%54%68is%20is%20a%20%74es%74", "This is a test"},
@@ -515,16 +577,18 @@ TEST_F(TransformationTest, urlDecodeUni) {
        "<script>alert('XSS');</script>"}};
 
   evaluate<Wge::Transformation::UrlDecodeUni>(test_cases);
+  evaluateStream<Wge::Transformation::UrlDecodeUni>(test_cases);
 }
 
 TEST_F(TransformationTest, urlDecode) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "This%20is%20a%20test", "This is a test"},
       {true, "This+is+a+test", "This is a test"},
       {true, "%54%68is%20is%20a%20%74es%74", "This is a test"}};
 
   evaluate<Wge::Transformation::UrlDecode>(test_cases);
+  evaluateStream<Wge::Transformation::UrlDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, urlEncode) {
@@ -533,11 +597,12 @@ TEST_F(TransformationTest, urlEncode) {
 
 TEST_F(TransformationTest, utf8ToUnicode) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "\u4E2D\u6587", "%u4e2d%u6587"},
       {true, "This is \u4E2D\u6587 ", "This is %u4e2d%u6587 "}};
 
   evaluate<Wge::Transformation::Utf8ToUnicode>(test_cases);
+  evaluateStream<Wge::Transformation::Utf8ToUnicode>(test_cases);
 }
 } // namespace Transformation
 } // namespace Test

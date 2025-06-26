@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hex_decode.h"
+#include "src/transformation/stream_util.h"
 
 // clang-format off
 %%{
@@ -60,7 +61,7 @@
 %% write data;
 // clang-format on
 
-void emitNumericEntity(char** r, const std::string& entity_value) {
+static void emitNumericEntity(char** r, const std::string& entity_value) {
   std::string decoded;
   std::string_view data(entity_value);
 
@@ -111,9 +112,7 @@ static bool cssDecode(std::string_view input, std::string& result) {
   const char *ts, *te;
   int cs, act;
 
-  std::string entity_name;
   std::string entity_value;
-  bool is_hex = false;
 
   // clang-format off
 	%% write init;
@@ -126,4 +125,109 @@ static bool cssDecode(std::string_view input, std::string& result) {
   }
 
   return false;
+}
+
+// clang-format off
+%%{
+  machine css_decode_stream;
+  
+  hex = [0-9a-fA-F];
+  not_hex = [^0-9a-fA-F\n];
+
+  main := |*
+    '\\' hex{1,6} ' ' any => { entity_value = std::string(ts + 1, te - ts - 3); emitNumericEntity(result, entity_value); result += fc; state.buffer_.clear(); };
+    '\\' hex{1,6} => { entity_value = std::string(ts + 1, te - ts - 1); emitNumericEntity(result, entity_value); state.buffer_.clear(); };
+    '\\' not_hex => { result += fc; state.buffer_.clear(); };
+    '\\' '\n' => {}; # A newline character following backslash is ignored
+    '\\' => {}; # The backslash is at the end of the input
+    any => { result += fc; state.buffer_.clear(); };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static void emitNumericEntity(std::string& result, const std::string& entity_value) {
+  std::string decoded;
+  std::string_view data(entity_value);
+
+  // If length of entity_value is greater than 2, then use the last two from the end
+  if (entity_value.size() > 2) {
+    data = {entity_value.data() + entity_value.size() - 2, 2};
+  }
+
+  // If the length of entity_value is greater than 3, and the value of entity_value
+  // is like "FFxx","0FFxx","00FFxx", we need do full width conversion
+  bool full_width = false;
+  if (entity_value.size() > 3) {
+    switch (entity_value.size()) {
+    case 4:
+      full_width = (entity_value[0] == 'f' || entity_value[0] == 'F') &&
+                   (entity_value[1] == 'f' || entity_value[1] == 'F');
+      break;
+    case 5:
+      full_width = entity_value[0] == '0' && (entity_value[1] == 'f' || entity_value[1] == 'F') &&
+                   (entity_value[2] == 'f' || entity_value[2] == 'F');
+      break;
+    case 6:
+      full_width = entity_value[0] == '0' && entity_value[1] == '0' &&
+                   (entity_value[1] == 'f' || entity_value[1] == 'F') &&
+                   (entity_value[2] == 'f' || entity_value[2] == 'F');
+      break;
+    default:
+      assert(false);
+      break;
+    }
+  }
+
+  hexDecode(data, decoded);
+  if (full_width) {
+    decoded.front() += 0x20;
+  }
+  result.append(decoded);
+}
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+cssDecodeNewStream() {
+  return std::make_unique<Wge::Transformation::StreamState>();
+}
+
+static Wge::Transformation::StreamResult cssDecodeStream(std::string_view input,
+                                                         std::string& result,
+                                                         Wge::Transformation::StreamState& state,
+                                                         bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  std::string entity_value;
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  return saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
 }

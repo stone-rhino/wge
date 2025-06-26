@@ -24,6 +24,8 @@
 #include <string>
 #include <string_view>
 
+#include "src/transformation/stream_util.h"
+
 #define SLASH '/'
 
 #ifndef ENABLE_NORMALIZE_PATH_DEBUG_LOG
@@ -94,7 +96,7 @@
       fhold;
     };
     SLASH+ DOT DOT {
-      if (ts == ps ) {
+      if (ts == ps) {
         *r++ = SLASH;
       } else {
         removeLastDir(r, result.data()); 
@@ -142,7 +144,7 @@
 %% write data;
 // clang-format on
 
-static void removeLastDir(char*& input, char* start_input) {
+static void removeLastDir(char*& input, const char* start_input) {
   if (input > start_input) {
     char* p = input - 1;
     while (p > start_input && *p != SLASH) {
@@ -168,6 +170,17 @@ static void removeLastDir(char*& input, char* start_input) {
   }
 }
 
+static void removeLastDir(std::string& result) {
+  // Reserve space for "/.."
+  size_t len = result.size();
+  result.resize(len + 3);
+
+  char* r = result.data() + len;
+  removeLastDir(r, result.data());
+
+  result.resize(r - result.data());
+}
+
 static bool normalizePath(std::string_view input, std::string& result) {
   result.clear();
   char* r = nullptr;
@@ -190,6 +203,119 @@ static bool normalizePath(std::string_view input, std::string& result) {
   }
 
   return false;
+}
+
+// clang-format off
+%%{
+  machine normalize_path_stream;
+
+  SLASH = '/';
+  DOT = '.';
+
+  main := |*
+    SLASH+ DOT+ [^./] => {
+      result += "/.";
+      state.buffer_.clear();
+      fhold;
+    };
+    SLASH+ DOT DOT {
+      if (result.empty() && *is_invoked_remove_last_dir == false) {
+        result += SLASH;
+      } else {
+        removeLastDir(result);
+        *is_invoked_remove_last_dir = true;
+      }
+      state.buffer_.clear();
+    };
+    SLASH+ DOT => {
+      if(result.empty() && *is_invoked_remove_last_dir == false) {
+        result += SLASH;
+      }
+      state.buffer_.clear();
+    };
+    SLASH+ => {
+      // Ensure that after removing the last directory, if the input is not start
+      // with a slash then the result is not start with a slash too
+      if(result.empty() && *is_invoked_remove_last_dir == false) {
+        result += SLASH;
+      } else {
+        if(!result.empty() && result.back() != SLASH) {
+          result += SLASH;
+        }
+      }
+      state.buffer_.clear();
+    };
+    DOT SLASH+ => {
+      if(!result.empty()) {
+        result += "./";
+      }
+    };
+    DOT DOT => {
+      result += "..";
+      state.buffer_.clear();
+    };
+    DOT [^.] => {
+      result += ".";
+      result += fc;
+      state.buffer_.clear();
+    };
+    DOT => {};
+    any => {
+      result += fc;
+      state.buffer_.clear();
+    };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+normalizePathNewStream() {
+  auto state = std::make_unique<Wge::Transformation::StreamState>();
+  state->extra_state_buffer_.resize(sizeof(bool));
+  bool* is_invoked_remove_last_dir = reinterpret_cast<bool*>(state->extra_state_buffer_.data());
+  *is_invoked_remove_last_dir = false;
+  return state;
+}
+
+static Wge::Transformation::StreamResult
+normalizePathStream(std::string_view input, std::string& result,
+                    Wge::Transformation::StreamState& state, bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  bool* is_invoked_remove_last_dir = reinterpret_cast<bool*>(state.extra_state_buffer_.data());
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  return saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
 }
 
 #undef SLASH

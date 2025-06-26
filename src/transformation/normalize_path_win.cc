@@ -27,5 +27,19 @@ namespace Transformation {
 bool NormalizePathWin::evaluate(std::string_view data, std::string& result) const {
   return normalizePathWin(data, result);
 }
+
+std::unique_ptr<StreamState, std::function<void(StreamState*)>>
+NormalizePathWin::newStream() const {
+  return normalizePathWinNewStream();
+}
+
+StreamResult NormalizePathWin::evaluateStream(const Common::EvaluateResults::Element& input,
+                                              Common::EvaluateResults::Element& output,
+                                              StreamState& state, bool end_stream) const {
+  auto result = normalizePathWinStream(std::get<std::string_view>(input.variant_),
+                                       output.string_buffer_, state, end_stream);
+  output.variant_ = output.string_buffer_;
+  return result;
+}
 } // namespace Transformation
 } // namespace Wge

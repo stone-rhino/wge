@@ -31,6 +31,10 @@ class CssDecode : public TransformBase {
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override;
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
+  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
+                              Common::EvaluateResults::Element& output, StreamState& state,
+                              bool end_stream) const override;
 };
 } // namespace Transformation
 } // namespace Wge

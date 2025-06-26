@@ -23,6 +23,8 @@
 #include <string>
 #include <string_view>
 
+#include "src/transformation/stream_util.h"
+
 // Removes all whitespace characters from input.
 // clang-format off
 %%{
@@ -78,4 +80,62 @@ static bool removeNulls(std::string_view input, std::string& result) {
   }
 
   return false;
+}
+
+// clang-format off
+%%{
+  machine remove_nulls_stream;
+  
+  action skip { state.buffer_.clear(); }
+
+  main := |*
+    0x00+ => skip;
+    any => { result += fc; state.buffer_.clear(); };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+removeNullsNewStream() {
+  return std::make_unique<Wge::Transformation::StreamState>();
+}
+
+static Wge::Transformation::StreamResult removeNullsStream(std::string_view input,
+                                                           std::string& result,
+                                                           Wge::Transformation::StreamState& state,
+                                                           bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  return saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
 }

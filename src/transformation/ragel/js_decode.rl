@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hex_decode.h"
+#include "src/transformation/stream_util.h"
 
 // Decodes JavaScript escape sequences. If a \uHHHH code is in the range of FF01-FF5E (the full
 // width ASCII codes), then the higher byte is used to detect and adjust the lower byte.
@@ -148,4 +149,132 @@ static bool jsDecode(std::string_view input, std::string& result) {
   }
 
   return false;
+}
+
+// clang-format off
+%%{
+  machine js_decode_stream;
+
+  action decode_hex {
+    std::string decode;
+    if(hexDecode({ts + 2, 2},decode) && !decode.empty()){
+      result += decode.front();
+    }
+
+    state.buffer_.clear();
+  }
+
+  action decode_unicode {
+    std::string decode;
+    if(hexDecode({ts + 2, 4},decode) && !decode.empty()) {
+      unsigned short value = static_cast<unsigned char>(decode[0]) << 8 | static_cast<unsigned char>(decode[1]);
+
+      // Convert to half-width ASCII
+      if(value >= 0xFF01 && value <= 0xFF5E) {
+        value -= 0xFEE0;
+      }
+
+      // Convert to Unicode
+      if(value < 0x80) {
+        // 1 byte
+        result += static_cast<char>(value);
+      } else if(value < 0x800) {
+        // 2 bytes
+        result += static_cast<char>(0xc0 | (value >> 6));
+        result += static_cast<char>(0x80 | (value & 0x3f));
+      } else if(value < 0x10000) {
+        // Surrogate pairs
+        result += static_cast<char>(0xe0 | (value >> 12));
+        result += static_cast<char>(0x80 | ((value >> 6) & 0x3f));
+        result += static_cast<char>(0x80 | (value & 0x3f));
+      }
+    }
+
+    state.buffer_.clear();
+  }
+
+  action decode_octal {
+    unsigned char value = 0;
+    const char* p_octal = ts + 1;
+
+    // The first octal
+    value = (*p_octal++ - '0');
+
+    // The second octal
+    if (p_octal < te) {
+      value = (value << 3) | (*p_octal++ - '0'); 
+    }
+
+    // The third octal
+    if (p_octal < te) {
+      value = (value << 3) | (*p_octal++ - '0'); 
+    }
+
+    result += value;
+  }
+
+  hex = [0-9a-fA-F];
+  octal = [0-7];
+  main := |*
+    '\\u' hex hex hex hex => decode_unicode;
+    '\\x' hex hex => decode_hex;
+    '\\' octal octal? octal? => decode_octal;
+    '\\a'  => { result += '\a'; state.buffer_.clear(); };
+    '\\b' => { result += '\b'; state.buffer_.clear(); };
+    '\\f' => { result += '\f'; state.buffer_.clear(); };
+    '\\n' => { result += '\n'; state.buffer_.clear(); };
+    '\\r' => { result += '\r'; state.buffer_.clear(); };
+    '\\t' => { result += '\t'; state.buffer_.clear(); };
+    '\\v' => { result += '\v'; state.buffer_.clear(); };
+    '\\\\' => { result += '\\'; state.buffer_.clear(); };
+    '\\?' => { result += '\?'; state.buffer_.clear(); };
+    '\\\'' => { result += '\''; state.buffer_.clear(); };
+    '\\"' => { result += '\"'; state.buffer_.clear(); };
+    any => { result += fc; state.buffer_.clear(); };
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+jsDecodeNewStream() {
+  return std::make_unique<Wge::Transformation::StreamState>();
+}
+
+static Wge::Transformation::StreamResult jsDecodeStream(std::string_view input, std::string& result,
+                                                        Wge::Transformation::StreamState& state,
+                                                        bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  // clang-format off
+  %% write init;
+  recoverStreamState(state, input, ps, pe, eof, p, cs, act, ts, te, end_stream);
+  %% write exec;
+  // clang-format on
+
+  return saveStreamState(state, cs, act, ps, pe, ts, te, end_stream);
 }
