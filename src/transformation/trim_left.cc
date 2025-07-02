@@ -18,24 +18,27 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "trim_left.h"
 
-#include <string>
-#include <string_view>
-
-#include "transform_base.h"
+#include <trim_left.h>
 
 namespace Wge {
 namespace Transformation {
-class TrimLeft : public TransformBase {
-  DECLARE_TRANSFORM_NAME(trimLeft);
+bool TrimLeft::evaluate(std::string_view data, std::string& result) const {
+  return trimLeft(data, result);
+}
 
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
-  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
-                              Common::EvaluateResults::Element& output, StreamState& state,
-                              bool end_stream) const override;
-};
+std::unique_ptr<StreamState, std::function<void(StreamState*)>> TrimLeft::newStream() const {
+  return trimLeftNewStream();
+}
+
+StreamResult TrimLeft::evaluateStream(const Common::EvaluateResults::Element& input,
+                                      Common::EvaluateResults::Element& output, StreamState& state,
+                                      bool end_stream) const {
+  auto result = trimLeftStream(std::get<std::string_view>(input.variant_), output.string_buffer_,
+                               state, end_stream);
+  output.variant_ = output.string_buffer_;
+  return result;
+}
 } // namespace Transformation
 } // namespace Wge

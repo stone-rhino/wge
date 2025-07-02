@@ -536,16 +536,17 @@ TEST_F(TransformationTest, sqlHexDecode) {
 
 TEST_F(TransformationTest, trimLeft) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20", "This is a test \t\n\r\f\v\x20"},
       {true, "\t\n\r\f\v\x20 ", ""}};
 
   evaluate<Wge::Transformation::TrimLeft>(test_cases);
+  evaluateStream<Wge::Transformation::TrimLeft>(test_cases);
 }
 
 TEST_F(TransformationTest, trimRight) {
   const std::vector<TestCase> test_cases = {
-      {false, "This is a test", ""},
+      {false, "This is a test", "This is a test"},
       {true, "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20", "\t\n\r\f\v\x20 This is a test"},
       {true, "\t\n\r\f\v\x20 ", ""}};
 
