@@ -82,11 +82,11 @@ static bool removeWhitespace(std::string_view input, std::string& result) {
 %%{
   machine remove_whitespace_stream;
   
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   main := |*
-    ([ \f\t\n\r\v] | 0xA0)+ => skip;
-    any => { result += fc; state.buffer_.clear(); };
+    [ \f\t\n\r\v] | 0xA0 => skip;
+    any => { result += fc; };
   *|;
 }%%
 

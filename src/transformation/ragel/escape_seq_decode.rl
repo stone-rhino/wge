@@ -129,7 +129,6 @@ static bool escapeSeqDecode(std::string_view input, std::string& result) {
     if(hexDecode({ts + 2, 2},decode) && !decode.empty()){
       result += decode.front();
     }
-    state.buffer_.clear(); 
   }
 
   action decode_octal {
@@ -150,7 +149,6 @@ static bool escapeSeqDecode(std::string_view input, std::string& result) {
     }
 
     result += value;
-    state.buffer_.clear(); 
   }
 
   hex = [0-9a-fA-F];
@@ -158,18 +156,18 @@ static bool escapeSeqDecode(std::string_view input, std::string& result) {
   main := |*
     '\\x' hex hex => decode_hex;
     '\\' octal octal? octal? => decode_octal;
-    '\\a'  => { state.buffer_.clear(); result += '\a'; };
-    '\\b' => { state.buffer_.clear(); result += '\b'; };
-    '\\f' => { state.buffer_.clear(); result += '\f'; };
-    '\\n' => { state.buffer_.clear(); result += '\n'; };
-    '\\r' => { state.buffer_.clear(); result += '\r'; };
-    '\\t' => { state.buffer_.clear(); result += '\t'; };
-    '\\v' => { state.buffer_.clear(); result += '\v'; };
-    '\\\\' => { state.buffer_.clear(); result += '\\'; };
-    '\\?' => { state.buffer_.clear(); result += '\?'; };
-    '\\\'' => { state.buffer_.clear(); result += '\''; };
-    '\\"' => { state.buffer_.clear(); result += '\"'; };
-    any => { state.buffer_.clear(); result += fc; };
+    '\\a'  => { result += '\a'; };
+    '\\b' => { result += '\b'; };
+    '\\f' => { result += '\f'; };
+    '\\n' => { result += '\n'; };
+    '\\r' => { result += '\r'; };
+    '\\t' => { result += '\t'; };
+    '\\v' => { result += '\v'; };
+    '\\\\' => { result += '\\'; };
+    '\\?' => { result += '\?'; };
+    '\\\'' => { result += '\''; };
+    '\\"' => { result += '\"'; };
+    any => { result += fc; };
   *|;
 }%%
 

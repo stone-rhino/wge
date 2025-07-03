@@ -160,8 +160,6 @@ static bool jsDecode(std::string_view input, std::string& result) {
     if(hexDecode({ts + 2, 2},decode) && !decode.empty()){
       result += decode.front();
     }
-
-    state.buffer_.clear();
   }
 
   action decode_unicode {
@@ -189,8 +187,6 @@ static bool jsDecode(std::string_view input, std::string& result) {
         result += static_cast<char>(0x80 | (value & 0x3f));
       }
     }
-
-    state.buffer_.clear();
   }
 
   action decode_octal {
@@ -219,18 +215,18 @@ static bool jsDecode(std::string_view input, std::string& result) {
     '\\u' hex hex hex hex => decode_unicode;
     '\\x' hex hex => decode_hex;
     '\\' octal octal? octal? => decode_octal;
-    '\\a'  => { result += '\a'; state.buffer_.clear(); };
-    '\\b' => { result += '\b'; state.buffer_.clear(); };
-    '\\f' => { result += '\f'; state.buffer_.clear(); };
-    '\\n' => { result += '\n'; state.buffer_.clear(); };
-    '\\r' => { result += '\r'; state.buffer_.clear(); };
-    '\\t' => { result += '\t'; state.buffer_.clear(); };
-    '\\v' => { result += '\v'; state.buffer_.clear(); };
-    '\\\\' => { result += '\\'; state.buffer_.clear(); };
-    '\\?' => { result += '\?'; state.buffer_.clear(); };
-    '\\\'' => { result += '\''; state.buffer_.clear(); };
-    '\\"' => { result += '\"'; state.buffer_.clear(); };
-    any => { result += fc; state.buffer_.clear(); };
+    '\\a'  => { result += '\a'; };
+    '\\b' => { result += '\b'; };
+    '\\f' => { result += '\f'; };
+    '\\n' => { result += '\n'; };
+    '\\r' => { result += '\r'; };
+    '\\t' => { result += '\t'; };
+    '\\v' => { result += '\v'; };
+    '\\\\' => { result += '\\'; };
+    '\\?' => { result += '\?'; };
+    '\\\'' => { result += '\''; };
+    '\\"' => { result += '\"'; };
+    any => { result += fc; };
   *|;
 }%%
 

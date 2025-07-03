@@ -86,11 +86,11 @@ static bool removeNulls(std::string_view input, std::string& result) {
 %%{
   machine remove_nulls_stream;
   
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   main := |*
-    0x00+ => skip;
-    any => { result += fc; state.buffer_.clear(); };
+    0x00 => skip;
+    any => { result += fc; };
   *|;
 }%%
 

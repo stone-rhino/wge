@@ -86,10 +86,16 @@ static bool compressWhitespace(std::string_view input, std::string& result) {
   machine compress_whitespace_stream;
   
   action skip {}
+  WS = ([ \f\t\n\r\v] | 0xA0);
   
   main := |*
-    ([ \f\t\n\r\v] | 0xA0)+ => { result += ' '; state.buffer_.clear(); };
-    any => { result += fc; state.buffer_.clear(); };
+    WS => { result += ' '; fgoto skip_whitespace; };
+    any => { result += fc; };
+  *|;
+
+  skip_whitespace := |*
+    WS => skip;
+    any => { p = ts; fhold; fgoto main; };
   *|;
 }%%
 

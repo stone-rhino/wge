@@ -135,12 +135,12 @@ static bool cssDecode(std::string_view input, std::string& result) {
   not_hex = [^0-9a-fA-F\n];
 
   main := |*
-    '\\' hex{1,6} ' ' any => { entity_value = std::string(ts + 1, te - ts - 3); emitNumericEntity(result, entity_value); result += fc; state.buffer_.clear(); };
-    '\\' hex{1,6} => { entity_value = std::string(ts + 1, te - ts - 1); emitNumericEntity(result, entity_value); state.buffer_.clear(); };
-    '\\' not_hex => { result += fc; state.buffer_.clear(); };
+    '\\' hex{1,6} ' ' any => { entity_value = std::string(ts + 1, te - ts - 3); emitNumericEntity(result, entity_value); result += fc; };
+    '\\' hex{1,6} => { entity_value = std::string(ts + 1, te - ts - 1); emitNumericEntity(result, entity_value); };
+    '\\' not_hex => { result += fc; };
     '\\' '\n' => {}; # A newline character following backslash is ignored
     '\\' => {}; # The backslash is at the end of the input
-    any => { result += fc; state.buffer_.clear(); };
+    any => { result += fc; };
   *|;
 }%%
 

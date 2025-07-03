@@ -89,8 +89,13 @@ static bool replaceNulls(std::string_view input, std::string& result) {
   action skip {}
 
   main := |*
-    0x00+ => { result += 0x20; state.buffer_.clear(); };
-    any => { result += fc; state.buffer_.clear(); };
+    0x00 => { result += 0x20; fgoto skip_null; };
+    any => { result += fc; };
+  *|;
+
+  skip_null := |*
+    0x00 => skip;
+    any => { p = ts; fhold; fgoto main; };
   *|;
 }%%
 

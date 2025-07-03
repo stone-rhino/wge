@@ -106,17 +106,23 @@ static bool cmdLine(std::string_view input, std::string& result) {
   machine cmd_line_stream;
 
   action skip {}
-  action append_slash { result += '/'; state.buffer_.clear(); }
-  action append_open_parenthesis { result += '('; state.buffer_.clear(); }
-  action append_space { result += ' '; state.buffer_.clear(); }
-  action tolower { result += tolower(fc); state.buffer_.clear(); }
+  action tolower { result += tolower(fc); }
 
   main := |*
-    [ \t\r\n,;\\"'^]+'/' => append_slash;
-    [ \t\r\n,;\\"'^]+'(' => append_open_parenthesis;
-    [ \t\r\n,;]+ => append_space;
     [\\"'^] => skip;
+    [ \t\r\n,;] => { result += ' '; fgoto skip_spaces; };
+    [/(] => {
+      if(!result.empty() && result.back() == ' ') {
+        result.pop_back();
+      }
+      result += fc;
+    };
     any => tolower;
+  *|;
+
+  skip_spaces := |*
+    [ \t\r\n,;] => skip;
+    any => { p = ts; fhold; fgoto main; };
   *|;
 }%%
 %% write data;

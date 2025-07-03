@@ -96,19 +96,19 @@ static bool removeComments(std::string_view input, std::string& result) {
 %%{
   machine remove_comments_stream;
 
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   main := |*
-    '/*' => { state.buffer_.clear(); fgoto remove; };
-    '<!--' => { state.buffer_.clear(); fgoto remove; };
+    '/*' => { fgoto remove; };
+    '<!--' => { fgoto remove; };
     '--' [^\r\n]* '\r'? '\n'? => skip;
     '#' [^\r\n]* '\r'? '\n'? => skip;
-    any => { result += fc; state.buffer_.clear(); };
+    any => { result += fc; };
   *|;
 
   remove := |*
-    '*/' => { state.buffer_.clear(); fgoto main; };
-    '-->' => { state.buffer_.clear(); fgoto main; };
+    '*/' => { fgoto main; };
+    '-->' => { fgoto main; };
     any => skip;
   *|;
 }%%

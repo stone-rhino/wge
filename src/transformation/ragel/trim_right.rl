@@ -96,21 +96,7 @@ struct TrimRightStreamExtraState {
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
 trimRightNewStream() {
-  auto state = std::unique_ptr<Wge::Transformation::StreamState,
-                               std::function<void(Wge::Transformation::StreamState*)>>(
-      new Wge::Transformation::StreamState(), [](Wge::Transformation::StreamState* state) {
-        TrimRightStreamExtraState* extra_state =
-            reinterpret_cast<TrimRightStreamExtraState*>(state->extra_state_buffer_.data());
-        extra_state->~TrimRightStreamExtraState();
-        delete state;
-      });
-
-  state->extra_state_buffer_.resize(sizeof(TrimRightStreamExtraState));
-  TrimRightStreamExtraState* extra_state =
-      reinterpret_cast<TrimRightStreamExtraState*>(state->extra_state_buffer_.data());
-  new (extra_state) TrimRightStreamExtraState();
-
-  return state;
+  return Wge::Transformation::newStreamWithExtraState<TrimRightStreamExtraState>();
 }
 
 static Wge::Transformation::StreamResult trimRightStream(std::string_view input,

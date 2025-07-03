@@ -28,6 +28,18 @@
 
 #include "src/transformation/stream_util.h"
 
+#ifndef ENABLE_HTML_ENTITY_DECODE_DEBUG_LOG
+#define ENABLE_HTML_ENTITY_DECODE_DEBUG_LOG 0
+#endif
+
+#if ENABLE_HTML_ENTITY_DECODE_DEBUG_LOG
+#include <format>
+#include <iostream>
+#define HTML_ENTITY_DECODE_LOG(x) std::cout << x << std::endl;
+#else
+#define HTML_ENTITY_DECODE_LOG(x)
+#endif
+
 // clang-format off
 %%{
   machine html_entity_decode;
@@ -168,51 +180,184 @@ static bool htmlEntityDecode(std::string_view input, std::string& result) {
   machine html_entity_decode_stream;
 
   main := |*
-    '&amp;' => { result += '&'; state.buffer_.clear(); };
-    '&lt;' => { result += '<'; state.buffer_.clear(); };
-    '&gt;' => { result += '>'; state.buffer_.clear(); };
-    '&quot;' => { result += '"'; state.buffer_.clear(); };
-    '&apos;' => { result += '\''; state.buffer_.clear(); };
-    '&nbsp;' => { result += ' '; state.buffer_.clear(); };
-    '&#' '0'* [0-9]{1,7} [^0-9a-fA-F] => {
+    '&amp;' => {
+      result += '&';
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &amp;"));
+    };
+    '&lt;' => {
+      result += '<'; 
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &lt;"));
+    };
+    '&gt;' => {
+      result += '>';
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &gt;"));
+    };
+    '&quot;' => {
+      result += '"';
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &quot;"));
+    };
+    '&apos;' => {
+      result += '\'';
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &apos;"));
+    };
+    '&nbsp;' => {
+      result += ' ';
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded entity: &nbsp;"));
+    };
+    '&#' '0' => {
+      skip_prefix_zero_d_count = 1;
+      HTML_ENTITY_DECODE_LOG(std::format("Found numeric entity with decimal prefix"));
+      fgoto skip_prefix_zero_d;
+    };
+    '&#' [xX] '0' {
+      skip_prefix_zero_h_count = 1;
+      hex_prefix = *(ts + 2);
+      HTML_ENTITY_DECODE_LOG(std::format("Found numeric entity with hexadecimal prefix: {}", hex_prefix));
+      fgoto skip_prefix_zero_h;
+    };
+    '&#' [1-9] [0-9]{1,6} [^0-9a-fA-F] => {
       bool is_hex = false;
       std::string entity_value(ts + 2, te - ts - 3);
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded numeric entity: &#{};", entity_value));
       emitNumericEntity(result, entity_value, is_hex);
       if(fc != ';') {
         fhold;
       }
-      state.buffer_.clear(); 
     };
-    '&#' [xX] '0'* [0-9a-fA-F]{1,6} [^0-9a-fA-F] => {
+    '&#' [xX] [1-9a-fA-F] [0-9a-fA-F]{1,5} [^0-9a-fA-F] => {
       bool is_hex = true;
       std::string entity_value(ts + 3, te - ts - 4);
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded numeric entity: &#x{};", entity_value));
       emitNumericEntity(result, entity_value, is_hex);
       if(fc != ';') {
         fhold;
       }
-      state.buffer_.clear(); 
+
     };
-    '&#' '0'* [0-9]{1,7} => {
+    '&#' [1-9] [0-9]{1,6} => {
       if( te == eof ) {
         bool is_hex = false;
         std::string entity_value(ts + 2, te - ts - 2);
+        HTML_ENTITY_DECODE_LOG(std::format("Decoded numeric entity at eof: &#{};", entity_value));
         emitNumericEntity(result, entity_value, is_hex);
-        state.buffer_.clear(); 
       } else {
+        HTML_ENTITY_DECODE_LOG(std::format("Appending decimal numeric entity: {}", ts + 2));
         result.append(ts, te - ts);
       }
     };
-    '&#' [xX] '0'* [0-9a-fA-F]{1,6} => {
+    '&#' [xX] [1-9a-fA-F] [0-9a-fA-F]{1,5} => {
       if( te == eof ) {
         bool is_hex = true;
         std::string entity_value(ts + 3, te - ts - 3);
+        HTML_ENTITY_DECODE_LOG(std::format("Decoded numeric entity at eof: &#x{};", entity_value));
         emitNumericEntity(result, entity_value, is_hex);
-        state.buffer_.clear(); 
       } else {
+        HTML_ENTITY_DECODE_LOG(std::format("Appending hexadecimal numeric entity: {}", ts + 3));
         result.append(ts, te - ts);
       }
     };
-    any => { result += fc; state.buffer_.clear(); };
+    any => {
+      result += fc;
+      HTML_ENTITY_DECODE_LOG(std::format("Appending character: {}", fc));
+    };
+  *|;
+
+  skip_prefix_zero_d := |*
+    '0' => {
+      skip_prefix_zero_d_count++;
+      HTML_ENTITY_DECODE_LOG(std::format("Skipping zero in decimal numeric entity, count: {}", skip_prefix_zero_d_count));
+    };
+    any => {
+      HTML_ENTITY_DECODE_LOG(std::format("Found non-zero character in skipped decimal numeric entity: {}", fc));
+      p = ts;
+      fhold;
+      fgoto number_entity_d;
+    };
+  *|;
+
+  skip_prefix_zero_h := |*
+    '0' => {
+      skip_prefix_zero_h_count++;
+      HTML_ENTITY_DECODE_LOG(std::format("Skipping zero in hexadecimal numeric entity, count: {}", skip_prefix_zero_h_count));
+    };
+    any => {
+      HTML_ENTITY_DECODE_LOG(std::format("Found non-zero character in skipped hexadecimal numeric entity: {}", fc));
+      p = ts;
+      fhold;
+      fgoto number_entity_h;
+    };
+  *|;
+
+  number_entity_d := |*
+    [0-9]{1,7} [^0-9a-fA-F] => {
+      bool is_hex = false;
+      std::string entity_value(ts, te - ts - 1);
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded decimal numeric entity: {}", entity_value));
+      emitNumericEntity(result, entity_value, is_hex);
+      if(fc != ';') {
+        fhold;
+      }
+      fgoto main;
+    };
+    [0-9]{1,7} => {
+      if( te == eof ) {
+        bool is_hex = false;
+        std::string entity_value(ts, te - ts);
+        HTML_ENTITY_DECODE_LOG(std::format("Decoded decimal numeric entity at eof: {}", entity_value));
+        emitNumericEntity(result, entity_value, is_hex);
+      } else {
+        result += "&#";
+        result.append(skip_prefix_zero_d_count, '0');
+        result.append(ts, te - ts);
+        HTML_ENTITY_DECODE_LOG(std::format("Appending decimal numeric entity: &#0({}){}", skip_prefix_zero_d_count, std::string_view(ts, te - ts)));
+      }
+      fgoto main;
+    };
+    any => {
+      HTML_ENTITY_DECODE_LOG(std::format("Found non-numeric character in decimal numeric entity: {}", fc));
+      result += "&#";
+      result.append(skip_prefix_zero_d_count, '0');
+      p = ts;
+      fhold;
+      fgoto main;
+    };
+  *|;
+
+  number_entity_h := |*
+    [0-9a-fA-F]{1,6} [^0-9a-fA-F] => {
+      bool is_hex = true;
+      std::string entity_value(ts, te - ts);
+      HTML_ENTITY_DECODE_LOG(std::format("Decoded hexadecimal numeric entity: {}", entity_value));
+      emitNumericEntity(result, entity_value, is_hex);
+      if(fc != ';') {
+        fhold;
+      }
+      fgoto main;
+    };
+    [0-9a-fA-F]{1,6} => {
+      if( te == eof ) {
+        bool is_hex = true;
+        std::string entity_value(ts, te - ts);
+        HTML_ENTITY_DECODE_LOG(std::format("Decoded hexadecimal numeric entity at eof: {}", entity_value));
+        emitNumericEntity(result, entity_value, is_hex);
+      } else {
+        result += "&#";
+        result += hex_prefix;
+        result.append(skip_prefix_zero_h_count, '0');
+        result.append(ts, te - ts);
+        HTML_ENTITY_DECODE_LOG(std::format("Appending hexadecimal numeric entity: &#{}0({}){}", hex_prefix, skip_prefix_zero_h_count, std::string_view(ts, te - ts)));
+      }
+      fgoto main;
+    };
+    any => {
+      HTML_ENTITY_DECODE_LOG(std::format("Found non-hexadecimal character in hexadecimal numeric entity: {}", fc));
+      result += "&#";
+      result += hex_prefix;
+      result.append(skip_prefix_zero_h_count, '0');
+      p = ts;
+      fhold;
+      fgoto main;
+    };
   *|;
 }%%
   
@@ -233,10 +378,16 @@ static void emitNumericEntity(std::string& result, const std::string& entity_val
   }
 }
 
+struct HtmlEntityDecodeExtraState {
+  size_t skip_prefix_zero_d_count_{0};
+  size_t skip_prefix_zero_h_count_{0};
+  char hex_prefix_{'x'};
+};
+
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
 htmlEntityDecodeNewStream() {
-  return std::make_unique<Wge::Transformation::StreamState>();
+  return Wge::Transformation::newStreamWithExtraState<HtmlEntityDecodeExtraState>();
 }
 
 static Wge::Transformation::StreamResult
@@ -265,6 +416,12 @@ htmlEntityDecodeStream(std::string_view input, std::string& result,
   const char* eof = end_stream ? pe : nullptr;
   const char *ts, *te;
   int cs, act;
+
+  HtmlEntityDecodeExtraState* extra_state =
+      reinterpret_cast<HtmlEntityDecodeExtraState*>(state.extra_state_buffer_.data());
+  size_t& skip_prefix_zero_d_count = extra_state->skip_prefix_zero_d_count_;
+  size_t& skip_prefix_zero_h_count = extra_state->skip_prefix_zero_h_count_;
+  char& hex_prefix = extra_state->hex_prefix_;
 
   // clang-format off
   %% write init;

@@ -215,35 +215,31 @@ static bool normalizePath(std::string_view input, std::string& result) {
   main := |*
     SLASH+ DOT+ [^./] => {
       result += "/.";
-      state.buffer_.clear();
       fhold;
     };
     SLASH+ DOT DOT {
-      if (result.empty() && *is_invoked_remove_last_dir == false) {
+      if (result.empty() && is_invoked_remove_last_dir == false) {
         result += SLASH;
       } else {
         removeLastDir(result);
-        *is_invoked_remove_last_dir = true;
+        is_invoked_remove_last_dir = true;
       }
-      state.buffer_.clear();
     };
     SLASH+ DOT => {
-      if(result.empty() && *is_invoked_remove_last_dir == false) {
+      if(result.empty() && is_invoked_remove_last_dir == false) {
         result += SLASH;
       }
-      state.buffer_.clear();
     };
     SLASH+ => {
       // Ensure that after removing the last directory, if the input is not start
       // with a slash then the result is not start with a slash too
-      if(result.empty() && *is_invoked_remove_last_dir == false) {
+      if(result.empty() && is_invoked_remove_last_dir == false) {
         result += SLASH;
       } else {
         if(!result.empty() && result.back() != SLASH) {
           result += SLASH;
         }
       }
-      state.buffer_.clear();
     };
     DOT SLASH+ => {
       if(!result.empty()) {
@@ -252,17 +248,14 @@ static bool normalizePath(std::string_view input, std::string& result) {
     };
     DOT DOT => {
       result += "..";
-      state.buffer_.clear();
     };
     DOT [^.] => {
       result += ".";
       result += fc;
-      state.buffer_.clear();
     };
     DOT => {};
     any => {
       result += fc;
-      state.buffer_.clear();
     };
   *|;
 }%%
@@ -270,14 +263,14 @@ static bool normalizePath(std::string_view input, std::string& result) {
 %% write data;
 // clang-format on
 
+struct NormalizePathExtraState {
+  bool is_invoked_remove_last_dir_{false};
+};
+
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
 normalizePathNewStream() {
-  auto state = std::make_unique<Wge::Transformation::StreamState>();
-  state->extra_state_buffer_.resize(sizeof(bool));
-  bool* is_invoked_remove_last_dir = reinterpret_cast<bool*>(state->extra_state_buffer_.data());
-  *is_invoked_remove_last_dir = false;
-  return state;
+  return Wge::Transformation::newStreamWithExtraState<NormalizePathExtraState>();
 }
 
 static Wge::Transformation::StreamResult
@@ -307,7 +300,8 @@ normalizePathStream(std::string_view input, std::string& result,
   const char *ts, *te;
   int cs, act;
 
-  bool* is_invoked_remove_last_dir = reinterpret_cast<bool*>(state.extra_state_buffer_.data());
+  auto* extra_state = reinterpret_cast<NormalizePathExtraState*>(state.extra_state_buffer_.data());
+  bool& is_invoked_remove_last_dir = extra_state->is_invoked_remove_last_dir_;
 
   // clang-format off
   %% write init;

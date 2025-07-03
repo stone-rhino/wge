@@ -90,7 +90,7 @@ static bool removeCommentsChar(std::string_view input, std::string& result) {
 %%{
   machine remove_comments_char_stream;
 
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   main := |*
     '--' => skip;
@@ -98,7 +98,7 @@ static bool removeCommentsChar(std::string_view input, std::string& result) {
     '/*' => skip;
     '*/' => skip;
     '<!--' => skip;
-    any => { result += fc; state.buffer_.clear(); };
+    any => { result += fc; };
   *|;
 }%%
 

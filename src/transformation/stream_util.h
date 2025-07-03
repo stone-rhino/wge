@@ -22,6 +22,7 @@
 
 #include <bitset>
 #include <functional>
+#include <memory>
 #include <optional>
 
 namespace Wge {
@@ -112,6 +113,10 @@ inline StreamResult saveStreamState(StreamState& state, int cs, int act, const c
     if (ts) {
       if (state.buffer_.empty()) {
         state.buffer_.append(ts, pe);
+      } else {
+        if (ts != state.ts_offset_.value_or(0) + ps) {
+          state.buffer_ = state.buffer_.substr(ts - ps);
+        }
       }
 
       // If ts is greater than ps, it means that the last pattern was matched complete,
@@ -124,9 +129,30 @@ inline StreamResult saveStreamState(StreamState& state, int cs, int act, const c
       if (te) {
         state.te_offset_ = te - ps;
       }
+    } else {
+      // If ts is null, it means that ragel is not in the middle of processing a pattern,
+      // we can clear the buffer.
+      state.buffer_.clear();
     }
     return StreamResult::NEED_MORE_DATA;
   }
+}
+
+template <class T>
+inline std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStreamWithExtraState() {
+  auto state = std::unique_ptr<Wge::Transformation::StreamState,
+                               std::function<void(Wge::Transformation::StreamState*)>>(
+      new Wge::Transformation::StreamState(), [](Wge::Transformation::StreamState* state) {
+        T* extra_state = reinterpret_cast<T*>(state->extra_state_buffer_.data());
+        extra_state->~T();
+        delete state;
+      });
+
+  state->extra_state_buffer_.resize(sizeof(T));
+  T* extra_state = reinterpret_cast<T*>(state->extra_state_buffer_.data());
+  new (extra_state) T();
+
+  return state;
 }
 } // namespace Transformation
 } // namespace Wge

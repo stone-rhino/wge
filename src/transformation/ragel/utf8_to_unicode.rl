@@ -124,11 +124,10 @@ static bool utf8ToUnicode(std::string_view input, std::string& result) {
 %%{
   machine utf8_to_unicode_stream;
   
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   action append_ascii {
     result += fc;
-    state.buffer_.clear();
   }
 
   action append_two_byte {
@@ -138,7 +137,6 @@ static bool utf8ToUnicode(std::string_view input, std::string& result) {
     result += table[(unicode >> 8) & 0x0F];
     result += table[(unicode >> 4) & 0x0F];
     result += table[unicode & 0x0F];
-    state.buffer_.clear();
   }
 
   action append_three_byte {
@@ -148,7 +146,6 @@ static bool utf8ToUnicode(std::string_view input, std::string& result) {
     result += table[(unicode >> 8) & 0x0F];
     result += table[(unicode >> 4) & 0x0F];
     result += table[unicode & 0x0F];
-    state.buffer_.clear();
   }
 
   action append_four_byte {
@@ -158,7 +155,6 @@ static bool utf8ToUnicode(std::string_view input, std::string& result) {
     result += table[(unicode >> 8) & 0x0F];
     result += table[(unicode >> 4) & 0x0F];
     result += table[unicode & 0x0F];
-    state.buffer_.clear();
   }
 
   main := |*

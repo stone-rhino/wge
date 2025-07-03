@@ -116,30 +116,28 @@ static bool base64Decode(std::string_view input, std::string& result) {
   action skip {}
 
   action decode_char {
-    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
-    extra->buffer_ = (extra->buffer_ << 6) | base64_table[fc];
-    extra->count_++;
-    if (extra->count_ == 4) {
+    extra_state->buffer_ = (extra_state->buffer_ << 6) | base64_table[fc];
+    extra_state->count_++;
+    if (extra_state->count_ == 4) {
       result.reserve(result.size() + 3);
-      result += (extra->buffer_ >> 16) & 0xFF;
-      result += (extra->buffer_ >> 8) & 0xFF;
-      result += extra->buffer_ & 0xFF;
-      extra->buffer_ = 0;
-      extra->count_ = 0;
+      result += (extra_state->buffer_ >> 16) & 0xFF;
+      result += (extra_state->buffer_ >> 8) & 0xFF;
+      result += extra_state->buffer_ & 0xFF;
+      extra_state->buffer_ = 0;
+      extra_state->count_ = 0;
     }
   }
 
   action stream_complete {
     // Process remaining bytes
-    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
-    if (extra->count_ == 2) {
-      result += (extra->buffer_ >> 4) & 0xFF;
-    } else if (extra->count_ == 3) {
-      result += (extra->buffer_ >> 10) & 0xFF;
-      result += (extra->buffer_ >> 2) & 0xFF;
+    if (extra_state->count_ == 2) {
+      result += (extra_state->buffer_ >> 4) & 0xFF;
+    } else if (extra_state->count_ == 3) {
+      result += (extra_state->buffer_ >> 10) & 0xFF;
+      result += (extra_state->buffer_ >> 2) & 0xFF;
     }
-    extra->buffer_ = 0;
-    extra->count_ = 0;
+    extra_state->buffer_ = 0;
+    extra_state->count_ = 0;
     state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
     fbreak;
   }
@@ -154,20 +152,15 @@ static bool base64Decode(std::string_view input, std::string& result) {
 %% write data;
 // clang-format on
 
-struct Base64DecodeBuffer {
-  unsigned int buffer_;
-  int count_;
+struct Base64DecodeExtraState {
+  unsigned int buffer_{0};
+  int count_{0};
 };
 
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
 base64DecodeNewStream() {
-  auto state = std::make_unique<Wge::Transformation::StreamState>();
-  state->extra_state_buffer_.resize(sizeof(Base64DecodeBuffer));
-  auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state->extra_state_buffer_.data());
-  extra->buffer_ = 0;
-  extra->count_ = 0;
-  return std::move(state);
+  return Wge::Transformation::newStreamWithExtraState<Base64DecodeExtraState>();
 }
 
 static Wge::Transformation::StreamResult base64DecodeStream(std::string_view input,
@@ -198,6 +191,8 @@ static Wge::Transformation::StreamResult base64DecodeStream(std::string_view inp
   const char *ts, *te;
   int cs, act;
 
+  auto* extra_state = reinterpret_cast<Base64DecodeExtraState*>(state.extra_state_buffer_.data());
+
   // clang-format off
   %% write init;
 
@@ -217,13 +212,11 @@ static Wge::Transformation::StreamResult base64DecodeStream(std::string_view inp
   // clang-format on
 
   if (end_stream) {
-    // Process remaining bytes
-    auto* extra = reinterpret_cast<Base64DecodeBuffer*>(state.extra_state_buffer_.data());
-    if (extra->count_ == 2) {
-      result += (extra->buffer_ >> 4) & 0xFF;
-    } else if (extra->count_ == 3) {
-      result += (extra->buffer_ >> 10) & 0xFF;
-      result += (extra->buffer_ >> 2) & 0xFF;
+    if (extra_state->count_ == 2) {
+      result += (extra_state->buffer_ >> 4) & 0xFF;
+    } else if (extra_state->count_ == 3) {
+      result += (extra_state->buffer_ >> 10) & 0xFF;
+      result += (extra_state->buffer_ >> 2) & 0xFF;
     }
     state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
     return StreamResult::SUCCESS;

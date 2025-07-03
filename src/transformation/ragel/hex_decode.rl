@@ -139,12 +139,13 @@ static bool hexDecode(std::string_view input, std::string& result) {
 %% write data;
 //clang-format on
 
+struct HexDecodeExtraState {
+  // Count of processed hex characters
+  int count_{0};
+};
+
 static std::unique_ptr<Wge::Transformation::StreamState, std::function<void(Wge::Transformation::StreamState*)>> hexDecodeNewStream() {
-  auto state = std::make_unique<Wge::Transformation::StreamState>();
-  state->extra_state_buffer_.resize(sizeof(int));
-  int* count = reinterpret_cast<int*>(state->extra_state_buffer_.data());
-  *count = 0;
-  return std::move(state);
+  return Wge::Transformation::newStreamWithExtraState<HexDecodeExtraState>();
 }
 
 static Wge::Transformation::StreamResult
@@ -174,7 +175,8 @@ hexDecodeStream(std::string_view input, std::string& result,
   const char *ts, *te;
   int cs, act;
 
-  int& count = *reinterpret_cast<int*>(state.extra_state_buffer_.data());
+  auto* extra_state = reinterpret_cast<HexDecodeExtraState*>(state.extra_state_buffer_.data());
+  int& count = extra_state->count_;
 
   // clang-format off
   %% write init;

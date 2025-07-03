@@ -88,15 +88,15 @@ static bool replaceComments(std::string_view input, std::string& result) {
 %%{
   machine replace_comments_stream;
 
-  action skip { state.buffer_.clear(); }
+  action skip {}
 
   main := |*
-    '/*' => { result += ' ';  state.buffer_.clear(); fgoto replace; };
-    any => { result += fc; state.buffer_.clear(); };
+    '/*' => { result += ' '; fgoto replace; };
+    any => { result += fc; };
   *|;
 
   replace := |*
-    '*/' => { state.buffer_.clear(); fgoto main; };
+    '*/' => { fgoto main; };
     any => skip;
   *|;
 }%%

@@ -202,8 +202,6 @@ static bool urlDecodeUni(std::string_view input, std::string& result) {
     if(hexDecode({ts + 1, 2},decode) && !decode.empty()){
       result += decode.front();
     }
-
-    state.buffer_.clear();
   }
 
   action decode_unicode {
@@ -235,17 +233,15 @@ static bool urlDecodeUni(std::string_view input, std::string& result) {
 
       result += static_cast<char>(value);
     }
-
-    state.buffer_.clear();
   }
 
   HEX = [0-9a-fA-F];
 
   main := |*
-    '+' => {  result += ' ';  state.buffer_.clear(); };
+    '+' => {  result += ' '; };
     '%' HEX HEX => decode_hex;
     '%' [uU] HEX HEX HEX HEX => decode_unicode;
-    any => { result += fc; state.buffer_.clear(); };
+    any => { result += fc; };
   *|;
 }%%
 

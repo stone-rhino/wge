@@ -108,31 +108,20 @@ static bool normalizePathWin(std::string_view input, std::string& result2) {
 %% write data;
 // clang-format on
 
+struct NormalizePathWinExtraState {
+  std::unique_ptr<Wge::Transformation::StreamState,
+                  std::function<void(Wge::Transformation::StreamState*)>>
+      normalize_path_state_;
+};
+
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
 normalizePathWinNewStream() {
-  auto state = std::unique_ptr<Wge::Transformation::StreamState,
-                               std::function<void(Wge::Transformation::StreamState*)>>(
-      new Wge::Transformation::StreamState(), [](Wge::Transformation::StreamState* state) {
-        std::unique_ptr<Wge::Transformation::StreamState,
-                        std::function<void(Wge::Transformation::StreamState*)>>*
-            second_stream_state = reinterpret_cast<
-                std::unique_ptr<Wge::Transformation::StreamState,
-                                std::function<void(Wge::Transformation::StreamState*)>>*>(
-                state->extra_state_buffer_.data());
-        second_stream_state->~unique_ptr();
-        delete state;
-      });
+  auto state = Wge::Transformation::newStreamWithExtraState<NormalizePathWinExtraState>();
+  NormalizePathWinExtraState* extra_state =
+      reinterpret_cast<NormalizePathWinExtraState*>(state->extra_state_buffer_.data());
+  extra_state->normalize_path_state_ = normalizePathNewStream();
 
-  state->extra_state_buffer_.resize(
-      sizeof(std::unique_ptr<Wge::Transformation::StreamState,
-                             std::function<void(Wge::Transformation::StreamState*)>>));
-  std::unique_ptr<Wge::Transformation::StreamState,
-                  std::function<void(Wge::Transformation::StreamState*)>>* second_stream_state =
-      reinterpret_cast<std::unique_ptr<Wge::Transformation::StreamState,
-                                       std::function<void(Wge::Transformation::StreamState*)>>*>(
-          state->extra_state_buffer_.data());
-  *second_stream_state = normalizePathNewStream();
   return state;
 }
 

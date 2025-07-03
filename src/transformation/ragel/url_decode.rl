@@ -112,8 +112,6 @@ static bool urlDecode(std::string_view input, std::string& result, bool decode_p
     if(hexDecode({ts + 1, 2},decode) && !decode.empty()){
       result += decode.front();
     }
-
-    state.buffer_.clear();
   }
 
   action decode_plus {
@@ -122,8 +120,6 @@ static bool urlDecode(std::string_view input, std::string& result, bool decode_p
     } else {
       result += fc;
     }
-
-    state.buffer_.clear();
   }
 
   HEX = [0-9a-fA-F];
@@ -131,7 +127,7 @@ static bool urlDecode(std::string_view input, std::string& result, bool decode_p
   main := |*
     '+' => decode_plus;
     '%' HEX HEX => decode_hex;
-    any => {  result += fc; state.buffer_.clear(); };
+    any => {  result += fc; };
   *|;
 }%%
 

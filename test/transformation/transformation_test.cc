@@ -194,7 +194,9 @@ TEST_F(TransformationTest, htmlEntityDecode) {
   const std::vector<TestCase> test_cases = {
     {false, "This is a test data", "This is a test data"},
     {true,"&#x54;&#x68;&#x69;&#x73;&#x20;&#x69;&#x73;&#x20;&#x61;&#x20;&#x74;&#x65;&#x73;&#x74;", "This is a test"},
+    {true,"&#x000000000054;&#x000068;&#x69;&#x73;&#x20;&#x69;&#x73;&#x20;&#x61;&#x20;&#x74;&#x65;&#x73;&#x74;", "This is a test"},
     {true,"&#84;&#104;&#105;&#115;&#32;&#105;&#115;&#32;&#97;&#32;&#116;&#101;&#115;&#116;", "This is a test"},
+    {true,"&#000000000084;&#0000104;&#105;&#115;&#32;&#105;&#115;&#32;&#97;&#32;&#116;&#101;&#115;&#116;", "This is a test"},
     {true,"&#x54;his is a test", "This is a test"},
     {true,"&#84;his is a test", "This is a test"},
     {true,"&#x54;his is a test", "This is a test"},
@@ -205,7 +207,8 @@ TEST_F(TransformationTest, htmlEntityDecode) {
     // Test for not valid html entity
     {true,"&amp; &lt; &gt; &quot; &apos; &nbsp; &notValid;","& < > \" '   &notValid;"},
     // Test for not valid html entity with invalid number
-    {true,"&#23234234234234;&#x6a","&#23234234234234;j"}
+    {true,"&#23234234234234;&#x6a","&#23234234234234;j"},
+    {true,"&#000000000023234234234234;&#x6a","&#000000000023234234234234;j"}
   };
   // clang-format on
 
