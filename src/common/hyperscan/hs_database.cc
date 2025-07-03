@@ -56,24 +56,26 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool liter
                        bool som_leftmost, bool prefilter, bool support_stream,
                        const char* serialize_dir)
     : db_(literal) {
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
-  if (case_less) {
-    flag |= HS_FLAG_CASELESS;
-  }
-  if (som_leftmost) {
-    flag |= HS_FLAG_SOM_LEFTMOST;
-  }
-  if (!literal) {
-    flag |= HS_FLAG_DOTALL;
-    flag |= HS_FLAG_MULTILINE;
-  }
-  size_t i = 0;
-  for (; i < patterns.size() - 1; ++i) {
-    db_.expressions_.add({std::string(patterns[i]), flag, i}, prefilter, false);
-  }
-  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, i}, prefilter, true);
+  if (!patterns.empty()) {
+    unsigned int flag = HS_FLAG_SINGLEMATCH;
+    if (case_less) {
+      flag |= HS_FLAG_CASELESS;
+    }
+    if (som_leftmost) {
+      flag |= HS_FLAG_SOM_LEFTMOST;
+    }
+    if (!literal) {
+      flag |= HS_FLAG_DOTALL;
+      flag |= HS_FLAG_MULTILINE;
+    }
+    size_t i = 0;
+    for (; i < patterns.size() - 1; ++i) {
+      db_.expressions_.add({std::string(patterns[i]), flag, i}, prefilter, false);
+    }
+    db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, i}, prefilter, true);
 
-  loadOrCompile(serialize_dir, support_stream);
+    loadOrCompile(serialize_dir, support_stream);
+  }
 }
 
 HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
@@ -81,26 +83,29 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
                        bool som_leftmost, bool prefilter, bool support_stream,
                        const char* serialize_dir)
     : db_(literal) {
-  assert(patterns.size() == ids.size());
+  if (!patterns.empty()) {
+    assert(patterns.size() == ids.size());
 
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
-  if (case_less) {
-    flag |= HS_FLAG_CASELESS;
-  }
-  if (som_leftmost) {
-    flag |= HS_FLAG_SOM_LEFTMOST;
-  }
-  if (!literal) {
-    flag |= HS_FLAG_DOTALL;
-    flag |= HS_FLAG_MULTILINE;
-  }
-  size_t i = 0;
-  for (; i < patterns.size() - 1; ++i) {
-    db_.expressions_.add({std::string(patterns[i]), flag, ids[i]}, prefilter, false);
-  }
-  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, ids[i]}, prefilter, true);
+    unsigned int flag = HS_FLAG_SINGLEMATCH;
+    if (case_less) {
+      flag |= HS_FLAG_CASELESS;
+    }
+    if (som_leftmost) {
+      flag |= HS_FLAG_SOM_LEFTMOST;
+    }
+    if (!literal) {
+      flag |= HS_FLAG_DOTALL;
+      flag |= HS_FLAG_MULTILINE;
+    }
+    size_t i = 0;
+    for (; i < patterns.size() - 1; ++i) {
+      db_.expressions_.add({std::string(patterns[i]), flag, ids[i]}, prefilter, false);
+    }
+    db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, ids[i]}, prefilter,
+                         true);
 
-  loadOrCompile(serialize_dir, support_stream);
+    loadOrCompile(serialize_dir, support_stream);
+  }
 }
 
 HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool case_less, bool som_leftmost,
