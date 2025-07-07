@@ -677,7 +677,7 @@ std::any Visitor::visitVariable_request_uri_raw(
 
 std::any
 Visitor::visitVariable_response_body(Antlr4Gen::SecLangParser::Variable_response_bodyContext* ctx) {
-  return appendVariable<Variable::RequestBody>(ctx);
+  return appendVariable<Variable::ResponseBody>(ctx);
 };
 
 std::any Visitor::visitVariable_response_content_length(
