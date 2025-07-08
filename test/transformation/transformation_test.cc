@@ -18,11 +18,28 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include <filesystem>
+
 #include <gtest/gtest.h>
 
 #include "transformation/transform_include.h"
 
 #include "../../src/common/duration.h"
+
+#define NORM(x) std::filesystem::path(x).lexically_normal().string()
+
+#define LINUX2WIN(x)                                                                               \
+  ([]() {                                                                                          \
+    std::string s = x;                                                                             \
+    std::replace(s.begin(), s.end(), '/', '\\');                                                   \
+    return s;                                                                                      \
+  }())
+
+#define CASE_LINUX(ret, input)                                                                     \
+  { ret, input, NORM(input) }
+
+#define CASE_WIN(ret, input)                                                                       \
+  { ret, LINUX2WIN(input), NORM(input) }
 
 namespace Wge {
 namespace Test {
@@ -37,13 +54,23 @@ struct TestCase {
 
 template <class T> void evaluate(const std::vector<TestCase>& test_cases) {
   const T transform;
-  for (const auto& test_case : test_cases) {
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const auto& test_case = test_cases[i];
     std::string result;
     bool ret = transform.evaluate(test_case.input_, result);
+    if (ret != test_case.result) {
+      std::cout << "Test case index: " << i << std::endl;
+    }
     EXPECT_EQ(ret, test_case.result);
     if (ret) {
+      if (result != test_case.output_) {
+        std::cout << "Test case index: " << i << std::endl;
+      }
       EXPECT_EQ(result, test_case.output_);
     } else {
+      if (!result.empty()) {
+        std::cout << "Test case index: " << i << std::endl;
+      }
       EXPECT_TRUE(result.empty());
     }
   }
@@ -51,19 +78,23 @@ template <class T> void evaluate(const std::vector<TestCase>& test_cases) {
 
 template <class T> void evaluateStream(const std::vector<TestCase>& test_cases, size_t step) {
   const T transform;
-  for (const auto& test_case : test_cases) {
+  for (size_t i = 0; i < test_cases.size(); ++i) {
+    const auto& test_case = test_cases[i];
     auto state = transform.newStream();
     Common::EvaluateResults::Element output;
-    for (size_t i = 0; i < test_case.input_.size();) {
-      size_t input_step = std::min(step, test_case.input_.size() - i);
+    for (size_t j = 0; j < test_case.input_.size();) {
+      size_t input_step = std::min(step, test_case.input_.size() - j);
       Common::EvaluateResults::Element input;
-      input.variant_ = std::string_view(&test_case.input_[i], input_step);
+      input.variant_ = std::string_view(&test_case.input_[j], input_step);
       auto stream_result = transform.evaluateStream(input, output, *state,
-                                                    i + input_step >= test_case.input_.size());
+                                                    j + input_step >= test_case.input_.size());
       EXPECT_NE(stream_result, Wge::Transformation::StreamResult::INVALID_INPUT);
-      i += input_step;
+      j += input_step;
     }
     ASSERT_FALSE(IS_EMPTY_VARIANT(output.variant_));
+    if (std::get<std::string_view>(output.variant_) != test_case.output_) {
+      std::cout << "Test case index: " << i << std::endl;
+    }
     EXPECT_EQ(std::get<std::string_view>(output.variant_), test_case.output_);
   }
 }
@@ -254,195 +285,130 @@ TEST_F(TransformationTest, md5) {
 }
 
 TEST_F(TransformationTest, normalisePathWin) {
-  const Wge::Transformation::NormalisePathWin normalise_path_win;
-
-  // clang-format off
+#define CASE CASE_WIN
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", "This is a test"},
-    {true, R"(\path\to\file)", "/path/to/file"},
-    {true,".",""},
-    {true, "..",".."},
-    {true,".\\",""},
-    {true,".\\..", ".."},
-    {true,".\\..\\", "../"},
-    {true,"..", ".."},
-    {true,"..\\", "../"},
-    {true,"..\\.", ".."},
-    {true,"..\\.\\", "../"},
-    {true,"..\\..", "../.."},
-    {true,"..\\..\\", "../../"},
-    {true,".atom\\",".atom/"},
-    {true,"dir\\.atom.\\","dir/.atom./"},
-    {true,"dir.atom\\","dir.atom/"},
-    {true,"\\dir\\foo\\\\bar", "/dir/foo/bar"},
-    {true,"dir\\foo\\\\bar\\", "dir/foo/bar/"},
-    {true,"dir\\..\\", ""},
-    {true,"dir\\..", ""},
-    {true,"dir\\..\\foo", "foo"},
-    {true,"dir\\..\\..\\foo", "../foo"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\.", "../../foo/bar"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\.\\", "../../foo/bar/"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\..", "../../foo"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\..\\", "../../foo/"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\", "../../foo/bar/"},
-    {true,"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar", "../../foo/bar"},
-    {true,"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar\\\\", "../../foo/bar/"},
-    {true,"dir\\subdir\\subsubdir\\subsubsubdir\\..\\..\\..", "dir"},
-    {true,"dir\\.\\subdir\\.\\subsubdir\\.\\subsubsubdir\\..\\..\\..", "dir"},
-    {true,"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
-    {true,"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
-    {true,"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
-    {true,"\\..\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
-    {true,"\\etc\\..","/"},
-    {true, "\\..", "/"},
+      CASE(false, "This is a test"),                                       // 0
+      CASE(true, "/path/to/file"),                                         // 1
+      CASE(false, "."),                                                    // 2
+      CASE(true, "./"),                                                    // 3
+      CASE(true, "./.."),                                                  // 4
+      CASE(true, "./../"),                                                 // 5
+      CASE(false, ".."),                                                   // 6
+      CASE(true, "../"),                                                   // 7
+      CASE(true, "../."),                                                  // 8
+      CASE(true, ".././"),                                                 // 9
+      CASE(true, "../.."),                                                 // 10
+      CASE(true, "../../"),                                                // 11
+      CASE(true, ".atom/"),                                                // 12
+      CASE(true, "./dir/.atom."),                                          // 13
+      CASE(true, "./dir/.atom./"),                                         // 14
+      CASE(true, "../dir/.atom."),                                         // 15
+      CASE(true, "./dir/.atom../"),                                        // 16
+      CASE(true, "../dir/.atom.."),                                        // 17
+      CASE(true, "../dir/.atom./"),                                        // 18
+      CASE(true, ".../dir/.atom."),                                        // 19
+      CASE(true, ".../dir/.atom./"),                                       // 20
+      CASE(true, "..../dir/.atom."),                                       // 21
+      CASE(true, "dir/.atom./"),                                           // 22
+      CASE(true, "dir.atom/"),                                             // 23
+      CASE(true, "/dir/foo//bar"),                                         // 24
+      CASE(true, "dir/foo//bar/"),                                         // 25
+      CASE(true, "dir/../"),                                               // 26
+      CASE(true, "dir/.."),                                                // 27
+      CASE(true, "dir/../foo"),                                            // 28
+      CASE(true, "dir/../../foo"),                                         // 29
+      CASE(true, "dir/./.././../../foo/bar"),                              // 30
+      CASE(true, "dir/./.././../../foo/bar/."),                            // 31
+      CASE(true, "dir/./.././../../foo/bar/./"),                           // 32
+      CASE(true, "dir/./.././../../foo/bar/.."),                           // 33
+      CASE(true, "dir/./.././../../foo/bar/../"),                          // 34
+      CASE(true, "dir/./.././../../foo/bar/"),                             // 35
+      CASE(true, "dir//.//..//.//..//..//foo//bar"),                       // 36
+      CASE(true, "dir//.//..//.//..//..//foo//bar//"),                     // 37
+      CASE(true, "dir/subdir/subsubdir/subsubsubdir/../../.."),            // 38
+      CASE(true, "dir/./subdir/./subsubdir/./subsubsubdir/../../.."),      // 39
+      CASE(true, "dir/./subdir/../subsubdir/../subsubsubdir/.."),          // 40
+      CASE(true, "/dir/./subdir/../subsubdir/../subsubsubdir/../"),        // 41
+      CASE(true, "/./.././../../../../../../../\\u0000/../etc/./passwd"),  // 42
+      CASE(true, "/../.././../../../../../../../\\u0000/../etc/./passwd"), // 43
+      CASE(true, "/etc/.."),                                               // 44
+      CASE(true, "/.."),                                                   // 45
+      CASE(true, "////////etc/////"),                                      // 46
+      CASE(true, "////....test"),                                          // 47
   };
-  // clang-format on
+#undef CASE
 
   evaluate<Wge::Transformation::NormalisePathWin>(test_cases);
   evaluateStream<Wge::Transformation::NormalisePathWin>(test_cases);
-}
 
-TEST_F(TransformationTest, normalisePath) {
-  // clang-format off
-  const std::vector<TestCase> test_cases = {
-    {false, "This is a test", "This is a test"},
-    {false, R"(/path/to/file)", "/path/to/file"},
-    {true,".",""},
-    {true, "..",".."},
-    {true,"./",""},
-    {true,"./..", ".."},
-    {true,"./../", "../"},
-    {true,"..", ".."},
-    {true,"../", "../"},
-    {true,"../.", ".."},
-    {true,".././", "../"},
-    {true,"../..", "../.."},
-    {true,"../../", "../../"},
-    {false,".atom/",".atom/"},
-    {false,"dir/.atom./","dir/.atom./"},
-    {false,"dir.atom/","dir.atom/"},
-    {true,"/dir/foo//bar", "/dir/foo/bar"},
-    {true,"dir/foo//bar/", "dir/foo/bar/"},
-    {true,"dir/../", ""},
-    {true,"dir/..", ""},
-    {true,"dir/../foo", "foo"},
-    {true,"dir/../../foo", "../foo"},
-    {true,"dir/./.././../../foo/bar", "../../foo/bar"},
-    {true,"dir/./.././../../foo/bar/.", "../../foo/bar"},
-    {true,"dir/./.././../../foo/bar/./", "../../foo/bar/"},
-    {true,"dir/./.././../../foo/bar/..", "../../foo"},
-    {true,"dir/./.././../../foo/bar/../", "../../foo/"},
-    {true,"dir/./.././../../foo/bar/", "../../foo/bar/"},
-    {true,"dir//.//..//.//..//..//foo//bar", "../../foo/bar"},
-    {true,"dir//.//..//.//..//..//foo//bar//", "../../foo/bar/"},
-    {true,"dir/subdir/subsubdir/subsubsubdir/../../..", "dir"},
-    {true,"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
-    {true,"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
-    {true,"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
-    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
-    {true,"/../.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
-    {true,"/etc/..","/"},
-    {true, "/..", "/"},
-  };
-  // clang-format on
-
-  evaluate<Wge::Transformation::NormalisePath>(test_cases);
-  evaluateStream<Wge::Transformation::NormalisePath>(test_cases);
-}
-
-TEST_F(TransformationTest, normalizePathWin) {
-  // clang-format off
-  const std::vector<TestCase> test_cases = {
-    {false, "This is a test", "This is a test"},
-    {true, R"(\path\to\file)", "/path/to/file"},
-    {true,".",""},
-    {true, "..",".."},
-    {true,".\\",""},
-    {true,".\\..", ".."},
-    {true,".\\..\\", "../"},
-    {true,"..", ".."},
-    {true,"..\\", "../"},
-    {true,"..\\.", ".."},
-    {true,"..\\.\\", "../"},
-    {true,"..\\..", "../.."},
-    {true,"..\\..\\", "../../"},
-    {true,".atom\\",".atom/"},
-    {true,"dir\\.atom.\\","dir/.atom./"},
-    {true,"dir.atom\\","dir.atom/"},
-    {true,"\\dir\\foo\\\\bar", "/dir/foo/bar"},
-    {true,"dir\\foo\\\\bar\\", "dir/foo/bar/"},
-    {true,"dir\\..\\", ""},
-    {true,"dir\\..", ""},
-    {true,"dir\\..\\foo", "foo"},
-    {true,"dir\\..\\..\\foo", "../foo"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar", "../../foo/bar"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\.", "../../foo/bar"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\.\\", "../../foo/bar/"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\..", "../../foo"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\..\\", "../../foo/"},
-    {true,"dir\\.\\..\\.\\..\\..\\foo\\bar\\", "../../foo/bar/"},
-    {true,"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar", "../../foo/bar"},
-    {true,"dir\\\\.\\\\..\\\\.\\\\..\\\\..\\\\foo\\\\bar\\\\", "../../foo/bar/"},
-    {true,"dir\\subdir\\subsubdir\\subsubsubdir\\..\\..\\..", "dir"},
-    {true,"dir\\.\\subdir\\.\\subsubdir\\.\\subsubsubdir\\..\\..\\..", "dir"},
-    {true,"dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..", "dir"},
-    {true,"\\dir\\.\\subdir\\..\\subsubdir\\..\\subsubsubdir\\..\\", "/dir/"},
-    {true,"\\.\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
-    {true,"\\..\\..\\.\\..\\..\\..\\..\\..\\..\\..\\\\u0000\\..\\etc\\.\\passwd", "/etc/passwd"},
-    {true,"\\etc\\..","/"},
-    {true, "\\..", "/"},
-  };
-  // clang-format on
-
+  // Test NormalizePathWin
   evaluate<Wge::Transformation::NormalizePathWin>(test_cases);
   evaluateStream<Wge::Transformation::NormalizePathWin>(test_cases);
 }
 
-TEST_F(TransformationTest, normalizePath) {
-  // clang-format off
+TEST_F(TransformationTest, normalisePath) {
+#define CASE CASE_LINUX
   const std::vector<TestCase> test_cases = {
-    {false, "This is a test", "This is a test"},
-    {false, R"(/path/to/file)", "/path/to/file"},
-    {true,".",""},
-    {true, "..",".."},
-    {true,"./",""},
-    {true,"./..", ".."},
-    {true,"./../", "../"},
-    {true,"..", ".."},
-    {true,"../", "../"},
-    {true,"../.", ".."},
-    {true,".././", "../"},
-    {true,"../..", "../.."},
-    {true,"../../", "../../"},
-    {false,".atom/",".atom/"},
-    {false,"dir/.atom./","dir/.atom./"},
-    {false,"dir.atom/","dir.atom/"},
-    {true,"/dir/foo//bar", "/dir/foo/bar"},
-    {true,"dir/foo//bar/", "dir/foo/bar/"},
-    {true,"dir/../", ""},
-    {true,"dir/..", ""},
-    {true,"dir/../foo", "foo"},
-    {true,"dir/../../foo", "../foo"},
-    {true,"dir/./.././../../foo/bar", "../../foo/bar"},
-    {true,"dir/./.././../../foo/bar/.", "../../foo/bar"},
-    {true,"dir/./.././../../foo/bar/./", "../../foo/bar/"},
-    {true,"dir/./.././../../foo/bar/..", "../../foo"},
-    {true,"dir/./.././../../foo/bar/../", "../../foo/"},
-    {true,"dir/./.././../../foo/bar/", "../../foo/bar/"},
-    {true,"dir//.//..//.//..//..//foo//bar", "../../foo/bar"},
-    {true,"dir//.//..//.//..//..//foo//bar//", "../../foo/bar/"},
-    {true,"dir/subdir/subsubdir/subsubsubdir/../../..", "dir"},
-    {true,"dir/./subdir/./subsubdir/./subsubsubdir/../../..", "dir"},
-    {true,"dir/./subdir/../subsubdir/../subsubsubdir/..", "dir"},
-    {true,"/dir/./subdir/../subsubdir/../subsubsubdir/../", "/dir/"},
-    {true,"/./.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
-    {true,"/../.././../../../../../../../\\u0000/../etc/./passwd", "/etc/passwd"},
-    {true,"/etc/..","/"},
-    {true, "/..", "/"},
+      CASE(false, "This is a test"),                                       // 0
+      CASE(false, "/path/to/file"),                                        // 1
+      CASE(false, "."),                                                    // 2
+      CASE(true, "./"),                                                    // 3
+      CASE(true, "./.."),                                                  // 4
+      CASE(true, "./../"),                                                 // 5
+      CASE(false, ".."),                                                   // 6
+      CASE(true, "../"),                                                   // 7
+      CASE(true, "../."),                                                  // 8
+      CASE(true, ".././"),                                                 // 9
+      CASE(true, "../.."),                                                 // 10
+      CASE(true, "../../"),                                                // 11
+      CASE(false, ".atom/"),                                               // 12
+      CASE(true, "./dir/.atom."),                                          // 13
+      CASE(true, "./dir/.atom./"),                                         // 14
+      CASE(false, "../dir/.atom."),                                        // 15
+      CASE(true, "./dir/.atom../"),                                        // 16
+      CASE(false, "../dir/.atom.."),                                       // 17
+      CASE(false, "../dir/.atom./"),                                       // 18
+      CASE(false, ".../dir/.atom."),                                       // 19
+      CASE(false, ".../dir/.atom./"),                                      // 20
+      CASE(false, "..../dir/.atom."),                                      // 21
+      CASE(false, "dir/.atom./"),                                          // 22
+      CASE(false, "dir.atom/"),                                            // 23
+      CASE(true, "/dir/foo//bar"),                                         // 24
+      CASE(true, "dir/foo//bar/"),                                         // 25
+      CASE(true, "dir/../"),                                               // 26
+      CASE(true, "dir/.."),                                                // 27
+      CASE(true, "dir/../foo"),                                            // 28
+      CASE(true, "dir/../../foo"),                                         // 29
+      CASE(true, "dir/./.././../../foo/bar"),                              // 30
+      CASE(true, "dir/./.././../../foo/bar/."),                            // 31
+      CASE(true, "dir/./.././../../foo/bar/./"),                           // 32
+      CASE(true, "dir/./.././../../foo/bar/.."),                           // 33
+      CASE(true, "dir/./.././../../foo/bar/../"),                          // 34
+      CASE(true, "dir/./.././../../foo/bar/"),                             // 35
+      CASE(true, "dir//.//..//.//..//..//foo//bar"),                       // 36
+      CASE(true, "dir//.//..//.//..//..//foo//bar//"),                     // 37
+      CASE(true, "dir/subdir/subsubdir/subsubsubdir/../../.."),            // 38
+      CASE(true, "dir/./subdir/./subsubdir/./subsubsubdir/../../.."),      // 39
+      CASE(true, "dir/./subdir/../subsubdir/../subsubsubdir/.."),          // 40
+      CASE(true, "/dir/./subdir/../subsubdir/../subsubsubdir/../"),        // 41
+      CASE(true, "/./.././../../../../../../../\\u0000/../etc/./passwd"),  // 42
+      CASE(true, "/../.././../../../../../../../\\u0000/../etc/./passwd"), // 43
+      CASE(true, "/etc/.."),                                               // 44
+      CASE(true, "/.."),                                                   // 45
+      CASE(true, "////////etc/////"),                                      // 46
+      CASE(true, "////....test"),                                          // 47
   };
-  // clang-format on
+#undef CASE
 
+  // for(const auto& test_case : test_cases) {
+  //   std::cout << test_case.input_ << std::endl;
+  //   std::cout << test_case.output_ << std::endl << std::endl;
+  // }
+
+  evaluate<Wge::Transformation::NormalisePath>(test_cases);
+  evaluateStream<Wge::Transformation::NormalisePath>(test_cases);
+
+  // Test NormalizePath
   evaluate<Wge::Transformation::NormalizePath>(test_cases);
   evaluateStream<Wge::Transformation::NormalizePath>(test_cases);
 }
