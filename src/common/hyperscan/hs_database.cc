@@ -24,6 +24,8 @@
 #include <fstream>
 #include <future>
 
+#include <boost/interprocess/sync/file_lock.hpp>
+
 #include "../assert.h"
 #include "../log.h"
 
@@ -31,6 +33,7 @@ namespace Wge {
 namespace Common {
 namespace Hyperscan {
 Scratch HsDataBase::main_scratch_;
+std::mutex HsDataBase::serialize_mutex_;
 
 HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool case_less, bool som_leftmost,
                        bool prefilter, bool support_stream, const char* serialize_dir)
@@ -212,7 +215,7 @@ bool HsDataBase::loadFromSerialize(const char* serialize_dir, bool support_strea
     WGE_LOG_INFO("Loading hyperscan database from {}", file);
     std::ifstream ifs(file, std::ios::binary);
     if (!ifs.is_open()) {
-      WGE_LOG_ERROR("Failed to open hyperscan database file: {}", file);
+      WGE_LOG_WARN("Failed to open hyperscan database file: {}", file);
       return false;
     }
     std::string file_content((std::istreambuf_iterator<char>(ifs)),
@@ -221,7 +224,7 @@ bool HsDataBase::loadFromSerialize(const char* serialize_dir, bool support_strea
     // Load db
     hs_error_t err = ::hs_deserialize_database(file_content.data(), file_content.size(), db);
     if (err != HS_SUCCESS) {
-      WGE_LOG_ERROR("Failed to load hyperscan database from {}", file);
+      WGE_LOG_WARN("Failed to load hyperscan database from {}", file);
       return false;
     }
 
@@ -251,7 +254,7 @@ void HsDataBase::serialize(const char* serialize_dir, bool support_stream) const
   auto save = [](const std::string& file, hs_database_t* db) {
     std::ofstream ofs(file, std::ios::binary | std::ios::trunc);
     if (!ofs.is_open()) {
-      WGE_LOG_ERROR("Failed to open hyperscan database file for writing: {}", file);
+      WGE_LOG_WARN("Failed to open hyperscan database file for writing: {}", file);
       return;
     }
 
@@ -260,7 +263,7 @@ void HsDataBase::serialize(const char* serialize_dir, bool support_stream) const
     size_t db_data_size = 0;
     hs_error_t err = ::hs_serialize_database(db, &db_data, &db_data_size);
     if (err != HS_SUCCESS) {
-      WGE_LOG_ERROR("Failed to serialize hyperscan database to {}", file);
+      WGE_LOG_WARN("Failed to serialize hyperscan database to {}", file);
       return;
     }
     ofs.write(db_data, db_data_size);
@@ -292,9 +295,27 @@ std::string HsDataBase::makeStreamSerializeFilePath(const char* serialize_dir) c
 
 void HsDataBase::loadOrCompile(const char* serialize_dir, bool support_stream) {
   bool load_from_serialize = false;
+
   if (serialize_dir) {
+    if (!std::filesystem::exists(serialize_dir)) {
+      std::filesystem::create_directories(serialize_dir);
+    }
+
+    // Lock the serialize directory to prevent concurrent access in other processes
+    const std::string flock_path = std::string(serialize_dir) + "/.serialize_lock";
+    WGE_LOG_INFO("Trying to load hyperscan database from {}", serialize_dir);
+    // Ensure the lock file exists
+    { std::ofstream ofs(flock_path, std::ios::app); }
+    boost::interprocess::file_lock flock(flock_path.c_str());
+    flock.lock();
+
+    // Lock the serialize mutex to prevent concurrent access in this process
+    std::lock_guard<std::mutex> locker(serialize_mutex_);
+
     expressions_sha1_ = db_.expressions_.sha1();
     load_from_serialize = loadFromSerialize(serialize_dir, support_stream);
+
+    flock.unlock();
   }
 
   if (!load_from_serialize) {
@@ -302,7 +323,20 @@ void HsDataBase::loadOrCompile(const char* serialize_dir, bool support_stream) {
 
     // Serialize the database if serialize_dir is specified
     if (serialize_dir) {
+      // Lock the serialize directory to prevent concurrent access in other processes
+      const std::string flock_path = std::string(serialize_dir) + "/.serialize_lock";
+      WGE_LOG_INFO("Trying to save hyperscan database to {}", serialize_dir);
+      // Ensure the lock file exists
+      { std::ofstream ofs(flock_path, std::ios::app); }
+      boost::interprocess::file_lock flock(flock_path.c_str());
+      flock.lock();
+
+      // Lock the serialize mutex to prevent concurrent access in this process
+      std::lock_guard<std::mutex> locker(serialize_mutex_);
+
       serialize(serialize_dir, support_stream);
+
+      flock.unlock();
     }
   }
 }

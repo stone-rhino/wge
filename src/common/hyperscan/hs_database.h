@@ -22,6 +22,7 @@
 
 #include <array>
 #include <fstream>
+#include <mutex>
 #include <string>
 
 #include <hs/hs.h>
@@ -141,11 +142,12 @@ private:
   std::string makeBlockSerializeFilePath(const char* serialize_dir) const;
   std::string makeStreamSerializeFilePath(const char* serialize_dir) const;
   void loadOrCompile(const char* serialize_dir, bool support_stream);
-  static Scratch main_scratch_;
 
 private:
   Database db_;
   std::string expressions_sha1_;
+  static Scratch main_scratch_;
+  static std::mutex serialize_mutex_;
 };
 } // namespace Hyperscan
 } // namespace Common
