@@ -33,15 +33,15 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (is_counter_) [[unlikely]] {
-      result.append(t.getResponseBody().empty() ? 0 : 1);
-      return;
-    }
+    if (is_counter_)
+      [[unlikely]] {
+        result.append(t.getResponseBody().empty() ? 0 : 1);
+        return;
+      }
 
     std::string_view body = t.getResponseBody();
-    if (!body.empty()) [[likely]] {
-      result.append(body);
-    }
+    if (!body.empty())
+      [[likely]] { result.append(body); }
   }
 };
 } // namespace Variable
