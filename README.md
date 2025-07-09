@@ -21,7 +21,7 @@ The benchmark results show that WGE is significantly faster than ModSecurity, wi
 * CMake 3.28 or higher https://cmake.org/download/
 * vcpkg with cmake installed https://github.com/microsoft/vcpkg
 * C++23 compatible compiler (GCC 13.1 or higher) https://gcc.gnu.org/
-* Ragle 6.10
+* Ragel 6.10
 ```shell
 apt install ragel
 ```
