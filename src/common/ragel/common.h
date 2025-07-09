@@ -18,31 +18,29 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "json.h"
+#pragma once
 
-#include <json.h>
+#include <cstdint>
+#include <string_view>
 
 namespace Wge {
 namespace Common {
 namespace Ragel {
-void Json::init(std::string_view json_str) {
-  key_value_map_.reserve(32);
-  key_value_linked_.reserve(32);
-  parseJson(json_str, key_value_map_, key_value_linked_, escape_buffer_);
-}
+struct KeyValuePair {
+  // Index of the partial key or value in the assumption that the key-value pairs are
+  // stored in a flat map/vector. Used to track the position of the partial key or value
+  // in the stream.
+  uint32_t index_{0};
 
-std::unique_ptr<Transformation::StreamState, std::function<void(Transformation::StreamState*)>>
-Json::newStream() {
-  return parseJsonNewStream();
-}
+  // Indicates if this is a partial key-value pair
+  bool partial_{false};
 
-Transformation::StreamResult
-Json::parseStream(std::string_view json_str,
-                  std::unordered_multimap<std::string_view, std::string_view>& key_value_map,
-                  std::list<KeyValuePair>& key_value_linked, Transformation::StreamState& state,
-                  bool end_stream) {
-  return parseJsonStream(json_str, key_value_map, key_value_linked, state, end_stream);
-}
+  std::string_view key_;
+  std::string_view value_;
+
+  KeyValuePair(uint32_t index, bool partial, std::string_view key, std::string_view value)
+      : index_(index), partial_(partial), key_(key), value_(value) {}
+};
 } // namespace Ragel
 } // namespace Common
 } // namespace Wge

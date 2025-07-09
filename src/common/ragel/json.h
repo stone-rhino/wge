@@ -21,9 +21,14 @@
 #pragma once
 
 #include <forward_list>
+#include <list>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+
+#include "common.h"
+
+#include "../../transformation/stream_util.h"
 
 namespace Wge {
 namespace Common {
@@ -45,6 +50,37 @@ public:
     key_value_linked_.clear();
     escape_buffer_.clear();
   }
+
+public:
+  /**
+   * Create a new stream state for parsing JSON incrementally.
+   * @return A unique pointer to the new stream state.
+   */
+  static std::unique_ptr<Transformation::StreamState,
+                         std::function<void(Transformation::StreamState*)>>
+  newStream();
+
+  /**
+   * Parse a JSON string incrementally.
+   * @param json_str The JSON string to parse.
+   * @param key_value_map The map to store key-value pairs. This map is used to store the complete
+   * key-value pairs in the JSON string.
+   * @param key_value_linked The linked list to store key-value pairs in order. The list contains
+   * complete key-value pairs, and the order is the same as in the JSON string. The list may also
+   * contain partial key-value pairs that are not yet complete.
+   * @param state The current stream state.
+   * @param end_stream Indicates if this is the end of the stream.
+   * @return The result of the stream parsing.
+   * @note The keys and values were escaped using the `jsDecode` function, and the views of
+   * keys and values will point to the internal escape buffers. The escape buffers will be freed
+   * when call this function again or the stream state is destroyed, so we should carefully use the
+   * views.
+   */
+  static Transformation::StreamResult
+  parseStream(std::string_view json_str,
+              std::unordered_multimap<std::string_view, std::string_view>& key_value_map,
+              std::list<KeyValuePair>& key_value_linked, Transformation::StreamState& state,
+              bool end_stream);
 
 private:
   std::unordered_multimap<std::string_view, std::string_view> key_value_map_;

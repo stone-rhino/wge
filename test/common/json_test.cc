@@ -85,7 +85,7 @@ protected:
 })";
 };
 
-TEST_F(JsonTest, ragle) {
+TEST_F(JsonTest, BlockParse) {
   Wge::Common::Ragel::Json json_parser;
   json_parser.init(json_);
   auto& key_values_map = json_parser.getKeyValues();
@@ -123,13 +123,13 @@ TEST_F(JsonTest, ragle) {
   EXPECT_EQ(key_values_linked[9].first, "array_strings");
   EXPECT_EQ(key_values_linked[9].second, "");
 
-  EXPECT_EQ(key_values_linked[10].first, "array_strings");
+  EXPECT_EQ(key_values_linked[10].first, "");
   EXPECT_EQ(key_values_linked[10].second, "string1");
 
-  EXPECT_EQ(key_values_linked[11].first, "array_strings");
+  EXPECT_EQ(key_values_linked[11].first, "");
   EXPECT_EQ(key_values_linked[11].second, "string2");
 
-  EXPECT_EQ(key_values_linked[12].first, "array_strings");
+  EXPECT_EQ(key_values_linked[12].first, "");
   EXPECT_EQ(key_values_linked[12].second, "string3");
 
   EXPECT_EQ(key_values_linked[13].first, "array_numbers");
@@ -161,6 +161,45 @@ TEST_F(JsonTest, ragle) {
 
   EXPECT_EQ(key_values_linked[22].first, "value");
   EXPECT_EQ(key_values_linked[22].second, "");
+}
+
+TEST_F(JsonTest, StreamParse) {
+  // Use the same json string as in the block parse for baseline comparison
+  Wge::Common::Ragel::Json json_parser;
+  json_parser.init(json_);
+  auto& key_values_linked = json_parser.getKeyValuesLinked();
+
+  // Construct the baseline key-value pairs
+  std::string key_strings;
+  std::string value_strings;
+  for (auto [key, value] : key_values_linked) {
+    key_strings += key;
+    value_strings += value;
+  }
+
+  // Test the stream parsing with different step sizes
+  for (size_t step = 1; step <= 50; step++) {
+    auto state = Wge::Common::Ragel::Json::newStream();
+    std::string test_key_strings;
+    std::string test_value_strings;
+    for (size_t j = 0; j < json_.size();) {
+      size_t input_step = std::min(step, json_.size() - j);
+      std::string_view input(&json_[j], input_step);
+      std::unordered_multimap<std::string_view, std::string_view> key_value_map;
+      std::list<Wge::Common::Ragel::KeyValuePair> key_value_linked;
+      auto stream_result = Wge::Common::Ragel::Json::parseStream(
+          input, key_value_map, key_value_linked, *state, j + input_step >= json_.size());
+      EXPECT_NE(stream_result, Wge::Transformation::StreamResult::INVALID_INPUT);
+      j += input_step;
+
+      for (auto& kv : key_value_linked) {
+        test_key_strings += kv.key_;
+        test_value_strings += kv.value_;
+      }
+    }
+    EXPECT_EQ(test_key_strings, key_strings);
+    EXPECT_EQ(test_value_strings, value_strings);
+  }
 }
 
 TEST_F(JsonTest, benchmark) {
