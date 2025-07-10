@@ -448,19 +448,9 @@ void Transaction::removeRule(
     if (rule_remove_flag.empty())
       [[unlikely]] { rule_remove_flag.resize(engine_.rules(phase).size()); }
 
-    // We record the current rule index, make sure that the rules that have been evaluated will
-    // not be removed. As above, it makes no sense to remove the rules that have been evaluated.
-    auto& rules = engine_.rules(phase);
-    auto begin = rules.begin();
-    if (phase == current_phase_) {
-      begin += current_rule_->index() + 1;
-    }
-
-    // Traverse the rules and mark the rules that need to be removed
-    for (auto iter = begin; iter != rules.end(); ++iter) {
-      if (rule_set.find(*iter) != rule_set.end()) {
-        rule_remove_flag[std::distance(rules.begin(), iter)] = true;
-      }
+    // Mark the rules as removed
+    for (auto& rule : rule_set) {
+      rule_remove_flag[rule->index()] = true;
     }
   }
 }
