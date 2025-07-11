@@ -405,6 +405,14 @@ public:
                         const std::vector<std::shared_ptr<Variable::VariableBase>>& variables);
 
   /**
+   * Check if the rule's target is removed.
+   * @param rule the rule that will be checked.
+   * @param variable the variable that will be checked.
+   * @return true if the rule's target is removed, false otherwise.
+   */
+  bool isRuleTargetRemoved(const Rule* rule, const Variable::VariableBase* variable) const;
+
+  /**
    * Get the message macro expanded of current matched rule.
    * @return the message macro expanded of current matched rule.
    * @note We must copy the result to  another buffer if we want to store the result and use it
@@ -591,8 +599,7 @@ private:
   // The allocation memory behavior is lazy, and only the rules that need to be removed or updated
   // will be allocated memory that is same as the engin.rules() size.
   std::array<std::vector<bool>, PHASE_TOTAL> rule_remove_flags_;
-  std::array<const std::vector<std::shared_ptr<Variable::VariableBase>>, PHASE_TOTAL>
-      rule_remove_targets_;
+  std::array<std::vector<std::unordered_set<Variable::FullName>>, PHASE_TOTAL> rule_remove_targets_;
 
   // Current evaluation state
   int current_phase_{1};

@@ -434,9 +434,7 @@ const std::string_view Transaction::getUniqueId() {
 
 void Transaction::removeRule(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules) {
-  // Sets the rule remove flags.
-  // Just remove the rules that not evaluate yet. It makes no sense to remove the rules that
-  // havebeen evaluated.
+  // Sets the rule remove flags
   for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
     if (rule_set.empty())
@@ -450,6 +448,7 @@ void Transaction::removeRule(
 
     // Mark the rules as removed
     for (auto& rule : rule_set) {
+      assert(rule->index() != -1);
       rule_remove_flag[rule->index()] = true;
     }
   }
@@ -457,7 +456,47 @@ void Transaction::removeRule(
 
 void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
-    const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {}
+    const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {
+  // Sets the rule remove targets
+  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+    auto& rule_set = rules[phase - 1];
+    if (rule_set.empty())
+      [[likely]] { continue; }
+
+    // For performance reasons, we use a flag array that is the same size as the rules array to
+    // mark the variables of the rules that need to be removed.
+    auto& rule_remove_targets = rule_remove_targets_[phase - 1];
+    if (rule_remove_targets.empty())
+      [[unlikely]] { rule_remove_targets.resize(engine_.rules(phase).size()); }
+
+    // Mark the variables of the rules as removed
+    for (auto& rule : rule_set) {
+      for (auto& variable : variables) {
+        assert(rule->index() != -1);
+        rule_remove_targets[rule->index()].insert(variable->fullName());
+      }
+    }
+  }
+}
+
+bool Transaction::isRuleTargetRemoved(const Rule* rule,
+                                      const Variable::VariableBase* variable) const {
+  auto& rule_remove_targets = rule_remove_targets_[rule->phase() - 1];
+  if (rule_remove_targets.empty())
+    [[unlikely]] { return false; }
+
+  assert(rule->index() != -1);
+  auto& remove_variables = rule_remove_targets[rule->index()];
+  if (!remove_variables.empty())
+    [[unlikely]] {
+      auto full_name = variable->fullName();
+      auto iter = remove_variables.find(full_name);
+      if (iter != remove_variables.end())
+        [[unlikely]] { return true; }
+    }
+
+  return false;
+}
 
 void Transaction::pushMatchedVariable(
     const Variable::VariableBase* variable, Common::EvaluateResults::Element&& original_value,

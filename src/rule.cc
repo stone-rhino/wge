@@ -237,6 +237,14 @@ void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
 inline void Rule::evaluateVariable(Transaction& t,
                                    const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                    Common::EvaluateResults& result) const {
+  if (parent_rule_ == nullptr && t.isRuleTargetRemoved(this, var.get()))
+    [[unlikely]] {
+      WGE_LOG_TRACE("skip evaluate variable: {}{}{}{}", var->isNot() ? "!" : "",
+                    var->isCounter() ? "&" : "", var->mainName(),
+                    var->subName().empty() ? "" : ":" + var->subName());
+      return;
+    };
+
   var->evaluate(t, result);
   WGE_LOG_TRACE([&]() {
     if (!var->isCollection()) {
