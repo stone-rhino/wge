@@ -81,9 +81,8 @@ void Ctl::initRules(const Engine& engin) {
     }
   } break;
   case CtlType::RuleRemoveByIdRange: {
-    const std::pair<uint64_t, uint64_t>& id_range =
-        std::any_cast<std::pair<uint64_t, uint64_t>>(value_);
-    for (uint64_t id = id_range.first; id <= id_range.second; ++id) {
+    const auto& [id_start, id_end] = std::any_cast<std::pair<uint64_t, uint64_t>&>(value_);
+    for (uint64_t id = id_start; id <= id_end; ++id) {
       const Rule* rule = engin.findRuleById(id);
       if (rule) {
         const int phase = rule->phase();
@@ -95,14 +94,14 @@ void Ctl::initRules(const Engine& engin) {
     }
   } break;
   case CtlType::RuleRemoveByTag: {
-    const std::string& tag = std::any_cast<std::string>(value_);
+    const std::string& tag = std::any_cast<std::string&>(value_);
     engin.findRuleByTag(tag, rules_);
   } break;
   case CtlType::RuleRemoveTargetById: {
-    const auto& id_and_variables =
-        std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
+    const auto& [rule_id, _] =
+        std::any_cast<std::pair<uint64_t, std::vector<std::shared_ptr<Variable::VariableBase>>>&>(
             value_);
-    const Rule* rule = engin.findRuleById(id_and_variables.first);
+    const Rule* rule = engin.findRuleById(rule_id);
     if (rule) {
       const int phase = rule->phase();
       assert(phase >= 1 && phase <= PHASE_TOTAL);
@@ -112,10 +111,9 @@ void Ctl::initRules(const Engine& engin) {
     }
   } break;
   case CtlType::RuleRemoveTargetByTag: {
-    const auto& tag_and_variables =
-        std::any_cast<std::pair<std::string, std::vector<std::shared_ptr<Variable::VariableBase>>>>(
-            value_);
-    engin.findRuleByTag(tag_and_variables.first, rules_);
+    const auto& [tag, _] = std::any_cast<
+        std::pair<std::string, std::vector<std::shared_ptr<Variable::VariableBase>>>&>(value_);
+    engin.findRuleByTag(tag, rules_);
   } break;
   default:
     // The other types don't need to initialize the rules

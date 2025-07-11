@@ -111,9 +111,9 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
   }
 
   // Push the file path to the stack
-  auto result = loaded_file_paths_.emplace(file_path);
-  if (result.second) {
-    curr_load_file_.push(*result.first);
+  const auto& [inserted_file_iter, success] = loaded_file_paths_.emplace(file_path);
+  if (success) {
+    curr_load_file_.push(*inserted_file_iter);
   } else {
     auto iter = loaded_file_paths_.find(file_path);
     if (iter != loaded_file_paths_.end()) {
@@ -262,8 +262,8 @@ void Parser::secRuleRemoveById(uint64_t id) {
 }
 
 void Parser::secRuleRemoveByMsg(const std::string& msg) {
-  auto range = rules_index_msg_.equal_range(msg);
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = rules_index_msg_.equal_range(msg);
+  for (auto iter = start; iter != end; ++iter) {
     clearRuleIdIndex(iter->second);
     clearRuleTagIndex(iter->second);
     rules_.erase(iter->second);
@@ -272,8 +272,8 @@ void Parser::secRuleRemoveByMsg(const std::string& msg) {
 }
 
 void Parser::secRuleRemoveByTag(const std::string& tag) {
-  auto range = rules_index_tag_.equal_range(tag);
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = rules_index_tag_.equal_range(tag);
+  for (auto iter = start; iter != end; ++iter) {
     clearRuleIdIndex(iter->second);
     clearRuleMsgIndex(iter->second);
     rules_.erase(iter->second);
@@ -478,8 +478,9 @@ std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool f
   } else {
     if (force) {
       ASSERT_IS_MAIN_THREAD();
-      auto result = tx_variable_index_.insert({less_case_name, tx_variable_index_.size()});
-      tx_variable_index_reverse_.emplace_back(result.first->first);
+      auto [insert_iter, _] =
+          tx_variable_index_.insert({less_case_name, tx_variable_index_.size()});
+      tx_variable_index_reverse_.emplace_back(insert_iter->first);
       return tx_variable_index_.size() - 1;
     }
   }

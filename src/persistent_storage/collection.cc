@@ -28,12 +28,8 @@ Collection::Collection() { create_time_ = ::time(nullptr); }
 
 void Collection::set(const std::string& key, const Common::Variant& value) {
   std::lock_guard<std::mutex> lock(kv_mutex_);
-  auto iter = kv_.find(key);
-  if (iter == kv_.end()) {
-    auto result = kv_.try_emplace(key);
-    iter = result.first;
-  }
 
+  auto iter = kv_.try_emplace(key).first;
   iter->second.variant_ = value;
   if (IS_STRING_VIEW_VARIANT(value)) {
     iter->second.string_buffer_ = std::get<std::string_view>(value);

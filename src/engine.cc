@@ -109,8 +109,8 @@ void Engine::findRuleByTag(
     rules.clear();
   }
 
-  auto range = parser_->findRuleByTag(tag);
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = parser_->findRuleByTag(tag);
+  for (auto iter = start; iter != end; ++iter) {
     const int phase = (*iter->second)->phase();
     assert(phase >= 1 && phase <= PHASE_TOTAL);
     if (phase >= 1 || phase <= PHASE_TOTAL) {

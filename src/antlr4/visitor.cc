@@ -366,8 +366,8 @@ std::any Visitor::visitSec_rule_update_target_by_id(
 
 std::any Visitor::visitSec_rule_update_target_by_msg(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_msgContext* ctx) {
-  auto range = parser_->findRuleByMsg(ctx->STRING()->getText());
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = parser_->findRuleByMsg(ctx->STRING()->getText());
+  for (auto iter = start; iter != end; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
     std::string error;
@@ -382,8 +382,8 @@ std::any Visitor::visitSec_rule_update_target_by_msg(
 
 std::any Visitor::visitSec_rule_update_target_by_tag(
     Antlr4Gen::SecLangParser::Sec_rule_update_target_by_tagContext* ctx) {
-  auto range = parser_->findRuleByTag(ctx->STRING()->getText());
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = parser_->findRuleByTag(ctx->STRING()->getText());
+  for (auto iter = start; iter != end; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit variables
     std::string error;
@@ -1192,10 +1192,10 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
 std::any
 Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
   auto& tags = (*current_rule_iter_)->tags();
-  auto result = tags.emplace(ctx->STRING()->getText());
+  auto [insert_iter, success] = tags.emplace(ctx->STRING()->getText());
   if (visit_action_mode_ == VisitActionMode::SecRule) {
-    if (result.second) {
-      parser_->setRuleTagIndex(current_rule_iter_, *result.first);
+    if (success) {
+      parser_->setRuleTagIndex(current_rule_iter_, *insert_iter);
     }
   }
 
@@ -2382,8 +2382,8 @@ std::any Visitor::visitSec_rule_update_operator_by_tag(
   auto old_visit_operator_mode = visit_operator_mode_;
   visit_operator_mode_ = VisitOperatorMode::SecRuleUpdateOperator;
 
-  auto range = parser_->findRuleByTag(ctx->STRING()->getText());
-  for (auto iter = range.first; iter != range.second; ++iter) {
+  auto [start, end] = parser_->findRuleByTag(ctx->STRING()->getText());
+  for (auto iter = start; iter != end; ++iter) {
     current_rule_iter_ = iter->second;
     // Visit operator
     std::string error;
