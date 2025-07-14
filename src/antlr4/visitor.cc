@@ -325,16 +325,6 @@ std::any Visitor::visitSec_rule_update_action_by_id(
   uint64_t id = ::atoll(ctx->INT()->getText().c_str());
   current_rule_iter_ = parser_->findRuleById(id);
   if (current_rule_iter_ != parser_->rules().end()) {
-    // Clear all old tags first if the new actions has tag
-    auto actions = ctx->action();
-    for (auto action : actions) {
-      if (action->action_meta_data() && action->action_meta_data()->action_meta_data_tag()) {
-        (*current_rule_iter_)->tags().clear();
-        parser_->clearRuleTagIndex(current_rule_iter_);
-        break;
-      }
-    }
-
     // Visit actions
     visit_action_mode_ = VisitActionMode::SecRuleUpdateAction;
     std::string error;
@@ -1141,6 +1131,11 @@ std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultCont
 
 std::any
 Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) {
+  // The SecRuleUpdateAction cannot be used to change the id of a rule
+  if (visit_action_mode_ == VisitActionMode::SecRuleUpdateAction) {
+    return EMPTY_STRING;
+  }
+
   uint64_t id = 0;
   if (ctx->INT()) {
     id = ::atoll(ctx->INT()->getText().c_str());
@@ -1163,12 +1158,23 @@ Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idC
 
 std::any
 Visitor::visitAction_meta_data_phase(Antlr4Gen::SecLangParser::Action_meta_data_phaseContext* ctx) {
+  // The SecRuleUpdateAction cannot be used to change the phase of a rule
+  if (visit_action_mode_ == VisitActionMode::SecRuleUpdateAction) {
+    return EMPTY_STRING;
+  }
+
   (*current_rule_iter_)->phase(::atoll(ctx->INT()->getText().c_str()));
   return EMPTY_STRING;
 };
 
 std::any
 Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_msgContext* ctx) {
+  // Clear the old msg
+  if (visit_action_mode_ == VisitActionMode::SecRuleUpdateAction) {
+    parser_->clearRuleMsgIndex(current_rule_iter_);
+    (*current_rule_iter_)->msg("");
+  }
+
   std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
       getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                ctx->string_with_macro()->STRING().empty());
@@ -1181,7 +1187,8 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
     (*current_rule_iter_)->msg(macro.value());
   } else {
     (*current_rule_iter_)->msg(ctx->string_with_macro()->getText());
-    if (visit_action_mode_ == VisitActionMode::SecRule) {
+    if (visit_action_mode_ == VisitActionMode::SecRule ||
+        visit_action_mode_ == VisitActionMode::SecRuleUpdateAction) {
       parser_->setRuleMsgIndex(current_rule_iter_);
     }
   }

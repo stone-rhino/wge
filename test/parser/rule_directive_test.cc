@@ -276,7 +276,7 @@ TEST_F(RuleTest, RuleUpdateActionById) {
     auto result = parser.load(rule_update);
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(parser.rules().back()->msg(), "msg3");
-    EXPECT_EQ(tags.find("tag1"), tags.end());
+    EXPECT_NE(tags.find("tag1"), tags.end());
     EXPECT_NE(tags.find("tag2"), tags.end());
     EXPECT_NE(tags.find("tag3"), tags.end());
   }
