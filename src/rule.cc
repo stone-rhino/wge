@@ -92,16 +92,15 @@ void Rule::initExceptVariables() {
  * The evaluation process is as follows:
  * 1. Evaluate the variables
  *    - If the variable is a collection, evaluated each element.
+ * 2. Evaluate the transformations
+ *    - Evaluate the default transformations and the transformation that defined in the rule.
+ * 3. Evaluate the operator
+ *    - Before evaluating the operator, the variable value was transformed by the transformations.
  *    - If any variable is matched, the rule is matched.
  *    - If any variable is matched, the remaining variables will be evaluated always.
- * 2. Evaluate the transformations
- *    - If the variable is matched, evaluate the default transformations and the transformation that
- *      defined in the rule.
- * 3. Evaluate the operator
- *    - Before evaluating the operator, the variable result was transformed by the transformations.
  * 4. Evaluate the actions
- *    - If the variable is matched, evaluate the default actions and the action that defined in the
- *      rule.
+ *    - Evaluate the default actions and the action that defined in the rule when each variable is
+ *      matched.
  * 5. Evaluate the chained rules
  *    - The chained rule evaluated after the all variables of the rule that prev aspect of the
  *      evaluation process are evaluated.
