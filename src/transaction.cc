@@ -479,8 +479,7 @@ void Transaction::removeRuleTarget(
   }
 }
 
-bool Transaction::isRuleTargetRemoved(const Rule* rule,
-                                      const Variable::VariableBase* variable) const {
+bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_name) const {
   auto& rule_remove_targets = rule_remove_targets_[rule->phase() - 1];
   if (rule_remove_targets.empty())
     [[unlikely]] { return false; }
@@ -489,7 +488,6 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule,
   auto& remove_variables = rule_remove_targets[rule->index()];
   if (!remove_variables.empty())
     [[unlikely]] {
-      auto full_name = variable->fullName();
       auto iter = remove_variables.find(full_name);
       if (iter != remove_variables.end())
         [[unlikely]] { return true; }

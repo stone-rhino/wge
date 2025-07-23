@@ -45,7 +45,7 @@ public:
         {
           t.httpExtractor().request_header_traversal_(
               [&](std::string_view key, std::string_view value) {
-                if (!hasExceptVariable(key))
+                if (!hasExceptVariable(t, main_name_, key))
                   [[likely]] { result.append(value, key); }
                 return true;
               });
@@ -54,7 +54,7 @@ public:
         {
           t.httpExtractor().request_header_traversal_(
               [&](std::string_view key, std::string_view value) {
-                if (!hasExceptVariable(key))
+                if (!hasExceptVariable(t, main_name_, key))
                   [[likely]] {
                     if (match(key)) {
                       result.append(value, key);

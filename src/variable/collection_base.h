@@ -24,6 +24,7 @@
 #include <unordered_set>
 
 #include "../common/pcre/scanner.h"
+#include "../transaction.h"
 
 namespace Wge {
 namespace Variable {
@@ -60,15 +61,27 @@ public:
    * @param variable_sub_name the sub name of the variable.
    * @return true if the variable is in the exception list, false otherwise.
    */
-  bool hasExceptVariable(std::string_view variable_sub_name) const {
+  bool hasExceptVariable(Transaction& t, std::string_view variable_main_name,
+                         std::string_view variable_sub_name) const {
     if (except_variables_.find(variable_sub_name) != except_variables_.end()) {
+      WGE_LOG_TRACE("variable {}:{} is in the except list", variable_main_name, variable_sub_name);
       return true;
     }
 
     for (auto& except_scanner : except_scanners_) {
       if (except_scanner->match(variable_sub_name)) {
+        WGE_LOG_TRACE("variable {}:{} is in the except list by regex", variable_main_name,
+                      variable_sub_name);
         return true;
       }
+    }
+
+    // Check if the variable is removed by the ctl action
+    Variable::FullName full_name{variable_main_name, variable_sub_name};
+    if (t.isRuleTargetRemoved(t.currentEvaluateRule(), full_name)) {
+      WGE_LOG_TRACE("variable {}:{} is removed by ctl action", variable_main_name,
+                    variable_sub_name);
+      return true;
     }
 
     return false;

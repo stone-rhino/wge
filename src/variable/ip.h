@@ -48,7 +48,7 @@ public:
         // collection
         {
           travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(key))
+            if (!hasExceptVariable(t, main_name_, key))
               [[likely]] { result.append(value, key); }
             return true;
           });
@@ -56,7 +56,7 @@ public:
         // collection regex
         {
           travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(key))
+            if (!hasExceptVariable(t, main_name_, key))
               [[likely]] {
                 if (match(key)) {
                   result.append(value, key);

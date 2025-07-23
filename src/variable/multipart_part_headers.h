@@ -76,14 +76,14 @@ public:
         // collection
         {
           for (auto& elem : t.getBodyMultiPart().getHeaders()) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] { result.append(elem.second, elem.first); }
           }
         },
         // collection regex
         {
           for (auto& elem : t.getBodyMultiPart().getHeaders()) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
                   result.append(elem.second, elem.first);

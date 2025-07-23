@@ -76,18 +76,18 @@ public:
         // collection
         {
           for (auto& elem : line_query_params) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] { result.append(elem.first, elem.first); }
           }
           for (auto& elem : *body_query_params) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] { result.append(elem.first, elem.first); }
           }
         },
         // collection regex
         {
           for (auto& elem : line_query_params) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
                   result.append(elem.first, elem.first);
@@ -95,7 +95,7 @@ public:
               }
           }
           for (auto& elem : *body_query_params) {
-            if (!hasExceptVariable(elem.first))
+            if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
                   result.append(elem.first, elem.first);

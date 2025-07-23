@@ -407,10 +407,10 @@ public:
   /**
    * Check if the rule's target is removed.
    * @param rule the rule that will be checked.
-   * @param variable the variable that will be checked.
+   * @param full_name the variable that specify by full name will be checked.
    * @return true if the rule's target is removed, false otherwise.
    */
-  bool isRuleTargetRemoved(const Rule* rule, const Variable::VariableBase* variable) const;
+  bool isRuleTargetRemoved(const Rule* rule, Variable::FullName full_name) const;
 
   /**
    * Get the message macro expanded of current matched rule.

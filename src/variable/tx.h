@@ -73,7 +73,7 @@ public:
         {
           auto variables = t.getVariables();
           for (auto variable : variables) {
-            if (!hasExceptVariable(variable.first))
+            if (!hasExceptVariable(t, main_name_, variable.first))
               [[likely]] { result.append(*variable.second, variable.first); }
           }
         },
@@ -81,7 +81,7 @@ public:
         {
           auto variables = t.getVariables();
           for (auto variable : variables) {
-            if (!hasExceptVariable(variable.first))
+            if (!hasExceptVariable(t, main_name_, variable.first))
               [[likely]] {
                 if (match(variable.first)) {
                   result.append(*variable.second, variable.first);
