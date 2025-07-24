@@ -58,6 +58,8 @@ public:
 
   /**
    * Check whether the variable is in the exception list.
+   * @param t the transaction.
+   * @param variable_main_name the main name of the variable.
    * @param variable_sub_name the sub name of the variable.
    * @return true if the variable is in the exception list, false otherwise.
    */
