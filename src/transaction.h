@@ -115,12 +115,12 @@ public:
     const Variable::VariableBase* variable_;
     Common::EvaluateResults::Element original_value_;
     Common::EvaluateResults::Element transformed_value_;
-    std::vector<const Transformation::TransformBase*> transform_list_;
+    std::list<const Transformation::TransformBase*> transform_list_;
 
     MatchedVariable(const Variable::VariableBase* variable,
                     Common::EvaluateResults::Element&& original_value,
                     Common::EvaluateResults::Element&& transformed_value,
-                    std::vector<const Transformation::TransformBase*>&& transform_list)
+                    std::list<const Transformation::TransformBase*>&& transform_list)
         : variable_(variable), original_value_(std::move(original_value)),
           transformed_value_(std::move(transformed_value)),
           transform_list_(std::move(transform_list)) {}
@@ -455,7 +455,7 @@ public:
   void pushMatchedVariable(const Variable::VariableBase* variable,
                            Common::EvaluateResults::Element&& original_value,
                            Common::EvaluateResults::Element&& transformed_value,
-                           std::vector<const Transformation::TransformBase*>&& transform_list);
+                           std::list<const Transformation::TransformBase*>&& transform_list);
 
   /**
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).

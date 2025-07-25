@@ -508,7 +508,7 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
 void Transaction::pushMatchedVariable(
     const Variable::VariableBase* variable, Common::EvaluateResults::Element&& original_value,
     Common::EvaluateResults::Element&& transformed_value,
-    std::vector<const Transformation::TransformBase*>&& transform_list) {
+    std::list<const Transformation::TransformBase*>&& transform_list) {
   // Fixes #27
   // When the MATCHED_VARS, MATCHED_VARS_NAMES, MATCHED_VAR,MATCHED_VAR_NAME  are evaluated, the
   // operators should not automatically store the matched variables again.

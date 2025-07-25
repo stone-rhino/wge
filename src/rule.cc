@@ -20,7 +20,7 @@
  */
 #include "rule.h"
 
-#include <iostream>
+#include <list>
 
 #include "common/assert.h"
 #include "common/log.h"
@@ -145,7 +145,7 @@ bool Rule::evaluate(Transaction& t) const {
       Common::EvaluateResults::Element& variable_value = result.get(i);
       bool variable_matched = false;
       Common::EvaluateResults::Element transformed_value;
-      std::vector<const Transformation::TransformBase*> transform_list;
+      std::list<const Transformation::TransformBase*> transform_list;
       if (IS_STRING_VIEW_VARIANT(variable_value.variant_))
         [[likely]] {
           // Evaluate the transformations
@@ -258,7 +258,7 @@ inline void
 Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
                         const Common::EvaluateResults::Element& input,
                         Common::EvaluateResults::Element& output,
-                        std::vector<const Transformation::TransformBase*>& transform_list) const {
+                        std::list<const Transformation::TransformBase*>& transform_list) const {
   const Common::EvaluateResults::Element* p_input = &input;
 
   // Check if the default transformation should be ignored
@@ -391,7 +391,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
     // Evaluate each variable result
     Common::EvaluateResults::Element transformed_value;
-    std::vector<const Transformation::TransformBase*> transform_list;
+    std::list<const Transformation::TransformBase*> transform_list;
     Common::EvaluateResults::Element* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
       if (evaluated_value == nullptr) {
