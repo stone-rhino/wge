@@ -38,12 +38,12 @@ bool Sha1::evaluate(std::string_view data, std::string& result) const {
   // Convert the digest to network byte order
   boost::uuids::detail::sha1::digest_type order;
   memcpy(&order, &digest, sizeof(order));
-  for (size_t i = 0; i < sizeof(digest) / sizeof(int); ++i) {
-    for (size_t j = 0; j < sizeof(int); ++j) {
-      reinterpret_cast<char*>(&order[i])[j] =
-          reinterpret_cast<char*>(&digest[i])[sizeof(int) - j - 1];
-    }
-  }
+  // for (size_t i = 0; i < sizeof(digest) / sizeof(int); ++i) {
+  //   for (size_t j = 0; j < sizeof(int); ++j) {
+  //     reinterpret_cast<char*>(&order[i])[j] =
+  //         reinterpret_cast<char*>(&digest[i])[sizeof(int) - j - 1];
+  //   }
+  // }
 
   // Copy the digest to the result
   const auto char_digest = reinterpret_cast<const char*>(&order);
@@ -86,12 +86,12 @@ StreamResult Sha1::evaluateStream(const Common::EvaluateResults::Element& input,
     // Convert the digest to network byte order
     boost::uuids::detail::sha1::digest_type order;
     memcpy(&order, &digest, sizeof(order));
-    for (size_t i = 0; i < sizeof(digest) / sizeof(int); ++i) {
-      for (size_t j = 0; j < sizeof(int); ++j) {
-        reinterpret_cast<char*>(&order[i])[j] =
-            reinterpret_cast<char*>(&digest[i])[sizeof(int) - j - 1];
-      }
-    }
+    // for (size_t i = 0; i < sizeof(digest) / sizeof(int); ++i) {
+    //   for (size_t j = 0; j < sizeof(int); ++j) {
+    //     reinterpret_cast<char*>(&order[i])[j] =
+    //         reinterpret_cast<char*>(&digest[i])[sizeof(int) - j - 1];
+    //   }
+    // }
 
     // Copy the digest to the result
     const auto char_digest = reinterpret_cast<const char*>(&order);
