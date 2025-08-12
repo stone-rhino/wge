@@ -47,7 +47,7 @@ TEST_F(CacheTest, hit) {
   Common::Variant data = test_data;
 
   Common::EvaluateResults::Element transform_buffer(data, "");
-  Variable::Tx variable(std::string("test"), std::nullopt, false, false);
+  Variable::Tx variable(std::string("test"), std::nullopt, false, false, "");
   bool ret = trans->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);
@@ -69,7 +69,7 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   std::string_view first_test_data = "%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   Common::Variant first_data = first_test_data;
   Common::EvaluateResults::Element first_transform_buffer{first_data, ""};
-  Variable::Args first_variable(std::string("test"), false, false);
+  Variable::Args first_variable(std::string("test"), false, false, "");
 
   bool ret =
       url_trans->evaluate(*t_, &first_variable, first_transform_buffer, first_transform_buffer);
@@ -81,7 +81,7 @@ TEST_F(CacheTest, getDuplicateArgsCache) {
   std::string_view second_test_data = "%20bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   Common::Variant second_data = second_test_data;
   Common::EvaluateResults::Element second_transform_buffer{second_data, ""};
-  Variable::Args second_variable(std::string("test"), false, false);
+  Variable::Args second_variable(std::string("test"), false, false, "");
 
   ret =
       url_trans->evaluate(*t_, &second_variable, second_transform_buffer, second_transform_buffer);
@@ -101,7 +101,7 @@ TEST_F(CacheTest, executeDuplicateTransformation) {
 
   Common::Variant data = test_data;
   Common::EvaluateResults::Element transform_buffer{data, ""};
-  Variable::Args variable(std::string("test"), false, false);
+  Variable::Args variable(std::string("test"), false, false, "");
   bool ret;
   for (const auto& transformation : trans) {
     ret = transformation->evaluate(*t_, &variable, transform_buffer, transform_buffer);
@@ -125,7 +125,7 @@ TEST_F(CacheTest, duplicateArgsDifferentTrans) {
 
   Common::Variant data1 = test_data;
   Common::EvaluateResults::Element transform_buffer1{data1, ""};
-  Variable::Args variable(std::string("test"), false, false);
+  Variable::Args variable(std::string("test"), false, false, "");
   bool ret1;
   for (const auto& tran : trans1) {
     ret1 = tran->evaluate(*t_, &variable, transform_buffer1, transform_buffer1);

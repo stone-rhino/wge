@@ -29,9 +29,11 @@ class Resource : public VariableBase, public PersistentCollectionBase {
   DECLARE_VIRABLE_NAME(RESOURCE);
 
 public:
-  Resource(std::string&& sub_name, bool is_not, bool is_counter)
+  Resource(std::string&& sub_name, bool is_not, bool is_counter,
+           std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter),
-        PersistentCollectionBase(PersistentStorage::Storage::Type::RESOURCE, sub_name_) {}
+        PersistentCollectionBase(PersistentStorage::Storage::Type::RESOURCE, sub_name_,
+                                 curr_rule_file_path) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {

@@ -28,7 +28,8 @@ class MultipartFileLimitExceeded : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_FILE_LIMIT_EXCEEDED);
 
 public:
-  MultipartFileLimitExceeded(std::string&& sub_name, bool is_not, bool is_counter)
+  MultipartFileLimitExceeded(std::string&& sub_name, bool is_not, bool is_counter,
+                             std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:

@@ -95,96 +95,110 @@ TEST_F(VariableTest, ARGS_COMBINED_SIZE) {
 TEST_F(VariableTest, ARGS_GET_NAMES) {
   Common::EvaluateResults result;
 
-  Variable::ArgsGetNames all("", false, false);
+  Variable::ArgsGetNames all("", false, false, "");
   result.clear();
   all.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 4);
 
-  Variable::ArgsGetNames all_count("", false, true);
+  Variable::ArgsGetNames all_count("", false, true, "");
   result.clear();
   all_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<int>(result.front().variant_), 4);
 
-  Variable::ArgsGetNames sub("p1", false, false);
+  Variable::ArgsGetNames sub("p1", false, false, "");
   result.clear();
   sub.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<std::string_view>(result.front().variant_), "p1");
 
-  Variable::ArgsGetNames sub_count("p1", false, true);
+  Variable::ArgsGetNames sub_count("p1", false, true, "");
   result.clear();
   sub_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<int>(result.front().variant_), 1);
 
   {
-    Variable::ArgsGetNames sub_regex("/^p/", false, false);
+    Variable::ArgsGetNames sub_regex("/^p/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 4);
   }
 
   {
-    Variable::ArgsGetNames sub_regex("/^p\\d/", false, false);
+    Variable::ArgsGetNames sub_regex("/^p\\d/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 4);
   }
 
   {
-    Variable::ArgsGetNames sub_regex("/^pa/", false, false);
+    Variable::ArgsGetNames sub_regex("/^pa/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 0);
+  }
+
+  {
+    Variable::ArgsGetNames sub_regex("@test/integration/01_variable_test.data@", false, false, "");
+    result.clear();
+    sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 2);
   }
 }
 
 TEST_F(VariableTest, ARGS_GET) {
   Common::EvaluateResults result;
 
-  Variable::ArgsGet all("", false, false);
+  Variable::ArgsGet all("", false, false, "");
   result.clear();
   all.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 4);
 
-  Variable::ArgsGet all_count("", false, true);
+  Variable::ArgsGet all_count("", false, true, "");
   result.clear();
   all_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<int>(result.front().variant_), 4);
 
-  Variable::ArgsGet sub("p1", false, false);
+  Variable::ArgsGet sub("p1", false, false, "");
   result.clear();
   sub.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<std::string_view>(result.front().variant_), "v1");
 
-  Variable::ArgsGet sub_count("p1", false, true);
+  Variable::ArgsGet sub_count("p1", false, true, "");
   result.clear();
   sub_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(std::get<int>(result.front().variant_), 1);
 
   {
-    Variable::ArgsGet sub_regex("/^p/", false, false);
+    Variable::ArgsGet sub_regex("/^p/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 4);
   }
 
   {
-    Variable::ArgsGet sub_regex("/^p\\d/", false, false);
+    Variable::ArgsGet sub_regex("/^p\\d/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 4);
   }
 
   {
-    Variable::ArgsGet sub_regex("/^pa/", false, false);
+    Variable::ArgsGet sub_regex("/^pa/", false, false, "");
     result.clear();
     sub_regex.evaluate(*t_, result);
     EXPECT_EQ(result.size(), 0);
+  }
+
+  {
+    Variable::ArgsGet sub_regex("@test/integration/01_variable_test.data@", false, false, "");
+    result.clear();
+    sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 2);
   }
 }
 

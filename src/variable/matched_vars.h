@@ -29,8 +29,10 @@ class MatchedVars : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(MATCHED_VARS);
 
 public:
-  MatchedVars(std::string&& sub_name, bool is_not, bool is_counter)
-      : VariableBase(std::move(sub_name), is_not, is_counter), CollectionBase(sub_name_) {}
+  MatchedVars(std::string&& sub_name, bool is_not, bool is_counter,
+              std::string_view curr_rule_file_path)
+      : VariableBase(std::move(sub_name), is_not, is_counter),
+        CollectionBase(sub_name_, curr_rule_file_path) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {

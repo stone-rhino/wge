@@ -28,7 +28,8 @@ class FullRequestLength : public VariableBase {
   DECLARE_VIRABLE_NAME(FULL_REQUEST_LENGTH);
 
 public:
-  FullRequestLength(std::string&& sub_name, bool is_not, bool is_counter)
+  FullRequestLength(std::string&& sub_name, bool is_not, bool is_counter,
+                    std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:

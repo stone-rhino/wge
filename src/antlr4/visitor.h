@@ -843,7 +843,7 @@ private:
     if (visit_variable_mode_ == VisitVariableMode::Ctl) {
       // std::any is copyable, so we can't return a unique_ptr
       std::shared_ptr<Variable::VariableBase> variable(
-          new VarT(std::move(sub_name), is_not, is_counter));
+          new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -853,7 +853,8 @@ private:
 
       return variable;
     } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
-      std::shared_ptr<Variable::VariableBase> variable(new VarT(std::move(sub_name), false, false));
+      std::shared_ptr<Variable::VariableBase> variable(
+          new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
 
       // Only accept xxx.yyy format
       if (ctx->COLON()) {
@@ -871,7 +872,7 @@ private:
           new Macro::VariableMacro(std::move(letera_value), variable));
     } else {
       std::unique_ptr<Variable::VariableBase> variable(
-          new VarT(std::move(sub_name), is_not, is_counter));
+          new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {

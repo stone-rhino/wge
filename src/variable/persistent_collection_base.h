@@ -30,8 +30,9 @@ namespace Variable {
 class PersistentCollectionBase : public CollectionBase {
 
 public:
-  PersistentCollectionBase(PersistentStorage::Storage::Type type, const std::string& sub_name)
-      : type_(type), CollectionBase(sub_name) {}
+  PersistentCollectionBase(PersistentStorage::Storage::Type type, const std::string& sub_name,
+                           std::string_view curr_rule_file_path)
+      : type_(type), CollectionBase(sub_name, curr_rule_file_path) {}
 
 public:
   size_t size(Transaction& t) const {

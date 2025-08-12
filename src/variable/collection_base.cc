@@ -18,30 +18,11 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
-
-#include "variable_base.h"
+#include "collection_base.h"
 
 namespace Wge {
 namespace Variable {
-class RequestBaseName : public VariableBase {
-  DECLARE_VIRABLE_NAME(REQUEST_BASENAME);
-
-public:
-  RequestBaseName(std::string&& sub_name, bool is_not, bool is_counter,
-                  std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
-
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (is_counter_)
-      [[unlikely]] {
-        result.append(t.getRequestLineInfo().base_name_.empty() ? 0 : 1);
-        return;
-      }
-
-    result.append(t.getRequestLineInfo().base_name_);
-  }
-};
-} // namespace Variable
+std::unordered_map<std::string, std::shared_ptr<Common::Hyperscan::HsDataBase>>
+    CollectionBase::database_cache_;
+}
 } // namespace Wge

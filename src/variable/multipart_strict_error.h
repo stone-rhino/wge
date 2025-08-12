@@ -28,7 +28,8 @@ class MultipartStrictError : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_STRICT_ERROR);
 
 public:
-  MultipartStrictError(std::string&& sub_name, bool is_not, bool is_counter)
+  MultipartStrictError(std::string&& sub_name, bool is_not, bool is_counter,
+                       std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:

@@ -28,7 +28,8 @@ class FilesCombinedSize : public VariableBase {
   DECLARE_VIRABLE_NAME(FILES_COMBINED_SIZE);
 
 public:
-  FilesCombinedSize(std::string&& sub_name, bool is_not, bool is_counter)
+  FilesCombinedSize(std::string&& sub_name, bool is_not, bool is_counter,
+                    std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:

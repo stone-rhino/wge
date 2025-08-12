@@ -28,7 +28,8 @@ class MultipartBoundaryWhitespace : public VariableBase {
   DECLARE_VIRABLE_NAME(MULTIPART_BOUNDARY_WHITESPACE);
 
 public:
-  MultipartBoundaryWhitespace(std::string&& sub_name, bool is_not, bool is_counter)
+  MultipartBoundaryWhitespace(std::string&& sub_name, bool is_not, bool is_counter,
+                              std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
 public:

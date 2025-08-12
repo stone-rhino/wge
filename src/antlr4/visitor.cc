@@ -809,7 +809,7 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
   if (visit_variable_mode_ == VisitVariableMode::Ctl) {
     // std::any is copyable, so we can't return a unique_ptr
     std::shared_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, is_not, is_counter));
+        new Variable::Tx(std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
 
     // Only accept xxx:yyy format
     if (ctx->DOT()) {
@@ -820,7 +820,7 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
     return variable;
   } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
     std::shared_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, false, false));
+        new Variable::Tx(std::move(sub_name), index, false, false, parser_->currLoadFile()));
 
     // Only accept xxx.yyy format
     if (ctx->COLON()) {
@@ -838,7 +838,7 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
         new Macro::VariableMacro(std::move(letera_value), variable));
   } else {
     std::unique_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, is_not, is_counter));
+        new Variable::Tx(std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
 
     // Only accept xxx:yyy format
     if (ctx->DOT()) {
