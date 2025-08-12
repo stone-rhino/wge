@@ -63,7 +63,7 @@ public:
         { result.append(static_cast<int>(t.getBodyMultiPart().getHeaders().size())); },
         // specify subname
         {
-          int count = t.getBodyMultiPart().getNameValue().count(sub_name_);
+          int count = t.getBodyMultiPart().getHeaders().count(sub_name_);
           result.append(count);
         });
 
