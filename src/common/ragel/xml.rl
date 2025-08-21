@@ -21,10 +21,10 @@
 #pragma once
 
 #include <forward_list>
-#include <string_view>
-#include <vector>
-#include <utility>
 #include <stack>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include <html_entity_decode.h>
 
@@ -225,8 +225,10 @@
 %% write data;
       // clang-format on
 
-      static bool parseXml(std::string_view input, std::vector<std::pair<std::string_view,std::string_view>>& attributes,
-                           std::vector<std::pair<std::string_view,std::string_view>>& tags, std::string& tag_values_str,
+      static bool parseXml(std::string_view input,
+                           std::vector<std::pair<std::string_view, std::string_view>>& attributes,
+                           std::vector<std::pair<std::string_view, std::string_view>>& tags,
+                           std::string& tag_values_str,
                            std::forward_list<std::string>& html_decode_buffer) {
 
         const char* p = input.data();
