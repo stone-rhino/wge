@@ -239,6 +239,10 @@ void Parser::secUnicodeMapFile(std::string&& file_path, uint32_t code_point) {
   engine_config_.unicode_code_point_ = code_point;
 }
 
+void Parser::secParseXmlIntoArgs(ParseXmlIntoArgsOption option) {
+  parse_xml_into_args_option_ = option;
+}
+
 void Parser::secPcreMatchLimit(uint32_t limit) { engine_config_.pcre_match_limit_ = limit; }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {

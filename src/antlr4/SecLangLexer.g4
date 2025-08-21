@@ -98,6 +98,8 @@ SecDefaultAction:
 SecGeoLookupDb: 'SecGeoLookupDb';
 SecHttpBlKey: 'SecHttpBlKey';
 SecMarker: 'SecMarker' -> pushMode(ModeAuditLogString);
+SecParseXmlIntoArgs:
+	'SecParseXmlIntoArgs' -> pushMode(ModeParseXmlIntoArgs);
 SecPcreMatchLimit: 'SecPcreMatchLimit';
 SecPcreMatchLimitRecursion: 'SecPcreMatchLimitRecursion';
 SecRemoteRules: 'SecRemoteRules';
@@ -170,6 +172,10 @@ ModeAuditLogString_STRING: (('\\"') | ~([" ])) (
 		| ('\\' '\r'? '\n')
 		| ~["\r\n ]
 	)* -> type(STRING), popMode;
+
+mode ModeParseXmlIntoArgs;
+ModeParseXmlIntoArgs_WS: WS -> skip;
+ModeParseXmlIntoArgs_OPTION: ('On' | 'Off' | 'OnlyArgs') -> type(OPTION), popMode;
 
 mode ModeResponseBodyMimeType;
 ModeResponseBodyMimeType_WS: WS -> skip;

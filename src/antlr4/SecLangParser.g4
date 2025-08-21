@@ -58,6 +58,7 @@ engine_config:
 	| sec_arguments_limit
 	| sec_argument_separator
 	| sec_unicode_map_file
+	| sec_parse_xml_into_args
 	| sec_pcre_match_limit
 	| sec_pcre_match_limit_recursion
 	| sec_collection_timeout;
@@ -87,6 +88,7 @@ sec_cookie_format: SecCookieFormat INT;
 sec_arguments_limit: SecArgumentsLimit INT;
 sec_argument_separator: SecArgumentSeparator STRING;
 sec_unicode_map_file: SecUnicodeMapFile STRING INT;
+sec_parse_xml_into_args: SecParseXmlIntoArgs OPTION;
 sec_pcre_match_limit: SecPcreMatchLimit INT;
 sec_pcre_match_limit_recursion: SecPcreMatchLimitRecursion INT;
 sec_collection_timeout: SecCollectionTimeout INT;
@@ -111,7 +113,9 @@ sec_rule_remove_by_id:
 sec_rule_remove_by_msg: SecRuleRemoveByMsg QUOTE STRING QUOTE;
 sec_rule_remove_by_tag: SecRuleRemoveByTag QUOTE STRING QUOTE;
 sec_rule_update_action_by_id:
-	SecRuleUpdateActionById (INT | ID_AND_CHAIN_INDEX) QUOTE action (COMMA action)* QUOTE;
+	SecRuleUpdateActionById (INT | ID_AND_CHAIN_INDEX) QUOTE action (
+		COMMA action
+	)* QUOTE;
 sec_rule_update_target_by_id:
 	SecRuleUpdateTargetById INT variables;
 sec_rule_update_target_by_msg:

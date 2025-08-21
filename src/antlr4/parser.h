@@ -79,6 +79,7 @@ public:
   void secArgumentsLimit(uint32_t limit_bytes);
   void secArgumentSeparator(char separator);
   void secUnicodeMapFile(std::string&& file_path, uint32_t code_point);
+  void secParseXmlIntoArgs(ParseXmlIntoArgsOption option);
   void secPcreMatchLimit(uint32_t limit);
 
   // Engine action
@@ -111,6 +112,7 @@ public:
   const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
   const std::list<Marker>& markers() const { return makers_; }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
+  ParseXmlIntoArgsOption parseXmlIntoArgsOption() const { return parse_xml_into_args_option_; }
   void removeBackRule();
   void removeBackDefaultAction();
   void setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
@@ -142,6 +144,7 @@ public:
 private:
   EngineConfig engine_config_;
   AuditLogConfig audit_log_config_;
+  ParseXmlIntoArgsOption parse_xml_into_args_option_;
   std::list<std::unique_ptr<Rule>> default_actions_;
   std::list<std::unique_ptr<Rule>> rules_;
   std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;

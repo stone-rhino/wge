@@ -237,6 +237,22 @@ Visitor::visitSec_default_action(Antlr4Gen::SecLangParser::Sec_default_actionCon
   return EMPTY_STRING;
 }
 
+std::any Visitor::visitSec_parse_xml_into_args(
+    Antlr4Gen::SecLangParser::Sec_parse_xml_into_argsContext* ctx) {
+  using Option = Wge::ParseXmlIntoArgsOption;
+  Option option = Option::Off;
+
+  std::string option_str = ctx->OPTION()->getText();
+  if (option_str == "On") {
+    option = Option::On;
+  } else if (option_str == "OnlyArgs") {
+    option = Option::OnlyArgs;
+  }
+
+  parser_->secParseXmlIntoArgs(option);
+  return EMPTY_STRING;
+}
+
 std::any
 Visitor::visitSec_pcre_match_limit(Antlr4Gen::SecLangParser::Sec_pcre_match_limitContext* ctx) {
   parser_->secPcreMatchLimit(::atol(ctx->INT()->getText().c_str()));

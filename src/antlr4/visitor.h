@@ -108,6 +108,9 @@ public:
   std::any
   visitSec_unicode_map_file(Antlr4Gen::SecLangParser::Sec_unicode_map_fileContext* ctx) override;
 
+  std::any visitSec_parse_xml_into_args(
+      Antlr4Gen::SecLangParser::Sec_parse_xml_into_argsContext* ctx) override;
+
   std::any
   visitSec_pcre_match_limit(Antlr4Gen::SecLangParser::Sec_pcre_match_limitContext* ctx) override;
 
