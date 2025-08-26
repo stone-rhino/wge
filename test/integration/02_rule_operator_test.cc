@@ -142,6 +142,20 @@ TEST_F(RuleOperatorTest, endsWithMacro) {
   EXPECT_FALSE(t->hasVariable("v2"));
 }
 
+TEST_F(RuleOperatorTest, detect_sqli) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=raw(admin' OR 1=1 --)raw"
+  SecRule TX:foo "@detectSqli" "id:1,phase:1,setvar:'tx.v1',tag:'foo',msg:'bar'")";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("v1"));
+}
+
 TEST_F(RuleOperatorTest, ipMatch) {
   const std::string directive =
       R"(SecAction "phase:1,setvar:tx.ipv4=192.168.1.1"
