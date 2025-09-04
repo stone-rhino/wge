@@ -525,7 +525,7 @@ public:
    * Get the transformation cache.
    * @return the transformation cache.
    */
-  boost::unordered_flat_map<TransformCacheKey, std::optional<Common::EvaluateResults::Element>,
+  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
                             TransformCacheKey::Hash>&
   getTransformCache() {
     return transform_cache_;
@@ -670,7 +670,7 @@ private:
   std::unordered_map<int, std::vector<MatchedVariable>> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
-  boost::unordered_flat_map<TransformCacheKey, std::optional<Common::EvaluateResults::Element>,
+  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
                             TransformCacheKey::Hash>
       transform_cache_;
   bool init_cookies_{false};

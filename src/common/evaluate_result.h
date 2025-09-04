@@ -56,7 +56,7 @@ public:
     Element(std::string&& value, std::string_view variable_sub_name)
         : string_buffer_(std::move(value)), variant_(string_buffer_),
           variable_sub_name_(variable_sub_name) {}
-    Element(Element&& element) {
+    Element(Element&& element) noexcept {
       variant_.swap(element.variant_);
       if (IS_STRING_VIEW_VARIANT(variant_) && !element.string_buffer_.empty()) {
         string_buffer_.swap(element.string_buffer_);

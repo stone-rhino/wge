@@ -49,9 +49,9 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
           name());
 
       // The transformation has been evaluated before.
-      if (iter->second.has_value())
+      if (iter->second)
         [[likely]] {
-          output.variant_ = iter->second.value().variant_;
+          output.variant_ = iter->second->variant_;
           output.variable_sub_name_ = input.variable_sub_name_;
           return true;
         }
@@ -67,16 +67,16 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
     auto iter_transform_result =
         transform_cache
             .emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()},
-                     Common::EvaluateResults::Element())
+                     std::make_unique<Common::EvaluateResults::Element>())
             .first;
-    Common::EvaluateResults::Element& result = iter_transform_result->second.value();
+    Common::EvaluateResults::Element& result = *(iter_transform_result->second);
     result.string_buffer_ = std::move(output_buffer);
     result.variant_ = result.string_buffer_;
     output.variant_ = result.variant_;
     output.variable_sub_name_ = input.variable_sub_name_;
   } else {
-    transform_cache.emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()},
-                            std::nullopt); // Store an empty optional to indicate failure
+    // Store nullptr to indicate failure
+    transform_cache.emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()}, nullptr);
   }
 
   return ret;
