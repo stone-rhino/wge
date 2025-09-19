@@ -550,7 +550,10 @@ void Transaction::pushMatchedVariable(
 
   if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
     [[unlikely]] {
-      variables.back().transformed_value_.variant_ = variables.back().original_value_.variant_;
+      auto& transform_value = variables.back().transformed_value_;
+      auto& original_value = variables.back().original_value_;
+      transform_value.variant_ = original_value.variant_;
+      transform_value.variable_sub_name_ = original_value.variable_sub_name_;
     }
 }
 
