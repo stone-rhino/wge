@@ -119,42 +119,50 @@ public:
    */
   bool hasExceptVariable(Transaction& t, std::string_view variable_main_name,
                          std::string_view variable_sub_name) const {
-    if (except_variables_.find(variable_sub_name) != except_variables_.end()) {
-      WGE_LOG_TRACE("variable {}:{} is in the except list", variable_main_name, variable_sub_name);
-      return true;
-    }
-
-    for (auto& except_scanner : regex_except_scanners_) {
-      if (except_scanner->match(variable_sub_name)) {
-        WGE_LOG_TRACE("variable {}:{} is in the except list by regex", variable_main_name,
+    if (except_variables_.find(variable_sub_name) != except_variables_.end())
+      [[unlikely]] {
+        WGE_LOG_TRACE("variable {}:{} is in the except list", variable_main_name,
                       variable_sub_name);
         return true;
       }
-    }
 
-    for (auto& except_scanner : pmf_except_scanners_) {
-      bool match = false;
-      pmf_accept_scanner_->blockScan(
-          variable_sub_name, Common::Hyperscan::Scanner::ScanMode::Normal,
-          [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-             void* user_data) {
-            bool* match = reinterpret_cast<bool*>(user_data);
-            *match = true;
-            return 1;
-          },
-          &match);
-      if (match) {
-        WGE_LOG_TRACE("variable {}:{} is in the except list by pmf", variable_main_name,
-                      variable_sub_name);
-        return true;
+    if (!regex_except_scanners_.empty())
+      [[unlikely]] {
+        for (auto& except_scanner : regex_except_scanners_) {
+          if (except_scanner->match(variable_sub_name)) {
+            WGE_LOG_TRACE("variable {}:{} is in the except list by regex", variable_main_name,
+                          variable_sub_name);
+            return true;
+          }
+        }
       }
-    }
+
+    if (!pmf_except_scanners_.empty())
+      [[unlikely]] {
+        for (auto& except_scanner : pmf_except_scanners_) {
+          bool match = false;
+          pmf_accept_scanner_->blockScan(
+              variable_sub_name, Common::Hyperscan::Scanner::ScanMode::Normal,
+              [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
+                 void* user_data) {
+                bool* match = reinterpret_cast<bool*>(user_data);
+                *match = true;
+                return 1;
+              },
+              &match);
+          if (match) {
+            WGE_LOG_TRACE("variable {}:{} is in the except list by pmf", variable_main_name,
+                          variable_sub_name);
+            return true;
+          }
+        }
+      }
 
     // Check if the variable is removed by the ctl action
-    Variable::FullName full_name{variable_main_name, variable_sub_name};
     const Rule* rule = t.getCurrentEvaluateRule();
     // Only top-level rules can remove variables by ctl action
     if (rule && rule->chainIndex() == -1) {
+      Variable::FullName full_name{variable_main_name, variable_sub_name};
       if (t.isRuleTargetRemoved(rule, full_name)) {
         WGE_LOG_TRACE("variable {}:{} is removed by ctl action", variable_main_name,
                       variable_sub_name);
