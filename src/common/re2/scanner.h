@@ -18,12 +18,30 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#include "rx.h"
+#pragma once
+
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include <re2/re2.h>
 
 namespace Wge {
-namespace Operator {
-std::forward_list<std::string> Rx::macro_value_cache_;
-std::unordered_map<std::string_view, Rx::Scanner> Rx::macro_scanner_cache_;
-std::mutex Rx::macro_chche_mutex_;
-} // namespace Operator
+namespace Common {
+namespace Re2 {
+class Scanner {
+public:
+  Scanner(const std::string& pattern, bool case_less, bool captrue);
+  Scanner(std::string_view pattern, bool case_less, bool captrue);
+
+public:
+  bool ok() const { return re2_ && re2_->ok(); }
+  void match(std::string_view subject, std::vector<std::pair<size_t, size_t>>& result) const;
+
+private:
+  std::unique_ptr<RE2> re2_;
+};
+} // namespace Re2
+} // namespace Common
 } // namespace Wge

@@ -4,6 +4,7 @@
     "spdlog",
     "gtest",
     "pcre2",
+    "re2",
     "gperftools",
     "hyperscan",
     "libinjection",

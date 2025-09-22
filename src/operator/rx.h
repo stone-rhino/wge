@@ -24,11 +24,14 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <variant>
 
 #include "operator_base.h"
 
 #include "../common/assert.h"
+#include "../common/literal_match/scanner.h"
 #include "../common/pcre/scanner.h"
+#include "../common/re2/scanner.h"
 #include "../engine.h"
 #include "../transaction.h"
 
@@ -43,8 +46,7 @@ class Rx final : public OperatorBase {
 
 public:
   Rx(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
-      : OperatorBase(std::move(literal_value), is_not),
-        pcre_(std::make_unique<Common::Pcre::Scanner>(literalValue(), false, capture_)) {}
+      : OperatorBase(std::move(literal_value), is_not), scanner_(createScanner(literalValue())) {}
 
   Rx(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
      std::string_view curr_rule_file_path)
@@ -55,7 +57,7 @@ public:
     if (!IS_STRING_VIEW_VARIANT(operand))
       [[unlikely]] { return false; }
 
-    Common::Pcre::Scanner* scanner = pcre_.get();
+    const Scanner* scanner = &scanner_;
 
     // If there is a macro, expand it and create or reuse a scanner.
     if (macro_)
@@ -68,29 +70,34 @@ public:
         // probablity of the macro expansion is very low, so we use the lock here.
         std::lock_guard<std::mutex> lock(macro_chche_mutex_);
 
-        auto iter = macro_pcre_cache_.find(macro_value);
-        if (iter == macro_pcre_cache_.end()) {
-          // To avoid copying the macro value when we find scanner in the macro_pcre_cache_ by
+        auto iter = macro_scanner_cache_.find(macro_value);
+        if (iter == macro_scanner_cache_.end()) {
+          // To avoid copying the macro value when we find scanner in the macro_scanner_cache_ by
           // std::string type key, we use std::string_view type key to find scanner in the
-          // macro_pcre_cache_, And store the macro value in the macro_value_cache_.
+          // macro_scanner_cache_, And store the macro value in the macro_value_cache_.
           macro_value_cache_.emplace_front(macro_value);
-          auto macro_scanner =
-              std::make_unique<Common::Pcre::Scanner>(macro_value, false, capture_);
-          scanner = macro_scanner.get();
-          macro_pcre_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner));
+          auto macro_scanner = createScanner(macro_value);
+          scanner =
+              &(macro_scanner_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner))
+                    .first->second);
         } else {
-          scanner = iter->second.get();
+          scanner = &iter->second;
         }
       }
 
-    if (t.getEngine().config().pcre_match_limit_) {
-      scanner->setMatchLimit(t.getEngine().config().pcre_match_limit_);
-    }
-
-    // Match the operand with the pattern.
     std::vector<std::pair<size_t, size_t>> result;
     const std::string_view& operand_str = std::get<std::string_view>(operand);
-    scanner->match(operand_str, result);
+    std::visit(
+        [&](auto&& arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
+            if (t.getEngine().config().pcre_match_limit_) {
+              arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
+            }
+          }
+          arg->match(operand_str, result);
+        },
+        *scanner);
 
     size_t capture_index = 0;
     for (const auto& [from, to] : result) {
@@ -112,8 +119,8 @@ public:
     ASSERT_IS_MAIN_THREAD();
 
     if (capture != capture_) {
-      pcre_ = std::make_unique<Common::Pcre::Scanner>(literalValue(), false, capture);
       capture_ = capture;
+      scanner_ = createScanner(literalValue());
     }
   }
 
@@ -124,11 +131,31 @@ public:
   bool capture() const { return capture_; }
 
 private:
-  std::unique_ptr<Common::Pcre::Scanner> pcre_;
+  using Scanner =
+      std::variant<std::unique_ptr<Common::Re2::Scanner>, std::unique_ptr<Common::Pcre::Scanner>,
+                   std::unique_ptr<Common::LiteralMatch::Scanner>>;
+
+private:
+  Scanner createScanner(std::string_view pattern) const {
+    Scanner scanner;
+    if (Common::LiteralMatch::Scanner::isLiteralPattern(pattern)) {
+      scanner = std::make_unique<Common::LiteralMatch::Scanner>(pattern, false);
+    } else {
+      auto re2 = std::make_unique<Common::Re2::Scanner>(pattern, false, capture_);
+      if (re2->ok()) {
+        scanner = std::move(re2);
+      } else {
+        scanner = std::make_unique<Common::Pcre::Scanner>(pattern, false, capture_);
+      }
+    }
+    return scanner;
+  }
+
+private:
+  Scanner scanner_;
   bool capture_{false};
   static std::forward_list<std::string> macro_value_cache_;
-  static std::unordered_map<std::string_view, std::unique_ptr<Common::Pcre::Scanner>>
-      macro_pcre_cache_;
+  static std::unordered_map<std::string_view, Scanner> macro_scanner_cache_;
   static std::mutex macro_chche_mutex_;
 };
 } // namespace Operator

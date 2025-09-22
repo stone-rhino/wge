@@ -33,3 +33,6 @@ target_link_libraries(test PRIVATE LibXml2::LibXml2)
 
 find_package(antlr4-runtime CONFIG REQUIRED)
 target_link_libraries(test PRIVATE antlr4_static)
+
+find_package(re2 CONFIG REQUIRED)
+target_link_libraries(test PRIVATE re2::re2)

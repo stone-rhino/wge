@@ -5,6 +5,7 @@ file(GLOB local_source
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(pcre2 CONFIG REQUIRED)
+find_package(re2 CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(TCMALLOC REQUIRED libtcmalloc)
 find_package(PkgConfig REQUIRED)
@@ -42,6 +43,7 @@ target_include_directories(wge_benchmark PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/wge
 target_link_libraries(wge_benchmark PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/wge_install/lib/libwge.a)
 target_link_libraries(wge_benchmark PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(wge_benchmark PRIVATE PCRE2::8BIT)
+target_link_libraries(wge_benchmark PRIVATE re2::re2)
 target_link_directories(wge_benchmark PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(wge_benchmark PRIVATE ${HYPERSCAN_LIBRARIES})
 target_link_libraries(wge_benchmark PRIVATE ${INJECTION_LIB})
@@ -57,6 +59,7 @@ target_include_directories(wge_benchmark_tcmalloc PRIVATE ${CMAKE_CURRENT_BINARY
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/wge_install/lib/libwge.a)
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE PCRE2::8BIT)
+target_link_libraries(wge_benchmark_tcmalloc PRIVATE re2::re2)
 target_link_directories(wge_benchmark_tcmalloc PRIVATE ${TCMALLOC_LIBRARY_DIRS})
 target_link_libraries(wge_benchmark_tcmalloc PRIVATE ${TCMALLOC_LIBRARIES})
 target_link_directories(wge_benchmark_tcmalloc PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
