@@ -722,7 +722,7 @@ std::any Visitor::visitVariable_response_content_type(
 
 std::any Visitor::visitVariable_response_headers(
     Antlr4Gen::SecLangParser::Variable_response_headersContext* ctx) {
-  return appendVariable<Variable::RequestHeaders>(ctx);
+  return appendVariable<Variable::ResponseHeaders>(ctx);
 };
 
 std::any Visitor::visitVariable_response_headers_names(
