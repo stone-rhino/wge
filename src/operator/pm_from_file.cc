@@ -37,7 +37,7 @@ void PmFromFile::init(const std::string& serialize_dir) {
   if (iter == database_cache_.end()) {
     locker.unlock();
     const char* serialize_dir_cstr = serialize_dir.empty() ? nullptr : serialize_dir.c_str();
-    auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(std::move(expression_list_),
+    auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(std::move(expression_list_), false,
                                                                  serialize_dir_cstr);
     scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
     locker.lock();
