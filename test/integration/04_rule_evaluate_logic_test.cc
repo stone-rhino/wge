@@ -37,6 +37,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:urlDecode, \
         t:lowercase, \
@@ -67,6 +68,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \
@@ -100,6 +102,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \
@@ -133,6 +136,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \
@@ -163,6 +167,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \
@@ -193,6 +198,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         "id:1, \
         phase:1, \
         pass, \
+        log, \
         t:none, \
         t:lowercase, \
         msg:'tx.test=%{tx.test}', \

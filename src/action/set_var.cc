@@ -34,9 +34,9 @@ SetVar::SetVar(std::string&& key, size_t index, Common::Variant&& value, Evaluat
   }
 }
 
-SetVar::SetVar(std::string&& key, size_t index, const std::shared_ptr<Macro::MacroBase> value,
+SetVar::SetVar(std::string&& key, size_t index, std::unique_ptr<Macro::MacroBase>&& value,
                EvaluateType type)
-    : key_(std::move(key)), index_(index), value_macro_(value), type_(type) {
+    : key_(std::move(key)), index_(index), value_macro_(std::move(value)), type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
@@ -44,9 +44,8 @@ SetVar::SetVar(std::string&& key, size_t index, const std::shared_ptr<Macro::Mac
   }
 }
 
-SetVar::SetVar(const std::shared_ptr<Macro::MacroBase> key, Common::Variant&& value,
-               EvaluateType type)
-    : key_macro_(key), value_(std::move(value)), type_(type) {
+SetVar::SetVar(std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value, EvaluateType type)
+    : key_macro_(std::move(key)), value_(std::move(value)), type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
@@ -54,9 +53,9 @@ SetVar::SetVar(const std::shared_ptr<Macro::MacroBase> key, Common::Variant&& va
   }
 }
 
-SetVar::SetVar(const std::shared_ptr<Macro::MacroBase> key,
-               const std::shared_ptr<Macro::MacroBase> value, EvaluateType type)
-    : key_macro_(key), value_macro_(value), type_(type) {
+SetVar::SetVar(std::unique_ptr<Macro::MacroBase>&& key, std::unique_ptr<Macro::MacroBase>&& value,
+               EvaluateType type)
+    : key_macro_(std::move(key)), value_macro_(std::move(value)), type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);

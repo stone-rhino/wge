@@ -33,7 +33,7 @@ class InitCol final : public ActionBase {
 public:
   InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value);
   InitCol(PersistentStorage::Storage::Type type, std::string&& key,
-          const std::shared_ptr<Macro::MacroBase> value);
+          std::unique_ptr<Macro::MacroBase>&& value);
 
 public:
   void evaluate(Transaction& t) const override;
@@ -41,7 +41,7 @@ public:
 private:
   std::string key_;
   std::string value_;
-  const std::shared_ptr<Macro::MacroBase> value_macro_;
+  const std::unique_ptr<Macro::MacroBase> value_macro_;
   PersistentStorage::Storage::Type type_;
 };
 } // namespace Action

@@ -28,8 +28,8 @@ InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::
     : type_(type), key_(std::move(key)), value_(std::move(value)) {}
 
 InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key,
-                 const std::shared_ptr<Macro::MacroBase> value)
-    : type_(type), key_(std::move(key)), value_macro_(value) {}
+                 std::unique_ptr<Macro::MacroBase>&& value)
+    : type_(type), key_(std::move(key)), value_macro_(std::move(value)) {}
 
 void InitCol::evaluate(Transaction& t) const {
   if (value_macro_) {

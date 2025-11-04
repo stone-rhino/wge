@@ -55,8 +55,8 @@ public:
   OperatorBase(std::string&& literal_value, bool is_not)
       : literal_value_(std::move(literal_value)), is_not_(is_not) {}
 
-  OperatorBase(const std::shared_ptr<Macro::MacroBase> macro, bool is_not)
-      : macro_(macro), is_not_(is_not) {}
+  OperatorBase(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not)
+      : macro_(std::move(macro)), is_not_(is_not) {}
 
   virtual ~OperatorBase() = default;
 
@@ -71,7 +71,7 @@ public:
    * Get the macro of the operator.
    * @return the macro of the operator.
    */
-  const std::shared_ptr<Macro::MacroBase> macro() const { return macro_; }
+  std::unique_ptr<Macro::MacroBase>& macro() { return macro_; }
 
   /**
    * Check if the operator is a NOT operator.
@@ -97,7 +97,7 @@ public:
 protected:
   std::string literal_value_;
   bool is_not_;
-  const std::shared_ptr<Macro::MacroBase> macro_;
+  std::unique_ptr<Macro::MacroBase> macro_;
 };
 
 } // namespace Operator

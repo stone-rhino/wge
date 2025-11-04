@@ -837,7 +837,7 @@ private:
   static bool optionStr2Bool(const std::string& option_str);
   static EngineConfig::Option optionStr2EnumValue(const std::string& option_str);
   static EngineConfig::BodyLimitAction bodyLimitActionStr2EnumValue(const std::string& action_str);
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> getMacro(
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> getMacro(
       std::string&& text,
       const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>& macro_ctx_array,
       bool is_only_macro);
@@ -866,7 +866,7 @@ private:
 
       return variable;
     } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
-      std::shared_ptr<Variable::VariableBase> variable(
+      std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
       setRuleNeedPushMatched(variable.get());
 
@@ -882,8 +882,12 @@ private:
       } else {
         letera_value = std::format("%{{{}:{}}}", variable->mainName(), variable->subName());
       }
-      return std::shared_ptr<Macro::MacroBase>(
-          new Macro::VariableMacro(std::move(letera_value), variable));
+
+      Macro::MacroBase* macro_ptr =
+          new Macro::VariableMacro(std::move(letera_value), std::move(variable));
+
+      // The raw pointer will be managed by std::unique_ptr in getMacro
+      return macro_ptr;
     } else {
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
@@ -902,8 +906,8 @@ private:
     }
   }
 
-  template <class VarT, class CtxT> std::any setOperator(CtxT* ctx) {
-    std::expected<std::shared_ptr<Wge::Macro::MacroBase>, std::string> macro =
+  template <class OperatorT, class CtxT> std::any setOperator(CtxT* ctx) {
+    std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
         getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                  ctx->string_with_macro()->STRING().empty());
 
@@ -913,7 +917,7 @@ private:
 
     std::unique_ptr<Operator::OperatorBase> op;
     if (macro.value()) {
-      auto macro_shared_ptr = macro.value();
+      auto& macro_ptr = macro.value();
       if (visit_operator_mode_ == VisitOperatorMode::SecRuleUpdateOperator) {
         // In the SecRuleUpdateOperator mode:
         // - If the macro type is VariableMacro and the variable is RULE.operator_value, we need
@@ -921,43 +925,42 @@ private:
         // - If the macro type is VariableMacro but the varaible is not RULE.operator_value, we use
         // it directly.
         // - If the macro type is MultiMacro, we don't support it yet.
-        std::shared_ptr<Wge::Macro::VariableMacro> variable_macro_shared_ptr =
-            std::dynamic_pointer_cast<Wge::Macro::VariableMacro>(macro.value());
-        if (variable_macro_shared_ptr) {
-          std::string_view variable_main_name =
-              variable_macro_shared_ptr->getVariable()->mainName();
-          const std::string& variable_sub_name =
-              variable_macro_shared_ptr->getVariable()->subName();
+        Wge::Macro::VariableMacro* variable_macro_ptr =
+            dynamic_cast<Wge::Macro::VariableMacro*>(macro_ptr.get());
+        if (variable_macro_ptr) {
+          std::string_view variable_main_name = variable_macro_ptr->getVariable()->mainName();
+          const std::string& variable_sub_name = variable_macro_ptr->getVariable()->subName();
           if (variable_main_name == "RULE" && variable_sub_name == "operator_value") {
             std::string original_operator_literal_value =
                 (*current_rule_iter_)->getOperator()->literalValue();
             if (!original_operator_literal_value.empty()) {
               op = std::unique_ptr<Operator::OperatorBase>(
-                  new VarT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
-                           parser_->currLoadFile()));
+                  new OperatorT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
+                                parser_->currLoadFile()));
             } else {
               op = std::unique_ptr<Operator::OperatorBase>(
-                  new VarT((*current_rule_iter_)->getOperator()->macro(), ctx->NOT() != nullptr,
-                           parser_->currLoadFile()));
+                  new OperatorT(std::move((*current_rule_iter_)->getOperator()->macro()),
+                                ctx->NOT() != nullptr, parser_->currLoadFile()));
             }
           } else {
-            op = std::unique_ptr<Operator::OperatorBase>(
-                new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+            op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
+                std::move(macro_ptr), ctx->NOT() != nullptr, parser_->currLoadFile()));
           }
-        } else if (std::dynamic_pointer_cast<Wge::Macro::MultiMacro>(macro_shared_ptr)) {
+        } else if (dynamic_cast<Wge::Macro::MultiMacro*>(macro_ptr.get())) {
           // We don't support MultiMacro yet.
           // FIXME(zhouyu 2025-05-09): Add support for MultiMacro in SecRuleUpdateOperator.
           // It a bit tricky because we need merge the original operator value to a new macro if the
           // macro has RULE.operator_value and the original operator value is a multi macro. I am
           // just want to finish the basic feature first.
+          assert(false);
           RETURN_ERROR("MultiMacro is not supported yet in SecRuleUpdateOperator.");
         }
       } else {
         op = std::unique_ptr<Operator::OperatorBase>(
-            new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+            new OperatorT(std::move(macro_ptr), ctx->NOT() != nullptr, parser_->currLoadFile()));
       }
     } else {
-      op = std::unique_ptr<Operator::OperatorBase>(new VarT(
+      op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
           ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
     }
 

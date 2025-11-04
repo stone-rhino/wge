@@ -131,7 +131,7 @@ std::string_view Engine::getTxVariableIndexReverse(size_t index) const {
   return parser_->getTxVariableIndexReverse(index);
 }
 
-std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,
+std::optional<const std::vector<const Rule*>::iterator> Engine::marker(std::string_view name,
                                                                        int phase) const {
   assert(phase >= 1 && phase <= PHASE_TOTAL);
   if (phase < 1 || phase > PHASE_TOTAL) {
@@ -178,6 +178,13 @@ void Engine::initRules() {
     rule->initPmfOperator(parser_->engineConfig().pmf_serialize_dir_);
   }
 
+  // Initialize the flags according to the default action rule
+  for (auto& rule : rules) {
+    if (default_actions_[rule->phase() - 1]) {
+      rule->initFlags(*default_actions_[rule->phase() - 1]);
+    }
+  }
+
   // Initialize the rules ctl
   for (auto& rule : rules) {
     auto& actions = rule->actions();
@@ -198,6 +205,16 @@ void Engine::initRules() {
       continue;
     }
     auto& phase_rules = rules_[phase - 1];
+
+    // Check the rule count limit, ensure the index won't overflow
+    if (static_cast<size_t>(std::numeric_limits<decltype(rule->index())>::max()) <
+        phase_rules.size()) {
+      assert(false);
+      WGE_LOG_ERROR("Too many rules in phase {}. rule id:{}. Max is {}", phase, rule->id(),
+                    std::numeric_limits<decltype(rule->index())>::max());
+      break;
+    }
+
     rule->index(phase_rules.size());
     phase_rules.emplace_back(rule.get());
   }
@@ -219,6 +236,26 @@ void Engine::initMakers() {
       }
     }
     markers_.emplace(marker.name(), marker);
+  }
+
+  // Update skip of each rule according to the markers
+  for (int i = 0; i < PHASE_TOTAL; ++i) {
+    auto& rules = rules_[i];
+    for (auto iter = rules.begin(); iter != rules.end(); ++iter) {
+      auto current_rule = *iter;
+      std::string_view skip_after = current_rule->skipAfter();
+      if (!skip_after.empty() && current_rule->skip() == 0) {
+        auto marker_iter = markers_.find(skip_after);
+        if (marker_iter != markers_.end()) {
+          auto next_rule_iter = marker_iter->second.prevRuleIter(i + 1);
+          if (next_rule_iter.has_value()) {
+            // Transform the skip_after to skip
+            size_t skip = std::distance(iter, next_rule_iter.value());
+            const_cast<Rule*>(current_rule)->skip(skip);
+          }
+        }
+      }
+    }
   }
 }
 

@@ -214,7 +214,7 @@ TEST_F(RuleActionParseTest, ActionNoAuditLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_FALSE(parser.rules().back()->auditLog().value_or(true));
+  ASSERT_TRUE(parser.rules().back()->noAuditLog());
 }
 
 TEST_F(RuleActionParseTest, ActionNoLog) {
@@ -222,7 +222,7 @@ TEST_F(RuleActionParseTest, ActionNoLog) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_FALSE(parser.rules().back()->log().value_or(true));
+  ASSERT_TRUE(parser.rules().back()->noLog());
 }
 
 TEST_F(RuleActionParseTest, ActionCapture) {

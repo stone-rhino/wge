@@ -33,8 +33,8 @@ SetEnv::SetEnv(std::string&& key, std::string&& value)
                  [](unsigned char c) { return std::tolower(c); });
 }
 
-SetEnv::SetEnv(std::string&& key, std::shared_ptr<Macro::MacroBase> macro)
-    : key_(std::move(key)), macro_(macro) {
+SetEnv::SetEnv(std::string&& key, std::unique_ptr<Macro::MacroBase>&& macro)
+    : key_(std::move(key)), macro_(std::move(macro)) {
   // The variable name is case insensitive
   std::transform(key_.begin(), key_.end(), key_.begin(),
                  [](unsigned char c) { return std::tolower(c); });

@@ -30,12 +30,13 @@
 #include "variable/collection_base.h"
 
 namespace Wge {
+std::unordered_set<std::string> Rule::string_pool_;
 void Rule::initExceptVariables() {
   ASSERT_IS_MAIN_THREAD();
 
   // Traverse the except variables and remove the matched variables from the variables list, or add
   // the except variable to the collection except list.
-  for (auto& except_var : except_variables_) {
+  for (auto& except_var : detail_->except_variables_) {
     auto except_var_name = except_var->fullName();
 
     // Init the except scanner
@@ -60,7 +61,7 @@ void Rule::initExceptVariables() {
       // The specific exception is collection or they are the same variable, we remove the variable
       // directly for the performance.
       if (except_var_name.sub_name_.empty() || var_name.sub_name_ == except_var_name.sub_name_) {
-        variables_index_by_full_name_.erase(var_name);
+        detail_->variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;
       }
@@ -68,7 +69,7 @@ void Rule::initExceptVariables() {
       // The specific exception is a regex, if matched, we remove the variable directly
       if (!var_name.sub_name_.empty() && except_scanner &&
           except_scanner->match(var_name.sub_name_)) {
-        variables_index_by_full_name_.erase(var_name);
+        detail_->variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;
       }
@@ -104,6 +105,16 @@ void Rule::initPmfOperator(const std::string& serialize_dir) {
   }
 }
 
+void Rule::initFlags(const Rule& default_action_rule) {
+  ASSERT_IS_MAIN_THREAD();
+
+  // Initialize the flags according to the default action rule
+  auditLog((default_action_rule.auditLog() || auditLog()) && !noAuditLog());
+  log((default_action_rule.log() || log()) && !noLog());
+  capture(default_action_rule.capture() || capture());
+  multiMatch(default_action_rule.multiMatch() || multiMatch());
+}
+
 /**
  * The evaluation process is as follows:
  * 1. Evaluate the variables
@@ -132,7 +143,7 @@ bool Rule::evaluate(Transaction& t) const {
   bool is_uncondition = operator_ == nullptr;
   if (is_uncondition)
     [[unlikely]] {
-      WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
+      WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id(), filePath(), line());
       // Evaluate the actions
       for (auto& action : actions_) {
         action->evaluate(t);
@@ -140,11 +151,11 @@ bool Rule::evaluate(Transaction& t) const {
       return true;
     }
 
-  WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
+  WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id(), filePath(), line());
 
   // If the multi match is enabled, then perform multiple operator invocations for every target,
   // before and after every anti-evasion transformation is performed.
-  if (multi_match_.value_or(false))
+  if (multiMatch())
     [[unlikely]] {
       WGE_LOG_TRACE("multi match is enabled");
       return evaluateWithMultiMatch(t);
@@ -184,7 +195,7 @@ bool Rule::evaluate(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        if (is_need_push_matched_) {
+        if (isNeedPushMatched()) {
           t.pushMatchedVariable(var.get(), chain_index_, result.move(i),
                                 std::move(transformed_value), std::move(captured_value),
                                 std::move(transform_list));
@@ -245,15 +256,15 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
 
   if (!var->isNot()) {
     auto full_name = var->fullName();
-    auto iter = variables_index_by_full_name_.find(full_name);
+    auto iter = detail_->variables_index_by_full_name_.find(full_name);
 
     // Not accept the same variable
-    if (iter == variables_index_by_full_name_.end()) {
+    if (iter == detail_->variables_index_by_full_name_.end()) {
       variables_.emplace_back(std::move(var));
-      variables_index_by_full_name_.insert({full_name, *variables_.back()});
+      detail_->variables_index_by_full_name_.insert({full_name, *variables_.back()});
     }
   } else {
-    except_variables_.emplace_back(std::move(var));
+    detail_->except_variables_.emplace_back(std::move(var));
   }
 }
 
@@ -262,7 +273,7 @@ void Rule::capture(bool value) {
   if (rx) {
     rx->capture(value);
   }
-  capture_ = value;
+  flags_.set(static_cast<size_t>(Flags::CAPTURE), value);
 }
 
 void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
@@ -299,7 +310,7 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   const Common::EvaluateResults::Element* p_input = &input;
 
   // Check if the default transformation should be ignored
-  if (!is_ingnore_default_transform_)
+  if (!isIgnoreDefaultTransform())
     [[unlikely]] {
       // Check that the default action is defined
       const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
@@ -426,7 +437,7 @@ inline void Rule::evaluateActions(Transaction& t) const {
 inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   // Get all of the transformations
   std::vector<Transformation::TransformBase*> transforms;
-  if (!is_ingnore_default_transform_) {
+  if (!isIgnoreDefaultTransform()) {
     const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
     if (default_action) {
       transforms.reserve(default_action->transforms().size());
@@ -467,7 +478,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        if (is_need_push_matched_) {
+        if (isNeedPushMatched()) {
           t.pushMatchedVariable(var.get(), chain_index_, result.move(i),
                                 std::move(transformed_value), std::move(captured_value),
                                 std::move(transform_list));

@@ -50,10 +50,10 @@ public:
 
 public:
   SetVar(std::string&& key, size_t index, Common::Variant&& value, EvaluateType type);
-  SetVar(std::string&& key, size_t index, const std::shared_ptr<Macro::MacroBase> value,
+  SetVar(std::string&& key, size_t index, std::unique_ptr<Macro::MacroBase>&& value,
          EvaluateType type);
-  SetVar(const std::shared_ptr<Macro::MacroBase> key, Common::Variant&& value, EvaluateType type);
-  SetVar(const std::shared_ptr<Macro::MacroBase> key, const std::shared_ptr<Macro::MacroBase> value,
+  SetVar(std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value, EvaluateType type);
+  SetVar(std::unique_ptr<Macro::MacroBase>&& key, std::unique_ptr<Macro::MacroBase>&& value,
          EvaluateType type);
 
 public:
@@ -70,8 +70,8 @@ private:
   const Common::Variant value_;
   const std::string value_buffer_;
   EvaluateType type_;
-  const std::shared_ptr<Macro::MacroBase> key_macro_;
-  const std::shared_ptr<Macro::MacroBase> value_macro_;
+  const std::unique_ptr<Macro::MacroBase> key_macro_;
+  const std::unique_ptr<Macro::MacroBase> value_macro_;
 };
 } // namespace Action
 } // namespace Wge

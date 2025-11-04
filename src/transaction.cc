@@ -615,14 +615,8 @@ inline bool Transaction::process(int phase) {
     // Log the matched rule
     if (log_callback_)
       [[likely]] {
-        if (default_action) {
-          if (current_rule_->log().value_or(default_action->log().value_or(true))) {
-            log_callback_(*current_rule_);
-          }
-        } else {
-          if (current_rule_->log().value_or(true)) {
-            log_callback_(*current_rule_);
-          }
+        if (current_rule_->log()) {
+          log_callback_(*current_rule_);
         }
       }
 
@@ -648,16 +642,6 @@ inline bool Transaction::process(int phase) {
           iter = rules.end();
         }
         continue;
-      }
-    const std::string& skip_after = current_rule_->skipAfter();
-    if (!skip_after.empty())
-      [[unlikely]] {
-        auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());
-        if (next_rule_iter.has_value())
-          [[likely]] {
-            iter = next_rule_iter.value();
-            continue;
-          }
       }
 
     // If skip and skipAfter are not set, then continue to the next rule

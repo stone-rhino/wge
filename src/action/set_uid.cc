@@ -24,7 +24,7 @@ namespace Wge {
 namespace Action {
 SetUid::SetUid(std::string&& value) : value_(std::move(value)) {}
 
-SetUid::SetUid(std::shared_ptr<Macro::MacroBase> macro) : macro_(macro) {}
+SetUid::SetUid(std::unique_ptr<Macro::MacroBase>&& macro) : macro_(std::move(macro)) {}
 
 void SetUid::evaluate(Transaction& t) const { throw "Not implemented!"; }
 } // namespace Action

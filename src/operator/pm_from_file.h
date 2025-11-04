@@ -75,9 +75,9 @@ public:
     }
   }
 
-  PmFromFile(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+  PmFromFile(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not,
              std::string_view curr_rule_file_path)
-      : OperatorBase(macro, is_not), expression_list_(true) {
+      : OperatorBase(std::move(macro), is_not), expression_list_(true) {
     // Not supported macro expansion
     UNREACHABLE();
   }

@@ -30,8 +30,8 @@ namespace Wge {
 namespace Macro {
 class VariableMacro final : public MacroBase {
 public:
-  VariableMacro(std::string&& literal_value, const std::shared_ptr<Variable::VariableBase> variable)
-      : MacroBase(std::move(literal_value)), variable_(variable) {}
+  VariableMacro(std::string&& literal_value, std::unique_ptr<Variable::VariableBase>&& variable)
+      : MacroBase(std::move(literal_value)), variable_(std::move(variable)) {}
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
@@ -41,7 +41,7 @@ public:
   }
 
 public:
-  const std::shared_ptr<Variable::VariableBase> getVariable() const { return variable_; }
+  const std::unique_ptr<Variable::VariableBase>& getVariable() const { return variable_; }
 
 private:
   std::string makeVariableName() const {
@@ -54,7 +54,7 @@ private:
   }
 
 private:
-  const std::shared_ptr<Variable::VariableBase> variable_;
+  const std::unique_ptr<Variable::VariableBase> variable_;
 };
 } // namespace Macro
 } // namespace Wge

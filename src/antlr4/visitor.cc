@@ -840,7 +840,7 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
 
     return variable;
   } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
-    std::shared_ptr<Variable::VariableBase> variable(
+    std::unique_ptr<Variable::VariableBase> variable(
         new Variable::Tx(std::move(sub_name), index, false, false, parser_->currLoadFile()));
 
     // Only accept xxx.yyy format
@@ -855,8 +855,12 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
     } else {
       letera_value = std::format("%{{{}:{}}}", variable->mainName(), variable->subName());
     }
-    return std::shared_ptr<Macro::MacroBase>(
-        new Macro::VariableMacro(std::move(letera_value), variable));
+
+    Macro::MacroBase* macro_ptr =
+        new Macro::VariableMacro(std::move(letera_value), std::move(variable));
+
+    // The raw pointer will be managed by std::unique_ptr in getMacro
+    return macro_ptr;
   } else {
     std::unique_ptr<Variable::VariableBase> variable(
         new Variable::Tx(std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
@@ -1159,7 +1163,7 @@ std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultCont
   std::unique_ptr<Operator::OperatorBase> op;
   if (macro.value()) {
     op = std::unique_ptr<Operator::OperatorBase>(
-        new Operator::Rx(macro.value(), false, parser_->currLoadFile()));
+        new Operator::Rx(std::move(macro.value()), false, parser_->currLoadFile()));
   } else {
     op = std::unique_ptr<Operator::OperatorBase>(
         new Operator::Rx(ctx->string_with_macro()->getText(), false, parser_->currLoadFile()));
@@ -1223,7 +1227,7 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
     (*current_rule_iter_)->msg("");
   }
 
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
       getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                ctx->string_with_macro()->STRING().empty());
 
@@ -1232,7 +1236,7 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
   }
 
   if (macro.value()) {
-    (*current_rule_iter_)->msg(macro.value());
+    (*current_rule_iter_)->msg(std::move(macro.value()));
   } else {
     (*current_rule_iter_)->msg(ctx->string_with_macro()->getText());
     if (visit_action_mode_ == VisitActionMode::SecRule ||
@@ -1247,10 +1251,12 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
 std::any
 Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
   auto& tags = (*current_rule_iter_)->tags();
-  auto [insert_iter, success] = tags.emplace(ctx->STRING()->getText());
-  if (visit_action_mode_ == VisitActionMode::SecRule) {
-    if (success) {
-      parser_->setRuleTagIndex(current_rule_iter_, *insert_iter);
+  std::string tag = ctx->STRING()->getText();
+  if (tags.find(tag) == tags.end()) {
+    std::string_view tag_view = (*current_rule_iter_)->tags(std::move(tag));
+    assert(!tag_view.empty());
+    if (visit_action_mode_ == VisitActionMode::SecRule) {
+      parser_->setRuleTagIndex(current_rule_iter_, tag_view);
     }
   }
 
@@ -1338,7 +1344,7 @@ std::any Visitor::visitAction_meta_data_severity_number(
 
 std::any Visitor::visitAction_non_disruptive_setvar_create(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_createContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
                ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
@@ -1349,8 +1355,8 @@ std::any Visitor::visitAction_non_disruptive_setvar_create(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (key_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetVar>(key_macro.value(), Common::Variant(),
-                                                          Action::SetVar::EvaluateType::Create));
+    actions.emplace_back(std::make_unique<Action::SetVar>(
+        std::move(key_macro.value()), Common::Variant(), Action::SetVar::EvaluateType::Create));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     actions.emplace_back(std::make_unique<Action::SetVar>(
@@ -1364,12 +1370,12 @@ std::any Visitor::visitAction_non_disruptive_setvar_create(
 std::any Visitor::visitAction_non_disruptive_setvar_create_init(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
                ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       getMacro(ctx->action_non_disruptive_setvar_create_init_value()->getText(),
                ctx->action_non_disruptive_setvar_create_init_value()->variable(),
                ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().empty());
@@ -1405,18 +1411,19 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::CreateAndInit));
+          std::move(key_macro.value()), std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::CreateAndInit));
     } else {
       actions.emplace_back(
-          std::make_unique<Action::SetVar>(key_macro.value(), std::move(value_variant),
+          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
                                            Action::SetVar::EvaluateType::CreateAndInit));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), value_macro.value(),
-          Action::SetVar::EvaluateType::CreateAndInit));
+          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::CreateAndInit));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
           std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
@@ -1429,7 +1436,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
 
 std::any Visitor::visitAction_non_disruptive_setvar_remove(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_removeContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
                ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
@@ -1440,8 +1447,8 @@ std::any Visitor::visitAction_non_disruptive_setvar_remove(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (key_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetVar>(key_macro.value(), Common::Variant(),
-                                                          Action::SetVar::EvaluateType::Remove));
+    actions.emplace_back(std::make_unique<Action::SetVar>(
+        std::move(key_macro.value()), Common::Variant(), Action::SetVar::EvaluateType::Remove));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     actions.emplace_back(std::make_unique<Action::SetVar>(
@@ -1455,12 +1462,12 @@ std::any Visitor::visitAction_non_disruptive_setvar_remove(
 std::any Visitor::visitAction_non_disruptive_setvar_increase(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
                ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!key_macro.has_value()) {
@@ -1487,17 +1494,19 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::Increase));
+          std::move(key_macro.value()), std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::Increase));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          key_macro.value(), std::move(value_variant), Action::SetVar::EvaluateType::Increase));
+      actions.emplace_back(
+          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
+                                           Action::SetVar::EvaluateType::Increase));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), value_macro.value(),
-          Action::SetVar::EvaluateType::Increase));
+          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::Increase));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
           std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
@@ -1511,12 +1520,12 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
 std::any Visitor::visitAction_non_disruptive_setvar_decrease(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) {
   auto& actions = (*current_rule_iter_)->actions();
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> key_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
                ctx->action_non_disruptive_setvar_varname()->VAR_NAME().empty());
 
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!key_macro.has_value()) {
@@ -1543,17 +1552,19 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          key_macro.value(), value_macro.value(), Action::SetVar::EvaluateType::Decrease));
+          std::move(key_macro.value()), std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::Decrease));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          key_macro.value(), std::move(value_variant), Action::SetVar::EvaluateType::Decrease));
+      actions.emplace_back(
+          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
+                                           Action::SetVar::EvaluateType::Decrease));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), value_macro.value(),
-          Action::SetVar::EvaluateType::Decrease));
+          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::Decrease));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
           std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
@@ -1566,7 +1577,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
 
 std::any Visitor::visitAction_non_disruptive_setenv(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setenvContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!value_macro.has_value()) {
@@ -1575,8 +1586,8 @@ std::any Visitor::visitAction_non_disruptive_setenv(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (value_macro.value()) {
-    actions.emplace_back(
-        std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), value_macro.value()));
+    actions.emplace_back(std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(),
+                                                          std::move(value_macro.value())));
   } else {
     actions.emplace_back(
         std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText()));
@@ -1587,7 +1598,7 @@ std::any Visitor::visitAction_non_disruptive_setenv(
 
 std::any Visitor::visitAction_non_disruptive_setuid(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setuidContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!value_macro.has_value()) {
@@ -1596,7 +1607,7 @@ std::any Visitor::visitAction_non_disruptive_setuid(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetUid>(value_macro.value()));
+    actions.emplace_back(std::make_unique<Action::SetUid>(std::move(value_macro.value())));
   } else {
     actions.emplace_back(std::make_unique<Action::SetUid>(ctx->STRING()->getText()));
   }
@@ -1606,7 +1617,7 @@ std::any Visitor::visitAction_non_disruptive_setuid(
 
 std::any Visitor::visitAction_non_disruptive_setrsc(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setrscContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!value_macro.has_value()) {
@@ -1615,7 +1626,7 @@ std::any Visitor::visitAction_non_disruptive_setrsc(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetRsc>(value_macro.value()));
+    actions.emplace_back(std::make_unique<Action::SetRsc>(std::move(value_macro.value())));
   } else {
     actions.emplace_back(std::make_unique<Action::SetRsc>(ctx->STRING()->getText()));
   }
@@ -1625,7 +1636,7 @@ std::any Visitor::visitAction_non_disruptive_setrsc(
 
 std::any Visitor::visitAction_non_disruptive_setsid(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setsidContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> value_macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> value_macro =
       ctx->variable() ? getMacro(ctx->variable()->getText(), {ctx->variable()}, true) : nullptr;
 
   if (!value_macro.has_value()) {
@@ -1634,7 +1645,7 @@ std::any Visitor::visitAction_non_disruptive_setsid(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetSid>(value_macro.value()));
+    actions.emplace_back(std::make_unique<Action::SetSid>(std::move(value_macro.value())));
   } else {
     actions.emplace_back(std::make_unique<Action::SetSid>(ctx->STRING()->getText()));
   }
@@ -2073,6 +2084,7 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_id(
         std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveTargetById,
                                       std::make_pair(id, std::move(variable_objects))));
   } catch (const std::bad_any_cast& ex) {
+    assert(false);
     visit_variable_mode_ = old_visit_variable_mode;
     return std::format("Expect a variable object, but not. return: {}",
                        std::any_cast<std::string>(visit_result));
@@ -2128,19 +2140,19 @@ std::any Visitor::visitAction_non_disruptive_log(
 
 std::any Visitor::visitAction_non_disruptive_no_audit_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_audit_logContext* ctx) {
-  (*current_rule_iter_)->auditLog(false);
+  (*current_rule_iter_)->noAuditLog(true);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_no_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) {
-  (*current_rule_iter_)->log(false);
+  (*current_rule_iter_)->noLog(true);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_logdata(
     Antlr4Gen::SecLangParser::Action_non_disruptive_logdataContext* ctx) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
       getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                ctx->string_with_macro()->STRING().empty());
 
@@ -2149,7 +2161,7 @@ std::any Visitor::visitAction_non_disruptive_logdata(
   }
 
   if (macro.value()) {
-    (*current_rule_iter_)->logData(macro.value());
+    (*current_rule_iter_)->logData(std::move(macro.value()));
   } else {
     (*current_rule_iter_)->logData(ctx->string_with_macro()->getText());
   }
@@ -2188,7 +2200,7 @@ std::any Visitor::visitAction_non_disruptive_initcol(
 
   std::string name = ctx->persistent_storage_collection()->getText();
 
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> macro =
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
       getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                ctx->string_with_macro()->STRING().empty());
 
@@ -2198,7 +2210,8 @@ std::any Visitor::visitAction_non_disruptive_initcol(
 
   auto& actions = (*current_rule_iter_)->actions();
   if (macro.value()) {
-    actions.emplace_back(std::make_unique<Action::InitCol>(type, std::move(name), macro.value()));
+    actions.emplace_back(
+        std::make_unique<Action::InitCol>(type, std::move(name), std::move(macro.value())));
   } else {
     actions.emplace_back(std::make_unique<Action::InitCol>(type, std::move(name),
                                                            ctx->string_with_macro()->getText()));
@@ -2505,11 +2518,11 @@ EngineConfig::BodyLimitAction Visitor::bodyLimitActionStr2EnumValue(const std::s
   return action;
 }
 
-std::expected<std::shared_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
+std::expected<std::unique_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
     std::string&& text,
     const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>& macro_ctx_array,
     bool no_string) {
-  std::expected<std::shared_ptr<Macro::MacroBase>, std::string> result;
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> result;
 
   VisitVariableMode old_visit_variable_mode = visit_variable_mode_;
   visit_variable_mode_ = VisitVariableMode::Macro;
@@ -2520,19 +2533,22 @@ std::expected<std::shared_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
       if (no_string && macro_ctx_array.size() == 1) {
         std::any visit_result = visitChildren(macro_ctx_array.front());
         macro_name = macro_ctx_array.front()->getText();
-        result = std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result);
+        result = std::unique_ptr<Macro::MacroBase>(std::any_cast<Macro::MacroBase*>(visit_result));
       } else {
-        std::vector<std::shared_ptr<Macro::MacroBase>> macros;
+        std::vector<std::unique_ptr<Macro::MacroBase>> macros;
         for (auto& macro_ctx : macro_ctx_array) {
           std::any visit_result = visitChildren(macro_ctx);
           macro_name = macro_ctx->getText();
-          macros.emplace_back(std::any_cast<std::shared_ptr<Macro::MacroBase>>(visit_result));
+          std::unique_ptr<Macro::MacroBase> macro_ptr(
+              std::any_cast<Macro::MacroBase*>(visit_result));
+          macros.emplace_back(std::move(macro_ptr));
         }
-        result = std::shared_ptr<Macro::MacroBase>(
+        result = std::unique_ptr<Macro::MacroBase>(
             new Macro::MultiMacro(std::move(text), std::move(macros)));
       }
     }
   } catch (const std::bad_any_cast& ex) {
+    assert(false);
     result = std::unexpected(std::format("Expect a macro object: %{{{}}}, but not.", macro_name));
   }
 
@@ -2549,9 +2565,9 @@ void Visitor::setRuleNeedPushMatched(Variable::VariableBase* variable) {
   if (is_matched_variable) {
     auto parent = (*current_rule_iter_)->parentRule();
     if (parent) {
-      parent->setNeedPushMatched(true);
+      parent->isNeedPushMatched(true);
     } else {
-      (*current_rule_iter_)->setNeedPushMatched(true);
+      (*current_rule_iter_)->isNeedPushMatched(true);
     }
   }
 }
