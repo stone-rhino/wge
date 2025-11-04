@@ -104,6 +104,16 @@ void Rule::initPmfOperator(const std::string& serialize_dir) {
   }
 }
 
+void Rule::initFlags(const Rule& default_action_rule) {
+  ASSERT_IS_MAIN_THREAD();
+
+  // Initialize the flags according to the default action rule
+  auditLog((default_action_rule.auditLog() || auditLog()) && !noAuditLog());
+  log((default_action_rule.log() || log()) && !noLog());
+  capture(default_action_rule.capture() || capture());
+  multiMatch(default_action_rule.multiMatch() || multiMatch());
+}
+
 /**
  * The evaluation process is as follows:
  * 1. Evaluate the variables
@@ -144,7 +154,7 @@ bool Rule::evaluate(Transaction& t) const {
 
   // If the multi match is enabled, then perform multiple operator invocations for every target,
   // before and after every anti-evasion transformation is performed.
-  if (multi_match_.value_or(false))
+  if (multiMatch())
     [[unlikely]] {
       WGE_LOG_TRACE("multi match is enabled");
       return evaluateWithMultiMatch(t);
@@ -184,7 +194,7 @@ bool Rule::evaluate(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        if (is_need_push_matched_) {
+        if (isNeedPushMatched()) {
           t.pushMatchedVariable(var.get(), chain_index_, result.move(i),
                                 std::move(transformed_value), std::move(captured_value),
                                 std::move(transform_list));
@@ -262,7 +272,7 @@ void Rule::capture(bool value) {
   if (rx) {
     rx->capture(value);
   }
-  capture_ = value;
+  flags_.set(static_cast<size_t>(Flags::CAPTURE), value);
 }
 
 void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
@@ -299,7 +309,7 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   const Common::EvaluateResults::Element* p_input = &input;
 
   // Check if the default transformation should be ignored
-  if (!is_ingnore_default_transform_)
+  if (!isIgnoreDefaultTransform())
     [[unlikely]] {
       // Check that the default action is defined
       const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
@@ -426,7 +436,7 @@ inline void Rule::evaluateActions(Transaction& t) const {
 inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   // Get all of the transformations
   std::vector<Transformation::TransformBase*> transforms;
-  if (!is_ingnore_default_transform_) {
+  if (!isIgnoreDefaultTransform()) {
     const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
     if (default_action) {
       transforms.reserve(default_action->transforms().size());
@@ -467,7 +477,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        if (is_need_push_matched_) {
+        if (isNeedPushMatched()) {
           t.pushMatchedVariable(var.get(), chain_index_, result.move(i),
                                 std::move(transformed_value), std::move(captured_value),
                                 std::move(transform_list));

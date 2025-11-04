@@ -2128,13 +2128,13 @@ std::any Visitor::visitAction_non_disruptive_log(
 
 std::any Visitor::visitAction_non_disruptive_no_audit_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_audit_logContext* ctx) {
-  (*current_rule_iter_)->auditLog(false);
+  (*current_rule_iter_)->noAuditLog(true);
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_no_log(
     Antlr4Gen::SecLangParser::Action_non_disruptive_no_logContext* ctx) {
-  (*current_rule_iter_)->log(false);
+  (*current_rule_iter_)->noLog(true);
   return EMPTY_STRING;
 }
 
@@ -2549,9 +2549,9 @@ void Visitor::setRuleNeedPushMatched(Variable::VariableBase* variable) {
   if (is_matched_variable) {
     auto parent = (*current_rule_iter_)->parentRule();
     if (parent) {
-      parent->setNeedPushMatched(true);
+      parent->isNeedPushMatched(true);
     } else {
-      (*current_rule_iter_)->setNeedPushMatched(true);
+      (*current_rule_iter_)->isNeedPushMatched(true);
     }
   }
 }

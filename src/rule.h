@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <bitset>
 #include <list>
 #include <memory>
 #include <optional>
@@ -58,8 +59,18 @@ public:
    * serialize_dir which is specified by SecPmfSerializeDir. The SecPmfSerializeDir directive may be
    * defined after the SecRule, So We must manually initialize the pmf operator after the all
    * directives are loaded. We must call this function and only once before evaluating the rule.
+   * @param serialize_dir The serialize directory.
    */
   void initPmfOperator(const std::string& serialize_dir);
+
+  /**
+   * Initialize the flags of the rule according to the default action rule.
+   * We can't auto initialize in the constructor because the default action rule is defined after
+   * the SecRule. So we must manually initialize the flags after the all directives are loaded. If
+   * there has no default action rule, we can skip this step.
+   * @param default_action_rule The default action rule.
+   */
+  void initFlags(const Rule& default_action_rule);
 
 public:
   /**
@@ -144,23 +155,31 @@ public:
 
   // Action Group: Non-disruptive
 public:
-  std::optional<bool> auditLog() const { return audit_log_; }
-  void auditLog(bool value) { audit_log_ = value; }
-  std::optional<bool> log() const { return log_; }
-  void log(bool value) { log_ = value; };
+  bool auditLog() const { return flags_.test(static_cast<size_t>(Flags::AUDIT_LOG)); }
+  void auditLog(bool value) { flags_.set(static_cast<size_t>(Flags::AUDIT_LOG), value); }
+  bool noAuditLog() const { return flags_.test(static_cast<size_t>(Flags::NO_AUDIT_LOG)); }
+  void noAuditLog(bool value) { flags_.set(static_cast<size_t>(Flags::NO_AUDIT_LOG), value); }
+  bool log() const { return flags_.test(static_cast<size_t>(Flags::LOG)); }
+  void log(bool value) { flags_.set(static_cast<size_t>(Flags::LOG), value); }
+  bool noLog() const { return flags_.test(static_cast<size_t>(Flags::NO_LOG)); }
+  void noLog(bool value) { flags_.set(static_cast<size_t>(Flags::NO_LOG), value); }
   const std::string& logdata() const { return log_data_; }
   void logData(std::string&& value) { log_data_ = std::move(value); }
   void logData(std::shared_ptr<Macro::MacroBase> macro) { log_data_macro_ = macro; }
-  std::optional<bool> capture() const { return capture_; }
+  bool capture() const { return flags_.test(static_cast<size_t>(Flags::CAPTURE)); }
   void capture(bool value);
-  std::optional<bool> multiMatch() const { return multi_match_; }
-  void multiMatch(bool value) { multi_match_ = value; }
+  bool multiMatch() const { return flags_.test(static_cast<size_t>(Flags::MULTI_MATCH)); }
+  void multiMatch(bool value) { flags_.set(static_cast<size_t>(Flags::MULTI_MATCH), value); }
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
     return transforms_;
   }
   std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() { return transforms_; }
-  bool isIgnoreDefaultTransform() const { return is_ingnore_default_transform_; }
-  void isIgnoreDefaultTransform(bool ignore) { is_ingnore_default_transform_ = ignore; }
+  bool isIgnoreDefaultTransform() const {
+    return flags_.test(static_cast<size_t>(Flags::IGNORE_DEFAULT_TRANSFORM));
+  }
+  void isIgnoreDefaultTransform(bool ignore) {
+    flags_.set(static_cast<size_t>(Flags::IGNORE_DEFAULT_TRANSFORM), ignore);
+  }
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
 
@@ -255,8 +274,12 @@ public:
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
   const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
 
-  bool isNeedPushMatched() const { return is_need_push_matched_; }
-  void setNeedPushMatched(bool need) { is_need_push_matched_ = need; }
+  bool isNeedPushMatched() const {
+    return flags_.test(static_cast<size_t>(Flags::NEED_PUSH_MATCHED));
+  }
+  void isNeedPushMatched(bool need) {
+    flags_.set(static_cast<size_t>(Flags::NEED_PUSH_MATCHED), need);
+  }
 
   // Evaluate the rule
 private:
@@ -286,13 +309,6 @@ private:
 
   // Build the index to quick find
   std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;
-
-  // Indicates whether the matched variable needs to be pushed to the transaction's
-  // matched_variables_.
-  // If any action that requires the matched variable is defined or MATCHED_VAR/MATCHED_VAR_NAME
-  // variable is used, this flag will be set to true. Otherwise, it will be false.
-  // This flag is used to optimize the performance of the rule evaluation.
-  bool is_need_push_matched_{false};
 
   // Action Group: Meta-data
 private:
@@ -352,13 +368,44 @@ private:
   std::string log_data_;
   std::shared_ptr<Macro::MacroBase> log_data_macro_;
 
-  std::optional<bool> audit_log_;
-  std::optional<bool> log_;
-  std::optional<bool> capture_;
-  std::optional<bool> multi_match_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
-  bool is_ingnore_default_transform_{false};
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
+
+  enum class Flags {
+    // Marks the transaction for logging in the audit log.
+    AUDIT_LOG = 0,
+
+    // Indicates that a successful match of the rule should not be used as criteria to determine
+    // whether the transaction should be logged to the audit log.
+    NO_AUDIT_LOG,
+
+    // Indicates that a successful match of the rule needs to be logged.
+    LOG,
+
+    // Prevents rule matches from appearing in both the error and audit logs.
+    NO_LOG,
+
+    // When used together with the regular expression operator (@rx), the capture action will create
+    // copies of the regular expression captures and place them into the transaction variable
+    // collection.
+    CAPTURE,
+
+    // If enabled, WGE will perform multiple operator invocations for every target, before
+    // and after every anti-evasion transformation is performed.
+    MULTI_MATCH,
+
+    // If enabled, WGE will ignore the default transformation for the matched variable.
+    IGNORE_DEFAULT_TRANSFORM,
+
+    // Indicates whether the matched variable needs to be pushed to the transaction's
+    // matched_variables_.
+    // If any action that requires the matched variable is defined or MATCHED_VAR/MATCHED_VAR_NAME
+    // variable is used, this flag will be set to true. Otherwise, it will be false.
+    // This flag is used to optimize the performance of the rule evaluation.
+    NEED_PUSH_MATCHED
+  };
+
+  std::bitset<8> flags_;
 
   // Action Group: Flow
 private:

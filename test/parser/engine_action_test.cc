@@ -70,11 +70,11 @@ TEST_F(EngineActionTest, SecDefaultAction) {
   auto& rule2 = rules.back();
   EXPECT_EQ(rule1->phase(), 1);
   EXPECT_EQ(rule2->phase(), 2);
-  EXPECT_TRUE(rule1->log().value_or(false));
-  EXPECT_TRUE(rule1->auditLog().value_or(false));
+  EXPECT_TRUE(rule1->log());
+  EXPECT_TRUE(rule1->auditLog());
   EXPECT_EQ(rule1->disruptive(), Rule::Disruptive::PASS);
-  EXPECT_TRUE(rule2->log().value_or(false));
-  EXPECT_TRUE(rule2->auditLog().value_or(false));
+  EXPECT_TRUE(rule2->log());
+  EXPECT_TRUE(rule2->auditLog());
   EXPECT_EQ(rule2->disruptive(), Rule::Disruptive::PASS);
 }
 } // namespace Parsr

@@ -178,6 +178,13 @@ void Engine::initRules() {
     rule->initPmfOperator(parser_->engineConfig().pmf_serialize_dir_);
   }
 
+  // Initialize the flags according to the default action rule
+  for (auto& rule : rules) {
+    if (default_actions_[rule->phase() - 1]) {
+      rule->initFlags(*default_actions_[rule->phase() - 1]);
+    }
+  }
+
   // Initialize the rules ctl
   for (auto& rule : rules) {
     auto& actions = rule->actions();
