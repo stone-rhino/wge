@@ -145,7 +145,7 @@ public:
    */
   std::string_view getTxVariableIndexReverse(size_t index) const;
 
-  std::optional<const std::vector<const Rule*>::iterator> marker(const std::string& name,
+  std::optional<const std::vector<const Rule*>::iterator> marker(std::string_view name,
                                                                  int phase) const;
 
   /**
@@ -176,7 +176,7 @@ private:
   // store the each phase's rule pointers in an array.
   std::array<std::vector<const Rule*>, PHASE_TOTAL> rules_;
 
-  std::unordered_map<std::string, Marker&> markers_;
+  std::unordered_map<std::string_view, Marker&> markers_;
   mutable PersistentStorage::Storage storage_;
 };
 } // namespace Wge

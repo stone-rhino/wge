@@ -310,7 +310,7 @@ void Parser::secMarker(std::string&& name) {
     }
   }
 
-  makers_.emplace_back(std::move(name), std::move(prev_rules));
+  makers_.emplace_back(Rule::intern(std::move(name)), std::move(prev_rules));
 }
 
 std::list<std::unique_ptr<Rule>>::iterator Parser::secDefaultAction(int line) {
@@ -435,7 +435,7 @@ void Parser::clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) 
 }
 
 void Parser::setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter,
-                             const std::string_view& tag) {
+                             std::string_view tag) {
   rules_index_tag_.insert({tag, iter});
 }
 

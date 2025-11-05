@@ -32,6 +32,7 @@ Engine::Engine(spdlog::level::level_enum level, const std::string& log_file)
     : parser_(std::make_shared<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
   main_thread_id = std::this_thread::get_id();
+  auto test = sizeof(Rule);
 
   // Initialize the log
   Common::Log::init(level, log_file);
@@ -131,7 +132,7 @@ std::string_view Engine::getTxVariableIndexReverse(size_t index) const {
   return parser_->getTxVariableIndexReverse(index);
 }
 
-std::optional<const std::vector<const Rule*>::iterator> Engine::marker(const std::string& name,
+std::optional<const std::vector<const Rule*>::iterator> Engine::marker(std::string_view name,
                                                                        int phase) const {
   assert(phase >= 1 && phase <= PHASE_TOTAL);
   if (phase < 1 || phase > PHASE_TOTAL) {
@@ -205,6 +206,16 @@ void Engine::initRules() {
       continue;
     }
     auto& phase_rules = rules_[phase - 1];
+
+    // Check the rule count limit, ensure the index won't overflow
+    if (static_cast<size_t>(std::numeric_limits<decltype(rule->index())>::max()) <
+        phase_rules.size()) {
+      assert(false);
+      WGE_LOG_ERROR("Too many rules in phase {}. rule id:{}. Max is {}", phase, rule->id(),
+                    std::numeric_limits<decltype(rule->index())>::max());
+      break;
+    }
+
     rule->index(phase_rules.size());
     phase_rules.emplace_back(rule.get());
   }

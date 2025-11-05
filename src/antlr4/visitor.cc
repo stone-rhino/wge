@@ -1247,10 +1247,12 @@ Visitor::visitAction_meta_data_msg(Antlr4Gen::SecLangParser::Action_meta_data_ms
 std::any
 Visitor::visitAction_meta_data_tag(Antlr4Gen::SecLangParser::Action_meta_data_tagContext* ctx) {
   auto& tags = (*current_rule_iter_)->tags();
-  auto [insert_iter, success] = tags.emplace(ctx->STRING()->getText());
-  if (visit_action_mode_ == VisitActionMode::SecRule) {
-    if (success) {
-      parser_->setRuleTagIndex(current_rule_iter_, *insert_iter);
+  std::string tag = ctx->STRING()->getText();
+  if (tags.find(tag) == tags.end()) {
+    std::string_view tag_view = (*current_rule_iter_)->tags(std::move(tag));
+    assert(!tag_view.empty());
+    if (visit_action_mode_ == VisitActionMode::SecRule) {
+      parser_->setRuleTagIndex(current_rule_iter_, tag_view);
     }
   }
 

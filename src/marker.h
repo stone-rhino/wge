@@ -37,14 +37,14 @@ namespace Wge {
 class Marker {
 public:
   constexpr static size_t phase_total_ = 5;
-  Marker(std::string&& name, std::array<const Rule*, phase_total_>&& prev_rules);
+  Marker(std::string_view name, std::array<const Rule*, phase_total_>&& prev_rules);
 
 public:
   /**
    * Get the name of the marker.
    * @return the name of the marker.
    */
-  const std::string& name() const { return name_; }
+  std::string_view name() const { return name_; }
 
   /**
    * Get the previous rule.
@@ -72,7 +72,7 @@ public:
   }
 
 private:
-  std::string name_;
+  std::string_view name_;
   std::array<const Rule*, phase_total_> prev_rules_;
   std::array<std::optional<std::vector<const Rule*>::iterator>, phase_total_> prev_rules_iter_;
 };

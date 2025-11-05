@@ -120,8 +120,7 @@ public:
   void clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   void clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  void setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter,
-                       const std::string_view& tag);
+  void setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter, std::string_view tag);
   void clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
   std::list<std::unique_ptr<Rule>>::iterator findRuleById(uint64_t id);
   std::pair<std::unordered_multimap<std::string_view,

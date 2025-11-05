@@ -643,7 +643,7 @@ inline bool Transaction::process(int phase) {
         }
         continue;
       }
-    const std::string& skip_after = current_rule_->skipAfter();
+    std::string_view skip_after = current_rule_->skipAfter();
     if (!skip_after.empty())
       [[unlikely]] {
         auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());

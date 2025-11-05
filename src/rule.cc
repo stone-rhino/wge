@@ -30,6 +30,7 @@
 #include "variable/collection_base.h"
 
 namespace Wge {
+std::unordered_set<std::string> Rule::string_pool_;
 void Rule::initExceptVariables() {
   ASSERT_IS_MAIN_THREAD();
 
@@ -60,7 +61,7 @@ void Rule::initExceptVariables() {
       // The specific exception is collection or they are the same variable, we remove the variable
       // directly for the performance.
       if (except_var_name.sub_name_.empty() || var_name.sub_name_ == except_var_name.sub_name_) {
-        variables_index_by_full_name_.erase(var_name);
+        detail_->variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;
       }
@@ -68,7 +69,7 @@ void Rule::initExceptVariables() {
       // The specific exception is a regex, if matched, we remove the variable directly
       if (!var_name.sub_name_.empty() && except_scanner &&
           except_scanner->match(var_name.sub_name_)) {
-        variables_index_by_full_name_.erase(var_name);
+        detail_->variables_index_by_full_name_.erase(var_name);
         iter = variables_.erase(iter);
         continue;
       }
@@ -142,7 +143,7 @@ bool Rule::evaluate(Transaction& t) const {
   bool is_uncondition = operator_ == nullptr;
   if (is_uncondition)
     [[unlikely]] {
-      WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id_, file_path_, line_);
+      WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id(), filePath(), line());
       // Evaluate the actions
       for (auto& action : actions_) {
         action->evaluate(t);
@@ -150,7 +151,7 @@ bool Rule::evaluate(Transaction& t) const {
       return true;
     }
 
-  WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id_, file_path_, line_);
+  WGE_LOG_TRACE("evaluate SecRule. id: {} [{}:{}]", id(), filePath(), line());
 
   // If the multi match is enabled, then perform multiple operator invocations for every target,
   // before and after every anti-evasion transformation is performed.
@@ -255,12 +256,12 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
 
   if (!var->isNot()) {
     auto full_name = var->fullName();
-    auto iter = variables_index_by_full_name_.find(full_name);
+    auto iter = detail_->variables_index_by_full_name_.find(full_name);
 
     // Not accept the same variable
-    if (iter == variables_index_by_full_name_.end()) {
+    if (iter == detail_->variables_index_by_full_name_.end()) {
       variables_.emplace_back(std::move(var));
-      variables_index_by_full_name_.insert({full_name, *variables_.back()});
+      detail_->variables_index_by_full_name_.insert({full_name, *variables_.back()});
     }
   } else {
     except_variables_.emplace_back(std::move(var));
