@@ -24,7 +24,7 @@ namespace Wge {
 namespace Action {
 SetRsc::SetRsc(std::string&& value) : value_(std::move(value)) {}
 
-SetRsc::SetRsc(std::shared_ptr<Macro::MacroBase> macro) : macro_(macro) {}
+SetRsc::SetRsc(std::unique_ptr<Macro::MacroBase>&& macro) : macro_(std::move(macro)) {}
 
 void SetRsc::evaluate(Transaction& t) const { throw "Not implemented!"; }
 } // namespace Action

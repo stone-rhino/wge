@@ -38,14 +38,14 @@ class SetRsc final : public ActionBase {
 
 public:
   SetRsc(std::string&& value);
-  SetRsc(std::shared_ptr<Macro::MacroBase> macro);
+  SetRsc(std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
 
 private:
   std::string value_;
-  std::shared_ptr<Macro::MacroBase> macro_;
+  const std::unique_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
 } // namespace Wge

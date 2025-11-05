@@ -70,9 +70,9 @@ public:
     }
   }
 
-  ValidateByteRange(const std::shared_ptr<Macro::MacroBase> macro, bool is_not,
+  ValidateByteRange(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not,
                     std::string_view curr_rule_file_path)
-      : OperatorBase(macro, is_not) {
+      : OperatorBase(std::move(macro), is_not) {
     // Not supported
     UNREACHABLE();
   }

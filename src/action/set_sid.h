@@ -38,14 +38,14 @@ class SetSid final : public ActionBase {
 
 public:
   SetSid(std::string&& value);
-  SetSid(std::shared_ptr<Macro::MacroBase> macro);
+  SetSid(std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
 
 private:
   std::string value_;
-  std::shared_ptr<Macro::MacroBase> macro_;
+  const std::unique_ptr<Macro::MacroBase> macro_;
 };
 } // namespace Action
 } // namespace Wge

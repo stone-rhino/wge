@@ -36,7 +36,7 @@ void Rule::initExceptVariables() {
 
   // Traverse the except variables and remove the matched variables from the variables list, or add
   // the except variable to the collection except list.
-  for (auto& except_var : except_variables_) {
+  for (auto& except_var : detail_->except_variables_) {
     auto except_var_name = except_var->fullName();
 
     // Init the except scanner
@@ -264,7 +264,7 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
       detail_->variables_index_by_full_name_.insert({full_name, *variables_.back()});
     }
   } else {
-    except_variables_.emplace_back(std::move(var));
+    detail_->except_variables_.emplace_back(std::move(var));
   }
 }
 

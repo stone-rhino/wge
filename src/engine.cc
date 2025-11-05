@@ -32,7 +32,6 @@ Engine::Engine(spdlog::level::level_enum level, const std::string& log_file)
     : parser_(std::make_shared<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
   main_thread_id = std::this_thread::get_id();
-  auto test = sizeof(Rule);
 
   // Initialize the log
   Common::Log::init(level, log_file);

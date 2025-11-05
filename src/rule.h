@@ -199,10 +199,10 @@ public:
   std::string_view filePath() const { return detail_->file_path_; }
   std::string_view msg() const { return detail_->msg_; }
   void msg(std::string&& value) { detail_->msg_ = intern(std::move(value)); }
-  void msg(std::shared_ptr<Macro::MacroBase> macro) { msg_macro_ = macro; }
+  void msg(std::unique_ptr<Macro::MacroBase>&& macro) { msg_macro_ = std::move(macro); }
   std::string_view logdata() const { return detail_->log_data_; }
   void logData(std::string&& value) { detail_->log_data_ = intern(std::move(value)); }
-  void logData(std::shared_ptr<Macro::MacroBase> macro) { log_data_macro_ = macro; }
+  void logData(std::unique_ptr<Macro::MacroBase>&& macro) { log_data_macro_ = std::move(macro); }
   std::string_view redirect() { return detail_->redirect_; }
   void redirect(std::string&& value) { detail_->redirect_ = intern(std::move(value)); }
   std::string_view status() const { return detail_->status_; }
@@ -285,7 +285,7 @@ public:
   }
 
   const std::vector<std::unique_ptr<Variable::VariableBase>>& exceptVariables() const {
-    return except_variables_;
+    return detail_->except_variables_;
   }
 
   const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
@@ -374,13 +374,12 @@ private:
   std::string_view skip_after_;
 
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
-  std::vector<std::unique_ptr<Variable::VariableBase>> except_variables_;
-  std::unique_ptr<Operator::OperatorBase> operator_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
+  std::unique_ptr<Operator::OperatorBase> operator_;
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
-  std::shared_ptr<Macro::MacroBase> msg_macro_;
-  std::shared_ptr<Macro::MacroBase> log_data_macro_;
+  std::unique_ptr<Macro::MacroBase> msg_macro_;
+  std::unique_ptr<Macro::MacroBase> log_data_macro_;
 
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.
   // Chained rules allow for more complex processing logic.
@@ -473,6 +472,8 @@ private:
 
     // Build the index to quick find
     std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;
+
+    std::vector<std::unique_ptr<Variable::VariableBase>> except_variables_;
   };
 
   std::unique_ptr<Detail> detail_;
