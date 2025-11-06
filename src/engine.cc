@@ -237,6 +237,26 @@ void Engine::initMakers() {
     }
     markers_.emplace(marker.name(), marker);
   }
+
+  // Update skip of each rule according to the markers
+  for (int i = 0; i < PHASE_TOTAL; ++i) {
+    auto& rules = rules_[i];
+    for (auto iter = rules.begin(); iter != rules.end(); ++iter) {
+      auto current_rule = *iter;
+      std::string_view skip_after = current_rule->skipAfter();
+      if (!skip_after.empty() && current_rule->skip() == 0) {
+        auto marker_iter = markers_.find(skip_after);
+        if (marker_iter != markers_.end()) {
+          auto next_rule_iter = marker_iter->second.prevRuleIter(i + 1);
+          if (next_rule_iter.has_value()) {
+            // Transform the skip_after to skip
+            size_t skip = std::distance(iter, next_rule_iter.value());
+            const_cast<Rule*>(current_rule)->skip(skip);
+          }
+        }
+      }
+    }
+  }
 }
 
 } // namespace Wge

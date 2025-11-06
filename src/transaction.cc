@@ -643,16 +643,6 @@ inline bool Transaction::process(int phase) {
         }
         continue;
       }
-    std::string_view skip_after = current_rule_->skipAfter();
-    if (!skip_after.empty())
-      [[unlikely]] {
-        auto next_rule_iter = engine_.marker(skip_after, current_rule_->phase());
-        if (next_rule_iter.has_value())
-          [[likely]] {
-            iter = next_rule_iter.value();
-            continue;
-          }
-      }
 
     // If skip and skipAfter are not set, then continue to the next rule
     ++iter;

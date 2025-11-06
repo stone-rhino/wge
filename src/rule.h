@@ -179,8 +179,6 @@ public:
   void index(int16_t value) { index_ = value; }
   int16_t skip() const { return skip_; }
   void skip(int16_t value) { skip_ = value; }
-  std::string_view skipAfter() const { return skip_after_; }
-  void skipAfter(std::string&& skip_after) { skip_after_ = intern(std::move(skip_after)); }
 
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
@@ -213,6 +211,8 @@ public:
   void ver(std::string&& value) { detail_->ver_ = intern(std::move(value)); }
   std::string_view rev() const { return detail_->rev_; }
   void rev(std::string&& value) { detail_->rev_ = intern(std::move(value)); }
+  std::string_view skipAfter() const { return detail_->skip_after_; }
+  void skipAfter(std::string&& skip_after) { detail_->skip_after_ = intern(std::move(skip_after)); }
   const std::unordered_set<std::string_view>& tags() const { return detail_->tags_; }
   std::string_view tags(std::string&& tag) {
     return *(detail_->tags_.emplace(intern(std::move(tag))).first);
@@ -369,10 +369,6 @@ private:
   // Skips one or more rules (or chains) on successful match.
   int16_t skip_{0};
 
-  // Skips one or more rules (or chains) on a successful match, resuming rule execution with the
-  // first rule that follows the rule (or marker created by SecMarker) with the provided ID.
-  std::string_view skip_after_;
-
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
   std::unique_ptr<Operator::OperatorBase> operator_;
@@ -458,6 +454,10 @@ private:
     // Specifies rule revision. It is useful in combination with the id action to provide an
     // indication that a rule has been changed.
     std::string_view rev_;
+
+    // Skips one or more rules (or chains) on a successful match, resuming rule execution with the
+    // first rule that follows the rule (or marker created by SecMarker) with the provided ID.
+    std::string_view skip_after_;
 
     // Assigns a tag (category) to a rule or a chain.
     std::unordered_set<std::string_view> tags_;
