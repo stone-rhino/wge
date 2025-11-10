@@ -43,16 +43,16 @@ private:
 
 TEST_F(RuleActionParseTest, NoAction) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo"
-      SecRule ARGS:aaa|ARGS:bbb "bar")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "phase:1"
+      SecRule ARGS:aaa|ARGS:bbb "bar" "phase:1")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  EXPECT_EQ(parser.rules().size(), 2);
-  EXPECT_EQ(parser.rules().front()->actions().size(), 0);
-  EXPECT_EQ(parser.rules().back()->actions().size(), 0);
+  EXPECT_EQ(parser.rules()[0].size(), 2);
+  EXPECT_EQ(parser.rules()[0].front().actions().size(), 0);
+  EXPECT_EQ(parser.rules()[0].back().actions().size(), 0);
 }
 
 TEST_F(RuleActionParseTest, ActionSetVar) {
@@ -63,7 +63,7 @@ TEST_F(RuleActionParseTest, ActionSetVar) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = parser.rules().back()->actions();
+  auto& actions = parser.rules()[0].back().actions();
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(std::string_view(actions.back()->name()), "setvar");
 }
@@ -76,7 +76,7 @@ TEST_F(RuleActionParseTest, ActionSetVarWithNoSigleQuote) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = parser.rules().back()->actions();
+  auto& actions = parser.rules()[0].back().actions();
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(std::string_view(actions.back()->name()), "setvar");
 }
@@ -89,7 +89,7 @@ TEST_F(RuleActionParseTest, ActionSetEnv) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = parser.rules().back()->actions();
+  auto& actions = parser.rules()[0].back().actions();
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(std::string_view(actions.back()->name()), "setenv");
 }
@@ -97,13 +97,13 @@ TEST_F(RuleActionParseTest, ActionSetEnv) {
 TEST_F(RuleActionParseTest, ActionSetRsc) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:'this is rsc',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setrsc:'this is rsc',msg:'aaa'")";
 
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setrsc");
   }
@@ -111,13 +111,13 @@ TEST_F(RuleActionParseTest, ActionSetRsc) {
   // Macro expansion
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setrsc:%{tx.0},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setrsc:%{tx.0},msg:'aaa'")";
 
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
 
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setrsc");
   }
@@ -126,11 +126,11 @@ TEST_F(RuleActionParseTest, ActionSetRsc) {
 TEST_F(RuleActionParseTest, ActionSetSid) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:'this is sid',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setsid:'this is sid',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setsid");
   }
@@ -138,11 +138,11 @@ TEST_F(RuleActionParseTest, ActionSetSid) {
   // Macro expansion
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setsid:%{tx.0},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setsid:%{tx.0},msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setsid");
   }
@@ -151,11 +151,11 @@ TEST_F(RuleActionParseTest, ActionSetSid) {
 TEST_F(RuleActionParseTest, ActionSetUid) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setuid:'this is uid',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setuid:'this is uid',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setuid");
   }
@@ -163,11 +163,11 @@ TEST_F(RuleActionParseTest, ActionSetUid) {
   // Macro expansion
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,setuid:%{tx.0},msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setuid:%{tx.0},msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules().back()->actions();
+    auto& actions = parser.rules()[0].back().actions();
     EXPECT_EQ(actions.size(), 1);
     EXPECT_EQ(std::string_view(actions.back()->name()), "setuid");
   }
@@ -175,17 +175,17 @@ TEST_F(RuleActionParseTest, ActionSetUid) {
 
 TEST_F(RuleActionParseTest, ActionTransformation) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,t:none,t:hexDecode,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,auditlog,t:none,t:hexDecode,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  auto& transforms = parser.rules().back()->transforms();
-  EXPECT_TRUE(parser.rules().back()->isIgnoreDefaultTransform());
+  auto& transforms = parser.rules()[0].back().transforms();
+  EXPECT_TRUE(parser.rules()[0].back().isIgnoreDefaultTransform());
   EXPECT_NE(nullptr, dynamic_cast<Transformation::HexDecode*>(transforms[0].get()));
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,t:none,t:hexDecode123,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,auditlog,t:none,t:hexDecode123,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(!result.has_value());
@@ -193,133 +193,142 @@ TEST_F(RuleActionParseTest, ActionTransformation) {
 }
 
 TEST_F(RuleActionParseTest, ActionAuditLog) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,auditlog,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,auditlog,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->auditLog());
+  EXPECT_TRUE(parser.rules()[0].back().auditLog());
 }
 
 TEST_F(RuleActionParseTest, ActionLog) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,log,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,log,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->log());
+  EXPECT_TRUE(parser.rules()[0].back().log());
 }
 
 TEST_F(RuleActionParseTest, ActionNoAuditLog) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,noauditlog,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,noauditlog,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  ASSERT_TRUE(parser.rules().back()->noAuditLog());
+  ASSERT_TRUE(parser.rules()[0].back().noAuditLog());
 }
 
 TEST_F(RuleActionParseTest, ActionNoLog) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,nolog,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,nolog,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  ASSERT_TRUE(parser.rules().back()->noLog());
+  ASSERT_TRUE(parser.rules()[0].back().noLog());
 }
 
 TEST_F(RuleActionParseTest, ActionCapture) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,capture,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,capture,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->capture());
+  EXPECT_TRUE(parser.rules()[0].back().capture());
 }
 
 TEST_F(RuleActionParseTest, ActionMultiMatch) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,multiMatch,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,multiMatch,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_TRUE(parser.rules().back()->multiMatch());
+  EXPECT_TRUE(parser.rules()[0].back().multiMatch());
 }
 
 TEST_F(RuleActionParseTest, ActionAllow) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,allow,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,allow,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::ALLOW);
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::ALLOW);
 }
 
 TEST_F(RuleActionParseTest, ActionBlock) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,block,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,block,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::BLOCK);
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::BLOCK);
 }
 
 TEST_F(RuleActionParseTest, ActionDeny) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,deny,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,deny,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::DENY);
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::DENY);
 }
 
 TEST_F(RuleActionParseTest, ActionDrop) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,drop,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,drop,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::DROP);
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::DROP);
 }
 
 TEST_F(RuleActionParseTest, ActionPass) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,pass,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,pass,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::PASS);
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::PASS);
 }
 
 TEST_F(RuleActionParseTest, ActionRedirect) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,redirect:http://www.srhino.com,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,redirect:http://www.srhino.com,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->disruptive(), Rule::Disruptive::REDIRECT);
-  EXPECT_EQ(parser.rules().back()->redirect(), "http://www.srhino.com");
+  EXPECT_EQ(parser.rules()[0].back().disruptive(), Rule::Disruptive::REDIRECT);
+  EXPECT_EQ(parser.rules()[0].back().redirect(), "http://www.srhino.com");
 }
 
 TEST_F(RuleActionParseTest, ActionStatus) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,status:500,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,status:500,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->status(), "500");
+  EXPECT_EQ(parser.rules()[0].back().status(), "500");
 }
 
 TEST_F(RuleActionParseTest, ActionXmlns) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,xmlns:xsd=http://www.w3.org/2001/XMLSchema,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,xmlns:xsd=http://www.w3.org/2001/XMLSchema,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->xmlns(), "xsd=http://www.w3.org/2001/XMLSchema");
+  EXPECT_EQ(parser.rules()[0].back().xmlns(), "xsd=http://www.w3.org/2001/XMLSchema");
 }
 
 TEST_F(RuleActionParseTest, ActionCtlAuditEngine) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=On,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=On,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=Off,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=Off,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -327,7 +336,7 @@ TEST_F(RuleActionParseTest, ActionCtlAuditEngine) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=RelevantOnly,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=RelevantOnly,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -335,7 +344,7 @@ TEST_F(RuleActionParseTest, ActionCtlAuditEngine) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditEngine=asdfasdf,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=asdfasdf,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(!result.has_value());
@@ -344,14 +353,14 @@ TEST_F(RuleActionParseTest, ActionCtlAuditEngine) {
 
 TEST_F(RuleActionParseTest, ActionCtlAuditLogParts) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=+ABCDEF,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditLogParts=+ABCDEF,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=-ABCDEF,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditLogParts=-ABCDEF,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -359,7 +368,7 @@ TEST_F(RuleActionParseTest, ActionCtlAuditLogParts) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:auditLogParts=+ABCDEFL,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditLogParts=+ABCDEFL,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -368,14 +377,14 @@ TEST_F(RuleActionParseTest, ActionCtlAuditLogParts) {
 
 TEST_F(RuleActionParseTest, ActionCtlRequestBodyAccess) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=On,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyAccess=On,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=Off,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyAccess=Off,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -383,7 +392,7 @@ TEST_F(RuleActionParseTest, ActionCtlRequestBodyAccess) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyAccess=Hi,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyAccess=Hi,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -392,14 +401,14 @@ TEST_F(RuleActionParseTest, ActionCtlRequestBodyAccess) {
 
 TEST_F(RuleActionParseTest, ActionCtlRequestBodyProcessor) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=XML,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyProcessor=XML,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=JSON,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyProcessor=JSON,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -407,7 +416,7 @@ TEST_F(RuleActionParseTest, ActionCtlRequestBodyProcessor) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:requestBodyProcessor=Hi,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:requestBodyProcessor=Hi,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -416,14 +425,14 @@ TEST_F(RuleActionParseTest, ActionCtlRequestBodyProcessor) {
 
 TEST_F(RuleActionParseTest, ActionCtlRuleEngine) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=On,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleEngine=On,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=Off,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleEngine=Off,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -431,7 +440,7 @@ TEST_F(RuleActionParseTest, ActionCtlRuleEngine) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=DetectionOnly,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleEngine=DetectionOnly,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -439,7 +448,7 @@ TEST_F(RuleActionParseTest, ActionCtlRuleEngine) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleEngine=Hi,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleEngine=Hi,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -448,14 +457,14 @@ TEST_F(RuleActionParseTest, ActionCtlRuleEngine) {
 
 TEST_F(RuleActionParseTest, ActionCtlRuleRemoveById) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveById=123,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleRemoveById=123,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveById=222-333,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleRemoveById=222-333,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
@@ -464,7 +473,7 @@ TEST_F(RuleActionParseTest, ActionCtlRuleRemoveById) {
 
 TEST_F(RuleActionParseTest, ActionCtlRuleRemoveByTag) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveByTag=foo,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleRemoveByTag=foo,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
@@ -472,7 +481,7 @@ TEST_F(RuleActionParseTest, ActionCtlRuleRemoveByTag) {
 
 TEST_F(RuleActionParseTest, ActionCtlRuleRemoveTargetById) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveTargetById=123;ARGS:foo|ARGS:bar,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleRemoveTargetById=123;ARGS:foo|ARGS:bar,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
@@ -480,7 +489,7 @@ TEST_F(RuleActionParseTest, ActionCtlRuleRemoveTargetById) {
 
 TEST_F(RuleActionParseTest, ActionCtlRuleRemoveTargetByTag) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,ctl:ruleRemoveTargetByTag=foo;ARGS:foo|ARGS:bar,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:ruleRemoveTargetByTag=foo;ARGS:foo|ARGS:bar,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
@@ -488,15 +497,15 @@ TEST_F(RuleActionParseTest, ActionCtlRuleRemoveTargetByTag) {
 
 TEST_F(RuleActionParseTest, ActionChain) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,ctl:ruleRemoveTargetByTag=foo;ARGS:foo|ARGS:bar,msg:'aaa',chain"
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,ctl:ruleRemoveTargetByTag=foo;ARGS:foo|ARGS:bar,msg:'aaa',chain"
 SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'bar'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().size(), 1);
+  EXPECT_EQ(parser.rules()[0].size(), 1);
 
   // Variables pool
-  Rule* chain_rule = parser.rules().back()->chainRule(0).value()->get();
+  Rule* chain_rule = parser.rules()[0].back().chainRule(0);
   auto& rule_var_pool = chain_rule->variables();
   ASSERT_EQ(rule_var_pool.size(), 3);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
@@ -542,45 +551,46 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
 
 TEST_F(RuleActionParseTest, ActionInitCol) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,initcol:global=global,initcol:ip=%{remote_addr}_%{MATCHED_VAR}")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,initcol:global=global,initcol:ip=%{remote_addr}_%{MATCHED_VAR}")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().size(), 1);
-  auto& actions = parser.rules().back()->actions();
+  EXPECT_EQ(parser.rules()[0].size(), 1);
+  auto& actions = parser.rules()[0].back().actions();
   EXPECT_EQ(actions.size(), 2);
   EXPECT_NE(nullptr, dynamic_cast<Action::InitCol*>(actions.front().get()));
 }
 
 TEST_F(RuleActionParseTest, ActionSkipAfter) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,skipAfter:hi,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,skipAfter:hi,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->skipAfter(), "hi");
+  EXPECT_EQ(parser.rules()[0].back().skipAfter(), "hi");
 }
 
 TEST_F(RuleActionParseTest, ActionSkip) {
-  const std::string rule_directive = R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,skip:3,msg:'aaa'")";
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,skip:3,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->skip(), 3);
+  EXPECT_EQ(parser.rules()[0].back().skip(), 3);
 }
 
 TEST_F(RuleActionParseTest, ActionServerity) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:2,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:2,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 2);
+  EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 2);
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:8,msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:8,msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -588,79 +598,79 @@ TEST_F(RuleActionParseTest, ActionServerity) {
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'EMERGENCY',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'EMERGENCY',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 0);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 0);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'ALERT',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'ALERT',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 1);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 1);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'CRITICAL',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'CRITICAL',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 2);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 2);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'ERROR',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'ERROR',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 3);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 3);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'WARNING',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'WARNING',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 4);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 4);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'NOTICE',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'NOTICE',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 5);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 5);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'INFO',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'INFO',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 6);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 6);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'DEBUG',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'DEBUG',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(static_cast<uint32_t>(parser.rules().back()->severity()), 7);
+    EXPECT_EQ(static_cast<uint32_t>(parser.rules()[0].back().severity()), 7);
   }
 
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,severity:'HI',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,severity:'HI',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_FALSE(result.has_value());
@@ -670,7 +680,7 @@ TEST_F(RuleActionParseTest, ActionServerity) {
 TEST_F(RuleActionParseTest, ActionIdWithString) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'123abc',tag:'foo',msg:'bar'")";
+        R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'123abc',phase:1,tag:'foo',msg:'bar'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
 
@@ -679,15 +689,15 @@ TEST_F(RuleActionParseTest, ActionIdWithString) {
   }
 
   const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'1',tag:'foo',msg:'bar'")";
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'1',phase:1,tag:'foo',msg:'bar'")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
   // Variables pool
-  EXPECT_EQ(parser.rules().size(), 1);
-  auto& rule_var_pool = parser.rules().back()->variables();
+  EXPECT_EQ(parser.rules()[0].size(), 1);
+  auto& rule_var_pool = parser.rules()[0].back().variables();
   ASSERT_EQ(rule_var_pool.size(), 3);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(rule_var_pool[0].get()));
   EXPECT_EQ(rule_var_pool[0]->subName(), "");
@@ -704,7 +714,7 @@ TEST_F(RuleActionParseTest, ActionIdWithString) {
   EXPECT_TRUE(rule_var_pool[2]->isCounter());
   EXPECT_FALSE(rule_var_pool[2]->isNot());
 
-  auto& except_var_pool = parser.rules().back()->exceptVariables();
+  auto& except_var_pool = parser.rules()[0].back().exceptVariables();
   ASSERT_EQ(except_var_pool.size(), 1);
   EXPECT_NE(nullptr, dynamic_cast<Variable::ArgsGet*>(except_var_pool[0].get()));
   EXPECT_EQ(except_var_pool[0]->subName(), "foo");
@@ -712,7 +722,7 @@ TEST_F(RuleActionParseTest, ActionIdWithString) {
   EXPECT_TRUE(except_var_pool[0]->isNot());
 
   // variables map
-  auto& rule_var_index = parser.rules().back()->variablesIndex();
+  auto& rule_var_index = parser.rules()[0].back().variablesIndex();
   {
     auto iter = rule_var_index.find({"ARGS_GET", ""});
     ASSERT_TRUE(iter != rule_var_index.end());
@@ -725,39 +735,39 @@ TEST_F(RuleActionParseTest, ActionIdWithString) {
   }
 
   // operator
-  auto& rule_operator = parser.rules().back()->getOperator();
+  auto& rule_operator = parser.rules()[0].back().getOperator();
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }
 
 TEST_F(RuleActionParseTest, ActionMsgWithMacro) {
   const std::string rule_directive =
-      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'111',tag:'foo',msg:'foo: %{tx.foo} bar: %{tx.bar}'")";
+      R"(SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:'111',phase:1,tag:'foo',msg:'foo: %{tx.foo} bar: %{tx.bar}'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
 
   ASSERT_TRUE(result.has_value());
 
-  EXPECT_TRUE(parser.rules().back()->msg().empty());
+  EXPECT_TRUE(parser.rules()[0].back().msg().empty());
 }
 
 TEST_F(RuleActionParseTest, ActionLogData) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,logdata:'this is logdata',msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,logdata:'this is logdata',msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules().back()->logdata(), "this is logdata");
+  EXPECT_EQ(parser.rules()[0].back().logdata(), "this is logdata");
 }
 
 TEST_F(RuleActionParseTest, ActionLogDataWithMacro) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,logdata:'foo: %{tx.foo} bar: %{tx.bar}',msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,logdata:'foo: %{tx.foo} bar: %{tx.bar}',msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  EXPECT_TRUE(parser.rules().back()->logdata().empty());
+  EXPECT_TRUE(parser.rules()[0].back().logdata().empty());
 }
 } // namespace Parser
 } // namespace Wge

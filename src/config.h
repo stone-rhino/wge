@@ -37,6 +37,10 @@ namespace Wge {
 // We use an array to store the rules in each phase, and the index of the array is phase - 1.
 constexpr size_t PHASE_TOTAL = 5;
 
+using RulePhaseType = int8_t;
+using RuleIndexType = int16_t;
+using RuleChainIndexType = int8_t;
+
 /**
  * The configuration of the WGE
  */

@@ -24,14 +24,15 @@
 #include <expected>
 #include <list>
 #include <memory>
+#include <optional>
 #include <set>
 #include <stack>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "../config.h"
-#include "../marker.h"
 #include "../rule.h"
 
 namespace Wge::Antlr4 {
@@ -84,15 +85,15 @@ public:
   void secPmfSerializeDir(std::string&& file_path);
 
   // Engine action
-  std::list<std::unique_ptr<Rule>>::iterator secAction(int line);
+  void secAction(std::unique_ptr<Rule>&& rule);
 
   // Rule directives
-  std::list<std::unique_ptr<Rule>>::iterator secRule(int line);
+  Rule* secRule(std::unique_ptr<Rule>&& rule);
   void secRuleRemoveById(uint64_t id);
   void secRuleRemoveByMsg(const std::string& msg);
   void secRuleRemoveByTag(const std::string& tag);
   void secMarker(std::string&& name);
-  std::list<std::unique_ptr<Rule>>::iterator secDefaultAction(int line);
+  void secDefaultAction(std::unique_ptr<Rule>&& rule);
 
   // Audit log configurations
   void secAuditEngine(AuditLogConfig::AuditEngine option);
@@ -108,31 +109,34 @@ public:
   void secComponentSignature(std::string&& signature);
 
 public:
+  struct RuleIndex {
+    RulePhaseType phase_;
+    RuleIndexType index_;
+    bool operator==(const RuleIndex& other) const {
+      return phase_ == other.phase_ && index_ == other.index_;
+    }
+  };
   const EngineConfig& engineConfig() const { return engine_config_; }
-  const std::list<std::unique_ptr<Rule>>& defaultActions() const { return default_actions_; }
-  const std::list<std::unique_ptr<Rule>>& rules() const { return rules_; }
-  const std::list<Marker>& markers() const { return makers_; }
+  const std::array<std::optional<Rule>, PHASE_TOTAL>& defaultActions() const {
+    return default_actions_rules_;
+  }
+  std::array<std::vector<Rule>, PHASE_TOTAL>& rules() { return rules_; }
+  std::unordered_map<std::string_view, std::array<RuleIndexType, PHASE_TOTAL>>& markers() {
+    return markers_;
+  }
   const AuditLogConfig& auditLogConfig() const { return audit_log_config_; }
   ParseXmlIntoArgsOption parseXmlIntoArgsOption() const { return parse_xml_into_args_option_; }
-  void removeBackRule();
-  void removeBackDefaultAction();
-  void setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  void clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  void setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  void clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  void setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter, std::string_view tag);
-  void clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter);
-  std::list<std::unique_ptr<Rule>>::iterator findRuleById(uint64_t id);
-  std::pair<std::unordered_multimap<std::string_view,
-                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator,
-            std::unordered_multimap<std::string_view,
-                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator>
-  findRuleByMsg(const std::string& msg);
-  std::pair<std::unordered_multimap<std::string_view,
-                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator,
-            std::unordered_multimap<std::string_view,
-                                    std::list<std::unique_ptr<Rule>>::iterator>::iterator>
-  findRuleByTag(const std::string& tag);
+  void setRuleIdIndex(RuleIndex rule_index);
+  void setRuleMsgIndex(RuleIndex rule_index);
+  void setRuleTagIndex(RuleIndex rule_index, std::string_view tag);
+  void clearRuleIdIndex(RuleIndex rule_index);
+  void clearRuleMsgIndex(RuleIndex rule_index);
+  void clearRuleTagIndex(RuleIndex rule_index);
+  void updateMarker(RuleIndex rule_index);
+  void updateRuleIndex(RuleIndex rule_index);
+  Rule* findRuleById(uint64_t id);
+  std::unordered_set<Rule*> findRuleByMsg(const std::string& msg);
+  std::unordered_set<Rule*> findRuleByTag(const std::string& tag);
   std::string_view currLoadFile() const {
     return curr_load_file_.empty() ? "" : curr_load_file_.top();
   }
@@ -142,17 +146,15 @@ public:
   std::string_view getTxVariableIndexReverse(size_t index) const;
 
 private:
+  std::array<std::vector<Rule>, PHASE_TOTAL> rules_;
+  std::array<std::optional<Rule>, PHASE_TOTAL> default_actions_rules_;
   EngineConfig engine_config_;
   AuditLogConfig audit_log_config_;
   ParseXmlIntoArgsOption parse_xml_into_args_option_;
-  std::list<std::unique_ptr<Rule>> default_actions_;
-  std::list<std::unique_ptr<Rule>> rules_;
-  std::unordered_map<uint64_t, std::list<std::unique_ptr<Rule>>::iterator> rules_index_id_;
-  std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
-      rules_index_msg_;
-  std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>
-      rules_index_tag_;
-  std::list<Marker> makers_;
+  std::unordered_map<uint64_t, RuleIndex> rules_index_id_;
+  std::unordered_multimap<std::string_view, RuleIndex> rules_index_msg_;
+  std::unordered_multimap<std::string_view, RuleIndex> rules_index_tag_;
+  std::unordered_map<std::string_view, std::array<RuleIndexType, PHASE_TOTAL>> markers_;
 
   std::set<std::string> loaded_file_paths_;
   std::stack<std::string_view> curr_load_file_;

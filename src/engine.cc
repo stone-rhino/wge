@@ -29,13 +29,15 @@ std::thread::id main_thread_id;
 
 namespace Wge {
 Engine::Engine(spdlog::level::level_enum level, const std::string& log_file)
-    : parser_(std::make_shared<Antlr4::Parser>()) {
+    : parser_(std::make_unique<Antlr4::Parser>()) {
   // We assume that it can only be constructed in the main thread
   main_thread_id = std::this_thread::get_id();
 
   // Initialize the log
   Common::Log::init(level, log_file);
 }
+
+Engine::~Engine() = default;
 
 std::expected<bool, std::string> Engine::loadFromFile(const std::string& file_path) {
   // An efficient and rational design should not call this method in the worker thread.
@@ -58,21 +60,20 @@ void Engine::init() {
   // This assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
-  initDefaultActions();
   initRules();
-  initMakers();
 
   is_init_ = true;
 }
 
-const Rule* Engine::defaultActions(int phase) const {
+const Rule* Engine::defaultActions(RulePhaseType phase) const {
   assert(phase >= 1 && phase <= PHASE_TOTAL);
-  return default_actions_[phase - 1];
+  auto& default_action_rule = parser_->defaultActions()[phase - 1];
+  return default_action_rule.has_value() ? &default_action_rule.value() : nullptr;
 }
 
-const std::vector<const Rule*>& Engine::rules(int phase) const {
+const std::vector<Rule>& Engine::rules(RulePhaseType phase) const {
   assert(phase >= 1 && phase <= PHASE_TOTAL);
-  return rules_[phase - 1];
+  return parser_->rules()[phase - 1];
 }
 
 TransactionPtr Engine::makeTransaction() const {
@@ -93,12 +94,7 @@ const Rule* Engine::findRuleById(uint64_t id) const {
   // This assert check that this method can only be called in the main thread
   ASSERT_IS_MAIN_THREAD();
 
-  auto iter = parser_->findRuleById(id);
-  if (iter != parser_->rules().end()) {
-    return iter->get();
-  } else {
-    return nullptr;
-  }
+  return parser_->findRuleById(id);
 }
 
 void Engine::findRuleByTag(
@@ -113,12 +109,12 @@ void Engine::findRuleByTag(
     rules.clear();
   }
 
-  auto [start, end] = parser_->findRuleByTag(tag);
-  for (auto iter = start; iter != end; ++iter) {
-    const int phase = (*iter->second)->phase();
+  auto rules = parser_->findRuleByTag(tag);
+  for (auto rule : rules) {
+    auto phase = rule->phase();
     assert(phase >= 1 && phase <= PHASE_TOTAL);
     if (phase >= 1 || phase <= PHASE_TOTAL) {
-      rule_set[phase - 1].emplace((*iter->second).get());
+      rule_set[phase - 1].emplace(rule);
     }
   }
 }
@@ -131,127 +127,51 @@ std::string_view Engine::getTxVariableIndexReverse(size_t index) const {
   return parser_->getTxVariableIndexReverse(index);
 }
 
-std::optional<const std::vector<const Rule*>::iterator> Engine::marker(std::string_view name,
-                                                                       int phase) const {
-  assert(phase >= 1 && phase <= PHASE_TOTAL);
-  if (phase < 1 || phase > PHASE_TOTAL) {
-    return {};
-  }
-
-  auto iter = markers_.find(name);
-  if (iter != markers_.end()) {
-    if (iter->second.prevRuleIter(phase).has_value()) {
-      return std::next(iter->second.prevRuleIter(phase).value());
-    } else {
-      return {};
-    }
-  }
-
-  return {};
-}
-
-void Engine::initDefaultActions() {
-  auto& rules = parser_->defaultActions();
-
-  // Sets the default actions for each phase
-  for (auto& rule : rules) {
-    auto phase = rule->phase();
-    assert(phase >= 1 && phase <= PHASE_TOTAL);
-    if (phase < 1 || phase > PHASE_TOTAL) {
-      WGE_LOG_WARN("phase {} invalid.", phase);
-      continue;
-    }
-    default_actions_[phase - 1] = rule.get();
-  }
-}
-
 void Engine::initRules() {
-  auto& rules = parser_->rules();
+  auto& markers = parser_->markers();
+  for (RulePhaseType phase = 1; phase <= PHASE_TOTAL; ++phase) {
+    auto& rules = parser_->rules()[phase - 1];
 
-  // Initialize the except variables
-  for (auto& rule : rules) {
-    rule->initExceptVariables();
-  }
-
-  // Initialize the Pmf operator
-  for (auto& rule : rules) {
-    rule->initPmfOperator(parser_->engineConfig().pmf_serialize_dir_);
-  }
-
-  // Initialize the flags according to the default action rule
-  for (auto& rule : rules) {
-    if (default_actions_[rule->phase() - 1]) {
-      rule->initFlags(*default_actions_[rule->phase() - 1]);
+    // Initialize the except variables
+    for (auto& rule : rules) {
+      rule.initExceptVariables();
     }
-  }
 
-  // Initialize the rules ctl
-  for (auto& rule : rules) {
-    auto& actions = rule->actions();
-    for (auto& action : actions) {
-      if (::strncmp("ctl", action->name(), 3) == 0) {
-        auto ctl = dynamic_cast<Action::Ctl*>(action.get());
-        ctl->initRules(*this);
+    // Initialize the Pmf operator
+    for (auto& rule : rules) {
+      rule.initPmfOperator(parser_->engineConfig().pmf_serialize_dir_);
+    }
+
+    // Initialize the flags according to the default action rule
+    for (auto& rule : rules) {
+      auto default_action_rule = defaultActions(phase);
+      if (default_action_rule) {
+        rule.initFlags(*default_action_rule);
       }
     }
-  }
 
-  // Sets the rules for each phase
-  for (auto& rule : rules) {
-    auto phase = rule->phase();
-    assert(phase >= 1 && phase <= PHASE_TOTAL);
-    if (phase < 1 || phase > PHASE_TOTAL) {
-      WGE_LOG_WARN("phase {} invalid. rule id:{}", phase, rule->id());
-      continue;
-    }
-    auto& phase_rules = rules_[phase - 1];
-
-    // Check the rule count limit, ensure the index won't overflow
-    if (static_cast<size_t>(std::numeric_limits<decltype(rule->index())>::max()) <
-        phase_rules.size()) {
-      assert(false);
-      WGE_LOG_ERROR("Too many rules in phase {}. rule id:{}. Max is {}", phase, rule->id(),
-                    std::numeric_limits<decltype(rule->index())>::max());
-      break;
-    }
-
-    rule->index(phase_rules.size());
-    phase_rules.emplace_back(rule.get());
-  }
-}
-
-void Engine::initMakers() {
-  auto& markers = const_cast<std::list<Marker>&>(parser_->markers());
-
-  // Traverse the markers and find the rule that the marker points to
-  for (auto& marker : markers) {
-    // Traverse the rules in each phase
-    for (int i = 0; i < PHASE_TOTAL; ++i) {
-      // Find the rule that the marker points to
-      for (auto iter = rules_[i].begin(); iter != rules_[i].end(); ++iter) {
-        if (*iter == marker.prevRule(i + 1)) {
-          marker.prevRuleIter(iter, i + 1);
-          break;
+    // Initialize the rules ctl
+    for (auto& rule : rules) {
+      auto& actions = rule.actions();
+      for (auto& action : actions) {
+        if (::strncmp("ctl", action->name(), 3) == 0) {
+          auto ctl = dynamic_cast<Action::Ctl*>(action.get());
+          ctl->initRules(*this);
         }
       }
     }
-    markers_.emplace(marker.name(), marker);
-  }
 
-  // Update skip of each rule according to the markers
-  for (int i = 0; i < PHASE_TOTAL; ++i) {
-    auto& rules = rules_[i];
-    for (auto iter = rules.begin(); iter != rules.end(); ++iter) {
-      auto current_rule = *iter;
-      std::string_view skip_after = current_rule->skipAfter();
-      if (!skip_after.empty() && current_rule->skip() == 0) {
-        auto marker_iter = markers_.find(skip_after);
-        if (marker_iter != markers_.end()) {
-          auto next_rule_iter = marker_iter->second.prevRuleIter(i + 1);
-          if (next_rule_iter.has_value()) {
+    // Initialize the skip of rules
+    for (auto& rule : rules) {
+      std::string_view skip_after = rule.skipAfter();
+      if (!skip_after.empty() && rule.skip() == 0) {
+        auto marker_iter = markers.find(skip_after);
+        if (marker_iter != markers.end()) {
+          auto pre_rule_index = marker_iter->second[phase - 1];
+          if (pre_rule_index != -1 && pre_rule_index > rule.index()) {
             // Transform the skip_after to skip
-            size_t skip = std::distance(iter, next_rule_iter.value());
-            const_cast<Rule*>(current_rule)->skip(skip);
+            size_t skip = pre_rule_index - rule.index();
+            rule.skip(skip);
           }
         }
       }

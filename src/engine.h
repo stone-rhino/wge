@@ -27,7 +27,6 @@
 #include <vector>
 
 #include "common/log.h"
-#include "marker.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
@@ -53,6 +52,7 @@ public:
    * @param log_file the log file path. If it is empty, the log will be output to the console
    */
   Engine(spdlog::level::level_enum level = spdlog::level::info, const std::string& log_file = "");
+  ~Engine();
 
 public:
   /**
@@ -81,14 +81,14 @@ public:
    * @param phase specify the phase of the default actions, the valid range is 1-5.
    * @return vector of default actions
    */
-  const Rule* defaultActions(int phase) const;
+  const Rule* defaultActions(RulePhaseType phase) const;
 
   /**
    * Get rules
    * @param phase specify the phase of rule, the valid range is 1-5.
    * @return vector of rules
    */
-  const std::vector<const Rule*>& rules(int phase) const;
+  const std::vector<Rule>& rules(RulePhaseType phase) const;
 
 public:
   /**
@@ -145,8 +145,8 @@ public:
    */
   std::string_view getTxVariableIndexReverse(size_t index) const;
 
-  std::optional<const std::vector<const Rule*>::iterator> marker(std::string_view name,
-                                                                 int phase) const;
+  // std::optional<const std::vector<const Rule*>::iterator> marker(std::string_view name,
+  //                                                                int phase) const;
 
   /**
    * Get persistent storage
@@ -155,28 +155,15 @@ public:
   PersistentStorage::Storage& storage() const { return storage_; }
 
 private:
-  void initDefaultActions();
   void initRules();
-  void initMakers();
 
 private:
   // Is the engine initialized
   bool is_init_{false};
 
   // The parser is used to parse the SecLang rule set.
-  std::shared_ptr<Antlr4::Parser> parser_;
+  std::unique_ptr<Antlr4::Parser> parser_;
 
-  // Default actions defined in the SecDefaultAction directive
-  // The default action is executed in the same phase as the rule that is matched and before
-  // evaluating the rule's actions.
-  std::array<const Rule*, PHASE_TOTAL> default_actions_{nullptr};
-
-  // Even though the parser parses the rule set and stores the parsed rules, the parser  is not used
-  // to evaluate the rules. Because each phase has a separate rule set, for performance reasons, we
-  // store the each phase's rule pointers in an array.
-  std::array<std::vector<const Rule*>, PHASE_TOTAL> rules_;
-
-  std::unordered_map<std::string_view, Marker&> markers_;
   mutable PersistentStorage::Storage storage_;
 };
 } // namespace Wge

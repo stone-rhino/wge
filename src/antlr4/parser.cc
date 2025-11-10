@@ -249,73 +249,112 @@ void Parser::secPmfSerializeDir(std::string&& file_path) {
   engine_config_.pmf_serialize_dir_ = std::move(file_path);
 }
 
-std::list<std::unique_ptr<Rule>>::iterator Parser::secAction(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
-  return std::prev(rules_.end());
+void Parser::secAction(std::unique_ptr<Rule>&& rule) {
+  if (rule->phase() < 1 || rule->phase() > PHASE_TOTAL) {
+    assert(false && "The rule must has valid phase");
+    return;
+  }
+
+  // Check the rule count limit, ensure the index won't overflow
+  size_t phase_rules_size = rules_[rule->phase() - 1].size();
+  if (static_cast<size_t>(std::numeric_limits<RuleIndexType>::max()) < phase_rules_size) {
+    assert(false && "Too many rules in phase");
+    return;
+  }
+
+  rule->index(phase_rules_size);
+  rules_[rule->phase() - 1].emplace_back(std::move(*rule));
+  rule.reset();
 }
 
-std::list<std::unique_ptr<Rule>>::iterator Parser::secRule(int line) {
-  rules_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
-  return std::prev(rules_.end());
+Rule* Parser::secRule(std::unique_ptr<Rule>&& rule) {
+  if (rule->phase() < 1 || rule->phase() > PHASE_TOTAL) {
+    assert(false && "The rule must has valid phase");
+    return nullptr;
+  }
+
+  // Check the rule count limit, ensure the index won't overflow
+  size_t phase_rules_size = rules_[rule->phase() - 1].size();
+  if (static_cast<size_t>(std::numeric_limits<RuleIndexType>::max()) < phase_rules_size) {
+    assert(false && "Too many rules in phase");
+    return nullptr;
+  }
+
+  rule->index(phase_rules_size);
+  auto& appended_rule = rules_[rule->phase() - 1].emplace_back(std::move(*rule));
+  rule.reset();
+
+  // Set indexes
+  setRuleIdIndex({appended_rule.phase(), appended_rule.index()});
+  setRuleMsgIndex({appended_rule.phase(), appended_rule.index()});
+  for (auto& tag : appended_rule.tags()) {
+    setRuleTagIndex({appended_rule.phase(), appended_rule.index()}, tag);
+  }
+
+  return &appended_rule;
 }
 
 void Parser::secRuleRemoveById(uint64_t id) {
   auto iter = rules_index_id_.find(id);
   if (iter != rules_index_id_.end()) {
+    clearRuleIdIndex(iter->second);
     clearRuleTagIndex(iter->second);
     clearRuleMsgIndex(iter->second);
-    rules_.erase(iter->second);
-    rules_index_id_.erase(iter);
+    updateMarker(iter->second);
+    updateRuleIndex(iter->second);
+    auto& rules = rules_[iter->second.phase_ - 1];
+    rules.erase(rules.begin() + iter->second.index_);
   }
 }
 
 void Parser::secRuleRemoveByMsg(const std::string& msg) {
-  auto [start, end] = rules_index_msg_.equal_range(msg);
-  for (auto iter = start; iter != end; ++iter) {
-    clearRuleIdIndex(iter->second);
-    clearRuleTagIndex(iter->second);
-    rules_.erase(iter->second);
+  auto rules = findRuleByMsg(msg);
+  std::vector<uint64_t> ids;
+  for (auto rule : rules) {
+    ids.emplace_back(rule->id());
   }
-  rules_index_msg_.erase(msg);
+
+  for (auto id : ids) {
+    secRuleRemoveById(id);
+  }
+
+  assert(findRuleByMsg(msg).empty());
 }
 
 void Parser::secRuleRemoveByTag(const std::string& tag) {
-  auto [start, end] = rules_index_tag_.equal_range(tag);
-  for (auto iter = start; iter != end; ++iter) {
-    clearRuleIdIndex(iter->second);
-    clearRuleMsgIndex(iter->second);
-    rules_.erase(iter->second);
+  auto rules = findRuleByTag(tag);
+  std::vector<uint64_t> ids;
+  for (auto rule : rules) {
+    ids.emplace_back(rule->id());
   }
-  rules_index_tag_.erase(tag);
+
+  for (auto id : ids) {
+    secRuleRemoveById(id);
+  }
+
+  assert(findRuleByTag(tag).empty());
 }
 
 void Parser::secMarker(std::string&& name) {
-  std::array<const Rule*, Marker::phase_total_> prev_rules{nullptr};
+  std::array<RuleIndexType, PHASE_TOTAL> prev_rule_indexes;
 
-  // Get the previous rule in each phase
-  int geted = 0;
-  for (auto iter = rules_.rbegin(); iter != rules_.rend(); ++iter) {
-    auto& rule = *iter;
-    int phase = rule->phase();
-    if (phase != -1) {
-      if (prev_rules[phase - 1] == nullptr) {
-        prev_rules[phase - 1] = rule.get();
-        ++geted;
-      }
-    }
-
-    // each phase has a previous rule then break
-    if (geted == Marker::phase_total_) {
-      break;
-    }
+  // Get the previous rule index in each phase
+  for (size_t i = 0; i < PHASE_TOTAL; ++i) {
+    auto& rules = rules_[i];
+    prev_rule_indexes[i] = rules.size() - 1;
   }
 
-  makers_.emplace_back(Rule::intern(std::move(name)), std::move(prev_rules));
+  markers_.emplace(Rule::intern(std::move(name)), std::move(prev_rule_indexes));
 }
 
-std::list<std::unique_ptr<Rule>>::iterator Parser::secDefaultAction(int line) {
-  default_actions_.emplace_back(std::make_unique<Rule>(currLoadFile(), line));
-  return std::prev(default_actions_.end());
+void Parser::secDefaultAction(std::unique_ptr<Rule>&& rule) {
+  if (rule->phase() < 1 || rule->phase() > PHASE_TOTAL) {
+    assert(false && "The rule must has valid phase");
+    return;
+  }
+
+  default_actions_rules_[rule->phase() - 1] = std::move(*rule);
+  rule.reset();
 }
 
 void Parser::secAuditEngine(AuditLogConfig::AuditEngine option) {
@@ -395,83 +434,136 @@ void Parser::secComponentSignature(std::string&& signature) {
   audit_log_config_.component_signature_ = std::move(signature);
 }
 
-void Parser::removeBackRule() {
-  // remove index
-  auto iter = std::prev(rules_.end());
-  clearRuleIdIndex(iter);
-  clearRuleMsgIndex(iter);
-  clearRuleTagIndex(iter);
-
-  // remove rule
-  rules_.erase(std::prev(rules_.end()));
-}
-
-void Parser::removeBackDefaultAction() {
-  default_actions_.erase(std::prev(default_actions_.end()));
-}
-
-void Parser::setRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  rules_index_id_[(*iter)->id()] = iter;
-}
-
-void Parser::clearRuleIdIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  rules_index_id_.erase((*iter)->id());
-}
-
-void Parser::setRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  rules_index_msg_.insert({(*iter)->msg(), iter});
-}
-
-void Parser::clearRuleMsgIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  // remove msg index
-  std::erase_if(
-      rules_index_msg_,
-      [&](const std::pair<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
-        if (pair.second == iter) {
-          return true;
-        }
-        return false;
-      });
-}
-
-void Parser::setRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter,
-                             std::string_view tag) {
-  rules_index_tag_.insert({tag, iter});
-}
-
-void Parser::clearRuleTagIndex(std::list<std::unique_ptr<Rule>>::iterator iter) {
-  // remove tag index
-  std::erase_if(
-      rules_index_tag_,
-      [&](const std::pair<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>& pair) {
-        if (pair.second == iter) {
-          return true;
-        }
-        return false;
-      });
-}
-
-std::list<std::unique_ptr<Rule>>::iterator Parser::findRuleById(uint64_t id) {
-  auto iter = rules_index_id_.find(id);
-  if (iter != rules_index_id_.end()) {
-    return iter->second;
+void Parser::setRuleIdIndex(RuleIndex rule_index) {
+  if (rule_index.index_ == -1) {
+    return;
   }
 
-  return rules_.end();
+  auto& rule = rules_[rule_index.phase_ - 1][rule_index.index_];
+  rules_index_id_[rule.id()] = rule_index;
 }
 
-std::pair<
-    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator,
-    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
-Parser::findRuleByMsg(const std::string& msg) {
-  return rules_index_msg_.equal_range(msg);
+void Parser::setRuleMsgIndex(RuleIndex rule_index) {
+  if (rule_index.index_ == -1) {
+    return;
+  }
+
+  auto& rule = rules_[rule_index.phase_ - 1][rule_index.index_];
+  rules_index_msg_.insert({rule.msg(), rule_index});
 }
 
-std::pair<
-    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator,
-    std::unordered_multimap<std::string_view, std::list<std::unique_ptr<Rule>>::iterator>::iterator>
-Parser::findRuleByTag(const std::string& tag) {
-  return rules_index_tag_.equal_range(tag);
+void Parser::setRuleTagIndex(RuleIndex rule_index, std::string_view tag) {
+  if (rule_index.index_ == -1) {
+    return;
+  }
+
+  auto& rule = rules_[rule_index.phase_ - 1][rule_index.index_];
+  rules_index_tag_.insert({tag, rule_index});
+}
+
+void Parser::clearRuleIdIndex(RuleIndex rule_index) {
+  if (rule_index.index_ == -1) {
+    return;
+  }
+
+  // Remove id index
+  auto& rule = rules_[rule_index.phase_ - 1][rule_index.index_];
+  rules_index_id_.erase(rule.id());
+
+  // Update other id idexes
+  for (auto& id_index : rules_index_id_) {
+    if (id_index.second.index_ > rule_index.index_ && id_index.second.phase_ == rule_index.phase_) {
+      id_index.second.index_--;
+    }
+  }
+}
+
+void Parser::clearRuleMsgIndex(RuleIndex rule_index) {
+  if (rule_index.index_ == -1) {
+    return;
+  }
+
+  // Remove msg index
+  std::erase_if(rules_index_msg_, [&](const std::pair<std::string_view, RuleIndex>& pair) {
+    if (pair.second == rule_index) {
+      return true;
+    }
+    return false;
+  });
+
+  // Update other msg indexes
+  for (auto& msg_index : rules_index_msg_) {
+    if (msg_index.second.index_ > rule_index.index_ &&
+        msg_index.second.phase_ == rule_index.phase_) {
+      msg_index.second.index_--;
+    }
+  }
+}
+
+void Parser::clearRuleTagIndex(RuleIndex rule_index) {
+  if (rule_index.index_ == -1) {
+    return;
+  }
+
+  // Remove tag index
+  std::erase_if(rules_index_tag_, [&](const std::pair<std::string_view, RuleIndex>& pair) {
+    if (pair.second == rule_index) {
+      return true;
+    }
+    return false;
+  });
+
+  // Update other tag indexes
+  for (auto& tag_index : rules_index_tag_) {
+    if (tag_index.second.index_ > rule_index.index_ &&
+        tag_index.second.phase_ == rule_index.phase_) {
+      tag_index.second.index_--;
+    }
+  }
+}
+
+void Parser::updateMarker(RuleIndex rule_index) {
+  for (auto& [_, prev_rule_indexes] : markers_) {
+    if (prev_rule_indexes[rule_index.phase_ - 1] >= rule_index.index_) {
+      prev_rule_indexes[rule_index.phase_ - 1]--;
+    }
+  }
+}
+
+void Parser::updateRuleIndex(RuleIndex rule_index) {
+  auto& rules = rules_[rule_index.phase_ - 1];
+  for (auto i = rule_index.index_ + 1; i < rules.size(); ++i) {
+    rules[i].index(i - 1);
+  }
+}
+
+Rule* Parser::findRuleById(uint64_t id) {
+  auto iter = rules_index_id_.find(id);
+  if (iter != rules_index_id_.end()) {
+    return &(rules_[iter->second.phase_ - 1][iter->second.index_]);
+  }
+
+  return nullptr;
+}
+
+std::unordered_set<Rule*> Parser::findRuleByMsg(const std::string& msg) {
+  std::unordered_set<Rule*> result;
+  auto [begin, end] = rules_index_msg_.equal_range(msg);
+  for (auto iter = begin; iter != end; ++iter) {
+    auto& rule = rules_[iter->second.phase_ - 1][iter->second.index_];
+    result.emplace(&rule);
+  }
+  return result;
+}
+
+std::unordered_set<Rule*> Parser::findRuleByTag(const std::string& tag) {
+  std::unordered_set<Rule*> result;
+  auto [begin, end] = rules_index_tag_.equal_range(tag);
+  for (auto iter = begin; iter != end; ++iter) {
+    auto& rule = rules_[iter->second.phase_ - 1][iter->second.index_];
+    result.emplace(&rule);
+  }
+  return result;
 }
 
 std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool force) {

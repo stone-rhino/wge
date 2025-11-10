@@ -49,8 +49,8 @@ TEST_F(RuleOperatorParseTest, beginsWith) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("beginsWith"));
   EXPECT_EQ(op->literalValue(), "ba");
 }
@@ -63,8 +63,8 @@ TEST_F(RuleOperatorParseTest, beginsWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("beginsWith"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -77,8 +77,8 @@ TEST_F(RuleOperatorParseTest, endsWith) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("endsWith"));
   EXPECT_EQ(op->literalValue(), "ar");
 }
@@ -91,8 +91,8 @@ TEST_F(RuleOperatorParseTest, endsWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("endsWith"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -108,24 +108,24 @@ TEST_F(RuleOperatorParseTest, ipMatch) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rules = parser.rules();
+  auto& rules = parser.rules()[0];
   EXPECT_EQ(rules.size(), 4);
   size_t i = 0;
   for (auto& rule : rules) {
-    auto& op = rule->getOperator();
+    auto& op = rule.getOperator();
     EXPECT_EQ(op->name(), std::string_view("ipMatch"));
     switch (i) {
     case 0:
-      EXPECT_EQ(rule->getOperator()->literalValue(), "192.168.1.1");
+      EXPECT_EQ(rule.getOperator()->literalValue(), "192.168.1.1");
       break;
     case 1:
-      EXPECT_EQ(rule->getOperator()->literalValue(), "192.168.1.0/24");
+      EXPECT_EQ(rule.getOperator()->literalValue(), "192.168.1.0/24");
       break;
     case 2:
-      EXPECT_EQ(rule->getOperator()->literalValue(), "2001:db8:85a3:8d3:1319:8a2e:370:7349");
+      EXPECT_EQ(rule.getOperator()->literalValue(), "2001:db8:85a3:8d3:1319:8a2e:370:7349");
       break;
     case 3:
-      EXPECT_EQ(rule->getOperator()->literalValue(), "2001:db8:85a3:8d3:1319:8a2e:270:0000/24");
+      EXPECT_EQ(rule.getOperator()->literalValue(), "2001:db8:85a3:8d3:1319:8a2e:270:0000/24");
       break;
     default:
       ASSERT_TRUE(false);
@@ -143,8 +143,8 @@ TEST_F(RuleOperatorParseTest, pm) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("pm"));
   EXPECT_EQ(op->literalValue(), "hello1 world1");
 }
@@ -157,8 +157,8 @@ TEST_F(RuleOperatorParseTest, within) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("within"));
   EXPECT_EQ(op->literalValue(), "hello1 world1");
 }
@@ -171,8 +171,8 @@ TEST_F(RuleOperatorParseTest, withinWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("within"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -185,8 +185,8 @@ TEST_F(RuleOperatorParseTest, rx) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("rx"));
   EXPECT_EQ(op->literalValue(), R"(^\w+\d+\w+$)");
 }
@@ -199,8 +199,8 @@ TEST_F(RuleOperatorParseTest, rxWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("rx"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -213,8 +213,8 @@ TEST_F(RuleOperatorParseTest, pmFromFile) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("pmFromFile"));
   EXPECT_EQ(op->literalValue(), R"(test/test_data/pmf_test.data)");
 }
@@ -227,8 +227,8 @@ TEST_F(RuleOperatorParseTest, streq) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("streq"));
   EXPECT_EQ(op->literalValue(), "helloworld1");
 }
@@ -241,8 +241,8 @@ TEST_F(RuleOperatorParseTest, streqWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("streq"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -255,8 +255,8 @@ TEST_F(RuleOperatorParseTest, validateUrlEncoding) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("validateUrlEncoding"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -269,8 +269,8 @@ TEST_F(RuleOperatorParseTest, contains) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("contains"));
   EXPECT_EQ(op->literalValue(), "hello1");
 }
@@ -283,8 +283,8 @@ TEST_F(RuleOperatorParseTest, containsWithMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("contains"));
   EXPECT_EQ(op->literalValue(), "");
 }
@@ -297,8 +297,8 @@ TEST_F(RuleOperatorParseTest, validateByteRange) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules().back();
-  auto& op = rule->getOperator();
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("validateByteRange"));
   EXPECT_EQ(op->literalValue(), "65,66-68");
 }
