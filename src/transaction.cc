@@ -586,7 +586,7 @@ inline bool Transaction::process(int phase) {
   auto begin = rules.begin();
   auto& rule_remove_flag = rule_remove_flags_[phase - 1];
   for (auto iter = begin; iter != rules.end();) {
-    current_rule_ = *iter;
+    current_rule_ = &(*iter);
 
     // Skip the rules that have been removed
     assert(current_rule_->index() != -1);

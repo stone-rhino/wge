@@ -37,4 +37,5 @@ install(
 
 install(
   TARGETS wge_shared
+  OPTIONAL
 )

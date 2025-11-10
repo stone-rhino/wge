@@ -170,18 +170,39 @@ public:
 
   // Basic Info (Hot Data)
 public:
-  int8_t phase() const { return phase_; }
-  void phase(int8_t value) { phase_ = value; }
+  RulePhaseType phase() const { return phase_; }
+  void phase(RulePhaseType value) { phase_ = value; }
   Disruptive disruptive() const { return disruptive_; }
   void disruptive(Disruptive value) { disruptive_ = value; }
-  int8_t chainIndex() const { return chain_index_; }
-  int16_t index() const { return index_; }
-  void index(int16_t value) { index_ = value; }
+  RuleChainIndexType chainIndex() const { return chain_index_; }
+  RuleIndexType index() const { return index_; }
+  void index(RuleIndexType value) { index_ = value; }
   int16_t skip() const { return skip_; }
   void skip(int16_t value) { skip_ = value; }
-
   const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
   std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
+  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
+  const std::vector<std::unique_ptr<Variable::VariableBase>>& variables() const {
+    return variables_;
+  }
+  const std::vector<std::unique_ptr<Variable::VariableBase>>& exceptVariables() const {
+    return detail_->except_variables_;
+  }
+  const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
+    return detail_->variables_index_by_full_name_;
+  }
+  void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
+  const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
+  void appendChainRule(std::unique_ptr<Rule>&& rule);
+
+  /**
+   * Get the rule of the chain by index.
+   * @param index the relative index of the chain that starts from this rule. Note that the index is
+   * not same as the index of the chain that starts form the top rule.
+   * @return nullptr if the he index is out of range, otherwise the pointer to the rule of the
+   * chain.
+   */
+  Rule* chainRule(size_t index);
 
   // Details (Cold Data)
 public:
@@ -228,73 +249,6 @@ public:
     return *(string_pool_.emplace(std::move(str)).first);
   }
 
-  // Action Grop: Flow
-public:
-  std::list<std::unique_ptr<Rule>>::iterator appendChainRule(int line) {
-    ASSERT_IS_MAIN_THREAD();
-    // Ensure that the chain_ only contains one element
-    assert(chain_.empty());
-    chain_.clear();
-
-    chain_.emplace_back(std::make_unique<Rule>(detail_->file_path_, line));
-
-    // The chained rule inherits the phase of the parent rule.
-    Rule* chain_rule = chain_.back().get();
-    chain_rule->phase_ = phase_;
-
-    // Sets the chain index and parent rule for the chained rule.
-    chain_rule->detail_->parent_rule_ = this;
-    chain_rule->detail_->top_rule_ = this;
-    chain_rule->chain_index_ = 0;
-    Rule* parent = detail_->parent_rule_;
-    while (parent) {
-      chain_rule->detail_->top_rule_ = parent;
-      parent = parent->detail_->parent_rule_;
-      // Update the chain index
-      chain_rule->chain_index_++;
-    }
-
-    return std::prev(chain_.end());
-  }
-
-  /**
-   * Get the rule of the chain by index.
-   * @param index the relative index of the chain that starts from this rule. Note that the index is
-   * not same as the index of the chain that starts form the top rule.
-   * @return std::nullopt if the he index is out of range, otherwise the iterator to the chain rule.
-   */
-  std::optional<std::list<std::unique_ptr<Rule>>::iterator> chainRule(size_t index) {
-    std::optional<std::list<std::unique_ptr<Rule>>::iterator> result;
-    Rule* parent = this;
-    for (size_t i = 0; i <= index; ++i) {
-      if (!parent->chain_.empty()) {
-        result = parent->chain_.begin();
-        parent = parent->chain_.front().get();
-      } else {
-        break;
-      }
-    }
-    return result;
-  }
-
-public:
-  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
-
-  const std::vector<std::unique_ptr<Variable::VariableBase>>& variables() const {
-    return variables_;
-  }
-
-  const std::vector<std::unique_ptr<Variable::VariableBase>>& exceptVariables() const {
-    return detail_->except_variables_;
-  }
-
-  const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
-    return detail_->variables_index_by_full_name_;
-  }
-
-  void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
-  const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
-
   // Evaluate the rule
 private:
   inline void evaluateVariable(Transaction& t,
@@ -312,7 +266,7 @@ private:
   inline void evaluateMsgMacro(Transaction& t) const;
   inline void evaluateLogDataMacro(Transaction& t) const;
   inline void evaluateActions(Transaction& t) const;
-  inline bool evaluateWithMultiMatch(Transaction& t) const;
+  bool evaluateWithMultiMatch(Transaction& t) const;
 
 private:
   enum class Flags {
@@ -346,25 +300,27 @@ private:
     // If any action that requires the matched variable is defined or MATCHED_VAR/MATCHED_VAR_NAME
     // variable is used, this flag will be set to true. Otherwise, it will be false.
     // This flag is used to optimize the performance of the rule evaluation.
-    NEED_PUSH_MATCHED
+    NEED_PUSH_MATCHED,
+
+    TOTAL_FLAGS
   };
 
   // Basic Info (Hot Data)
 private:
-  std::bitset<8> flags_;
+  std::bitset<static_cast<size_t>(Flags::TOTAL_FLAGS)> flags_;
 
   // Places the rule or chain into one of five available processing phases. It can also be used in
   // SecDefaultAction to establish the rule defaults for that phase.
-  int8_t phase_{-1};
+  RulePhaseType phase_{-1};
 
   Disruptive disruptive_{Disruptive::PASS};
 
   // If this rule is a chain rule, this is the index of the chain. -1 means this rule is not a
   // chain.
-  int8_t chain_index_{-1};
+  RuleChainIndexType chain_index_{-1};
 
   // The index of the rule in the phase. -1 means the rule is not in a phase.
-  int16_t index_{-1};
+  RuleIndexType index_{-1};
 
   // Skips one or more rules (or chains) on successful match.
   int16_t skip_{0};
@@ -379,9 +335,7 @@ private:
 
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.
   // Chained rules allow for more complex processing logic.
-  // Although chain_ is a list, it will only have at most one element. The list is used to maintain
-  // compatibility with the Wge::Antlr4::Visitor.
-  std::list<std::unique_ptr<Rule>> chain_;
+  std::unique_ptr<Rule> chain_;
 
   // Details (Cold Data)
 private:

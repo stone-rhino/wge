@@ -100,8 +100,8 @@ void Rule::initPmfOperator(const std::string& serialize_dir) {
   }
 
   // init the pmf operator of chained rule
-  if (!chain_.empty()) {
-    chain_.front()->initPmfOperator(serialize_dir);
+  if (chain_) {
+    chain_->initPmfOperator(serialize_dir);
   }
 }
 
@@ -161,9 +161,9 @@ bool Rule::evaluate(Transaction& t) const {
       return evaluateWithMultiMatch(t);
     }
 
-  Common::EvaluateResults::Element transformed_value;
-  Common::EvaluateResults::Element captured_value;
-  std::list<const Transformation::TransformBase*> transform_list;
+  static thread_local Common::EvaluateResults::Element transformed_value;
+  static thread_local Common::EvaluateResults::Element captured_value;
+  static thread_local std::list<const Transformation::TransformBase*> transform_list;
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -232,7 +232,7 @@ bool Rule::evaluate(Transaction& t) const {
 
   // Evaluate the chained rules
   if (rule_matched) {
-    if (!chain_.empty())
+    if (chain_)
       [[unlikely]] {
         // If the chained rules are matched means the rule is matched, otherwise the rule is not
         // matched
@@ -281,9 +281,43 @@ void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
   operator_ = std::move(op);
 }
 
-inline void Rule::evaluateVariable(Transaction& t,
-                                   const std::unique_ptr<Wge::Variable::VariableBase>& var,
-                                   Common::EvaluateResults& result) const {
+void Rule::appendChainRule(std::unique_ptr<Rule>&& rule) {
+  ASSERT_IS_MAIN_THREAD();
+  assert(!chain_);
+  chain_ = std::move(rule);
+
+  // The chained rule inherits the phase of the parent rule.
+  chain_->phase_ = phase_;
+
+  // Sets the chain index and parent rule for the chained rule.
+  chain_->detail_->parent_rule_ = this;
+  chain_->detail_->top_rule_ = this;
+  chain_->chain_index_ = 0;
+  Rule* parent = detail_->parent_rule_;
+  while (parent) {
+    chain_->detail_->top_rule_ = parent;
+    parent = parent->detail_->parent_rule_;
+    // Update the chain index
+    chain_->chain_index_++;
+  }
+}
+
+Rule* Rule::chainRule(size_t index) {
+  Rule* result = nullptr;
+  Rule* parent = this;
+  for (size_t i = 0; i <= index; ++i) {
+    if (parent->chain_) {
+      result = parent->chain_.get();
+      parent = parent->chain_.get();
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+
+void Rule::evaluateVariable(Transaction& t, const std::unique_ptr<Wge::Variable::VariableBase>& var,
+                            Common::EvaluateResults& result) const {
   var->evaluate(t, result);
   WGE_LOG_TRACE([&]() {
     if (!var->isCollection()) {
@@ -302,11 +336,10 @@ inline void Rule::evaluateVariable(Transaction& t,
   }());
 }
 
-inline void
-Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
-                        const Common::EvaluateResults::Element& input,
-                        Common::EvaluateResults::Element& output,
-                        std::list<const Transformation::TransformBase*>& transform_list) const {
+void Rule::evaluateTransform(
+    Transaction& t, const Wge::Variable::VariableBase* var,
+    const Common::EvaluateResults::Element& input, Common::EvaluateResults::Element& output,
+    std::list<const Transformation::TransformBase*>& transform_list) const {
   const Common::EvaluateResults::Element* p_input = &input;
 
   // Check if the default transformation should be ignored
@@ -342,9 +375,9 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   }
 }
 
-inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
-                                   const std::unique_ptr<Wge::Variable::VariableBase>& var,
-                                   Common::EvaluateResults::Element& capture_value) const {
+bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
+                            const std::unique_ptr<Wge::Variable::VariableBase>& var,
+                            Common::EvaluateResults::Element& capture_value) const {
   bool matched = operator_->evaluate(t, var_value);
   matched = operator_->isNot() ^ matched;
 
@@ -377,17 +410,16 @@ inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_va
   return matched;
 }
 
-inline bool Rule::evaluateChain(Transaction& t) const {
-  assert(chain_.size() <= 1);
+bool Rule::evaluateChain(Transaction& t) const {
   bool matched = true;
-  if (!chain_.empty()) {
-    WGE_LOG_TRACE("evaluate chained rule. id: {}", chain_.front()->id());
+  if (chain_) {
+    WGE_LOG_TRACE("evaluate chained rule. id: {}", chain_->id());
     WGE_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
 
     // Set the chained rule as the current evaluate rule
-    t.setCurrentEvaluateRule(chain_.front().get());
+    t.setCurrentEvaluateRule(chain_.get());
 
-    matched = chain_.front()->evaluate(t);
+    matched = chain_->evaluate(t);
 
     // Restore the current rule to the transaction
     t.setCurrentEvaluateRule(this);
@@ -396,7 +428,7 @@ inline bool Rule::evaluateChain(Transaction& t) const {
   return matched;
 }
 
-inline void Rule::evaluateMsgMacro(Transaction& t) const {
+void Rule::evaluateMsgMacro(Transaction& t) const {
   if (msg_macro_)
     [[unlikely]] {
       Common::EvaluateResults msg_result;
@@ -406,7 +438,7 @@ inline void Rule::evaluateMsgMacro(Transaction& t) const {
     }
 }
 
-inline void Rule::evaluateLogDataMacro(Transaction& t) const {
+void Rule::evaluateLogDataMacro(Transaction& t) const {
   if (log_data_macro_)
     [[unlikely]] {
       Common::EvaluateResults log_data_result;
@@ -416,7 +448,7 @@ inline void Rule::evaluateLogDataMacro(Transaction& t) const {
     }
 }
 
-inline void Rule::evaluateActions(Transaction& t) const {
+void Rule::evaluateActions(Transaction& t) const {
   // Evaluate the default actions
   const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
   if (default_action) {
@@ -434,7 +466,7 @@ inline void Rule::evaluateActions(Transaction& t) const {
 // Normally, variables are inspected only once per rule, and only after all transformation functions
 // have been completed. With multiMatch, variables are checked against the operator before and after
 // every transformation function that changes the input.
-inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
+bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   // Get all of the transformations
   std::vector<Transformation::TransformBase*> transforms;
   if (!isIgnoreDefaultTransform()) {
@@ -451,9 +483,9 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     transforms.emplace_back(transform.get());
   }
 
-  Common::EvaluateResults::Element transformed_value;
-  Common::EvaluateResults::Element captured_value;
-  std::list<const Transformation::TransformBase*> transform_list;
+  static thread_local Common::EvaluateResults::Element transformed_value;
+  static thread_local Common::EvaluateResults::Element captured_value;
+  static thread_local std::list<const Transformation::TransformBase*> transform_list;
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -550,7 +582,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
   // Evaluate the chained rules
   if (rule_matched) {
-    if (!chain_.empty())
+    if (chain_)
       [[unlikely]] {
         // If the chained rules are matched means the rule is matched, otherwise the rule is not
         // matched

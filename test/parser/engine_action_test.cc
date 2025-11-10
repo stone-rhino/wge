@@ -42,14 +42,14 @@ TEST_F(EngineActionTest, SecAction) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rules = parser.rules();
+  auto& rules = parser.rules()[1];
   EXPECT_EQ(rules.size(), 1);
   auto& rule = rules.front();
-  EXPECT_EQ(rule->id(), 1);
-  EXPECT_EQ(rule->phase(), 2);
-  EXPECT_EQ(rule->getOperator(), nullptr);
+  EXPECT_EQ(rule.id(), 1);
+  EXPECT_EQ(rule.phase(), 2);
+  EXPECT_EQ(rule.getOperator(), nullptr);
 
-  auto& actions = rule->actions();
+  auto& actions = rule.actions();
   EXPECT_EQ(actions.size(), 2);
   EXPECT_EQ(actions[0]->name(), std::string_view("setvar"));
   EXPECT_EQ(actions[1]->name(), std::string_view("setvar"));
@@ -65,17 +65,18 @@ TEST_F(EngineActionTest, SecDefaultAction) {
   ASSERT_TRUE(result.has_value());
 
   auto& rules = parser.defaultActions();
-  EXPECT_EQ(rules.size(), 2);
-  auto& rule1 = rules.front();
-  auto& rule2 = rules.back();
-  EXPECT_EQ(rule1->phase(), 1);
-  EXPECT_EQ(rule2->phase(), 2);
-  EXPECT_TRUE(rule1->log());
-  EXPECT_TRUE(rule1->auditLog());
-  EXPECT_EQ(rule1->disruptive(), Rule::Disruptive::PASS);
-  EXPECT_TRUE(rule2->log());
-  EXPECT_TRUE(rule2->auditLog());
-  EXPECT_EQ(rule2->disruptive(), Rule::Disruptive::PASS);
+  EXPECT_TRUE(rules[0].has_value());
+  EXPECT_TRUE(rules[1].has_value());
+  auto& rule1 = rules[0].value();
+  auto& rule2 = rules[1].value();
+  EXPECT_EQ(rule1.phase(), 1);
+  EXPECT_EQ(rule2.phase(), 2);
+  EXPECT_TRUE(rule1.log());
+  EXPECT_TRUE(rule1.auditLog());
+  EXPECT_EQ(rule1.disruptive(), Rule::Disruptive::PASS);
+  EXPECT_TRUE(rule2.log());
+  EXPECT_TRUE(rule2.auditLog());
+  EXPECT_EQ(rule2.disruptive(), Rule::Disruptive::PASS);
 }
 } // namespace Parsr
 } // namespace Wge

@@ -48,7 +48,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions = engine.rules(1).back()->actions();
+    auto& actions = engine.rules(1).back().actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int64_t score = std::get<int64_t>(t->getVariable("score"));
@@ -67,8 +67,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -88,7 +88,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions = engine.rules(1).back()->actions();
+    auto& actions = engine.rules(1).back().actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int64_t score = std::get<int64_t>(t->getVariable("score2"));
@@ -108,8 +108,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -130,8 +130,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -155,14 +155,14 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     EXPECT_EQ(actions1.size(), 1);
     actions1.back()->evaluate(*t);
     EXPECT_EQ(std::get<int64_t>(t->getVariable("score2")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     EXPECT_EQ(actions2.size(), 1);
     actions2.back()->evaluate(*t);
     EXPECT_FALSE(t->hasVariable("score2"));
@@ -182,7 +182,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -191,7 +191,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
 
     result = engine.load(rule_directive2);
     engine.init();
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -211,7 +211,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     ASSERT_TRUE(result.has_value());
 
     for (auto& rule : engine.rules(1)) {
-      auto& actions = rule->actions();
+      auto& actions = rule.actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
@@ -232,7 +232,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -243,7 +243,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -268,7 +268,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -279,7 +279,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -310,7 +310,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     ASSERT_TRUE(result.has_value());
 
     for (auto& rule : engine.rules(1)) {
-      auto& actions = rule->actions();
+      auto& actions = rule.actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
@@ -367,7 +367,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -409,7 +409,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions = engine.rules(1).back()->actions();
+    auto& actions = engine.rules(1).back().actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int64_t score = std::get<int64_t>(t->getVariable("score"));
@@ -428,8 +428,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -449,7 +449,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions = engine.rules(1).back()->actions();
+    auto& actions = engine.rules(1).back().actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
     int64_t score = std::get<int64_t>(t->getVariable("score2"));
@@ -469,8 +469,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -491,8 +491,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    for (auto rule : engine.rules(1)) {
-      for (auto& action : rule->actions()) {
+    for (auto& rule : engine.rules(1)) {
+      for (auto& action : rule.actions()) {
         action->evaluate(*t);
       }
     }
@@ -516,14 +516,14 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     EXPECT_EQ(actions1.size(), 1);
     actions1.back()->evaluate(*t);
     EXPECT_EQ(std::get<int64_t>(t->getVariable("score2")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     EXPECT_EQ(actions2.size(), 1);
     actions2.back()->evaluate(*t);
     EXPECT_FALSE(t->hasVariable("score2"));
@@ -543,7 +543,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -552,7 +552,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
 
     result = engine.load(rule_directive2);
     engine.init();
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -572,7 +572,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     ASSERT_TRUE(result.has_value());
 
     for (auto& rule : engine.rules(1)) {
-      auto& actions = rule->actions();
+      auto& actions = rule.actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
@@ -593,7 +593,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -604,7 +604,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -625,7 +625,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     ASSERT_TRUE(result.has_value());
 
     for (auto& rule : engine.rules(1)) {
-      auto& actions = rule->actions();
+      auto& actions = rule.actions();
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
@@ -657,7 +657,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -676,7 +676,7 @@ TEST_F(RuleActionTest, ActionSetEnv) {
   auto t = engine.makeTransaction();
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = engine.rules(1).back()->actions();
+  auto& actions = engine.rules(1).back().actions();
   EXPECT_EQ(actions.size(), 1);
   actions.back()->evaluate(*t);
   EXPECT_EQ(std::string("hello"), ::getenv("var1"));
