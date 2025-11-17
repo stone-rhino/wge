@@ -145,6 +145,8 @@ private:
       if (re2->ok()) {
         scanner = std::move(re2);
       } else {
+        WGE_LOG_WARN("Failed to compile RE2 pattern '{}': {}. Use PCRE instead.", pattern,
+                     re2->error());
         scanner = std::make_unique<Common::Pcre::Scanner>(pattern, false, capture_);
       }
     }

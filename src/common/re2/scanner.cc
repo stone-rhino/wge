@@ -30,11 +30,13 @@ Scanner::Scanner(std::string_view pattern, bool case_less, bool captrue) {
   RE2::Options options;
   options.set_case_sensitive(!case_less);
   options.set_never_capture(!captrue);
+  options.set_log_errors(false);
   re2_ = std::make_unique<RE2>(pattern, options);
 }
 
 void Scanner::match(std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
+  assert(re2_->ok());
   int groups = re2_->NumberOfCapturingGroups();
   std::vector<re2::StringPiece> submatch(groups + 1); // +1 for full match
 
@@ -50,7 +52,10 @@ void Scanner::match(std::string_view subject,
   }
 }
 
-bool Scanner::match(std::string_view subject) const { return RE2::PartialMatch(subject, *re2_); }
+bool Scanner::match(std::string_view subject) const {
+  assert(re2_->ok());
+  return RE2::PartialMatch(subject, *re2_);
+}
 } // namespace Re2
 } // namespace Common
 } // namespace Wge

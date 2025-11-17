@@ -65,7 +65,7 @@ const Pattern* Scanner::getPattern(uint64_t id) {
 void Scanner::match(std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);
-  if (!pattern_)
+  if (!pattern_ || !pattern_->db())
     [[unlikely]] { return; }
 
   match(pattern_.get(), subject, result);
@@ -85,6 +85,8 @@ void Scanner::match(uint64_t id, std::string_view subject,
 void Scanner::match(const Pattern* pattern, std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern);
+  if (!pattern_ || !pattern_->db())
+    [[unlikely]] { return; }
 
   int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
                            reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
@@ -120,6 +122,8 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
 
 bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   assert(pattern);
+  if (!pattern_ || !pattern_->db())
+    [[unlikely]] { return false; }
 
   int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
                            reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
@@ -154,7 +158,7 @@ bool Scanner::match(std::string_view subject) const { return match(pattern_.get(
 void Scanner::matchGlobal(std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern_);
-  if (!pattern_)
+  if (!pattern_ || !pattern_->db())
     [[unlikely]] { return; }
 
   return matchGlobal(pattern_.get(), subject, result);
@@ -174,6 +178,9 @@ void Scanner::matchGlobal(uint64_t id, std::string_view subject,
 void Scanner::matchGlobal(const Pattern* pattern, std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern);
+  if (!pattern_ || !pattern_->db())
+    [[unlikely]] { return; }
+
   int rc = 0;
   size_t start_offset = 0;
   do {
