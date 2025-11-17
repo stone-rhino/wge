@@ -251,6 +251,52 @@ TEST_F(RuleActionTest, ActionSetVar) {
     EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
   }
 
+  // Increase (value macro expansion but not a integer)
+  {
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score200=200',setvar:'tx.score=hello',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=+%{tx.score}',msg:'aaa'")";
+
+    const std::string rule_directive3 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:'tx.score%{tx.score200}=+hi',msg:'aaa'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("score")), "hello");
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("score")), "hello");
+
+    result = engine.load(rule_directive3);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions3 = engine.rules(1).back()->actions();
+    for (auto& action : actions3) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+  }
+
   // Decrease
   {
     const std::string rule_directive =
@@ -302,6 +348,52 @@ TEST_F(RuleActionTest, ActionSetVar) {
     }
     EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 100);
     EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
+  }
+
+  // Decrease (value macro expansion but not a integer)
+  {
+    const std::string rule_directive1 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score200=200',setvar:'tx.score=hello',msg:'aaa'")";
+
+    const std::string rule_directive2 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:2,phase:1,setvar:'tx.score%{tx.score200}=-%{tx.score}',msg:'aaa'")";
+
+    const std::string rule_directive3 =
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:3,phase:1,setvar:'tx.score%{tx.score200}=-hi',msg:'aaa'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive1);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions1 = engine.rules(1).back()->actions();
+    for (auto& action : actions1) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("score")), "hello");
+
+    result = engine.load(rule_directive2);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions2 = engine.rules(1).back()->actions();
+    for (auto& action : actions2) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("score")), "hello");
+
+    result = engine.load(rule_directive3);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto& actions3 = engine.rules(1).back()->actions();
+    for (auto& action : actions3) {
+      action->evaluate(*t);
+    }
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
   }
 }
 

@@ -141,24 +141,44 @@ void SetVar::evaluate(Transaction& t) const {
         if (value_macro_) {
           Common::EvaluateResults result;
           value_macro_->evaluate(t, result);
-          int64_t value = std::get<int64_t>(result.front().variant_);
-          WGE_LOG_TRACE("setvar(Increase): tx.{}+={}", key, value);
-          t.increaseVariable({key.data(), key.size()}, value);
+          if (IS_INT_VARIANT(result.front().variant_)) {
+            int64_t value = std::get<int64_t>(result.front().variant_);
+            WGE_LOG_TRACE("setvar(Increase): tx.{}=+{}", key, value);
+            t.increaseVariable({key.data(), key.size()}, value);
+          } else {
+            WGE_LOG_WARN("setvar(Increase): tx.{}=+{}: value is not an integer, ignored.", key,
+                         value_macro_->literalValue());
+          }
         } else {
-          WGE_LOG_TRACE("setvar(Increase): tx.{}+={}", key, std::get<int64_t>(value_));
-          t.increaseVariable({key.data(), key.size()}, std::get<int64_t>(value_));
+          if (IS_INT_VARIANT(value_)) {
+            WGE_LOG_TRACE("setvar(Increase): tx.{}=+{}", key, std::get<int64_t>(value_));
+            t.increaseVariable({key.data(), key.size()}, std::get<int64_t>(value_));
+          } else {
+            WGE_LOG_WARN("setvar(Increase): tx.{}=+{}: value is not an integer, ignored.", key,
+                         VISTIT_VARIANT_AS_STRING(value_));
+          }
         }
       }
     else {
       if (value_macro_) {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
-        int64_t value = std::get<int64_t>(result.front().variant_);
-        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, value);
-        t.increaseVariable(index_, value);
+        if (IS_INT_VARIANT(result.front().variant_)) {
+          int64_t value = std::get<int64_t>(result.front().variant_);
+          WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]=+{}", key_, index_, value);
+          t.increaseVariable(index_, value);
+        } else {
+          WGE_LOG_WARN("setvar(Increase): tx.{}[{}]=+{}: value is not an integer, ignored.", key_,
+                       index_, value_macro_->literalValue());
+        }
       } else {
-        WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]+={}", key_, index_, std::get<int64_t>(value_));
-        t.increaseVariable(index_, std::get<int64_t>(value_));
+        if (IS_INT_VARIANT(value_)) {
+          WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]=+{}", key_, index_, std::get<int64_t>(value_));
+          t.increaseVariable(index_, std::get<int64_t>(value_));
+        } else {
+          WGE_LOG_WARN("setvar(Increase): tx.{}[{}]=+{}: value is not an integer, ignored.", key_,
+                       index_, VISTIT_VARIANT_AS_STRING(value_));
+        }
       }
     }
 
@@ -172,24 +192,44 @@ void SetVar::evaluate(Transaction& t) const {
         if (value_macro_) {
           Common::EvaluateResults result;
           value_macro_->evaluate(t, result);
-          int64_t value = std::get<int64_t>(result.front().variant_);
-          WGE_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, value);
-          t.increaseVariable({key.data(), key.size()}, -value);
+          if (IS_INT_VARIANT(result.front().variant_)) {
+            int64_t value = std::get<int64_t>(result.front().variant_);
+            WGE_LOG_TRACE("setvar(Decrease): tx.{}=-{}", key, value);
+            t.increaseVariable({key.data(), key.size()}, -value);
+          } else {
+            WGE_LOG_WARN("setvar(Decrease): tx.{}=-{}: value is not an integer, ignored.", key,
+                         value_macro_->literalValue());
+          }
         } else {
-          WGE_LOG_TRACE("setvar(Decrease): tx.{}-={}", key, std::get<int64_t>(value_));
-          t.increaseVariable({key.data(), key.size()}, -std::get<int64_t>(value_));
+          if (IS_INT_VARIANT(value_)) {
+            WGE_LOG_TRACE("setvar(Decrease): tx.{}=-{}", key, std::get<int64_t>(value_));
+            t.increaseVariable({key.data(), key.size()}, -std::get<int64_t>(value_));
+          } else {
+            WGE_LOG_WARN("setvar(Decrease): tx.{}=-{}: value is not an integer, ignored.", key,
+                         VISTIT_VARIANT_AS_STRING(value_));
+          }
         }
       }
     else {
       if (value_macro_) {
         Common::EvaluateResults result;
         value_macro_->evaluate(t, result);
-        int64_t value = std::get<int64_t>(result.front().variant_);
-        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
-        t.increaseVariable(index_, -value);
+        if (IS_INT_VARIANT(result.front().variant_)) {
+          int64_t value = std::get<int64_t>(result.front().variant_);
+          WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
+          t.increaseVariable(index_, -value);
+        } else {
+          WGE_LOG_WARN("setvar(Decrease): tx.{}[{}]=-{}: value is not an integer, ignored.", key_,
+                       index_, value_macro_->literalValue());
+        }
       } else {
-        WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, std::get<int64_t>(value_));
-        t.increaseVariable(index_, -std::get<int64_t>(value_));
+        if (IS_INT_VARIANT(value_)) {
+          WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, std::get<int64_t>(value_));
+          t.increaseVariable(index_, -std::get<int64_t>(value_));
+        } else {
+          WGE_LOG_WARN("setvar(Decrease): tx.{}[{}]=-{}: value is not an integer, ignored.", key_,
+                       index_, VISTIT_VARIANT_AS_STRING(value_));
+        }
       }
     }
   } break;
