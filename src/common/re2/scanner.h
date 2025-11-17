@@ -37,6 +37,7 @@ public:
 
 public:
   bool ok() const { return re2_ && re2_->ok(); }
+  const std::string& error() const { return re2_->error(); }
   void match(std::string_view subject, std::vector<std::pair<size_t, size_t>>& result) const;
   bool match(std::string_view subject) const;
 
