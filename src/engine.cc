@@ -35,6 +35,9 @@ Engine::Engine(spdlog::level::level_enum level, const std::string& log_file)
 
   // Initialize the log
   Common::Log::init(level, log_file);
+
+  // Initialize the random seed
+  ::srand(::time(nullptr));
 }
 
 Engine::~Engine() = default;

@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <forward_list>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -30,6 +31,7 @@
 #include <vector>
 
 #include <boost/unordered/unordered_flat_map.hpp>
+#include <boost/unordered/unordered_flat_set.hpp>
 
 #include "common/evaluate_result.h"
 #include "common/ragel/json.h"
@@ -68,8 +70,8 @@ public:
   // upstream port.
   struct ConnectionInfo {
     std::string_view downstream_ip_;
-    short downstream_port_;
     std::string_view upstream_ip_;
+    short downstream_port_;
     short upstream_port_;
   };
 
@@ -85,9 +87,6 @@ public:
     std::string_view protocol_;
     std::string_view version_;
     std::string_view base_name_;
-    std::string uri_buffer_;
-    std::string relative_uri_buffer_;
-    std::string base_name_buffer_;
     Common::Ragel::QueryParam query_params_;
   };
 
@@ -102,38 +101,30 @@ public:
     const Variable::VariableBase* variable_;
 
     // The original value of the matched variable
-    Common::EvaluateResults::Element original_value_;
+    Common::EvaluateElement original_value_;
 
     // The transformed value of the matched variable
-    Common::EvaluateResults::Element transformed_value_;
+    Common::EvaluateElement transformed_value_;
 
     // The captured value of the matched variable
-    Common::EvaluateResults::Element captured_value_;
+    std::string_view captured_value_;
 
     // The list of transformations that applied to the matched variable
     std::list<const Transformation::TransformBase*> transform_list_;
 
     MatchedVariable(const Variable::VariableBase* variable,
-                    Common::EvaluateResults::Element&& original_value,
-                    Common::EvaluateResults::Element&& transformed_value,
-                    Common::EvaluateResults::Element&& captured_value,
+                    const Common::EvaluateElement& original_value,
+                    const Common::EvaluateElement& transformed_value,
+                    std::string_view captured_value,
                     std::list<const Transformation::TransformBase*>&& transform_list)
-        : variable_(variable), original_value_(std::move(original_value)),
-          transformed_value_(std::move(transformed_value)),
-          captured_value_(std::move(captured_value)), transform_list_(std::move(transform_list)) {}
+        : variable_(variable), original_value_(original_value),
+          transformed_value_(transformed_value), captured_value_(captured_value),
+          transform_list_(std::move(transform_list)) {}
   };
 
   struct TransformCacheKey {
     std::string_view input_data_view_;
     const char* transformation_name_;
-
-    struct Hash {
-      size_t operator()(const TransformCacheKey& key) const {
-        return std::hash<const void*>()(key.input_data_view_.data()) ^
-               (std::hash<size_t>()(key.input_data_view_.size()) << 2) ^
-               (std::hash<const char*>()(key.transformation_name_) << 4);
-      }
-    };
 
     TransformCacheKey(std::string_view input_data_view, const char* transformation_name)
         : input_data_view_(input_data_view), transformation_name_(transformation_name) {}
@@ -143,8 +134,35 @@ public:
              input_data_view_.size() == other.input_data_view_.size() &&
              transformation_name_ == other.transformation_name_;
     }
+
+    friend size_t hash_value(const TransformCacheKey& key) {
+      return std::hash<const void*>()(key.input_data_view_.data()) ^
+             (std::hash<size_t>()(key.input_data_view_.size()) << 2) ^
+             (std::hash<const char*>()(key.transformation_name_) << 4);
+    }
   };
 
+  using TransformCache =
+      boost::unordered_flat_map<TransformCacheKey, std::optional<Common::EvaluateElement>>;
+
+  /**
+   * The log callback
+   * @param rule the reference to the matched rule.
+   * @param user_data the user data pointer.
+   */
+  using LogCallback = void (*)(const Rule& rule, void* user_data);
+
+  /**
+   * The additional condition callback
+   * @param rule the reference to the matched rule.
+   * @param variable the reference to the variable.
+   * @param value the value of the variable.
+   * @param user_data the user data pointer.
+   * @return true if the additional condition is matched, false otherwise.
+   */
+  using AdditionalCondCallback = bool (*)(const Rule& rule, const Variable::VariableBase& variable,
+                                          std::string_view value, void* user_data);
+  // Process the transaction
 public:
   /**
    * Process the connection info.
@@ -177,31 +195,32 @@ public:
    * @param request_header_traversal the header traversal function.
    * @param request_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @param log_user_data the user data pointer for the log callback.
    * @param additional_cond an "AND" logic based on the original logic of the rule, only if both
    * match successfully is the final result true.
+   * @param additional_cond_user_data the user data pointer for the additional condition callback.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool
-  processRequestHeaders(HeaderFind request_header_find, HeaderTraversal request_header_traversal,
-                        size_t request_header_count,
-                        std::function<void(const Rule&)> log_callback = nullptr,
-                        std::function<bool(const Rule&, std::string_view,
-                                           const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-                            additional_cond = nullptr);
+  bool processRequestHeaders(HeaderFind request_header_find,
+                             HeaderTraversal request_header_traversal, size_t request_header_count,
+                             LogCallback log_callback = nullptr, void* log_user_data = nullptr,
+                             AdditionalCondCallback additional_cond = nullptr,
+                             void* additional_cond_user_data = nullptr);
 
   /**
    * Process the request body.
    * @param body the request body.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @param log_user_data the user data pointer for the log callback.
    * @param additional_cond an "AND" logic based on the original logic of the rule, only if both
    * match successfully is the final result true.
+   * @param additional_cond_user_data the user data pointer for the additional condition callback.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool
-  processRequestBody(std::string_view body, std::function<void(const Rule&)> log_callback = nullptr,
-                     std::function<bool(const Rule&, std::string_view,
-                                        const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-                         additional_cond = nullptr);
+  bool processRequestBody(std::string_view body, LogCallback log_callback = nullptr,
+                          void* log_user_data = nullptr,
+                          AdditionalCondCallback additional_cond = nullptr,
+                          void* additional_cond_user_data = nullptr);
 
   /**
    * Process the response headers.
@@ -211,34 +230,60 @@ public:
    * @param response_header_traversal the header traversal function.
    * @param response_header_count the count of the headers.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @param log_user_data the user data pointer for the log callback.
    * @param additional_cond an "AND" logic based on the original logic of the rule, only if both
    * match successfully is the final result true.
+   * @param additional_cond_user_data the user data pointer for the additional condition callback.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool processResponseHeaders(
-      std::string_view status_code, std::string_view protocol, HeaderFind response_header_find,
-      HeaderTraversal response_header_traversal, size_t response_header_count,
-      std::function<void(const Rule&)> log_callback = nullptr,
-      std::function<bool(const Rule&, std::string_view,
-                         const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-          additional_cond = nullptr);
+  bool processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                              HeaderFind response_header_find,
+                              HeaderTraversal response_header_traversal,
+                              size_t response_header_count, LogCallback log_callback = nullptr,
+                              void* log_user_data = nullptr,
+                              AdditionalCondCallback additional_cond = nullptr,
+                              void* additional_cond_user_data = nullptr);
 
   /**
    * Process the response body.
    * @param body the response body.
    * @param log_callback the log callback. if the rule is matched, the log_callback will be called.
+   * @param log_user_data the user data pointer for the log callback.
    * @param additional_cond an "AND" logic based on the original logic of the rule, only if both
    * match successfully is the final result true.
+   * @param additional_cond_user_data the user data pointer for the additional condition callback.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool
-  processResponseBody(std::string_view body,
-                      std::function<void(const Rule&)> log_callback = nullptr,
-                      std::function<bool(const Rule&, std::string_view,
-                                         const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-                          additional_cond = nullptr);
+  bool processResponseBody(std::string_view body, LogCallback log_callback = nullptr,
+                           void* log_user_data = nullptr,
+                           AdditionalCondCallback additional_cond = nullptr,
+                           void* additional_cond_user_data = nullptr);
 
+  // Http transaction data
 public:
+  const HttpExtractor& httpExtractor() const { return extractor_; }
+  const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
+  std::string_view getRequestLine() const { return request_line_; }
+  const RequestLineInfo& getRequestLineInfo() const { return request_line_info_; }
+  std::string_view getRequestBody() const { return request_body_; }
+  std::string_view getResponseBody() const { return response_body_; }
+  const ResponseLineInfo& getResponseLineInfo() const { return response_line_info_; }
+  const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
+  const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
+  const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
+  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
+  const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
+  const std::unordered_multimap<std::string_view, std::string_view>& getCookies() const {
+    initCookies();
+    return *cookies_;
+  }
+
+  // Current evaluation state
+public:
+  const Engine& getEngine() const { return engine_; }
+  const Rule* getCurrentEvaluateRule() const { return current_rule_; }
+  void setCurrentEvaluateRule(const Rule* rule) { current_rule_ = rule; }
+
   /**
    * Create or update a variable in the transient transaction collection.
    *
@@ -360,75 +405,66 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * Sets a temporary string that is captured by the operator. After calling this method, we should
-   * call mergeCapture() to merge the temporary captured strings into the main captured strings,
+   * Stages a captured string from operator matching. After calling this method, we should
+   * call commitCapture() to commit the staged captured strings into the main captured strings,
    * then we can use getCapture() to get the captured strings.
    * @param index the index of the matched string. The range is [0, 99].
    * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void setTempCapture(size_t index, Common::EvaluateResults::Element&& value);
+  void stageCapture(size_t index, std::string_view value);
 
   /**
-   * Clear the temporary captured strings.
+   * Rollback the staged captured strings.
    */
-  void clearTempCapture() { temp_captured_.clear(); }
+  void rollbackCapture() { temp_captured_.clear(); }
 
   /**
-   * Merge the temporary captured strings into the main captured strings.
+   * Commit the staged captured strings into the main captured strings.
    * After calling this method, we can use getCapture() to get the captured strings.
-   * @return the number of captured strings that are merged.
+   * @return the number of captured strings that are committed.
    */
-  size_t mergeCapture();
+  size_t commitCapture();
 
   /**
    * Get the captured string that is captured by the operator.
    * @param index the index of the matched string.the range is [0, 99].
    * @return the matched string.
    */
-  const Common::Variant& getCapture(size_t index) const;
+  std::string_view getCapture(size_t index) const;
 
   /**
-   * Get the HTTP extractor.
-   * @return the HTTP extractor.
+   * Add a matched variable.
+   * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
+   * @param variable the matched variable.
+   * @param rule_chain_index the chain index of the rule that matched this variable.
+   * @param original_value the original value of the matched variable.
+   * @param transformed_value the transformed value of the matched variable.
+   * @param captured_value the captured value of the matched variable.
+   * @param transform_list the list of transformations that applied to the matched variable.
+   * @param result the result of the matched variable.
    */
-  const HttpExtractor& httpExtractor() const { return extractor_; }
+  void pushMatchedVariable(const Variable::VariableBase* variable,
+                           RuleChainIndexType rule_chain_index,
+                           const Common::EvaluateElement& original_value,
+                           const Common::EvaluateElement& transformed_value,
+                           std::string_view captured_value,
+                           std::list<const Transformation::TransformBase*>&& transform_list);
 
   /**
-   * Set the request body processor.
-   * @param type the request body processor.
+   * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
+   * @return the matched variables.
    */
-  void setRequestBodyProcessor(BodyProcessorType type) { request_body_processor_ = type; }
+  const std::vector<MatchedVariable>& getMatchedVariables(int rule_chain_index) const {
+    auto iter = matched_variables_.find(rule_chain_index);
+    if (iter != matched_variables_.end()) {
+      return iter->second;
+    }
 
-  /**
-   * Get the request body processor.
-   * @return the request body processor.
-   */
-  BodyProcessorType getRequestBodyProcessor() const { return *request_body_processor_; }
-
-  /**
-   * Set the parse XML into args option.
-   * @param option the parse XML into args option.
-   */
-  void setParseXmlIntoArgs(ParseXmlIntoArgsOption option) { parse_xml_into_args_ = option; }
-
-  /**
-   * Get the parse XML into args option.
-   */
-  ParseXmlIntoArgsOption getParseXmlIntoArgs() const;
-
-  /**
-   * Get the Unique ID of the transaction.
-   * @return the Unique ID of the transaction.
-   */
-  const std::string_view getUniqueId();
-
-  /**
-   * Get the engine.
-   * @return the engine.
-   */
-  const Engine& getEngine() const { return engine_; }
+    static const std::vector<MatchedVariable> empty_vector;
+    return empty_vector;
+  }
 
   /**
    * Remove the rule.
@@ -462,7 +498,7 @@ public:
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_.string_buffer_; }
+  std::string_view getMsgMacroExpanded();
 
   /**
    * Get the log data macro expanded of current matched rule.
@@ -470,132 +506,11 @@ public:
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  const std::string& getLogDataMacroExpanded() const {
-    return log_data_macro_expanded_.string_buffer_;
-  }
+  std::string_view getLogDataMacroExpanded();
 
-  /**
-   * Set the message macro expanded of current matched rule.
-   * @param msg_macro_expanded the message macro expanded of current matched rule.
-   */
-  void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
-    msg_macro_expanded_ = std::move(msg_macro_expanded);
-  }
+  TransformCache& getTransformCache() { return transform_cache_; }
 
-  /**
-   * Set the log data macro expanded of current matched rule.
-   * @param log_data_macro_expanded the log data macro expanded of current matched rule.
-   */
-  void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
-    log_data_macro_expanded_ = std::move(log_data_macro_expanded);
-  }
-
-  /**
-   * Add a matched variable.
-   * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
-   * @param variable the matched variable.
-   * @param rule_chain_index the chain index of the rule that matched this variable.
-   * @param original_value the original value of the matched variable.
-   * @param transformed_value the transformed value of the matched variable.
-   * @param captured_value the captured value of the matched variable.
-   * @param transform_list the list of transformations that applied to the matched variable.
-   * @param result the result of the matched variable.
-   */
-  void pushMatchedVariable(const Variable::VariableBase* variable, int rule_chain_index,
-                           Common::EvaluateResults::Element&& original_value,
-                           Common::EvaluateResults::Element&& transformed_value,
-                           Common::EvaluateResults::Element&& captured_value,
-                           std::list<const Transformation::TransformBase*>&& transform_list);
-
-  /**
-   * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
-   * @return the matched variables.
-   */
-  const std::vector<MatchedVariable>& getMatchedVariables(int rule_chain_index) const {
-    auto iter = matched_variables_.find(rule_chain_index);
-    if (iter != matched_variables_.end()) {
-      return iter->second;
-    }
-
-    static const std::vector<MatchedVariable> empty_vector;
-    return empty_vector;
-  }
-
-  /**
-   * Get the transformation cache.
-   * @return the transformation cache.
-   */
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
-                            TransformCacheKey::Hash>&
-  getTransformCache() {
-    return transform_cache_;
-  }
-
-  std::unordered_multimap<std::string_view, std::string_view>& getCookies() {
-    initCookies();
-    return cookies_;
-  }
-
-  /**
-   * Get the connection info.
-   * @return the connection info.
-   */
-  const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
-
-  /**
-   * Get the raw request line.
-   * @return the string view of the raw request line.
-   */
-  std::string_view getRequestLine() const { return request_line_; }
-
-  /**
-   * Get the request line info.
-   * @return the request line info that parsed from the raw request line.
-   */
-  const RequestLineInfo& getRequestLineInfo() const { return request_line_info_; }
-
-  /**
-   * Get the request body.
-   * @return the string view of the request body.
-   */
-  std::string_view getRequestBody() const { return request_body_; }
-
-  /**
-   * Get the response body.
-   * @return the string view of the response body.
-   */
-  std::string_view getResponseBody() const { return response_body_; }
-
-  /**
-   * Get the response line info.
-   * @return the response line info
-   */
-  const ResponseLineInfo& getResponseLineInfo() const { return response_line_info_; }
-
-  const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
-
-  const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
-
-  const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
-
-  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
-
-  const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
-
-  const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
-    switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
-    case 1:
-      return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
-    case 2: {
-      const Macro::MacroBase* macro =
-          std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
-      macro->evaluate(*const_cast<Transaction*>(this), persistent_storage_key_buffer_);
-      return persistent_storage_key_buffer_.front().string_buffer_;
-    }
-    default:
-      return EMPTY_STRING;
-    }
-  }
+  std::string_view getPersistentStorageKey(PersistentStorage::Storage::Type type) const;
 
   void setPersistentStorageKey(PersistentStorage::Storage::Type type, const std::string& key) {
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
@@ -605,92 +520,40 @@ public:
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
   }
 
-  const Rule* getCurrentEvaluateRule() const { return current_rule_; }
-  void setCurrentEvaluateRule(const Rule* rule) { current_rule_ = rule; }
+  // Configuration options by ctl action
+public:
+  void setRequestBodyProcessor(BodyProcessorType type) { request_body_processor_ = type; }
+  BodyProcessorType getRequestBodyProcessor() const { return *request_body_processor_; }
+  void setParseXmlIntoArgs(ParseXmlIntoArgsOption option) { parse_xml_into_args_ = option; }
+  ParseXmlIntoArgsOption getParseXmlIntoArgs() const;
 
-  const std::function<bool(const Rule&, std::string_view,
-                           const std::unique_ptr<Wge::Variable::VariableBase>& var)>&
-  getAdditionalCond() const {
-    return additional_cond_;
+public:
+  std::string_view getUniqueId() const;
+  AdditionalCondCallback getAdditionalCond() const { return additional_cond_; }
+  void* getAdditionalCondUserdata() const { return additional_cond_user_data_; }
+
+  /**
+   * Intern a string into the string pool.
+   * @param str the string to be interned.
+   * @return the string view of the interned string.
+   */
+  std::string_view internString(std::string&& str) {
+    string_pool_.emplace_front(std::move(str));
+    return string_pool_.front();
   }
 
 private:
-  class RandomInitHelper {
-  public:
-    RandomInitHelper() { ::srand(::time(nullptr)); }
-  };
-
-  void initUniqueId();
-
-  inline bool process(int phase);
-
+  void initUniqueId() const;
+  inline bool process(RulePhaseType phase);
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
-
-  void initCookies();
-
+  void initCookies() const;
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
+  // Http transaction data
 private:
-  std::string unique_id_;
   HttpExtractor extractor_;
-  const Engine& engine_;
-  std::vector<Common::EvaluateResults::Element> tx_variables_;
-  std::unordered_map<std::string, size_t> local_tx_variable_index_;
-  std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
-  const size_t literal_key_size_;
-  static constexpr int max_capture_size_{100};
-  std::vector<Common::EvaluateResults::Element> captured_;
-  std::vector<Common::EvaluateResults::Element> temp_captured_;
-  static const RandomInitHelper random_init_helper_;
-  std::function<void(const Rule&)> log_callback_;
-  std::function<bool(const Rule&, std::string_view,
-                     const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-      additional_cond_;
-  std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
-             static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
-      persistent_storage_keys_;
-  mutable Common::EvaluateResults persistent_storage_key_buffer_;
-
-  // All of the transaction instances share the same rule instances, and each transaction instance
-  // may be removed or updated some different rules by the ctl action. So, we need to mark the rules
-  // that need to be removed or updated in local.
-  // The allocation memory behavior is lazy, and only the rules that need to be removed or updated
-  // will be allocated memory that is same as the engin.rules() size.
-  std::array<std::vector<bool>, PHASE_TOTAL> rule_remove_flags_;
-  std::array<std::vector<std::unordered_set<Variable::FullName>>, PHASE_TOTAL> rule_remove_targets_;
-
-  // Current evaluation state
-  int current_phase_{1};
-  const Rule* current_rule_{nullptr};
-
-  // Stores all matched variables organized by rule chain index.
-  // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
-  // - Value: vector of all variables that matched within that specific rule
-  // Used by MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES variables.
-  std::unordered_map<int, std::vector<MatchedVariable>> matched_variables_;
-  Common::EvaluateResults::Element msg_macro_expanded_;
-  Common::EvaluateResults::Element log_data_macro_expanded_;
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
-                            TransformCacheKey::Hash>
-      transform_cache_;
-  bool init_cookies_{false};
-  std::unordered_multimap<std::string_view, std::string_view> cookies_;
-  std::bitset<PHASE_TOTAL> allow_phases_;
-
-  // ctl
-private:
-  std::optional<AuditLogConfig::AuditEngine> audit_engine_;
-  std::optional<AuditLogConfig::AuditLogPart> audit_log_part_;
-  std::optional<EngineConfig::Option> request_body_access_;
-  std::optional<BodyProcessorType> request_body_processor_;
-  std::optional<ParseXmlIntoArgsOption> parse_xml_into_args_;
-  std::optional<EngineConfig::Option> rule_engine_;
-
-  // The http info
-private:
   ConnectionInfo connection_info_;
   std::string_view request_line_;
-  std::string request_line_buffer_;
   RequestLineInfo request_line_info_;
   ResponseLineInfo response_line_info_;
   std::string_view request_body_;
@@ -700,6 +563,58 @@ private:
   Common::Ragel::Xml body_xml_;
   Common::Ragel::Json body_json_;
   std::string req_body_error_msg_;
+  mutable std::optional<std::unordered_multimap<std::string_view, std::string_view>> cookies_;
+
+  // Current evaluation state
+private:
+  const Engine& engine_;
+  RulePhaseType current_phase_{1};
+  const Rule* current_rule_{nullptr};
+  std::vector<Common::Variant> tx_variables_;
+  std::unordered_map<std::string, size_t> local_tx_variable_index_;
+  std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
+  std::vector<std::string_view> captured_;
+  std::vector<std::string_view> temp_captured_;
+
+  // Stores all matched variables organized by rule chain index.
+  // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
+  // - Value: vector of all variables that matched within that specific rule
+  // Used by MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES variables.
+  std::unordered_map<RuleChainIndexType, std::vector<MatchedVariable>> matched_variables_;
+
+  // All of the transaction instances share the same rule instances, and each transaction instance
+  // may be removed or updated some different rules by the ctl action. So, we need to mark the rules
+  // that need to be removed or updated in local.
+  // The allocation memory behavior is lazy, and only the rules that need to be removed or updated
+  // will be allocated memory that is same as the engin.rules() size.
+  std::array<std::vector<bool>, PHASE_TOTAL> rule_remove_flags_;
+  std::array<std::vector<boost::unordered_flat_set<Variable::FullName>>, PHASE_TOTAL>
+      rule_remove_targets_;
+
+  TransformCache transform_cache_;
+  std::bitset<PHASE_TOTAL> allow_phases_;
+
+  std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
+             static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
+      persistent_storage_keys_;
+
+  // Configuration options by ctl action
+private:
+  std::optional<AuditLogConfig::AuditEngine> audit_engine_;
+  std::optional<AuditLogConfig::AuditLogPart> audit_log_part_;
+  std::optional<EngineConfig::Option> request_body_access_;
+  std::optional<BodyProcessorType> request_body_processor_;
+  std::optional<ParseXmlIntoArgsOption> parse_xml_into_args_;
+  std::optional<EngineConfig::Option> rule_engine_;
+
+private:
+  mutable std::optional<std::string> unique_id_;
+  const size_t literal_key_size_;
+  LogCallback log_callback_;
+  void* log_user_data_;
+  AdditionalCondCallback additional_cond_;
+  void* additional_cond_user_data_;
+  std::forward_list<std::string> string_pool_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

@@ -161,6 +161,6 @@ private:
 
   // Used to store the tx variable index of the vector tx_vec_.
   std::unordered_map<std::string, size_t> tx_variable_index_;
-  std::vector<std::string_view> tx_variable_index_reverse_;
+  std::vector<std::string> tx_variable_index_reverse_;
 };
 } // namespace Wge::Antlr4

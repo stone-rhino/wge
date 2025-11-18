@@ -25,11 +25,11 @@
 namespace Wge {
 namespace Common {
 namespace Ragel {
-void Xml::init(std::string_view xml_str) {
+void Xml::init(std::string_view xml_str, std::forward_list<std::string>& html_decode_buffer) {
   attributes_.reserve(20);
   tags_.reserve(20);
   tag_values_str_.reserve(xml_str.size() / 2 + 1);
-  parseXml(xml_str, attributes_, tags_, tag_values_str_, html_decode_buffer_);
+  parseXml(xml_str, attributes_, tags_, tag_values_str_, html_decode_buffer);
 }
 } // namespace Ragel
 } // namespace Common

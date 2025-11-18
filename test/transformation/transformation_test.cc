@@ -81,21 +81,19 @@ template <class T> void evaluateStream(const std::vector<TestCase>& test_cases, 
   for (size_t i = 0; i < test_cases.size(); ++i) {
     const auto& test_case = test_cases[i];
     auto state = transform.newStream();
-    Common::EvaluateResults::Element output;
+    std::string output;
     for (size_t j = 0; j < test_case.input_.size();) {
       size_t input_step = std::min(step, test_case.input_.size() - j);
-      Common::EvaluateResults::Element input;
-      input.variant_ = std::string_view(&test_case.input_[j], input_step);
+      std::string_view input(&test_case.input_[j], input_step);
       auto stream_result = transform.evaluateStream(input, output, *state,
                                                     j + input_step >= test_case.input_.size());
       EXPECT_NE(stream_result, Wge::Transformation::StreamResult::INVALID_INPUT);
       j += input_step;
     }
-    ASSERT_FALSE(IS_EMPTY_VARIANT(output.variant_));
-    if (std::get<std::string_view>(output.variant_) != test_case.output_) {
+    if (output != test_case.output_) {
       std::cout << "Test case index: " << i << std::endl;
     }
-    EXPECT_EQ(std::get<std::string_view>(output.variant_), test_case.output_);
+    EXPECT_EQ(output, test_case.output_);
   }
 }
 

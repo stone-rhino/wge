@@ -113,7 +113,7 @@ private:
   uint32_t timeout_{3600};
   uint64_t update_counter_;
 
-  std::unordered_map<std::string, Common::EvaluateResults::Element> kv_;
+  std::unordered_map<std::string, Common::EvaluateElement> kv_;
   mutable std::mutex kv_mutex_;
 };
 } // namespace PersistentStorage

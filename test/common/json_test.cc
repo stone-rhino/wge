@@ -83,11 +83,13 @@ protected:
         }
     ]
 })";
+
+  std::forward_list<std::string> buffer_;
 };
 
 TEST_F(JsonTest, BlockParse) {
   Wge::Common::Ragel::Json json_parser;
-  json_parser.init(json_);
+  json_parser.init(json_, buffer_);
   auto& key_values_map = json_parser.getKeyValues();
   auto& key_values_linked = json_parser.getKeyValuesLinked();
   EXPECT_EQ(key_values_map.size(), 23);
@@ -166,7 +168,7 @@ TEST_F(JsonTest, BlockParse) {
 TEST_F(JsonTest, StreamParse) {
   // Use the same json string as in the block parse for baseline comparison
   Wge::Common::Ragel::Json json_parser;
-  json_parser.init(json_);
+  json_parser.init(json_, buffer_);
   auto& key_values_linked = json_parser.getKeyValuesLinked();
 
   // Construct the baseline key-value pairs
@@ -208,7 +210,7 @@ TEST_F(JsonTest, benchmark) {
   Wge::Common::Duration duration;
   for (size_t i = 0; i < test_count; ++i) {
     Wge::Common::Ragel::Json json_parser;
-    json_parser.init(json_);
+    json_parser.init(json_, buffer_);
   }
   duration.stop();
   std::cout << "RAGLE Json parsing time: " << duration.milliseconds() << " ms"

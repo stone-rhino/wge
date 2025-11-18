@@ -70,13 +70,12 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> Sha1::newStream(
   return state;
 }
 
-StreamResult Sha1::evaluateStream(const Common::EvaluateResults::Element& input,
-                                  Common::EvaluateResults::Element& output, StreamState& state,
+StreamResult Sha1::evaluateStream(std::string_view input, std::string& output, StreamState& state,
                                   bool end_stream) const {
   boost::uuids::detail::sha1* sha1 =
       reinterpret_cast<boost::uuids::detail::sha1*>(state.extra_state_buffer_.data());
 
-  std::string_view input_data = std::get<std::string_view>(input.variant_);
+  std::string_view input_data = input;
   sha1->process_bytes(input_data.data(), input_data.length());
 
   if (end_stream) {
@@ -95,15 +94,13 @@ StreamResult Sha1::evaluateStream(const Common::EvaluateResults::Element& input,
 
     // Copy the digest to the result
     const auto char_digest = reinterpret_cast<const char*>(&order);
-    output.string_buffer_.clear();
+    output.clear();
     boost::algorithm::hex_lower(char_digest,
                                 char_digest + sizeof(boost::uuids::detail::sha1::digest_type),
-                                std::back_inserter(output.string_buffer_));
-    output.variant_ = output.string_buffer_;
+                                std::back_inserter(output));
 
     return StreamResult::SUCCESS;
   } else {
-    output.variant_ = "";
     return StreamResult::NEED_MORE_DATA;
   }
 }

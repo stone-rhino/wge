@@ -52,7 +52,7 @@ public:
           eval = eval.replace(pos1, pos2 - pos1 + 1,
                               std::to_string(std::get<int64_t>(result.front().variant_)));
         } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
-          auto& sv = std::get<std::string_view>(result.front().variant_);
+          std::string_view sv = std::get<std::string_view>(result.front().variant_);
           eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
         } else
           [[unlikely]] {
@@ -67,7 +67,7 @@ public:
         result.clear();
       }
     }
-    result.append(std::move(eval));
+    result.emplace_back(t.internString(std::move(eval)));
     assert(eval.empty());
 
     WGE_LOG_TRACE("macro {} expanded: {}", literal_value_,

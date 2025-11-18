@@ -29,7 +29,8 @@ namespace Common {
 namespace Ragel {
 class UriParser {
 public:
-  void init(std::string_view uri, Transaction::RequestLineInfo& req_line_info);
+  void init(std::string_view uri, Transaction::RequestLineInfo& req_line_info,
+            std::forward_list<std::string>& parser_buffer);
 };
 } // namespace Ragel
 } // namespace Common

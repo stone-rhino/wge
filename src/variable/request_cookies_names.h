@@ -41,11 +41,11 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(cookies.size())); },
+        { result.emplace_back(static_cast<int64_t>(cookies.size())); },
         // specify subname
         {
           int64_t count = cookies.count(sub_name_);
-          result.append(count);
+          result.emplace_back(count);
         });
 
     RETURN_VALUE(
@@ -53,7 +53,7 @@ public:
         {
           for (auto& elem : cookies) {
             if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.append(elem.first, elem.first); }
+              [[likely]] { result.emplace_back(elem.first, elem.first); }
           }
         },
         // collection regex
@@ -62,7 +62,7 @@ public:
             if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
-                  result.append(elem.first, elem.first);
+                  result.emplace_back(elem.first, elem.first);
                 }
               }
           }
@@ -71,7 +71,7 @@ public:
         {
           auto range = cookies.equal_range(sub_name_);
           for (auto it = range.first; it != range.second; ++it) {
-            result.append(it->first);
+            result.emplace_back(it->first);
           }
         });
   }

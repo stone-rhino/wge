@@ -26,14 +26,15 @@
 namespace Wge {
 namespace Transformation {
 bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* variable,
-                             const Common::EvaluateResults::Element& input,
-                             Common::EvaluateResults::Element& output) const {
+                             const Common::EvaluateElement& input,
+                             Common::EvaluateElement& output) const {
   assert(variable);
 
   // Check the cache
   std::string_view input_data_view = std::get<std::string_view>(input.variant_);
   auto& transform_cache = t.getTransformCache();
-  auto iter = transform_cache.find({input_data_view, name()});
+  Transaction::TransformCacheKey cache_key(input_data_view, name());
+  auto iter = transform_cache.find(cache_key);
   if (iter != transform_cache.end())
     [[likely]] {
       WGE_LOG_TRACE(
@@ -65,21 +66,15 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
   bool ret = evaluate(input_data_view, output_buffer);
   if (ret) {
     auto iter_transform_result =
-        transform_cache
-            .emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()},
-                     std::make_unique<Common::EvaluateResults::Element>())
-            .first;
-    Common::EvaluateResults::Element& result = *(iter_transform_result->second);
-    result.string_buffer_ = std::move(output_buffer);
-    result.variant_ = result.string_buffer_;
-    output.variant_ = result.variant_;
+        transform_cache.emplace(cache_key, t.internString(std::move(output_buffer))).first;
+    output.variant_ = iter_transform_result->second->variant_;
     output.variable_sub_name_ = input.variable_sub_name_;
   } else {
-    // Store nullptr to indicate failure
-    transform_cache.emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()}, nullptr);
+    // Store nullopt to indicate failure
+    transform_cache.emplace(cache_key, std::nullopt);
   }
 
   return ret;
-} // namespace Transformation
+}
 } // namespace Transformation
 } // namespace Wge

@@ -34,7 +34,7 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    result.append(
+    result.emplace_back(
         t.getBodyMultiPart().getError().get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary)
             ? 1
             : 0);

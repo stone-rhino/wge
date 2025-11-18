@@ -36,10 +36,10 @@ void InitCol::evaluate(Transaction& t) const {
     Common::EvaluateResults result;
     value_macro_->evaluate(t, result);
     std::string_view value = std::get<std::string_view>(result.front().variant_);
-    t.getEngine().storage().initCollection(type_, {value.data(), value.size()});
+    t.getEngine().storage().initCollection(type_, value);
     t.setPersistentStorageKey(type_, value_macro_.get());
   } else {
-    t.getEngine().storage().initCollection(type_, std::string(value_));
+    t.getEngine().storage().initCollection(type_, value_);
     t.setPersistentStorageKey(type_, value_);
   }
 }

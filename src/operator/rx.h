@@ -100,10 +100,7 @@ public:
 
     size_t capture_index = 0;
     for (const auto& [from, to] : result) {
-      Common::EvaluateResults::Element value;
-      value.string_buffer_ = std::string_view(operand_str.data() + from, to - from);
-      value.variant_ = value.string_buffer_;
-      t.setTempCapture(capture_index++, std::move(value));
+      t.stageCapture(capture_index++, {operand_str.data() + from, to - from});
     }
 
     return !result.empty();

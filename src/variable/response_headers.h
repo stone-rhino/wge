@@ -38,10 +38,10 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(t.httpExtractor().response_header_count_)); },
+        { result.emplace_back(static_cast<int64_t>(t.httpExtractor().response_header_count_)); },
         // specify subname
         {
-          result.append(
+          result.emplace_back(
               static_cast<int64_t>(t.httpExtractor().response_header_find_(sub_name_).size()));
         });
 
@@ -51,7 +51,7 @@ public:
           t.httpExtractor().response_header_traversal_(
               [&](std::string_view key, std::string_view value) {
                 if (!hasExceptVariable(t, main_name_, key))
-                  [[likely]] { result.append(value, key); }
+                  [[likely]] { result.emplace_back(value, key); }
                 return true;
               });
         },
@@ -62,7 +62,7 @@ public:
                 if (!hasExceptVariable(t, main_name_, key))
                   [[likely]] {
                     if (match(key)) {
-                      result.append(value, key);
+                      result.emplace_back(value, key);
                     }
                   }
                 return true;
@@ -72,7 +72,7 @@ public:
         {
           std::vector<std::string_view> values = t.httpExtractor().response_header_find_(sub_name_);
           for (auto& value : values) {
-            result.append(value, sub_name_);
+            result.emplace_back(value, sub_name_);
           }
         });
   }

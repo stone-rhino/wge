@@ -21,7 +21,7 @@
 #pragma once
 
 #include <cstring>
-#include <list>
+#include <forward_list>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -55,12 +55,12 @@
       std::string_view final_key = raw_key;
       std::string_view final_value = raw_value;
       if (urlDecode(raw_key, decoded_key_str)) {
-        urldecoded_storage.emplace_back(std::move(decoded_key_str));
-        final_key = urldecoded_storage.back();
+        urldecoded_storage.emplace_front(std::move(decoded_key_str));
+        final_key = urldecoded_storage.front();
       }
       if (urlDecode(raw_value, decoded_value_str)) {
-        urldecoded_storage.emplace_back(std::move(decoded_value_str));
-        final_value = urldecoded_storage.back();
+        urldecoded_storage.emplace_front(std::move(decoded_value_str));
+        final_value = urldecoded_storage.front();
       }
       auto result = query_params.insert({final_key, final_value});
       query_params_linked.emplace_back(final_key, final_value);
@@ -86,7 +86,7 @@ static void
 parseQueryParam(std::string_view input,
                 std::unordered_multimap<std::string_view, std::string_view>& query_params,
                 std::vector<std::pair<std::string_view, std::string_view>>& query_params_linked,
-                std::list<std::string>& urldecoded_storage) {
+                std::forward_list<std::string>& urldecoded_storage) {
   query_params.clear();
   query_params_linked.clear();
 

@@ -47,11 +47,11 @@ public:
       static constexpr std::string_view key = "_charset_";
       if (is_counter_) {
         int64_t count = t.getBodyMultiPart().getNameValue().count(key);
-        result.append(count);
+        result.emplace_back(count);
       } else {
         auto range = t.getBodyMultiPart().getNameValue().equal_range(key);
         for (auto iter = range.first; iter != range.second; ++iter) {
-          result.append(iter->second);
+          result.emplace_back(iter->second);
         }
       }
 
@@ -60,11 +60,11 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size())); },
+        { result.emplace_back(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size())); },
         // specify subname
         {
           int64_t count = t.getBodyMultiPart().getHeaders().count(sub_name_);
-          result.append(count);
+          result.emplace_back(count);
         });
 
     RETURN_VALUE(
@@ -72,7 +72,7 @@ public:
         {
           for (auto& elem : t.getBodyMultiPart().getHeaders()) {
             if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.append(elem.second, elem.first); }
+              [[likely]] { result.emplace_back(elem.second, elem.first); }
           }
         },
         // collection regex
@@ -81,7 +81,7 @@ public:
             if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
-                  result.append(elem.second, elem.first);
+                  result.emplace_back(elem.second, elem.first);
                 }
               }
           }
@@ -90,7 +90,7 @@ public:
         {
           auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name_);
           for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
-            result.append(iter->second);
+            result.emplace_back(iter->second);
           }
         });
   }

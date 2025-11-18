@@ -39,11 +39,11 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(size(t))); },
+        { result.emplace_back(static_cast<int64_t>(size(t))); },
         // specify subname
         {
           auto& value = get(t, sub_name_);
-          result.append(IS_EMPTY_VARIANT(value) ? 0 : 1);
+          result.emplace_back(IS_EMPTY_VARIANT(value) ? 0 : 1);
         });
 
     RETURN_VALUE(
@@ -51,7 +51,7 @@ public:
         {
           travel(t, [&](const std::string& key, const Common::Variant& value) {
             if (!hasExceptVariable(t, main_name_, key))
-              [[likely]] { result.append(value, key); }
+              [[likely]] { result.emplace_back(value, key); }
             return true;
           });
         },
@@ -61,7 +61,7 @@ public:
             if (!hasExceptVariable(t, main_name_, key))
               [[likely]] {
                 if (match(key)) {
-                  result.append(value, key);
+                  result.emplace_back(value, key);
                 }
               }
             return true;
@@ -71,7 +71,7 @@ public:
         {
           auto& value = get(t, sub_name_);
           if (!IS_EMPTY_VARIANT(value))
-            [[likely]] { result.append(value); }
+            [[likely]] { result.emplace_back(value); }
         });
   }
 

@@ -41,11 +41,11 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(filename.size())); },
+        { result.emplace_back(static_cast<int64_t>(filename.size())); },
         // specify subname
         {
           int64_t count = filename_map.count(sub_name_);
-          result.append(count);
+          result.emplace_back(count);
         });
 
     RETURN_VALUE(
@@ -53,7 +53,7 @@ public:
         {
           for (auto& elem : filename) {
             if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.append(elem.first, elem.first); }
+              [[likely]] { result.emplace_back(elem.first, elem.first); }
           }
         },
         // collection regex
@@ -62,7 +62,7 @@ public:
             if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
-                  result.append(elem.first, elem.first);
+                  result.emplace_back(elem.first, elem.first);
                 }
               }
           }
@@ -71,7 +71,7 @@ public:
         {
           auto iter = filename_map.find(sub_name_);
           if (iter != filename_map.end()) {
-            result.append(iter->first);
+            result.emplace_back(iter->first);
           }
         });
   }

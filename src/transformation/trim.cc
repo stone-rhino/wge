@@ -54,18 +54,14 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> Trim::newStream(
   return state;
 }
 
-StreamResult Trim::evaluateStream(const Common::EvaluateResults::Element& input,
-                                  Common::EvaluateResults::Element& output, StreamState& state,
+StreamResult Trim::evaluateStream(std::string_view input, std::string& output, StreamState& state,
                                   bool end_stream) const {
   TrimStreamExtraState* extra_state =
       reinterpret_cast<TrimStreamExtraState*>(state.extra_state_buffer_.data());
   std::string left_result;
-  auto result = trimLeftStream(std::get<std::string_view>(input.variant_), left_result,
-                               *(extra_state->left_state_.get()), end_stream);
+  auto result = trimLeftStream(input, left_result, *(extra_state->left_state_.get()), end_stream);
 
-  result = trimRightStream(left_result, output.string_buffer_, *(extra_state->right_state_.get()),
-                           end_stream);
-  output.variant_ = output.string_buffer_;
+  result = trimRightStream(left_result, output, *(extra_state->right_state_.get()), end_stream);
 
   return result;
 }

@@ -61,11 +61,13 @@ protected:
         <param><value><string>exec('echo \\'<pre> <?php $res = system($_GET["cmd"]); echo $res ?> </pre>\\' > /usr/local/www/[random_file].php');</string></value></param>
     </params>
 </methodCall>)";
+
+  std::forward_list<std::string> buffer_;
 };
 
 TEST_F(XmlTest, ragle) {
   Wge::Common::Ragel::Xml xml_parser;
-  xml_parser.init(xml_);
+  xml_parser.init(xml_, buffer_);
   auto& attributes = xml_parser.getAttributes();
   auto& tags = xml_parser.getTags();
   auto& tag_values_str = xml_parser.getTagValuesStr();
@@ -110,7 +112,7 @@ TEST_F(XmlTest, ragle) {
 
 TEST_F(XmlTest, ragle2) {
   Wge::Common::Ragel::Xml xml_parser;
-  xml_parser.init(xml2_);
+  xml_parser.init(xml2_, buffer_);
   auto& attributes = xml_parser.getAttributes();
   auto& tags = xml_parser.getTags();
   auto& tag_values_str = xml_parser.getTagValuesStr();
@@ -134,7 +136,7 @@ TEST_F(XmlTest, ragle2) {
 
 TEST_F(XmlTest, ragle3) {
   Wge::Common::Ragel::Xml xml_parser;
-  xml_parser.init(xml3_);
+  xml_parser.init(xml3_, buffer_);
   auto& attributes = xml_parser.getAttributes();
   auto& tags = xml_parser.getTags();
   auto& tag_values_str = xml_parser.getTagValuesStr();
@@ -356,7 +358,7 @@ TEST_F(XmlTest, benchmark) {
   Wge::Common::Duration duration;
   for (size_t i = 0; i < test_count; ++i) {
     Wge::Common::Ragel::Xml xml_parser;
-    xml_parser.init(xml_);
+    xml_parser.init(xml_, buffer_);
   }
   duration.stop();
   std::cout << "RAGLE XML parsing time: " << duration.milliseconds() << " ms"

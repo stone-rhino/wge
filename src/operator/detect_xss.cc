@@ -31,10 +31,7 @@ bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
   std::string_view data = std::get<std::string_view>(operand);
   bool is_xss = libinjection_xss(data.data(), data.size()) != 0;
   if (is_xss) {
-    Common::EvaluateResults::Element value;
-    value.string_buffer_ = data;
-    value.variant_ = value.string_buffer_;
-    t.setTempCapture(0, std::move(value));
+    t.stageCapture(0, t.internString({data.data(), data.size()}));
   }
 
   return is_xss;

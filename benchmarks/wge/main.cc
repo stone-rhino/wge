@@ -54,19 +54,21 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
   t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
   t->processRequestHeaders(request_header_find, request_header_traversal,
-                           http_info.request_headers_.size(), [](const Wge::Rule& rule) {
-                             // std::cout << rule.getId() << std::endl;
+                           http_info.request_headers_.size(),
+                           [](const Wge::Rule& rule, void* user_data) {
+                             // std::cout << rule.id() << std::endl;
                            });
-  t->processRequestBody(http_info.request_body_, [](const Wge::Rule& rule) {
-    // std::cout << rule.getId() << std::endl;
+  t->processRequestBody(http_info.request_body_, [](const Wge::Rule& rule, void* user_data) {
+    // std::cout << rule.id() << std::endl;
   });
   t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
                             response_header_find, response_header_traversal,
-                            http_info.response_headers_.size(), [](const Wge::Rule& rule) {
-                              // std::cout << rule.getId() << std::endl;
+                            http_info.response_headers_.size(),
+                            [](const Wge::Rule& rule, void* user_data) {
+                              // std::cout << rule.id() << std::endl;
                             });
-  t->processResponseBody(http_info.response_body_, [](const Wge::Rule& rule) {
-    // std::cout << rule.getId() << std::endl;
+  t->processResponseBody(http_info.response_body_, [](const Wge::Rule& rule, void* user_data) {
+    // std::cout << rule.id() << std::endl;
   });
 }
 

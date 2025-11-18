@@ -25,7 +25,6 @@
 
 #include "action/set_var.h"
 #include "common/assert.h"
-#include "common/empty_string.h"
 #include "common/log.h"
 #include "common/ragel/uri_parser.h"
 #include "common/string.h"
@@ -34,12 +33,11 @@
 #include "variable/variables_include.h"
 
 namespace Wge {
-const Transaction::RandomInitHelper Transaction::random_init_helper_;
-
 // To avoid the dynamic memory allocation, we allocate the memory for the variable vector in
 // advance. We assume that the count of variable that the key of varabile contains macro is less
 // than variable_key_with_macro_size.
 constexpr size_t variable_key_with_macro_size = 100;
+constexpr int max_capture_size = 100;
 
 Transaction::Transaction(const Engine& engin, size_t literal_key_size)
     : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
@@ -58,8 +56,8 @@ void Transaction::processConnection(std::string_view downstream_ip, short downst
                                     std::string_view upstream_ip, short upstream_port) {
   WGE_LOG_TRACE("====process connection====");
   connection_info_.downstream_ip_ = downstream_ip;
-  connection_info_.downstream_port_ = downstream_port;
   connection_info_.upstream_ip_ = upstream_ip;
+  connection_info_.downstream_port_ = downstream_port;
   connection_info_.upstream_port_ = upstream_port;
 }
 
@@ -91,13 +89,14 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   WGE_LOG_TRACE("====process uri====");
   // If request_line_ is empty, reconstruct it using method, URI, and version
   if (request_line_.empty()) {
-    request_line_buffer_.reserve(method.size() + uri.size() + version.size() + 7);
-    request_line_buffer_ += method;
-    request_line_buffer_ += ' ';
-    request_line_buffer_ += uri;
-    request_line_buffer_ += " HTTP/";
-    request_line_buffer_ += version;
-    request_line_ = request_line_buffer_;
+    std::string request_line_buffer;
+    request_line_buffer.reserve(method.size() + uri.size() + version.size() + 7);
+    request_line_buffer += method;
+    request_line_buffer += ' ';
+    request_line_buffer += uri;
+    request_line_buffer += " HTTP/";
+    request_line_buffer += version;
+    request_line_ = internString(std::move(request_line_buffer));
     // Extract protocol string from the reconstructed request line
     request_line_info_.protocol_ = request_line_.substr(method.size() + uri.size() + 2);
   }
@@ -111,28 +110,29 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   request_line_info_.version_ = version;
 
   Common::Ragel::UriParser uri_parser;
-  uri_parser.init(uri, request_line_info_);
+  uri_parser.init(uri, request_line_info_, string_pool_);
 
   // Init the query params
-  request_line_info_.query_params_.init(request_line_info_.query_);
+  request_line_info_.query_params_.init(request_line_info_.query_, string_pool_);
 
   WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                 request_line_info_.method_, request_line_info_.uri_, request_line_info_.query_,
                 request_line_info_.protocol_, request_line_info_.version_);
 }
 
-bool Transaction::processRequestHeaders(
-    HeaderFind request_header_find, HeaderTraversal request_header_traversal, size_t header_count,
-    std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view,
-                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-        additional_cond) {
+bool Transaction::processRequestHeaders(HeaderFind request_header_find,
+                                        HeaderTraversal request_header_traversal,
+                                        size_t request_header_count, LogCallback log_callback,
+                                        void* log_user_data, AdditionalCondCallback additional_cond,
+                                        void* additional_cond_user_data) {
   WGE_LOG_TRACE("====process request headers====");
   extractor_.request_header_find_ = std::move(request_header_find);
   extractor_.request_header_traversal_ = std::move(request_header_traversal);
-  extractor_.request_header_count_ = header_count;
-  log_callback_ = std::move(log_callback);
-  additional_cond_ = std::move(additional_cond);
+  extractor_.request_header_count_ = request_header_count;
+  log_callback_ = log_callback;
+  log_user_data_ = log_user_data;
+  additional_cond_ = additional_cond;
+  additional_cond_user_data_ = additional_cond_user_data;
 
   // Set the request body processor
   if (extractor_.request_header_find_) {
@@ -160,20 +160,22 @@ bool Transaction::processRequestHeaders(
 
   // Reset the log callback and additional condition
   log_callback_ = nullptr;
+  log_user_data_ = nullptr;
   additional_cond_ = nullptr;
+  additional_cond_user_data_ = nullptr;
 
   return result;
 }
 
-bool Transaction::processRequestBody(
-    std::string_view body, std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view,
-                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-        additional_cond) {
+bool Transaction::processRequestBody(std::string_view body, LogCallback log_callback,
+                                     void* log_user_data, AdditionalCondCallback additional_cond,
+                                     void* additional_cond_user_data) {
   WGE_LOG_TRACE("====process request body====");
   request_body_ = body;
-  log_callback_ = std::move(log_callback);
-  additional_cond_ = std::move(additional_cond);
+  log_callback_ = log_callback;
+  log_user_data_ = log_user_data;
+  additional_cond_ = additional_cond;
+  additional_cond_user_data_ = additional_cond_user_data;
 
   // Parse the query params
   if (!request_body_.empty() && request_body_processor_.has_value()) {
@@ -182,7 +184,7 @@ bool Transaction::processRequestBody(
       // Do nothing
     } break;
     case BodyProcessorType::UrlEncoded: {
-      body_query_param_.init(request_body_);
+      body_query_param_.init(request_body_, string_pool_);
     } break;
     case BodyProcessorType::MultiPart: {
       std::string_view content_type;
@@ -193,17 +195,17 @@ bool Transaction::processRequestBody(
       body_multi_part_.init(content_type, request_body_, engine_.config().upload_file_limit_);
     } break;
     case BodyProcessorType::Xml: {
-      body_xml_.init(request_body_);
+      body_xml_.init(request_body_, string_pool_);
       auto option = getParseXmlIntoArgs();
       if (option != ParseXmlIntoArgsOption::Off) {
-        body_query_param_.merge(body_xml_.getTags(), body_xml_.moveHtmlDecodeBuffer());
+        body_query_param_.merge(body_xml_.getTags());
       }
       if (option == ParseXmlIntoArgsOption::OnlyArgs) {
         body_xml_.clear();
       }
     } break;
     case BodyProcessorType::Json: {
-      body_json_.init(request_body_);
+      body_json_.init(request_body_, string_pool_);
     } break;
     default: {
       UNREACHABLE();
@@ -215,51 +217,60 @@ bool Transaction::processRequestBody(
 
   // Reset the log callback and additional condition
   log_callback_ = nullptr;
+  log_user_data_ = nullptr;
   additional_cond_ = nullptr;
+  additional_cond_user_data_ = nullptr;
 
   return result;
 }
 
-bool Transaction::processResponseHeaders(
-    std::string_view status_code, std::string_view protocol, HeaderFind response_header_find,
-    HeaderTraversal response_header_traversal, size_t response_header_count,
-    std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view,
-                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-        additional_cond) {
+bool Transaction::processResponseHeaders(std::string_view status_code, std::string_view protocol,
+                                         HeaderFind response_header_find,
+                                         HeaderTraversal response_header_traversal,
+                                         size_t response_header_count, LogCallback log_callback,
+                                         void* log_user_data,
+                                         AdditionalCondCallback additional_cond,
+                                         void* additional_cond_user_data) {
   WGE_LOG_TRACE("====process response headers====");
   extractor_.response_header_find_ = std::move(response_header_find);
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
   extractor_.response_header_count_ = response_header_count;
-  log_callback_ = std::move(log_callback);
-  additional_cond_ = std::move(additional_cond);
   response_line_info_.status_code_ = status_code;
   response_line_info_.protocol_ = protocol;
+
+  log_callback_ = log_callback;
+  log_user_data_ = log_user_data;
+  additional_cond_ = additional_cond;
+  additional_cond_user_data_ = additional_cond_user_data;
 
   bool result = process(3);
 
   // Reset the log callback and additional condition
   log_callback_ = nullptr;
+  log_user_data_ = nullptr;
   additional_cond_ = nullptr;
+  additional_cond_user_data_ = nullptr;
 
   return result;
 }
 
-bool Transaction::processResponseBody(
-    std::string_view body, std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view,
-                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-        additional_cond) {
+bool Transaction::processResponseBody(std::string_view body, LogCallback log_callback,
+                                      void* log_user_data, AdditionalCondCallback additional_cond,
+                                      void* additional_cond_user_data) {
   WGE_LOG_TRACE("====process response body====");
   response_body_ = body;
-  log_callback_ = std::move(log_callback);
-  additional_cond_ = std::move(additional_cond);
+  log_callback_ = log_callback;
+  log_user_data_ = log_user_data;
+  additional_cond_ = additional_cond;
+  additional_cond_user_data_ = additional_cond_user_data;
 
   bool result = process(4);
 
   // Reset the log callback and additional condition
   log_callback_ = nullptr;
+  log_user_data_ = nullptr;
   additional_cond_ = nullptr;
+  additional_cond_user_data_ = nullptr;
 
   return result;
 }
@@ -267,26 +278,8 @@ bool Transaction::processResponseBody(
 void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    auto& tx_variable = tx_variables_[index];
-    if (IS_INT_VARIANT(value))
-      [[likely]] { tx_variable.variant_ = std::get<int64_t>(value); }
-    else if (IS_STRING_VIEW_VARIANT(value)) {
-      // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid
-      // if it's reference is invalid. So we copy the value to the string_buffer_. The
-      // string_buffer_ store the value as a string, and it will be valid until the
-      // transaction is destroyed. Why we don't let the Common::Variant store the value as a
-      // std::string? If we do it, it seems that we don't need the string_buffer_ anymore. But
-      // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
-      // std::monostate, int64_t, std::string_view. If we add a new std::sting type, we must process
-      // the variant in repeat places when we want to get the value as a string. So we choose to
-      // store the value as a std::string_view in the Common::Variant, and copy the value to the
-      // string_buffer_ when we want to store the value as a string. It's a trade-off between
-      // the code maintainability and the performance.
-      tx_variable.string_buffer_ = std::get<std::string_view>(value);
-      tx_variable.variant_ = tx_variable.string_buffer_;
-    } else {
-      UNREACHABLE();
-    }
+    assert(!IS_EMPTY_VARIANT(value));
+    tx_variables_[index] = value;
   }
 }
 
@@ -305,8 +298,8 @@ void Transaction::setVariable(std::string&& name, const Common::Variant& value) 
 void Transaction::removeVariable(size_t index) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    assert(!IS_EMPTY_VARIANT(tx_variables_[index].variant_));
-    tx_variables_[index].variant_ = EMPTY_VARIANT;
+    assert(!IS_EMPTY_VARIANT(tx_variables_[index]));
+    tx_variables_[index] = EMPTY_VARIANT;
   }
 }
 
@@ -325,7 +318,7 @@ void Transaction::removeVariable(const std::string& name) {
 void Transaction::increaseVariable(size_t index, int64_t value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    auto& variant = tx_variables_[index].variant_;
+    auto& variant = tx_variables_[index];
     if (IS_INT_VARIANT(variant))
       [[likely]] { variant = std::get<int64_t>(variant) + value; }
     else if (IS_EMPTY_VARIANT(variant)) {
@@ -349,7 +342,7 @@ void Transaction::increaseVariable(const std::string& name, int64_t value) {
 const Common::Variant& Transaction::getVariable(size_t index) const {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    return tx_variables_[index].variant_;
+    return tx_variables_[index];
   }
 
   return EMPTY_VARIANT;
@@ -374,13 +367,13 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
   variables.reserve(tx_variables_.size());
   for (size_t i = 0; i < tx_variables_.size(); ++i) {
     auto& variable = tx_variables_[i];
-    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+    if (!IS_EMPTY_VARIANT(variable)) {
       if (i < literal_key_size_) {
-        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable.variant_);
+        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable);
       } else {
         auto iter = local_tx_variable_index_reverse_.find(i);
         if (iter != local_tx_variable_index_reverse_.end()) {
-          variables.emplace_back(iter->second, &variable.variant_);
+          variables.emplace_back(iter->second, &variable);
         }
       }
     }
@@ -391,7 +384,7 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
 int64_t Transaction::getVariablesCount() const {
   int64_t count = 0;
   for (auto& variable : tx_variables_) {
-    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+    if (!IS_EMPTY_VARIANT(variable)) {
       ++count;
     }
   }
@@ -400,7 +393,7 @@ int64_t Transaction::getVariablesCount() const {
 
 bool Transaction::hasVariable(size_t index) const {
   assert(index < tx_variables_.size());
-  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index].variant_);
+  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index]);
 }
 
 bool Transaction::hasVariable(const std::string& name) const {
@@ -409,64 +402,70 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::setTempCapture(size_t index, Common::EvaluateResults::Element&& value) {
-  if (index < max_capture_size_)
+void Transaction::stageCapture(size_t index, std::string_view value) {
+  if (index < max_capture_size)
     [[likely]] {
       if (temp_captured_.size() <= index) {
         temp_captured_.resize(index + 1);
       }
-      temp_captured_[index] = std::move(value);
+      temp_captured_[index] = value;
     }
 }
 
-size_t Transaction::mergeCapture() {
-  size_t merged_count = 0;
+size_t Transaction::commitCapture() {
+  size_t committed_count = 0;
 
-  // Merge the temp_captured_ into captured_
+  // Commit the temp_captured_ into captured_
   if (!temp_captured_.empty()) {
-    merged_count = temp_captured_.size();
+    committed_count = temp_captured_.size();
     if (temp_captured_.size() >= captured_.size()) {
       captured_.swap(temp_captured_);
     } else {
       for (size_t i = 0; i < temp_captured_.size(); ++i) {
-        captured_[i] = std::move(temp_captured_[i]);
+        captured_[i] = temp_captured_[i];
       }
     }
     temp_captured_.clear();
   }
 
-  return merged_count;
+  return committed_count;
 }
 
-const Common::Variant& Transaction::getCapture(size_t index) const {
+std::string_view Transaction::getCapture(size_t index) const {
   // assert(index < matched_size_);
   if (index < captured_.size())
-    [[likely]] { return captured_[index].variant_; }
+    [[likely]] { return captured_[index]; }
   else {
     WGE_LOG_WARN("The index of captured string is out of range. index: {}, captured size: {}",
                  index, captured_.size());
-    return EMPTY_VARIANT;
+    return "";
   }
 }
 
-ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
-  return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
-}
+void Transaction::pushMatchedVariable(
+    const Variable::VariableBase* variable, RuleChainIndexType rule_chain_index,
+    const Common::EvaluateElement& original_value, const Common::EvaluateElement& transformed_value,
+    std::string_view captured_value,
+    std::list<const Transformation::TransformBase*>&& transform_list) {
+  auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
+                        .first->second;
 
-const std::string_view Transaction::getUniqueId() {
-  // We doesn't generate the unique id in the constructor, because the rules may be not use the
-  // unique id any more, so we generate the unique id when the unique id is needed.
-  // This is a lazy initialization, ant it's will be increased the performance.
-  if (unique_id_.empty()) {
-    initUniqueId();
-  }
-  return unique_id_;
+  variables.emplace_back(variable, original_value, transformed_value, captured_value,
+                         std::move(transform_list));
+
+  if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
+    [[unlikely]] {
+      auto& transform_value = variables.back().transformed_value_;
+      auto& original_value = variables.back().original_value_;
+      transform_value.variant_ = original_value.variant_;
+      transform_value.variable_sub_name_ = original_value.variable_sub_name_;
+    }
 }
 
 void Transaction::removeRule(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules) {
   // Sets the rule remove flags
-  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+  for (RulePhaseType phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
     if (rule_set.empty())
       [[likely]] { continue; }
@@ -489,7 +488,7 @@ void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
     const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {
   // Sets the rule remove targets
-  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+  for (RulePhaseType phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
     if (rule_set.empty())
       [[likely]] { continue; }
@@ -536,28 +535,65 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
   return false;
 }
 
-void Transaction::pushMatchedVariable(
-    const Variable::VariableBase* variable, int rule_chain_index,
-    Common::EvaluateResults::Element&& original_value,
-    Common::EvaluateResults::Element&& transformed_value,
-    Common::EvaluateResults::Element&& captured_value,
-    std::list<const Transformation::TransformBase*>&& transform_list) {
-  auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
-                        .first->second;
-
-  variables.emplace_back(variable, std::move(original_value), std::move(transformed_value),
-                         std::move(captured_value), std::move(transform_list));
-
-  if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
-    [[unlikely]] {
-      auto& transform_value = variables.back().transformed_value_;
-      auto& original_value = variables.back().original_value_;
-      transform_value.variant_ = original_value.variant_;
-      transform_value.variable_sub_name_ = original_value.variable_sub_name_;
+std::string_view Transaction::getMsgMacroExpanded() {
+  if (current_rule_ && current_rule_->msgMacro()) {
+    Wge::Common::EvaluateResults result;
+    current_rule_->msgMacro()->evaluate(*this, result);
+    WGE_LOG_TRACE("evaluate msg macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
     }
+  }
+
+  return "";
 }
 
-void Transaction::initUniqueId() {
+std::string_view Transaction::getLogDataMacroExpanded() {
+  if (current_rule_ && current_rule_->logDataMacro()) {
+    Wge::Common::EvaluateResults result;
+    current_rule_->logDataMacro()->evaluate(*this, result);
+    WGE_LOG_TRACE("evaluate logdata macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
+    }
+  }
+
+  return "";
+}
+
+std::string_view Transaction::getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
+  switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
+  case 1:
+    return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
+  case 2: {
+    const Macro::MacroBase* macro =
+        std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
+    Common::EvaluateResults result;
+    macro->evaluate(*const_cast<Transaction*>(this), result);
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
+    }
+  }
+  default:
+    return "";
+  }
+}
+
+ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
+  return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
+}
+
+std::string_view Transaction::getUniqueId() const {
+  // We doesn't generate the unique id in the constructor, because the rules may be not use the
+  // unique id any more, so we generate the unique id when the unique id is needed.
+  // This is a lazy initialization, ant it's will be increased the performance.
+  if (!unique_id_) {
+    initUniqueId();
+  }
+  return *unique_id_;
+}
+
+void Transaction::initUniqueId() const {
   // Generate a unique id for the transaction.
   // Implementation is to use a millisecond timestamp, followed by a dot character ('.'), followed
   // by a random six-digit number.
@@ -568,7 +604,7 @@ void Transaction::initUniqueId() {
   unique_id_ = std::format("{}.{}", timestamp, random);
 }
 
-inline bool Transaction::process(int phase) {
+inline bool Transaction::process(RulePhaseType phase) {
   if (engine_.config().rule_engine_option_ == EngineConfig::Option::Off)
     [[unlikely]] { return true; }
 
@@ -616,7 +652,7 @@ inline bool Transaction::process(int phase) {
     if (log_callback_)
       [[likely]] {
         if (current_rule_->log()) {
-          log_callback_(*current_rule_);
+          log_callback_(*current_rule_, log_user_data_);
         }
       }
 
@@ -676,11 +712,11 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   return iter->second;
 }
 
-void Transaction::initCookies() {
-  if (init_cookies_)
+void Transaction::initCookies() const {
+  if (cookies_.has_value())
     [[likely]] { return; }
 
-  init_cookies_ = true;
+  cookies_.emplace();
 
   // Get the cookies form the request headers
   std::vector<std::string_view> result = extractor_.request_header_find_("cookie");
@@ -696,7 +732,7 @@ void Transaction::initCookies() {
       if (pos != std::string_view::npos) {
         std::string_view key = Common::trim(cookie.substr(0, pos));
         std::string_view value = Common::trim(cookie.substr(pos + 1));
-        cookies_.emplace(key, value);
+        cookies_->emplace(key, value);
       }
       begin = end + 1;
     }

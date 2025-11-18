@@ -25,10 +25,10 @@
 namespace Wge {
 namespace Common {
 namespace Ragel {
-void Json::init(std::string_view json_str) {
+void Json::init(std::string_view json_str, std::forward_list<std::string>& escape_buffer) {
   key_value_map_.reserve(32);
   key_value_linked_.reserve(32);
-  parseJson(json_str, key_value_map_, key_value_linked_, escape_buffer_);
+  parseJson(json_str, key_value_map_, key_value_linked_, escape_buffer);
 }
 
 std::unique_ptr<Transformation::StreamState, std::function<void(Transformation::StreamState*)>>

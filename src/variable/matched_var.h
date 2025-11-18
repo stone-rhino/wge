@@ -48,9 +48,9 @@ public:
     if (is_counter_)
       [[unlikely]] {
         if (!t.getMatchedVariables(rule_chain_index).empty())
-          [[likely]] { result.append(1); }
+          [[likely]] { result.emplace_back(1); }
         else {
-          result.append(0);
+          result.emplace_back(0);
         }
         return;
       }
@@ -59,7 +59,7 @@ public:
       [[unlikely]] { return; }
 
     auto& matched_var = t.getMatchedVariables(rule_chain_index).back();
-    result.append(matched_var.transformed_value_.variant_);
+    result.emplace_back(matched_var.transformed_value_.variant_);
   }
 };
 } // namespace Variable

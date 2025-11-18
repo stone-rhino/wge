@@ -30,7 +30,7 @@ namespace Common {
 namespace Ragel {
 class Xml {
 public:
-  void init(std::string_view xml_str);
+  void init(std::string_view xml_str, std::forward_list<std::string>& html_decode_buffer);
 
 public:
   const std::vector<std::pair<std::string_view, std::string_view>>& getAttributes() const {
@@ -44,16 +44,12 @@ public:
   void clear() {
     attributes_.clear();
     tags_.clear();
-    html_decode_buffer_.clear();
     tag_values_str_.clear();
   }
-
-  std::forward_list<std::string> moveHtmlDecodeBuffer() { return std::move(html_decode_buffer_); }
 
 private:
   std::vector<std::pair<std::string_view, std::string_view>> attributes_;
   std::vector<std::pair<std::string_view, std::string_view>> tags_;
-  std::forward_list<std::string> html_decode_buffer_;
   std::string tag_values_str_;
 };
 } // namespace Ragel

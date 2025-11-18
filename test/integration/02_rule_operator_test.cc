@@ -59,10 +59,9 @@ TEST_F(RuleOperatorTest, additionalCondition) {
     auto t = engine_.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    t->processRequestHeaders(
-        nullptr, nullptr, 0, nullptr,
-        [](const Rule& rule, std::string_view variable,
-           const std::unique_ptr<Wge::Variable::VariableBase>& var) { return true; });
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr, nullptr,
+                             [](const Rule& rule, const Variable::VariableBase& variable,
+                                std::string_view value, void* user_data) { return true; });
     EXPECT_TRUE(t->hasVariable("v1"));
   }
 
@@ -70,10 +69,9 @@ TEST_F(RuleOperatorTest, additionalCondition) {
     auto t = engine_.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    t->processRequestHeaders(
-        nullptr, nullptr, 0, nullptr,
-        [](const Rule& rule, std::string_view variable,
-           const std::unique_ptr<Wge::Variable::VariableBase>& var) { return false; });
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr, nullptr,
+                             [](const Rule& rule, const Variable::VariableBase& variable,
+                                std::string_view value, void* user_data) { return false; });
     EXPECT_FALSE(t->hasVariable("v1"));
   }
 }

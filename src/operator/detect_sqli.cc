@@ -34,10 +34,7 @@ bool DetectSqli::evaluate(Transaction& t, const Common::Variant& operand) const 
   char fingerprint[8];
   bool is_sqli = libinjection_sqli(data.data(), data.size(), fingerprint) != 0;
   if (is_sqli) {
-    Common::EvaluateResults::Element value;
-    value.string_buffer_ = std::string(fingerprint, sizeof(fingerprint));
-    value.variant_ = value.string_buffer_;
-    t.setTempCapture(0, std::move(value));
+    t.stageCapture(0, t.internString({fingerprint, sizeof(fingerprint)}));
   }
 
   return is_sqli;
