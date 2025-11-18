@@ -34,8 +34,6 @@
 #include "variable/variables_include.h"
 
 namespace Wge {
-const Transaction::RandomInitHelper Transaction::random_init_helper_;
-
 // To avoid the dynamic memory allocation, we allocate the memory for the variable vector in
 // advance. We assume that the count of variable that the key of varabile contains macro is less
 // than variable_key_with_macro_size.

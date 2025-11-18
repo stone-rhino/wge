@@ -613,11 +613,6 @@ public:
   }
 
 private:
-  class RandomInitHelper {
-  public:
-    RandomInitHelper() { ::srand(::time(nullptr)); }
-  };
-
   void initUniqueId() const;
 
   inline bool process(int phase);
@@ -628,8 +623,23 @@ private:
 
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
+  // The http info
 private:
   HttpExtractor extractor_;
+  ConnectionInfo connection_info_;
+  std::string_view request_line_;
+  std::string request_line_buffer_;
+  RequestLineInfo request_line_info_;
+  ResponseLineInfo response_line_info_;
+  std::string_view request_body_;
+  std::string_view response_body_;
+  Common::Ragel::QueryParam body_query_param_;
+  Common::Ragel::MultiPart body_multi_part_;
+  Common::Ragel::Xml body_xml_;
+  Common::Ragel::Json body_json_;
+  std::string req_body_error_msg_;
+
+private:
   const Engine& engine_;
   std::vector<Common::EvaluateResults::Element> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
@@ -638,7 +648,6 @@ private:
   static constexpr int max_capture_size_{100};
   std::vector<Common::EvaluateResults::Element> captured_;
   std::vector<Common::EvaluateResults::Element> temp_captured_;
-  static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
   std::function<bool(const Rule&, std::string_view,
                      const std::unique_ptr<Wge::Variable::VariableBase>& var)>
@@ -682,21 +691,6 @@ private:
   std::optional<BodyProcessorType> request_body_processor_;
   std::optional<ParseXmlIntoArgsOption> parse_xml_into_args_;
   std::optional<EngineConfig::Option> rule_engine_;
-
-  // The http info
-private:
-  ConnectionInfo connection_info_;
-  std::string_view request_line_;
-  std::string request_line_buffer_;
-  RequestLineInfo request_line_info_;
-  ResponseLineInfo response_line_info_;
-  std::string_view request_body_;
-  std::string_view response_body_;
-  Common::Ragel::QueryParam body_query_param_;
-  Common::Ragel::MultiPart body_multi_part_;
-  Common::Ragel::Xml body_xml_;
-  Common::Ragel::Json body_json_;
-  std::string req_body_error_msg_;
 
 private:
   mutable std::unique_ptr<std::string> unique_id_;
