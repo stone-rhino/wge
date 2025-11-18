@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <boost/unordered/unordered_flat_map.hpp>
+#include <boost/unordered/unordered_flat_set.hpp>
 
 #include "common/evaluate_result.h"
 #include "common/ragel/json.h"
@@ -127,14 +128,6 @@ public:
     std::string_view input_data_view_;
     const char* transformation_name_;
 
-    struct Hash {
-      size_t operator()(const TransformCacheKey& key) const {
-        return std::hash<const void*>()(key.input_data_view_.data()) ^
-               (std::hash<size_t>()(key.input_data_view_.size()) << 2) ^
-               (std::hash<const char*>()(key.transformation_name_) << 4);
-      }
-    };
-
     TransformCacheKey(std::string_view input_data_view, const char* transformation_name)
         : input_data_view_(input_data_view), transformation_name_(transformation_name) {}
 
@@ -142,6 +135,12 @@ public:
       return input_data_view_.data() == other.input_data_view_.data() &&
              input_data_view_.size() == other.input_data_view_.size() &&
              transformation_name_ == other.transformation_name_;
+    }
+
+    friend size_t hash_value(const TransformCacheKey& key) {
+      return std::hash<const void*>()(key.input_data_view_.data()) ^
+             (std::hash<size_t>()(key.input_data_view_.size()) << 2) ^
+             (std::hash<const char*>()(key.transformation_name_) << 4);
     }
   };
 
@@ -525,8 +524,7 @@ public:
    * Get the transformation cache.
    * @return the transformation cache.
    */
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
-                            TransformCacheKey::Hash>&
+  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>>&
   getTransformCache() {
     return transform_cache_;
   }
@@ -656,7 +654,8 @@ private:
   // The allocation memory behavior is lazy, and only the rules that need to be removed or updated
   // will be allocated memory that is same as the engin.rules() size.
   std::array<std::vector<bool>, PHASE_TOTAL> rule_remove_flags_;
-  std::array<std::vector<std::unordered_set<Variable::FullName>>, PHASE_TOTAL> rule_remove_targets_;
+  std::array<std::vector<boost::unordered_flat_set<Variable::FullName>>, PHASE_TOTAL>
+      rule_remove_targets_;
 
   // Current evaluation state
   int current_phase_{1};
@@ -669,8 +668,7 @@ private:
   std::unordered_map<int, std::vector<MatchedVariable>> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>,
-                            TransformCacheKey::Hash>
+  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>>
       transform_cache_;
   bool init_cookies_{false};
   std::unordered_multimap<std::string_view, std::string_view> cookies_;

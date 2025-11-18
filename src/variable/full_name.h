@@ -47,6 +47,11 @@ struct FullName {
 
     return false;
   }
+
+  friend size_t hash_value(const FullName& full_name) {
+    return std::hash<const char*>()(full_name.main_name_.data()) ^
+           (std::hash<std::string_view>()(full_name.sub_name_) << 2);
+  }
 };
 } // namespace Variable
 } // namespace Wge
@@ -56,10 +61,8 @@ struct FullName {
  */
 namespace std {
 template <> struct hash<Wge::Variable::FullName> {
-  size_t operator()(const Wge::Variable::FullName& s) const {
-    size_t h1 = std::hash<const char*>()(s.main_name_.data());
-    size_t h2 = std::hash<std::string_view>()(s.sub_name_);
-    return h1 ^ (h2 << 1);
+  size_t operator()(const Wge::Variable::FullName& full_name) const {
+    return hash_value(full_name);
   }
 };
 } // namespace std
