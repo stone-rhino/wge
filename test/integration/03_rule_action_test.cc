@@ -290,7 +290,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions3 = engine.rules(1).back()->actions();
+    auto& actions3 = engine.rules(1).back().actions();
     for (auto& action : actions3) {
       action->evaluate(*t);
     }
@@ -331,7 +331,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
@@ -342,7 +342,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -378,7 +378,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions2 = engine.rules(1).back()->actions();
+    auto& actions2 = engine.rules(1).back().actions();
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
@@ -389,7 +389,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     engine.init();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions3 = engine.rules(1).back()->actions();
+    auto& actions3 = engine.rules(1).back().actions();
     for (auto& action : actions3) {
       action->evaluate(*t);
     }
@@ -646,7 +646,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto t = engine.makeTransaction();
     ASSERT_TRUE(result.has_value());
 
-    auto& actions1 = engine.rules(1).back()->actions();
+    auto& actions1 = engine.rules(1).back().actions();
     for (auto& action : actions1) {
       action->evaluate(*t);
     }

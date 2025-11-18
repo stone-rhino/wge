@@ -453,14 +453,14 @@ ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
   return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
 }
 
-const std::string_view Transaction::getUniqueId() {
+std::string_view Transaction::getUniqueId() const {
   // We doesn't generate the unique id in the constructor, because the rules may be not use the
   // unique id any more, so we generate the unique id when the unique id is needed.
   // This is a lazy initialization, ant it's will be increased the performance.
-  if (unique_id_.empty()) {
+  if (!unique_id_) {
     initUniqueId();
   }
-  return unique_id_;
+  return *unique_id_;
 }
 
 void Transaction::removeRule(
@@ -557,7 +557,7 @@ void Transaction::pushMatchedVariable(
     }
 }
 
-void Transaction::initUniqueId() {
+void Transaction::initUniqueId() const {
   // Generate a unique id for the transaction.
   // Implementation is to use a millisecond timestamp, followed by a dot character ('.'), followed
   // by a random six-digit number.
@@ -565,7 +565,7 @@ void Transaction::initUniqueId() {
   uint64_t timestamp =
       time_point_cast<std::chrono::milliseconds>(system_clock::now()).time_since_epoch().count();
   int random = ::rand() % 100000 + 100000;
-  unique_id_ = std::format("{}.{}", timestamp, random);
+  unique_id_ = std::make_unique<std::string>(std::format("{}.{}", timestamp, random));
 }
 
 inline bool Transaction::process(int phase) {

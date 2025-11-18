@@ -422,7 +422,7 @@ public:
    * Get the Unique ID of the transaction.
    * @return the Unique ID of the transaction.
    */
-  const std::string_view getUniqueId();
+  std::string_view getUniqueId() const;
 
   /**
    * Get the engine.
@@ -620,7 +620,7 @@ private:
     RandomInitHelper() { ::srand(::time(nullptr)); }
   };
 
-  void initUniqueId();
+  void initUniqueId() const;
 
   inline bool process(int phase);
 
@@ -631,7 +631,6 @@ private:
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
 private:
-  std::string unique_id_;
   HttpExtractor extractor_;
   const Engine& engine_;
   std::vector<Common::EvaluateResults::Element> tx_variables_;
@@ -700,6 +699,9 @@ private:
   Common::Ragel::Xml body_xml_;
   Common::Ragel::Json body_json_;
   std::string req_body_error_msg_;
+
+private:
+  mutable std::unique_ptr<std::string> unique_id_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
