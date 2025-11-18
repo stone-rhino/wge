@@ -409,7 +409,7 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::setTempCapture(size_t index, Common::EvaluateResults::Element&& value) {
+void Transaction::stageCapture(size_t index, Common::EvaluateResults::Element&& value) {
   if (index < max_capture_size_)
     [[likely]] {
       if (temp_captured_.size() <= index) {
@@ -419,12 +419,12 @@ void Transaction::setTempCapture(size_t index, Common::EvaluateResults::Element&
     }
 }
 
-size_t Transaction::mergeCapture() {
-  size_t merged_count = 0;
+size_t Transaction::commitCapture() {
+  size_t committed_count = 0;
 
-  // Merge the temp_captured_ into captured_
+  // Commit the temp_captured_ into captured_
   if (!temp_captured_.empty()) {
-    merged_count = temp_captured_.size();
+    committed_count = temp_captured_.size();
     if (temp_captured_.size() >= captured_.size()) {
       captured_.swap(temp_captured_);
     } else {
@@ -435,7 +435,7 @@ size_t Transaction::mergeCapture() {
     temp_captured_.clear();
   }
 
-  return merged_count;
+  return committed_count;
 }
 
 const Common::Variant& Transaction::getCapture(size_t index) const {

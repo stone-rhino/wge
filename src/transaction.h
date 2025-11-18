@@ -359,27 +359,27 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * Sets a temporary string that is captured by the operator. After calling this method, we should
-   * call mergeCapture() to merge the temporary captured strings into the main captured strings,
+   * Stages a captured string from operator matching. After calling this method, we should
+   * call commitCapture() to commit the staged captured strings into the main captured strings,
    * then we can use getCapture() to get the captured strings.
    * @param index the index of the matched string. The range is [0, 99].
    * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void setTempCapture(size_t index, Common::EvaluateResults::Element&& value);
+  void stageCapture(size_t index, Common::EvaluateResults::Element&& value);
 
   /**
-   * Clear the temporary captured strings.
+   * Rollback the staged captured strings.
    */
-  void clearTempCapture() { temp_captured_.clear(); }
+  void rollbackCapture() { temp_captured_.clear(); }
 
   /**
-   * Merge the temporary captured strings into the main captured strings.
+   * Commit the staged captured strings into the main captured strings.
    * After calling this method, we can use getCapture() to get the captured strings.
-   * @return the number of captured strings that are merged.
+   * @return the number of captured strings that are committed.
    */
-  size_t mergeCapture();
+  size_t commitCapture();
 
   /**
    * Get the captured string that is captured by the operator.

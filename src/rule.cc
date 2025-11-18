@@ -390,8 +390,8 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
   }
 
   if (matched) {
-    auto merged_count = t.mergeCapture();
-    if (merged_count) {
+    auto committed_count = t.commitCapture();
+    if (committed_count) {
       auto& tx_0 = t.getCapture(0);
 
       // Copy the first captured value to the capture_value. The copy is necessary because
@@ -400,7 +400,7 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
       capture_value.variant_ = capture_value.string_buffer_;
     }
   } else {
-    t.clearTempCapture();
+    t.rollbackCapture();
   }
 
   WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),

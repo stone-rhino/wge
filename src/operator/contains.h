@@ -47,7 +47,7 @@ public:
             if (matched) {
               Common::EvaluateResults::Element value;
               value.variant_ = literal_value_;
-              t.setTempCapture(0, std::move(value));
+              t.stageCapture(0, std::move(value));
             }
           }
         else {
@@ -57,7 +57,7 @@ public:
             Common::EvaluateResults::Element value;
             value.string_buffer_ = macro_value;
             value.variant_ = value.string_buffer_;
-            t.setTempCapture(0, std::move(value));
+            t.stageCapture(0, std::move(value));
           }
         }
       }
