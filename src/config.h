@@ -45,7 +45,7 @@ using RuleChainIndexType = int8_t;
  * The configuration of the WGE
  */
 struct EngineConfig {
-  enum class Option { On, Off, DetectionOnly };
+  enum class Option : uint8_t { On, Off, DetectionOnly };
   enum class BodyLimitAction { Reject, ProcessPartial };
   // SecRuleEngine
   // Configures the rules engine.
@@ -139,7 +139,7 @@ struct EngineConfig {
  * The configuration of the audit log.
  */
 struct AuditLogConfig {
-  enum class AuditEngine {
+  enum class AuditEngine : uint8_t {
     // log all transactions
     On,
     // do not log any transactions
@@ -154,7 +154,7 @@ struct AuditLogConfig {
 
   enum class AuditFormat { Json, Native };
 
-  enum class AuditLogPart {
+  enum class AuditLogPart : uint8_t {
     A = 0,
     Headers = A,
     B = 1,
@@ -237,8 +237,8 @@ struct AuditLogConfig {
 /**
  * The configuration of the request body processor.
  */
-enum class BodyProcessorType { UnknownFormat, UrlEncoded, MultiPart, Xml, Json };
-enum class ParseXmlIntoArgsOption { On, Off, OnlyArgs };
+enum class BodyProcessorType : uint8_t { UnknownFormat, UrlEncoded, MultiPart, Xml, Json };
+enum class ParseXmlIntoArgsOption : uint8_t { On, Off, OnlyArgs };
 
 struct MultipartStrictError : public std::bitset<16> {
   enum class ErrorType {
