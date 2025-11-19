@@ -38,6 +38,7 @@ namespace Wge {
 // advance. We assume that the count of variable that the key of varabile contains macro is less
 // than variable_key_with_macro_size.
 constexpr size_t variable_key_with_macro_size = 100;
+constexpr int max_capture_size = 100;
 
 Transaction::Transaction(const Engine& engin, size_t literal_key_size)
     : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
@@ -408,7 +409,7 @@ bool Transaction::hasVariable(const std::string& name) const {
 }
 
 void Transaction::stageCapture(size_t index, Common::EvaluateResults::Element&& value) {
-  if (index < max_capture_size_)
+  if (index < max_capture_size)
     [[likely]] {
       if (temp_captured_.size() <= index) {
         temp_captured_.resize(index + 1);
@@ -447,18 +448,25 @@ const Common::Variant& Transaction::getCapture(size_t index) const {
   }
 }
 
-ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
-  return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
-}
+void Transaction::pushMatchedVariable(
+    const Variable::VariableBase* variable, RuleChainIndexType rule_chain_index,
+    Common::EvaluateResults::Element&& original_value,
+    Common::EvaluateResults::Element&& transformed_value,
+    Common::EvaluateResults::Element&& captured_value,
+    std::list<const Transformation::TransformBase*>&& transform_list) {
+  auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
+                        .first->second;
 
-std::string_view Transaction::getUniqueId() const {
-  // We doesn't generate the unique id in the constructor, because the rules may be not use the
-  // unique id any more, so we generate the unique id when the unique id is needed.
-  // This is a lazy initialization, ant it's will be increased the performance.
-  if (!unique_id_) {
-    initUniqueId();
-  }
-  return *unique_id_;
+  variables.emplace_back(variable, std::move(original_value), std::move(transformed_value),
+                         std::move(captured_value), std::move(transform_list));
+
+  if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
+    [[unlikely]] {
+      auto& transform_value = variables.back().transformed_value_;
+      auto& original_value = variables.back().original_value_;
+      transform_value.variant_ = original_value.variant_;
+      transform_value.variable_sub_name_ = original_value.variable_sub_name_;
+    }
 }
 
 void Transaction::removeRule(
@@ -534,25 +542,18 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
   return false;
 }
 
-void Transaction::pushMatchedVariable(
-    const Variable::VariableBase* variable, int rule_chain_index,
-    Common::EvaluateResults::Element&& original_value,
-    Common::EvaluateResults::Element&& transformed_value,
-    Common::EvaluateResults::Element&& captured_value,
-    std::list<const Transformation::TransformBase*>&& transform_list) {
-  auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
-                        .first->second;
+ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
+  return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
+}
 
-  variables.emplace_back(variable, std::move(original_value), std::move(transformed_value),
-                         std::move(captured_value), std::move(transform_list));
-
-  if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
-    [[unlikely]] {
-      auto& transform_value = variables.back().transformed_value_;
-      auto& original_value = variables.back().original_value_;
-      transform_value.variant_ = original_value.variant_;
-      transform_value.variable_sub_name_ = original_value.variable_sub_name_;
-    }
+std::string_view Transaction::getUniqueId() const {
+  // We doesn't generate the unique id in the constructor, because the rules may be not use the
+  // unique id any more, so we generate the unique id when the unique id is needed.
+  // This is a lazy initialization, ant it's will be increased the performance.
+  if (!unique_id_) {
+    initUniqueId();
+  }
+  return *unique_id_;
 }
 
 void Transaction::initUniqueId() const {
@@ -674,11 +675,11 @@ inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::strin
   return iter->second;
 }
 
-void Transaction::initCookies() {
-  if (init_cookies_)
+void Transaction::initCookies() const {
+  if (cookies_)
     [[likely]] { return; }
 
-  init_cookies_ = true;
+  cookies_ = std::make_unique<std::unordered_multimap<std::string_view, std::string_view>>();
 
   // Get the cookies form the request headers
   std::vector<std::string_view> result = extractor_.request_header_find_("cookie");
@@ -694,7 +695,7 @@ void Transaction::initCookies() {
       if (pos != std::string_view::npos) {
         std::string_view key = Common::trim(cookie.substr(0, pos));
         std::string_view value = Common::trim(cookie.substr(pos + 1));
-        cookies_.emplace(key, value);
+        cookies_->emplace(key, value);
       }
       begin = end + 1;
     }

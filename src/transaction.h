@@ -144,6 +144,11 @@ public:
     }
   };
 
+  using TransformCache =
+      boost::unordered_flat_map<TransformCacheKey,
+                                std::unique_ptr<Common::EvaluateResults::Element>>;
+
+  // Process the transaction
 public:
   /**
    * Process the connection info.
@@ -237,7 +242,31 @@ public:
                                          const std::unique_ptr<Wge::Variable::VariableBase>& var)>
                           additional_cond = nullptr);
 
+  // Http transaction data
 public:
+  const HttpExtractor& httpExtractor() const { return extractor_; }
+  const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
+  std::string_view getRequestLine() const { return request_line_; }
+  const RequestLineInfo& getRequestLineInfo() const { return request_line_info_; }
+  std::string_view getRequestBody() const { return request_body_; }
+  std::string_view getResponseBody() const { return response_body_; }
+  const ResponseLineInfo& getResponseLineInfo() const { return response_line_info_; }
+  const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
+  const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
+  const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
+  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
+  const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
+  const std::unordered_multimap<std::string_view, std::string_view>& getCookies() const {
+    initCookies();
+    return *cookies_;
+  }
+
+  // Current evaluation state
+public:
+  const Engine& getEngine() const { return engine_; }
+  const Rule* getCurrentEvaluateRule() const { return current_rule_; }
+  void setCurrentEvaluateRule(const Rule* rule) { current_rule_ = rule; }
+
   /**
    * Create or update a variable in the transient transaction collection.
    *
@@ -389,45 +418,36 @@ public:
   const Common::Variant& getCapture(size_t index) const;
 
   /**
-   * Get the HTTP extractor.
-   * @return the HTTP extractor.
+   * Add a matched variable.
+   * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
+   * @param variable the matched variable.
+   * @param rule_chain_index the chain index of the rule that matched this variable.
+   * @param original_value the original value of the matched variable.
+   * @param transformed_value the transformed value of the matched variable.
+   * @param captured_value the captured value of the matched variable.
+   * @param transform_list the list of transformations that applied to the matched variable.
+   * @param result the result of the matched variable.
    */
-  const HttpExtractor& httpExtractor() const { return extractor_; }
+  void pushMatchedVariable(const Variable::VariableBase* variable,
+                           RuleChainIndexType rule_chain_index,
+                           Common::EvaluateResults::Element&& original_value,
+                           Common::EvaluateResults::Element&& transformed_value,
+                           Common::EvaluateResults::Element&& captured_value,
+                           std::list<const Transformation::TransformBase*>&& transform_list);
 
   /**
-   * Set the request body processor.
-   * @param type the request body processor.
+   * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
+   * @return the matched variables.
    */
-  void setRequestBodyProcessor(BodyProcessorType type) { request_body_processor_ = type; }
+  const std::vector<MatchedVariable>& getMatchedVariables(int rule_chain_index) const {
+    auto iter = matched_variables_.find(rule_chain_index);
+    if (iter != matched_variables_.end()) {
+      return iter->second;
+    }
 
-  /**
-   * Get the request body processor.
-   * @return the request body processor.
-   */
-  BodyProcessorType getRequestBodyProcessor() const { return *request_body_processor_; }
-
-  /**
-   * Set the parse XML into args option.
-   * @param option the parse XML into args option.
-   */
-  void setParseXmlIntoArgs(ParseXmlIntoArgsOption option) { parse_xml_into_args_ = option; }
-
-  /**
-   * Get the parse XML into args option.
-   */
-  ParseXmlIntoArgsOption getParseXmlIntoArgs() const;
-
-  /**
-   * Get the Unique ID of the transaction.
-   * @return the Unique ID of the transaction.
-   */
-  std::string_view getUniqueId() const;
-
-  /**
-   * Get the engine.
-   * @return the engine.
-   */
-  const Engine& getEngine() const { return engine_; }
+    static const std::vector<MatchedVariable> empty_vector;
+    return empty_vector;
+  }
 
   /**
    * Remove the rule.
@@ -456,6 +476,22 @@ public:
   bool isRuleTargetRemoved(const Rule* rule, Variable::FullName full_name) const;
 
   /**
+   * Set the message macro expanded of current matched rule.
+   * @param msg_macro_expanded the message macro expanded of current matched rule.
+   */
+  void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
+    msg_macro_expanded_ = std::move(msg_macro_expanded);
+  }
+
+  /**
+   * Set the log data macro expanded of current matched rule.
+   * @param log_data_macro_expanded the log data macro expanded of current matched rule.
+   */
+  void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
+    log_data_macro_expanded_ = std::move(log_data_macro_expanded);
+  }
+
+  /**
    * Get the message macro expanded of current matched rule.
    * @return the message macro expanded of current matched rule.
    * @note We must copy the result to  another buffer if we want to store the result and use it
@@ -473,112 +509,7 @@ public:
     return log_data_macro_expanded_.string_buffer_;
   }
 
-  /**
-   * Set the message macro expanded of current matched rule.
-   * @param msg_macro_expanded the message macro expanded of current matched rule.
-   */
-  void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
-    msg_macro_expanded_ = std::move(msg_macro_expanded);
-  }
-
-  /**
-   * Set the log data macro expanded of current matched rule.
-   * @param log_data_macro_expanded the log data macro expanded of current matched rule.
-   */
-  void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
-    log_data_macro_expanded_ = std::move(log_data_macro_expanded);
-  }
-
-  /**
-   * Add a matched variable.
-   * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
-   * @param variable the matched variable.
-   * @param rule_chain_index the chain index of the rule that matched this variable.
-   * @param original_value the original value of the matched variable.
-   * @param transformed_value the transformed value of the matched variable.
-   * @param captured_value the captured value of the matched variable.
-   * @param transform_list the list of transformations that applied to the matched variable.
-   * @param result the result of the matched variable.
-   */
-  void pushMatchedVariable(const Variable::VariableBase* variable, int rule_chain_index,
-                           Common::EvaluateResults::Element&& original_value,
-                           Common::EvaluateResults::Element&& transformed_value,
-                           Common::EvaluateResults::Element&& captured_value,
-                           std::list<const Transformation::TransformBase*>&& transform_list);
-
-  /**
-   * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
-   * @return the matched variables.
-   */
-  const std::vector<MatchedVariable>& getMatchedVariables(int rule_chain_index) const {
-    auto iter = matched_variables_.find(rule_chain_index);
-    if (iter != matched_variables_.end()) {
-      return iter->second;
-    }
-
-    static const std::vector<MatchedVariable> empty_vector;
-    return empty_vector;
-  }
-
-  /**
-   * Get the transformation cache.
-   * @return the transformation cache.
-   */
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>>&
-  getTransformCache() {
-    return transform_cache_;
-  }
-
-  std::unordered_multimap<std::string_view, std::string_view>& getCookies() {
-    initCookies();
-    return cookies_;
-  }
-
-  /**
-   * Get the connection info.
-   * @return the connection info.
-   */
-  const ConnectionInfo& getConnectionInfo() const { return connection_info_; }
-
-  /**
-   * Get the raw request line.
-   * @return the string view of the raw request line.
-   */
-  std::string_view getRequestLine() const { return request_line_; }
-
-  /**
-   * Get the request line info.
-   * @return the request line info that parsed from the raw request line.
-   */
-  const RequestLineInfo& getRequestLineInfo() const { return request_line_info_; }
-
-  /**
-   * Get the request body.
-   * @return the string view of the request body.
-   */
-  std::string_view getRequestBody() const { return request_body_; }
-
-  /**
-   * Get the response body.
-   * @return the string view of the response body.
-   */
-  std::string_view getResponseBody() const { return response_body_; }
-
-  /**
-   * Get the response line info.
-   * @return the response line info
-   */
-  const ResponseLineInfo& getResponseLineInfo() const { return response_line_info_; }
-
-  const Common::Ragel::QueryParam& getBodyQueryParam() const { return body_query_param_; }
-
-  const Common::Ragel::MultiPart& getBodyMultiPart() const { return body_multi_part_; }
-
-  const Common::Ragel::Xml& getBodyXml() const { return body_xml_; }
-
-  const Common::Ragel::Json& getBodyJson() const { return body_json_; }
-
-  const std::string& getReqBodyErrorMsg() const { return req_body_error_msg_; }
+  TransformCache& getTransformCache() { return transform_cache_; }
 
   const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
     switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
@@ -603,9 +534,15 @@ public:
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
   }
 
-  const Rule* getCurrentEvaluateRule() const { return current_rule_; }
-  void setCurrentEvaluateRule(const Rule* rule) { current_rule_ = rule; }
+  // Configuration options by ctl action
+public:
+  void setRequestBodyProcessor(BodyProcessorType type) { request_body_processor_ = type; }
+  BodyProcessorType getRequestBodyProcessor() const { return *request_body_processor_; }
+  void setParseXmlIntoArgs(ParseXmlIntoArgsOption option) { parse_xml_into_args_ = option; }
+  ParseXmlIntoArgsOption getParseXmlIntoArgs() const;
 
+public:
+  std::string_view getUniqueId() const;
   const std::function<bool(const Rule&, std::string_view,
                            const std::unique_ptr<Wge::Variable::VariableBase>& var)>&
   getAdditionalCond() const {
@@ -614,16 +551,12 @@ public:
 
 private:
   void initUniqueId() const;
-
   inline bool process(int phase);
-
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
-
-  void initCookies();
-
+  void initCookies() const;
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
-  // The http info
+  // Http transaction data
 private:
   HttpExtractor extractor_;
   ConnectionInfo connection_info_;
@@ -638,24 +571,24 @@ private:
   Common::Ragel::Xml body_xml_;
   Common::Ragel::Json body_json_;
   std::string req_body_error_msg_;
+  mutable std::unique_ptr<std::unordered_multimap<std::string_view, std::string_view>> cookies_;
 
+  // Current evaluation state
 private:
   const Engine& engine_;
+  int current_phase_{1};
+  const Rule* current_rule_{nullptr};
   std::vector<Common::EvaluateResults::Element> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
-  const size_t literal_key_size_;
-  static constexpr int max_capture_size_{100};
   std::vector<Common::EvaluateResults::Element> captured_;
   std::vector<Common::EvaluateResults::Element> temp_captured_;
-  std::function<void(const Rule&)> log_callback_;
-  std::function<bool(const Rule&, std::string_view,
-                     const std::unique_ptr<Wge::Variable::VariableBase>& var)>
-      additional_cond_;
-  std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
-             static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
-      persistent_storage_keys_;
-  mutable Common::EvaluateResults persistent_storage_key_buffer_;
+
+  // Stores all matched variables organized by rule chain index.
+  // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
+  // - Value: vector of all variables that matched within that specific rule
+  // Used by MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES variables.
+  std::unordered_map<RuleChainIndexType, std::vector<MatchedVariable>> matched_variables_;
 
   // All of the transaction instances share the same rule instances, and each transaction instance
   // may be removed or updated some different rules by the ctl action. So, we need to mark the rules
@@ -666,24 +599,17 @@ private:
   std::array<std::vector<boost::unordered_flat_set<Variable::FullName>>, PHASE_TOTAL>
       rule_remove_targets_;
 
-  // Current evaluation state
-  int current_phase_{1};
-  const Rule* current_rule_{nullptr};
-
-  // Stores all matched variables organized by rule chain index.
-  // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
-  // - Value: vector of all variables that matched within that specific rule
-  // Used by MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES variables.
-  std::unordered_map<int, std::vector<MatchedVariable>> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
-  boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateResults::Element>>
-      transform_cache_;
-  bool init_cookies_{false};
-  std::unordered_multimap<std::string_view, std::string_view> cookies_;
+  TransformCache transform_cache_;
   std::bitset<PHASE_TOTAL> allow_phases_;
 
-  // ctl
+  std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
+             static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
+      persistent_storage_keys_;
+  mutable Common::EvaluateResults persistent_storage_key_buffer_;
+
+  // Configuration options by ctl action
 private:
   std::optional<AuditLogConfig::AuditEngine> audit_engine_;
   std::optional<AuditLogConfig::AuditLogPart> audit_log_part_;
@@ -694,6 +620,11 @@ private:
 
 private:
   mutable std::unique_ptr<std::string> unique_id_;
+  const size_t literal_key_size_;
+  std::function<void(const Rule&)> log_callback_;
+  std::function<bool(const Rule&, std::string_view,
+                     const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+      additional_cond_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
