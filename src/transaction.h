@@ -476,34 +476,12 @@ public:
   bool isRuleTargetRemoved(const Rule* rule, Variable::FullName full_name) const;
 
   /**
-   * Set the message macro expanded of current matched rule.
-   * @param msg_macro_expanded the message macro expanded of current matched rule.
-   */
-  void setMsgMacroExpanded(const Common::EvaluateElement& msg_macro_expanded) {
-    msg_macro_expanded_ = msg_macro_expanded;
-  }
-
-  /**
-   * Set the log data macro expanded of current matched rule.
-   * @param log_data_macro_expanded the log data macro expanded of current matched rule.
-   */
-  void setLogDataMacroExpanded(const Common::EvaluateElement& log_data_macro_expanded) {
-    log_data_macro_expanded_ = log_data_macro_expanded;
-  }
-
-  /**
    * Get the message macro expanded of current matched rule.
    * @return the message macro expanded of current matched rule.
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  std::string_view getMsgMacroExpanded() const {
-    if (IS_EMPTY_VARIANT(msg_macro_expanded_.variant_)) {
-      return "";
-    }
-
-    return std::get<std::string_view>(msg_macro_expanded_.variant_);
-  }
+  std::string_view getMsgMacroExpanded();
 
   /**
    * Get the log data macro expanded of current matched rule.
@@ -511,13 +489,7 @@ public:
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  std::string_view getLogDataMacroExpanded() const {
-    if (IS_EMPTY_VARIANT(msg_macro_expanded_.variant_)) {
-      return "";
-    }
-
-    return std::get<std::string_view>(log_data_macro_expanded_.variant_);
-  }
+  std::string_view getLogDataMacroExpanded();
 
   TransformCache& getTransformCache() { return transform_cache_; }
 
@@ -621,8 +593,6 @@ private:
   std::array<std::vector<boost::unordered_flat_set<Variable::FullName>>, PHASE_TOTAL>
       rule_remove_targets_;
 
-  Common::EvaluateElement msg_macro_expanded_;
-  Common::EvaluateElement log_data_macro_expanded_;
   TransformCache transform_cache_;
   std::bitset<PHASE_TOTAL> allow_phases_;
 

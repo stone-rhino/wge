@@ -240,12 +240,6 @@ bool Rule::evaluate(Transaction& t) const {
       }
   }
 
-  // Evaluate the msg macro and logdata macro
-  if (rule_matched) {
-    evaluateMsgMacro(t);
-    evaluateLogDataMacro(t);
-  }
-
   return rule_matched;
 }
 
@@ -422,26 +416,6 @@ bool Rule::evaluateChain(Transaction& t) const {
   return matched;
 }
 
-void Rule::evaluateMsgMacro(Transaction& t) const {
-  if (msg_macro_)
-    [[unlikely]] {
-      Common::EvaluateResults msg_result;
-      msg_macro_->evaluate(t, msg_result);
-      t.setMsgMacroExpanded(msg_result.at(0));
-      WGE_LOG_TRACE("evaluate msg macro: {}", t.getMsgMacroExpanded());
-    }
-}
-
-void Rule::evaluateLogDataMacro(Transaction& t) const {
-  if (log_data_macro_)
-    [[unlikely]] {
-      Common::EvaluateResults log_data_result;
-      log_data_macro_->evaluate(t, log_data_result);
-      t.setLogDataMacroExpanded(log_data_result.at(0));
-      WGE_LOG_TRACE("evaluate logdata macro: {}", t.getLogDataMacroExpanded());
-    }
-}
-
 void Rule::evaluateActions(Transaction& t) const {
   // Evaluate the default actions
   const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
@@ -582,12 +556,6 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           rule_matched = false;
         }
       }
-  }
-
-  // Evaluate the msg macro and logdata macro
-  if (rule_matched) {
-    evaluateMsgMacro(t);
-    evaluateLogDataMacro(t);
   }
 
   return rule_matched;

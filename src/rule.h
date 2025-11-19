@@ -219,9 +219,11 @@ public:
   std::string_view msg() const { return detail_->msg_; }
   void msg(std::string&& value) { detail_->msg_ = intern(std::move(value)); }
   void msg(std::unique_ptr<Macro::MacroBase>&& macro) { msg_macro_ = std::move(macro); }
+  const std::unique_ptr<Macro::MacroBase>& msgMacro() const { return msg_macro_; }
   std::string_view logdata() const { return detail_->log_data_; }
   void logData(std::string&& value) { detail_->log_data_ = intern(std::move(value)); }
   void logData(std::unique_ptr<Macro::MacroBase>&& macro) { log_data_macro_ = std::move(macro); }
+  const std::unique_ptr<Macro::MacroBase>& logDataMacro() const { return log_data_macro_; }
   std::string_view redirect() { return detail_->redirect_; }
   void redirect(std::string&& value) { detail_->redirect_ = intern(std::move(value)); }
   std::string_view status() const { return detail_->status_; }
@@ -262,8 +264,6 @@ private:
                                const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                std::string_view& capture_value) const;
   inline bool evaluateChain(Transaction& t) const;
-  inline void evaluateMsgMacro(Transaction& t) const;
-  inline void evaluateLogDataMacro(Transaction& t) const;
   inline void evaluateActions(Transaction& t) const;
   bool evaluateWithMultiMatch(Transaction& t) const;
 

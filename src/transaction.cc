@@ -523,6 +523,32 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
   return false;
 }
 
+std::string_view Transaction::getMsgMacroExpanded() {
+  if (current_rule_ && current_rule_->msgMacro()) {
+    Wge::Common::EvaluateResults result;
+    current_rule_->msgMacro()->evaluate(*this, result);
+    WGE_LOG_TRACE("evaluate msg macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
+    if (IS_STRING_VIEW_VARIANT(result.at(0).variant_)) {
+      return std::get<std::string_view>(result.at(0).variant_);
+    }
+  }
+
+  return "";
+}
+
+std::string_view Transaction::getLogDataMacroExpanded() {
+  if (current_rule_ && current_rule_->logDataMacro()) {
+    Wge::Common::EvaluateResults result;
+    current_rule_->logDataMacro()->evaluate(*this, result);
+    WGE_LOG_TRACE("evaluate logdata macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
+    if (IS_STRING_VIEW_VARIANT(result.at(0).variant_)) {
+      return std::get<std::string_view>(result.at(0).variant_);
+    }
+  }
+
+  return "";
+}
+
 ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {
   return parse_xml_into_args_.value_or(engine_.parseXmlIntoArgsOption());
 }
