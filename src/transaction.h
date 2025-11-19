@@ -553,7 +553,7 @@ private:
   const Engine& engine_;
   RulePhaseType current_phase_{1};
   const Rule* current_rule_{nullptr};
-  std::vector<Common::EvaluateElement> tx_variables_;
+  std::vector<Common::Variant> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
   std::vector<std::string_view> captured_;

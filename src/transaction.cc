@@ -267,8 +267,7 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
     assert(!IS_EMPTY_VARIANT(value));
-    auto& tx_variable = tx_variables_[index];
-    tx_variable.variant_ = value;
+    tx_variables_[index] = value;
   }
 }
 
@@ -287,8 +286,8 @@ void Transaction::setVariable(std::string&& name, const Common::Variant& value) 
 void Transaction::removeVariable(size_t index) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    assert(!IS_EMPTY_VARIANT(tx_variables_[index].variant_));
-    tx_variables_[index].variant_ = EMPTY_VARIANT;
+    assert(!IS_EMPTY_VARIANT(tx_variables_[index]));
+    tx_variables_[index] = EMPTY_VARIANT;
   }
 }
 
@@ -307,7 +306,7 @@ void Transaction::removeVariable(const std::string& name) {
 void Transaction::increaseVariable(size_t index, int64_t value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    auto& variant = tx_variables_[index].variant_;
+    auto& variant = tx_variables_[index];
     if (IS_INT_VARIANT(variant))
       [[likely]] { variant = std::get<int64_t>(variant) + value; }
     else if (IS_EMPTY_VARIANT(variant)) {
@@ -331,7 +330,7 @@ void Transaction::increaseVariable(const std::string& name, int64_t value) {
 const Common::Variant& Transaction::getVariable(size_t index) const {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
-    return tx_variables_[index].variant_;
+    return tx_variables_[index];
   }
 
   return EMPTY_VARIANT;
@@ -356,13 +355,13 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
   variables.reserve(tx_variables_.size());
   for (size_t i = 0; i < tx_variables_.size(); ++i) {
     auto& variable = tx_variables_[i];
-    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+    if (!IS_EMPTY_VARIANT(variable)) {
       if (i < literal_key_size_) {
-        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable.variant_);
+        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable);
       } else {
         auto iter = local_tx_variable_index_reverse_.find(i);
         if (iter != local_tx_variable_index_reverse_.end()) {
-          variables.emplace_back(iter->second, &variable.variant_);
+          variables.emplace_back(iter->second, &variable);
         }
       }
     }
@@ -373,7 +372,7 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
 int64_t Transaction::getVariablesCount() const {
   int64_t count = 0;
   for (auto& variable : tx_variables_) {
-    if (!IS_EMPTY_VARIANT(variable.variant_)) {
+    if (!IS_EMPTY_VARIANT(variable)) {
       ++count;
     }
   }
@@ -382,7 +381,7 @@ int64_t Transaction::getVariablesCount() const {
 
 bool Transaction::hasVariable(size_t index) const {
   assert(index < tx_variables_.size());
-  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index].variant_);
+  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index]);
 }
 
 bool Transaction::hasVariable(const std::string& name) const {
