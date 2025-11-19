@@ -35,7 +35,7 @@ namespace Common {
 namespace Ragel {
 class Json {
 public:
-  void init(std::string_view json_str);
+  void init(std::string_view json_str, std::forward_list<std::string>& escape_buffer);
 
 public:
   const std::unordered_multimap<std::string_view, std::string_view>& getKeyValues() const {
@@ -48,7 +48,6 @@ public:
   void clear() {
     key_value_map_.clear();
     key_value_linked_.clear();
-    escape_buffer_.clear();
   }
 
 public:
@@ -85,7 +84,6 @@ public:
 private:
   std::unordered_multimap<std::string_view, std::string_view> key_value_map_;
   std::vector<std::pair<std::string_view, std::string_view>> key_value_linked_;
-  std::forward_list<std::string> escape_buffer_;
 };
 } // namespace Ragel
 } // namespace Common

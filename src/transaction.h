@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <forward_list>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -549,9 +550,21 @@ public:
     return additional_cond_;
   }
 
+  /**
+   * Intern a string into the string pool.
+   * @param str the string to be interned.
+   * @return the string view of the interned string.
+   */
+  std::string_view internString(std::string&& str) {
+    string_pool_.emplace_front(std::move(str));
+    return string_pool_.front();
+  }
+
+  std::forward_list<std::string> getStringPool() { return string_pool_; }
+
 private:
   void initUniqueId() const;
-  inline bool process(int phase);
+  inline bool process(RulePhaseType phase);
   inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
   void initCookies() const;
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
@@ -576,7 +589,7 @@ private:
   // Current evaluation state
 private:
   const Engine& engine_;
-  int current_phase_{1};
+  RulePhaseType current_phase_{1};
   const Rule* current_rule_{nullptr};
   std::vector<Common::EvaluateResults::Element> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
@@ -625,6 +638,7 @@ private:
   std::function<bool(const Rule&, std::string_view,
                      const std::unique_ptr<Wge::Variable::VariableBase>& var)>
       additional_cond_;
+  std::forward_list<std::string> string_pool_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;

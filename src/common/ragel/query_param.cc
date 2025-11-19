@@ -25,10 +25,11 @@
 namespace Wge {
 namespace Common {
 namespace Ragel {
-void QueryParam::init(std::string_view query_param_str) {
+void QueryParam::init(std::string_view query_param_str,
+                      std::forward_list<std::string>& urldecoded_buffer) {
   query_param_map_.reserve(5);
   query_param_linked_.reserve(5);
-  ::parseQueryParam(query_param_str, query_param_map_, query_param_linked_, urldecoded_storage_);
+  ::parseQueryParam(query_param_str, query_param_map_, query_param_linked_, urldecoded_buffer);
 }
 
 } // namespace Ragel

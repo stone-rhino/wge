@@ -113,7 +113,7 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   uri_parser.init(uri, request_line_info_);
 
   // Init the query params
-  request_line_info_.query_params_.init(request_line_info_.query_);
+  request_line_info_.query_params_.init(request_line_info_.query_, string_pool_);
 
   WGE_LOG_TRACE("method: {}, uri: {}, query: {}, protocol: {}, version: {}",
                 request_line_info_.method_, request_line_info_.uri_, request_line_info_.query_,
@@ -181,7 +181,7 @@ bool Transaction::processRequestBody(
       // Do nothing
     } break;
     case BodyProcessorType::UrlEncoded: {
-      body_query_param_.init(request_body_);
+      body_query_param_.init(request_body_, string_pool_);
     } break;
     case BodyProcessorType::MultiPart: {
       std::string_view content_type;
@@ -192,17 +192,17 @@ bool Transaction::processRequestBody(
       body_multi_part_.init(content_type, request_body_, engine_.config().upload_file_limit_);
     } break;
     case BodyProcessorType::Xml: {
-      body_xml_.init(request_body_);
+      body_xml_.init(request_body_, string_pool_);
       auto option = getParseXmlIntoArgs();
       if (option != ParseXmlIntoArgsOption::Off) {
-        body_query_param_.merge(body_xml_.getTags(), body_xml_.moveHtmlDecodeBuffer());
+        body_query_param_.merge(body_xml_.getTags());
       }
       if (option == ParseXmlIntoArgsOption::OnlyArgs) {
         body_xml_.clear();
       }
     } break;
     case BodyProcessorType::Json: {
-      body_json_.init(request_body_);
+      body_json_.init(request_body_, string_pool_);
     } break;
     default: {
       UNREACHABLE();
@@ -472,7 +472,7 @@ void Transaction::pushMatchedVariable(
 void Transaction::removeRule(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules) {
   // Sets the rule remove flags
-  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+  for (RulePhaseType phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
     if (rule_set.empty())
       [[likely]] { continue; }
@@ -495,7 +495,7 @@ void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
     const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {
   // Sets the rule remove targets
-  for (size_t phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
+  for (RulePhaseType phase = current_phase_; phase < PHASE_TOTAL; ++phase) {
     auto& rule_set = rules[phase - 1];
     if (rule_set.empty())
       [[likely]] { continue; }
@@ -567,7 +567,7 @@ void Transaction::initUniqueId() const {
   unique_id_ = std::make_unique<std::string>(std::format("{}.{}", timestamp, random));
 }
 
-inline bool Transaction::process(int phase) {
+inline bool Transaction::process(RulePhaseType phase) {
   if (engine_.config().rule_engine_option_ == EngineConfig::Option::Off)
     [[unlikely]] { return true; }
 

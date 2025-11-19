@@ -32,7 +32,7 @@ namespace Common {
 namespace Ragel {
 class QueryParam {
 public:
-  void init(std::string_view query_param_str);
+  void init(std::string_view query_param_str, std::forward_list<std::string>& urldecoded_buffer);
 
 public:
   const std::unordered_multimap<std::string_view, std::string_view>& get() const {
@@ -63,31 +63,7 @@ public:
     }
   }
 
-  /**
-   * Merge the query parameters.
-   * @param query_params the query parameters to be merged.
-   * @param html_decode_buffer the buffer to store the decoded strings. This is used to ensure the
-   * lifetime of the key and value in the query_params.
-   */
-  void merge(const std::vector<std::pair<std::string_view, std::string_view>>& query_params,
-             std::forward_list<std::string>&& html_decode_buffer) {
-    query_param_linked_.reserve(query_param_linked_.size() + query_params.size());
-    for (const auto& [key, value] : query_params) {
-      // Skip empty values
-      if (value.empty()) {
-        continue;
-      }
-
-      query_param_linked_.emplace_back(key, value);
-      query_param_map_.emplace(key, value);
-    }
-
-    merge_html_decode_buffer_array_.emplace_back(std::move(html_decode_buffer));
-  }
-
 private:
-  std::list<std::string> urldecoded_storage_;
-  std::vector<std::forward_list<std::string>> merge_html_decode_buffer_array_;
   std::unordered_multimap<std::string_view, std::string_view> query_param_map_;
   std::vector<std::pair<std::string_view, std::string_view>> query_param_linked_;
 };
