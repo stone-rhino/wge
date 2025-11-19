@@ -32,13 +32,9 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> Utf8ToUnicode::n
   return utf8ToUnicodeNewStream();
 }
 
-StreamResult Utf8ToUnicode::evaluateStream(const Common::EvaluateResults::Element& input,
-                                           Common::EvaluateResults::Element& output,
+StreamResult Utf8ToUnicode::evaluateStream(std::string_view input, std::string& output,
                                            StreamState& state, bool end_stream) const {
-  auto result = utf8ToUnicodeStream(std::get<std::string_view>(input.variant_),
-                                    output.string_buffer_, state, end_stream);
-  output.variant_ = output.string_buffer_;
-  return result;
+  return utf8ToUnicodeStream(input, output, state, end_stream);
 }
 } // namespace Transformation
 } // namespace Wge

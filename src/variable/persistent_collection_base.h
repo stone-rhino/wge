@@ -36,7 +36,7 @@ public:
 
 public:
   size_t size(Transaction& t) const {
-    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    std::string_view collection_name = t.getPersistentStorageKey(type_);
     auto collection = t.getEngine().storage().collection(type_, collection_name);
     if (collection) {
       return collection->size();
@@ -47,7 +47,7 @@ public:
 
   void travel(Transaction& t,
               std::function<bool(const std::string&, const Common::Variant&)> func) const {
-    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    std::string_view collection_name = t.getPersistentStorageKey(type_);
     auto collection = t.getEngine().storage().collection(type_, collection_name);
     if (collection) {
       collection->travel(func);
@@ -55,7 +55,7 @@ public:
   }
 
   const Common::Variant& get(Transaction& t, const std::string& key) const {
-    const std::string& collection_name = t.getPersistentStorageKey(type_);
+    std::string_view collection_name = t.getPersistentStorageKey(type_);
     auto collection = t.getEngine().storage().collection(type_, collection_name);
     if (collection) {
       return collection->get(key);

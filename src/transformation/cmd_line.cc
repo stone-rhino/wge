@@ -32,13 +32,9 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> CmdLine::newStre
   return cmdLineNewStream();
 }
 
-StreamResult CmdLine::evaluateStream(const Common::EvaluateResults::Element& input,
-                                     Common::EvaluateResults::Element& output, StreamState& state,
-                                     bool end_stream) const {
-  auto result = cmdLineStream(std::get<std::string_view>(input.variant_), output.string_buffer_,
-                              state, end_stream);
-  output.variant_ = output.string_buffer_;
-  return result;
+StreamResult CmdLine::evaluateStream(std::string_view input, std::string& output,
+                                     StreamState& state, bool end_stream) const {
+  return cmdLineStream(input, output, state, end_stream);
 }
 } // namespace Transformation
 } // namespace Wge

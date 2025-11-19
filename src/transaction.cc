@@ -25,7 +25,6 @@
 
 #include "action/set_var.h"
 #include "common/assert.h"
-#include "common/empty_string.h"
 #include "common/log.h"
 #include "common/ragel/uri_parser.h"
 #include "common/string.h"
@@ -266,26 +265,9 @@ bool Transaction::processResponseBody(
 void Transaction::setVariable(size_t index, const Common::Variant& value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
+    assert(!IS_EMPTY_VARIANT(value));
     auto& tx_variable = tx_variables_[index];
-    if (IS_INT_VARIANT(value))
-      [[likely]] { tx_variable.variant_ = std::get<int64_t>(value); }
-    else if (IS_STRING_VIEW_VARIANT(value)) {
-      // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid
-      // if it's reference is invalid. So we copy the value to the string_buffer_. The
-      // string_buffer_ store the value as a string, and it will be valid until the
-      // transaction is destroyed. Why we don't let the Common::Variant store the value as a
-      // std::string? If we do it, it seems that we don't need the string_buffer_ anymore. But
-      // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
-      // std::monostate, int64_t, std::string_view. If we add a new std::sting type, we must process
-      // the variant in repeat places when we want to get the value as a string. So we choose to
-      // store the value as a std::string_view in the Common::Variant, and copy the value to the
-      // string_buffer_ when we want to store the value as a string. It's a trade-off between
-      // the code maintainability and the performance.
-      tx_variable.string_buffer_ = std::get<std::string_view>(value);
-      tx_variable.variant_ = tx_variable.string_buffer_;
-    } else {
-      UNREACHABLE();
-    }
+    tx_variable.variant_ = value;
   }
 }
 
@@ -408,13 +390,13 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::stageCapture(size_t index, Common::EvaluateResults::Element&& value) {
+void Transaction::stageCapture(size_t index, std::string_view value) {
   if (index < max_capture_size)
     [[likely]] {
       if (temp_captured_.size() <= index) {
         temp_captured_.resize(index + 1);
       }
-      temp_captured_[index] = std::move(value);
+      temp_captured_[index] = value;
     }
 }
 
@@ -428,7 +410,7 @@ size_t Transaction::commitCapture() {
       captured_.swap(temp_captured_);
     } else {
       for (size_t i = 0; i < temp_captured_.size(); ++i) {
-        captured_[i] = std::move(temp_captured_[i]);
+        captured_[i] = temp_captured_[i];
       }
     }
     temp_captured_.clear();
@@ -437,28 +419,27 @@ size_t Transaction::commitCapture() {
   return committed_count;
 }
 
-const Common::Variant& Transaction::getCapture(size_t index) const {
+std::string_view Transaction::getCapture(size_t index) const {
   // assert(index < matched_size_);
   if (index < captured_.size())
-    [[likely]] { return captured_[index].variant_; }
+    [[likely]] { return captured_[index]; }
   else {
     WGE_LOG_WARN("The index of captured string is out of range. index: {}, captured size: {}",
                  index, captured_.size());
-    return EMPTY_VARIANT;
+    return "";
   }
 }
 
 void Transaction::pushMatchedVariable(
     const Variable::VariableBase* variable, RuleChainIndexType rule_chain_index,
-    Common::EvaluateResults::Element&& original_value,
-    Common::EvaluateResults::Element&& transformed_value,
-    Common::EvaluateResults::Element&& captured_value,
+    const Common::EvaluateElement& original_value, const Common::EvaluateElement& transformed_value,
+    std::string_view captured_value,
     std::list<const Transformation::TransformBase*>&& transform_list) {
   auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
                         .first->second;
 
-  variables.emplace_back(variable, std::move(original_value), std::move(transformed_value),
-                         std::move(captured_value), std::move(transform_list));
+  variables.emplace_back(variable, original_value, transformed_value, captured_value,
+                         std::move(transform_list));
 
   if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
     [[unlikely]] {

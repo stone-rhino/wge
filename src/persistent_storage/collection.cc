@@ -31,11 +31,6 @@ void Collection::set(const std::string& key, const Common::Variant& value) {
 
   auto iter = kv_.try_emplace(key).first;
   iter->second.variant_ = value;
-  if (IS_STRING_VIEW_VARIANT(value)) {
-    iter->second.string_buffer_ = std::get<std::string_view>(value);
-    iter->second.variant_ = iter->second.string_buffer_;
-  }
-
   last_update_time_ = ::time(nullptr);
   ++update_counter_;
 }

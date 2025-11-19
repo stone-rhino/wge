@@ -49,7 +49,9 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size())); },
+        {
+          result.emplace_back(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size()));
+        },
         // specify subname
         { UNREACHABLE(); });
 
@@ -61,11 +63,11 @@ public:
             if (!hasExceptVariable(t, main_name_, full_name.sub_name_))
               [[likely]] {
                 if (matched_variable.variable_->isCollection()) {
-                  result.append(
+                  result.emplace_back(t.internString(
                       std::format("{}:{}", matched_variable.variable_->mainName(),
-                                  matched_variable.transformed_value_.variable_sub_name_));
+                                  matched_variable.transformed_value_.variable_sub_name_)));
                 } else {
-                  result.append(full_name.tostring());
+                  result.emplace_back(t.internString(full_name.tostring()));
                 }
               }
           }

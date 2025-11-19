@@ -36,11 +36,11 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     if (is_counter_)
       [[unlikely]] {
-        result.append(t.getResponseLineInfo().status_code_.empty() ? 0 : 1);
+        result.emplace_back(t.getResponseLineInfo().status_code_.empty() ? 0 : 1);
         return;
       }
 
-    result.append(t.getResponseLineInfo().status_code_);
+    result.emplace_back(t.getResponseLineInfo().status_code_);
   }
 };
 } // namespace Variable

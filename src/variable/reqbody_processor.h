@@ -44,9 +44,9 @@ public:
     if (is_counter_)
       [[unlikely]] {
         if (iter != body_processor_type_map_.end()) {
-          result.append(1);
+          result.emplace_back(1);
         } else {
-          result.append(0);
+          result.emplace_back(0);
         }
         return;
       }
@@ -54,7 +54,7 @@ public:
     if (iter == body_processor_type_map_.end())
       [[unlikely]] { return; }
 
-    result.append(iter->second);
+    result.emplace_back(iter->second);
   }
 
 private:

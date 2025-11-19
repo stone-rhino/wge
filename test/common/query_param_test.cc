@@ -23,9 +23,10 @@
 #include "common/ragel/query_param.h"
 
 TEST(Common, queryParam) {
+  std::forward_list<std::string> buffer;
   {
     Wge::Common::Ragel::QueryParam query_param;
-    query_param.init("a=1&b=2&c=3");
+    query_param.init("a=1&b=2&c=3", buffer);
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
     EXPECT_EQ(map.find("a")->second, "1");
@@ -44,7 +45,7 @@ TEST(Common, queryParam) {
 
   {
     Wge::Common::Ragel::QueryParam query_param;
-    query_param.init("a=1&b&c=3");
+    query_param.init("a=1&b&c=3", buffer);
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
     EXPECT_EQ(map.find("a")->second, "1");
@@ -63,7 +64,7 @@ TEST(Common, queryParam) {
 
   {
     Wge::Common::Ragel::QueryParam query_param;
-    query_param.init("a=&b&c=3");
+    query_param.init("a=&b&c=3", buffer);
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
 
@@ -74,7 +75,7 @@ TEST(Common, queryParam) {
   {
     Wge::Common::Ragel::QueryParam query_param;
     query_param.init(
-        "a=Can+I+please+have+a+Python+tutorial+for+qr+code+scanning%3f&b=2&%3b%2721io)=3");
+        "a=Can+I+please+have+a+Python+tutorial+for+qr+code+scanning%3f&b=2&%3b%2721io)=3", buffer);
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
     EXPECT_EQ(map.find("a")->second, "Can I please have a Python tutorial for qr code scanning?");
@@ -93,7 +94,7 @@ TEST(Common, queryParam) {
 
   {
     Wge::Common::Ragel::QueryParam query_param;
-    query_param.init("&&a=1&&=2&b==c=3&&");
+    query_param.init("&&a=1&&=2&b==c=3&&", buffer);
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
     EXPECT_EQ(map.find("a")->second, "1");

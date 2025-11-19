@@ -32,13 +32,9 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> UrlDecodeUni::ne
   return urlDecodeUniNewStream();
 }
 
-StreamResult UrlDecodeUni::evaluateStream(const Common::EvaluateResults::Element& input,
-                                          Common::EvaluateResults::Element& output,
+StreamResult UrlDecodeUni::evaluateStream(std::string_view input, std::string& output,
                                           StreamState& state, bool end_stream) const {
-  auto result = urlDecodeUniStream(std::get<std::string_view>(input.variant_),
-                                   output.string_buffer_, state, end_stream);
-  output.variant_ = output.string_buffer_;
-  return result;
+  return urlDecodeUniStream(input, output, state, end_stream);
 }
 } // namespace Transformation
 } // namespace Wge

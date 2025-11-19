@@ -56,11 +56,11 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(query_params->size())); },
+        { result.emplace_back(static_cast<int64_t>(query_params->size())); },
         // specify subname
         {
           int64_t count = query_params_map->count(sub_name_);
-          result.append(count);
+          result.emplace_back(count);
         });
 
     RETURN_VALUE(
@@ -68,7 +68,7 @@ public:
         {
           for (auto& elem : *query_params) {
             if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.append(elem.first, elem.first); }
+              [[likely]] { result.emplace_back(elem.first, elem.first); }
           }
         },
         // collection regex
@@ -77,7 +77,7 @@ public:
             if (!hasExceptVariable(t, main_name_, elem.first))
               [[likely]] {
                 if (match(elem.first)) {
-                  result.append(elem.first, elem.first);
+                  result.emplace_back(elem.first, elem.first);
                 }
               }
           }
@@ -86,7 +86,7 @@ public:
         {
           auto range = query_params_map->equal_range(sub_name_);
           for (auto iter = range.first; iter != range.second; ++iter) {
-            result.append(iter->first);
+            result.emplace_back(iter->first);
           }
         });
   }

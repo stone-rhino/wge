@@ -49,7 +49,9 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size())); },
+        {
+          result.emplace_back(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size()));
+        },
         // specify subname
         { UNREACHABLE(); });
 
@@ -59,7 +61,7 @@ public:
           for (auto& matched_variable : t.getMatchedVariables(rule_chain_index)) {
             auto full_name = matched_variable.variable_->fullName();
             if (!hasExceptVariable(t, main_name_, full_name.sub_name_))
-              [[likely]] { result.append(matched_variable.transformed_value_.variant_); }
+              [[likely]] { result.emplace_back(matched_variable.transformed_value_.variant_); }
           }
         },
         // collection regex

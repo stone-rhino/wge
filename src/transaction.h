@@ -104,25 +104,25 @@ public:
     const Variable::VariableBase* variable_;
 
     // The original value of the matched variable
-    Common::EvaluateResults::Element original_value_;
+    Common::EvaluateElement original_value_;
 
     // The transformed value of the matched variable
-    Common::EvaluateResults::Element transformed_value_;
+    Common::EvaluateElement transformed_value_;
 
     // The captured value of the matched variable
-    Common::EvaluateResults::Element captured_value_;
+    std::string_view captured_value_;
 
     // The list of transformations that applied to the matched variable
     std::list<const Transformation::TransformBase*> transform_list_;
 
     MatchedVariable(const Variable::VariableBase* variable,
-                    Common::EvaluateResults::Element&& original_value,
-                    Common::EvaluateResults::Element&& transformed_value,
-                    Common::EvaluateResults::Element&& captured_value,
+                    const Common::EvaluateElement& original_value,
+                    const Common::EvaluateElement& transformed_value,
+                    std::string_view captured_value,
                     std::list<const Transformation::TransformBase*>&& transform_list)
-        : variable_(variable), original_value_(std::move(original_value)),
-          transformed_value_(std::move(transformed_value)),
-          captured_value_(std::move(captured_value)), transform_list_(std::move(transform_list)) {}
+        : variable_(variable), original_value_(original_value),
+          transformed_value_(transformed_value), captured_value_(captured_value),
+          transform_list_(std::move(transform_list)) {}
   };
 
   struct TransformCacheKey {
@@ -146,8 +146,7 @@ public:
   };
 
   using TransformCache =
-      boost::unordered_flat_map<TransformCacheKey,
-                                std::unique_ptr<Common::EvaluateResults::Element>>;
+      boost::unordered_flat_map<TransformCacheKey, std::unique_ptr<Common::EvaluateElement>>;
 
   // Process the transaction
 public:
@@ -397,7 +396,7 @@ public:
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void stageCapture(size_t index, Common::EvaluateResults::Element&& value);
+  void stageCapture(size_t index, std::string_view value);
 
   /**
    * Rollback the staged captured strings.
@@ -416,7 +415,7 @@ public:
    * @param index the index of the matched string.the range is [0, 99].
    * @return the matched string.
    */
-  const Common::Variant& getCapture(size_t index) const;
+  std::string_view getCapture(size_t index) const;
 
   /**
    * Add a matched variable.
@@ -431,9 +430,9 @@ public:
    */
   void pushMatchedVariable(const Variable::VariableBase* variable,
                            RuleChainIndexType rule_chain_index,
-                           Common::EvaluateResults::Element&& original_value,
-                           Common::EvaluateResults::Element&& transformed_value,
-                           Common::EvaluateResults::Element&& captured_value,
+                           const Common::EvaluateElement& original_value,
+                           const Common::EvaluateElement& transformed_value,
+                           std::string_view captured_value,
                            std::list<const Transformation::TransformBase*>&& transform_list);
 
   /**
@@ -480,16 +479,16 @@ public:
    * Set the message macro expanded of current matched rule.
    * @param msg_macro_expanded the message macro expanded of current matched rule.
    */
-  void setMsgMacroExpanded(Common::EvaluateResults::Element&& msg_macro_expanded) {
-    msg_macro_expanded_ = std::move(msg_macro_expanded);
+  void setMsgMacroExpanded(const Common::EvaluateElement& msg_macro_expanded) {
+    msg_macro_expanded_ = msg_macro_expanded;
   }
 
   /**
    * Set the log data macro expanded of current matched rule.
    * @param log_data_macro_expanded the log data macro expanded of current matched rule.
    */
-  void setLogDataMacroExpanded(Common::EvaluateResults::Element&& log_data_macro_expanded) {
-    log_data_macro_expanded_ = std::move(log_data_macro_expanded);
+  void setLogDataMacroExpanded(const Common::EvaluateElement& log_data_macro_expanded) {
+    log_data_macro_expanded_ = log_data_macro_expanded;
   }
 
   /**
@@ -498,7 +497,13 @@ public:
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  const std::string& getMsgMacroExpanded() const { return msg_macro_expanded_.string_buffer_; }
+  std::string_view getMsgMacroExpanded() const {
+    if (IS_EMPTY_VARIANT(msg_macro_expanded_.variant_)) {
+      return "";
+    }
+
+    return std::get<std::string_view>(msg_macro_expanded_.variant_);
+  }
 
   /**
    * Get the log data macro expanded of current matched rule.
@@ -506,13 +511,17 @@ public:
    * @note We must copy the result to  another buffer if we want to store the result and use it
    * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
-  const std::string& getLogDataMacroExpanded() const {
-    return log_data_macro_expanded_.string_buffer_;
+  std::string_view getLogDataMacroExpanded() const {
+    if (IS_EMPTY_VARIANT(msg_macro_expanded_.variant_)) {
+      return "";
+    }
+
+    return std::get<std::string_view>(log_data_macro_expanded_.variant_);
   }
 
   TransformCache& getTransformCache() { return transform_cache_; }
 
-  const std::string& getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
+  std::string_view getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
     switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
     case 1:
       return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
@@ -520,10 +529,10 @@ public:
       const Macro::MacroBase* macro =
           std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
       macro->evaluate(*const_cast<Transaction*>(this), persistent_storage_key_buffer_);
-      return persistent_storage_key_buffer_.front().string_buffer_;
+      return std::get<std::string_view>(persistent_storage_key_buffer_.front().variant_);
     }
     default:
-      return EMPTY_STRING;
+      return "";
     }
   }
 
@@ -591,11 +600,11 @@ private:
   const Engine& engine_;
   RulePhaseType current_phase_{1};
   const Rule* current_rule_{nullptr};
-  std::vector<Common::EvaluateResults::Element> tx_variables_;
+  std::vector<Common::EvaluateElement> tx_variables_;
   std::unordered_map<std::string, size_t> local_tx_variable_index_;
   std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
-  std::vector<Common::EvaluateResults::Element> captured_;
-  std::vector<Common::EvaluateResults::Element> temp_captured_;
+  std::vector<std::string_view> captured_;
+  std::vector<std::string_view> temp_captured_;
 
   // Stores all matched variables organized by rule chain index.
   // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
@@ -612,8 +621,8 @@ private:
   std::array<std::vector<boost::unordered_flat_set<Variable::FullName>>, PHASE_TOTAL>
       rule_remove_targets_;
 
-  Common::EvaluateResults::Element msg_macro_expanded_;
-  Common::EvaluateResults::Element log_data_macro_expanded_;
+  Common::EvaluateElement msg_macro_expanded_;
+  Common::EvaluateElement log_data_macro_expanded_;
   TransformCache transform_cache_;
   std::bitset<PHASE_TOTAL> allow_phases_;
 

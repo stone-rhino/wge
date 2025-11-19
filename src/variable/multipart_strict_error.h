@@ -34,10 +34,10 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    result.append(t.getBodyMultiPart().getError().get(
-                      Wge::MultipartStrictError::ErrorType::MultipartStrictError)
-                      ? 1
-                      : 0);
+    result.emplace_back(t.getBodyMultiPart().getError().get(
+                            Wge::MultipartStrictError::ErrorType::MultipartStrictError)
+                            ? 1
+                            : 0);
   }
 };
 } // namespace Variable

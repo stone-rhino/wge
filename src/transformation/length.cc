@@ -32,13 +32,11 @@ std::unique_ptr<StreamState, std::function<void(StreamState*)>> Length::newStrea
   return state;
 }
 
-StreamResult Length::evaluateStream(const Common::EvaluateResults::Element& input,
-                                    Common::EvaluateResults::Element& output, StreamState& state,
+StreamResult Length::evaluateStream(std::string_view input, std::string& output, StreamState& state,
                                     bool end_stream) const {
   size_t* length = reinterpret_cast<size_t*>(state.buffer_.data());
-  *length += std::get<std::string_view>(input.variant_).size();
-  output.string_buffer_ = std::to_string(*length);
-  output.variant_ = output.string_buffer_;
+  *length += input.size();
+  output = std::to_string(*length);
 
   return end_stream ? StreamResult::SUCCESS : StreamResult::NEED_MORE_DATA;
 }

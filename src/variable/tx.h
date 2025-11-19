@@ -48,10 +48,10 @@ public:
       [[unlikely]] {
         if (is_counter_)
           [[unlikely]] {
-            result.append(IS_EMPTY_VARIANT(t.getCapture(capture_index_.value())) ? 1 : 0);
+            result.emplace_back(t.getCapture(capture_index_.value()).empty() ? 0 : 1);
           }
         else {
-          result.append(t.getCapture(capture_index_.value()));
+          result.emplace_back(t.getCapture(capture_index_.value()));
         }
         return;
       }
@@ -59,13 +59,15 @@ public:
     // Process single variable and collection
     RETURN_IF_COUNTER(
         // collection
-        { result.append(t.getVariablesCount()); },
+        { result.emplace_back(t.getVariablesCount()); },
         // specify subname
         {
           if (index_.has_value())
-            [[likely]] { t.hasVariable(index_.value()) ? result.append(1) : result.append(0); }
+            [[likely]] {
+              t.hasVariable(index_.value()) ? result.emplace_back(1) : result.emplace_back(0);
+            }
           else {
-            t.hasVariable(sub_name_) ? result.append(1) : result.append(0);
+            t.hasVariable(sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
           }
         });
 
@@ -75,7 +77,7 @@ public:
           auto variables = t.getVariables();
           for (auto variable : variables) {
             if (!hasExceptVariable(t, main_name_, variable.first))
-              [[likely]] { result.append(*variable.second, variable.first); }
+              [[likely]] { result.emplace_back(*variable.second, variable.first); }
           }
         },
         // collection regex
@@ -85,7 +87,7 @@ public:
             if (!hasExceptVariable(t, main_name_, variable.first))
               [[likely]] {
                 if (match(variable.first)) {
-                  result.append(*variable.second, variable.first);
+                  result.emplace_back(*variable.second, variable.first);
                 }
               }
           }
@@ -93,9 +95,9 @@ public:
         // specify subname
         {
           if (index_.has_value())
-            [[likely]] { result.append(t.getVariable(index_.value())); }
+            [[likely]] { result.emplace_back(t.getVariable(index_.value())); }
           else {
-            result.append(t.getVariable(sub_name_));
+            result.emplace_back(t.getVariable(sub_name_));
           }
         });
   }

@@ -31,36 +31,36 @@ void Rule::initEvaluateFunc() {
           {"id",
            [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               result.append(t.getCurrentEvaluateRule()->id() == 0 ? 0 : 1);
+               result.emplace_back(t.getCurrentEvaluateRule()->id() == 0 ? 0 : 1);
                return;
              }
 
-             result.append(static_cast<int64_t>(t.getCurrentEvaluateRule()->id()), "id");
+             result.emplace_back(static_cast<int64_t>(t.getCurrentEvaluateRule()->id()), "id");
            }},
           {"phase",
            [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               result.append(t.getCurrentEvaluateRule()->phase() == -1 ? 0 : 1);
+               result.emplace_back(t.getCurrentEvaluateRule()->phase() == -1 ? 0 : 1);
                return;
              }
 
-             result.append(t.getCurrentEvaluateRule()->phase(), "phase");
+             result.emplace_back(t.getCurrentEvaluateRule()->phase(), "phase");
            }},
           {"operator_value", [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
                if (t.getCurrentEvaluateRule()->getOperator()->literalValue().empty() &&
                    t.getCurrentEvaluateRule()->getOperator()->macro() == nullptr) {
-                 result.append(0, "operator_value");
+                 result.emplace_back(0, "operator_value");
                } else {
-                 result.append(1, "operator_value");
+                 result.emplace_back(1, "operator_value");
                }
 
                return;
              }
 
              if (!t.getCurrentEvaluateRule()->getOperator()->literalValue().empty()) {
-               result.append(t.getCurrentEvaluateRule()->getOperator()->literalValue(),
-                             "operator_value");
+               result.emplace_back(t.getCurrentEvaluateRule()->getOperator()->literalValue(),
+                                   "operator_value");
              }
            }}};
   std::string sub_name_ignore_case;

@@ -75,9 +75,9 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int64_t>(kv_pairs->size())); },
+        { result.emplace_back(static_cast<int64_t>(kv_pairs->size())); },
         // specify subname
-        { result.append(static_cast<int64_t>(kv_pairs->size())); });
+        { result.emplace_back(static_cast<int64_t>(kv_pairs->size())); });
 
     switch (type_) {
     case Type::AttrValue: {
@@ -85,7 +85,7 @@ public:
           // collection
           {
             for (auto& elem : *kv_pairs) {
-              result.append(elem.second);
+              result.emplace_back(elem.second);
             }
           },
           // collection regex
@@ -93,7 +93,7 @@ public:
           // specify subname
           {
             for (auto& elem : *kv_pairs) {
-              result.append(elem.second);
+              result.emplace_back(elem.second);
             }
           });
     } break;
@@ -103,7 +103,7 @@ public:
           {
             auto& tag_value_str = t.getBodyXml().getTagValuesStr();
             if (!tag_value_str.empty()) {
-              result.append(tag_value_str);
+              result.emplace_back(tag_value_str);
             }
           },
           // collection regex
@@ -112,7 +112,7 @@ public:
           {
             auto& tag_value_str = t.getBodyXml().getTagValuesStr();
             if (!tag_value_str.empty()) {
-              result.append(tag_value_str);
+              result.emplace_back(tag_value_str);
             }
           });
     } break;
@@ -131,7 +131,7 @@ public:
               if (!hasExceptVariable(t, main_name_, elem.first))
                 [[likely]] {
                   if (match(elem.first)) {
-                    result.append(elem.second, elem.first);
+                    result.emplace_back(elem.second, elem.first);
                   }
                 }
             }

@@ -56,17 +56,15 @@ public:
    * modified.
    */
   bool evaluate(Transaction& t, const Variable::VariableBase* variable,
-                const Common::EvaluateResults::Element& input,
-                Common::EvaluateResults::Element& output) const;
+                const Common::EvaluateElement& input, Common::EvaluateElement& output) const;
 
   virtual std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const {
     UNREACHABLE();
     return nullptr;
   }
 
-  virtual StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
-                                      Common::EvaluateResults::Element& output, StreamState& state,
-                                      bool end_stream) const {
+  virtual StreamResult evaluateStream(std::string_view input, std::string& output,
+                                      StreamState& state, bool end_stream) const {
     UNREACHABLE();
     return StreamResult::INVALID_INPUT;
   }

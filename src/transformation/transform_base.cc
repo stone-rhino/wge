@@ -26,8 +26,8 @@
 namespace Wge {
 namespace Transformation {
 bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* variable,
-                             const Common::EvaluateResults::Element& input,
-                             Common::EvaluateResults::Element& output) const {
+                             const Common::EvaluateElement& input,
+                             Common::EvaluateElement& output) const {
   assert(variable);
 
   // Check the cache
@@ -67,11 +67,10 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
     auto iter_transform_result =
         transform_cache
             .emplace(Wge::Transaction::TransformCacheKey{input_data_view, name()},
-                     std::make_unique<Common::EvaluateResults::Element>())
+                     std::make_unique<Common::EvaluateElement>())
             .first;
-    Common::EvaluateResults::Element& result = *(iter_transform_result->second);
-    result.string_buffer_ = std::move(output_buffer);
-    result.variant_ = result.string_buffer_;
+    Common::EvaluateElement& result = *(iter_transform_result->second);
+    result.variant_ = t.internString(std::move(output_buffer));
     output.variant_ = result.variant_;
     output.variable_sub_name_ = input.variable_sub_name_;
   } else {

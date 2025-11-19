@@ -58,11 +58,12 @@ public:
   void storeToFile(const std::string& file);
 
 public:
-  void initCollection(Type type, std::string&& collection_name);
-  Collection* collection(Type type, const std::string& collection_name);
+  void initCollection(Type type, std::string_view collection_name);
+  Collection* collection(Type type, std::string_view collection_name);
 
 private:
-  std::array<std::unordered_map<std::string, Collection>, static_cast<size_t>(Type::SizeOfType)>
+  std::array<std::unordered_map<std::string_view, Collection>,
+             static_cast<size_t>(Type::SizeOfType)>
       collections_;
   std::array<std::mutex, static_cast<size_t>(Type::SizeOfType)> collections_mutex_;
 };

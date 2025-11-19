@@ -48,9 +48,9 @@ public:
     if (is_counter_)
       [[unlikely]] {
         if (!t.getMatchedVariables(rule_chain_index).empty())
-          [[likely]] { result.append(1); }
+          [[likely]] { result.emplace_back(1); }
         else {
-          result.append(0);
+          result.emplace_back(0);
         }
         return;
       }
@@ -61,11 +61,12 @@ public:
     auto& matched_var = t.getMatchedVariables(rule_chain_index).back();
     if (matched_var.variable_->isCollection())
       [[likely]] {
-        result.append(std::format("{}:{}", matched_var.variable_->mainName(),
-                                  matched_var.transformed_value_.variable_sub_name_));
+        result.emplace_back(
+            t.internString(std::format("{}:{}", matched_var.variable_->mainName(),
+                                       matched_var.transformed_value_.variable_sub_name_)));
       }
     else {
-      result.append(matched_var.variable_->fullName().tostring());
+      result.emplace_back(t.internString(matched_var.variable_->fullName().tostring()));
     }
   }
 };
