@@ -70,8 +70,8 @@ public:
   // upstream port.
   struct ConnectionInfo {
     std::string_view downstream_ip_;
-    short downstream_port_;
     std::string_view upstream_ip_;
+    short downstream_port_;
     short upstream_port_;
   };
 
@@ -87,9 +87,6 @@ public:
     std::string_view protocol_;
     std::string_view version_;
     std::string_view base_name_;
-    std::string uri_buffer_;
-    std::string relative_uri_buffer_;
-    std::string base_name_buffer_;
     Common::Ragel::QueryParam query_params_;
   };
 
@@ -493,20 +490,7 @@ public:
 
   TransformCache& getTransformCache() { return transform_cache_; }
 
-  std::string_view getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
-    switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
-    case 1:
-      return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
-    case 2: {
-      const Macro::MacroBase* macro =
-          std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
-      macro->evaluate(*const_cast<Transaction*>(this), persistent_storage_key_buffer_);
-      return std::get<std::string_view>(persistent_storage_key_buffer_.front().variant_);
-    }
-    default:
-      return "";
-    }
-  }
+  std::string_view getPersistentStorageKey(PersistentStorage::Storage::Type type) const;
 
   void setPersistentStorageKey(PersistentStorage::Storage::Type type, const std::string& key) {
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
@@ -541,8 +525,6 @@ public:
     return string_pool_.front();
   }
 
-  std::forward_list<std::string> getStringPool() { return string_pool_; }
-
 private:
   void initUniqueId() const;
   inline bool process(RulePhaseType phase);
@@ -555,7 +537,6 @@ private:
   HttpExtractor extractor_;
   ConnectionInfo connection_info_;
   std::string_view request_line_;
-  std::string request_line_buffer_;
   RequestLineInfo request_line_info_;
   ResponseLineInfo response_line_info_;
   std::string_view request_body_;
@@ -599,7 +580,6 @@ private:
   std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
              static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
       persistent_storage_keys_;
-  mutable Common::EvaluateResults persistent_storage_key_buffer_;
 
   // Configuration options by ctl action
 private:

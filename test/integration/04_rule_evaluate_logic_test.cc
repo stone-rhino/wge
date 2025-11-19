@@ -121,7 +121,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
     EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
     EXPECT_FALSE(matched);
-    
+
     // Even though the rule is not matched, the msg and logdata macro can evluate manually.
     EXPECT_FALSE(t->getMsgMacroExpanded().empty());
     EXPECT_FALSE(t->getLogDataMacroExpanded().empty());

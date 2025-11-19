@@ -56,8 +56,8 @@ void Transaction::processConnection(std::string_view downstream_ip, short downst
                                     std::string_view upstream_ip, short upstream_port) {
   WGE_LOG_TRACE("====process connection====");
   connection_info_.downstream_ip_ = downstream_ip;
-  connection_info_.downstream_port_ = downstream_port;
   connection_info_.upstream_ip_ = upstream_ip;
+  connection_info_.downstream_port_ = downstream_port;
   connection_info_.upstream_port_ = upstream_port;
 }
 
@@ -89,13 +89,14 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   WGE_LOG_TRACE("====process uri====");
   // If request_line_ is empty, reconstruct it using method, URI, and version
   if (request_line_.empty()) {
-    request_line_buffer_.reserve(method.size() + uri.size() + version.size() + 7);
-    request_line_buffer_ += method;
-    request_line_buffer_ += ' ';
-    request_line_buffer_ += uri;
-    request_line_buffer_ += " HTTP/";
-    request_line_buffer_ += version;
-    request_line_ = request_line_buffer_;
+    std::string request_line_buffer;
+    request_line_buffer.reserve(method.size() + uri.size() + version.size() + 7);
+    request_line_buffer += method;
+    request_line_buffer += ' ';
+    request_line_buffer += uri;
+    request_line_buffer += " HTTP/";
+    request_line_buffer += version;
+    request_line_ = internString(std::move(request_line_buffer));
     // Extract protocol string from the reconstructed request line
     request_line_info_.protocol_ = request_line_.substr(method.size() + uri.size() + 2);
   }
@@ -109,7 +110,7 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
   request_line_info_.version_ = version;
 
   Common::Ragel::UriParser uri_parser;
-  uri_parser.init(uri, request_line_info_);
+  uri_parser.init(uri, request_line_info_, string_pool_);
 
   // Init the query params
   request_line_info_.query_params_.init(request_line_info_.query_, string_pool_);
@@ -528,8 +529,8 @@ std::string_view Transaction::getMsgMacroExpanded() {
     Wge::Common::EvaluateResults result;
     current_rule_->msgMacro()->evaluate(*this, result);
     WGE_LOG_TRACE("evaluate msg macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
-    if (IS_STRING_VIEW_VARIANT(result.at(0).variant_)) {
-      return std::get<std::string_view>(result.at(0).variant_);
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
     }
   }
 
@@ -541,12 +542,30 @@ std::string_view Transaction::getLogDataMacroExpanded() {
     Wge::Common::EvaluateResults result;
     current_rule_->logDataMacro()->evaluate(*this, result);
     WGE_LOG_TRACE("evaluate logdata macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
-    if (IS_STRING_VIEW_VARIANT(result.at(0).variant_)) {
-      return std::get<std::string_view>(result.at(0).variant_);
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
     }
   }
 
   return "";
+}
+
+std::string_view Transaction::getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
+  switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
+  case 1:
+    return std::get<std::string>(persistent_storage_keys_[static_cast<size_t>(type)]);
+  case 2: {
+    const Macro::MacroBase* macro =
+        std::get<const Macro::MacroBase*>(persistent_storage_keys_[static_cast<size_t>(type)]);
+    Common::EvaluateResults result;
+    macro->evaluate(*const_cast<Transaction*>(this), result);
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
+    }
+  }
+  default:
+    return "";
+  }
 }
 
 ParseXmlIntoArgsOption Transaction::getParseXmlIntoArgs() const {

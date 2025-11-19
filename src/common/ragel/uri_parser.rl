@@ -21,6 +21,7 @@
 #pragma once
 
 #include <cstring>
+#include <forward_list>
 #include <string_view>
 
 #include <url_decode.h>
@@ -70,8 +71,8 @@
 // clang-format on
 
 static void uriParser(std::string_view input, std::string_view& uri, std::string_view& relative_uri,
-                      std::string_view& query, std::string_view& base_name, std::string& uri_buffer,
-                      std::string& relative_uri_buffer, std::string& base_name_buffer) {
+                      std::string_view& query, std::string_view& base_name,
+                      std::forward_list<std::string>& parser_buffer) {
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -91,11 +92,14 @@ static void uriParser(std::string_view input, std::string_view& uri, std::string
 
   uri = std::string_view(p_start_path, uri_len);
   relative_uri = std::string_view(input.data(), relative_uri_len);
+  std::string base_name_buffer;
+  std::string relative_uri_buffer;
+  std::string uri_buffer;
   if (!base_name.empty() && urlDecode(base_name, base_name_buffer, false))
-    [[unlikely]] { base_name = base_name_buffer; }
+    [[unlikely]] { base_name = parser_buffer.emplace_front(std::move(base_name_buffer)); }
   if (urlDecode(relative_uri, relative_uri_buffer, false))
-    [[unlikely]] { relative_uri = relative_uri_buffer; }
+    [[unlikely]] { relative_uri = parser_buffer.emplace_front(std::move(relative_uri_buffer)); }
   if (urlDecode(uri, uri_buffer, false)) {
-    uri = uri_buffer;
+    uri = parser_buffer.emplace_front(std::move(uri_buffer));
   }
 }

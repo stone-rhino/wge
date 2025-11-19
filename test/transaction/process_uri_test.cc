@@ -26,9 +26,7 @@ namespace Wge {
 bool isEqual(const Transaction::RequestLineInfo& a, const Transaction::RequestLineInfo& b) {
   return a.method_ == b.method_ && a.uri_raw_ == b.uri_raw_ && a.uri_ == b.uri_ &&
          a.relative_uri_ == b.relative_uri_ && a.query_ == b.query_ && a.protocol_ == b.protocol_ &&
-         a.version_ == b.version_ && a.base_name_ == b.base_name_ &&
-         a.uri_buffer_ == b.uri_buffer_ && a.relative_uri_buffer_ == b.relative_uri_buffer_ &&
-         a.base_name_buffer_ == b.base_name_buffer_;
+         a.version_ == b.version_ && a.base_name_ == b.base_name_;
 }
 
 TEST_F(TransactionTest, ProcessUri) {
@@ -50,9 +48,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "");
-    EXPECT_EQ(request_line_info.uri_buffer_, "");
-    EXPECT_EQ(request_line_info.relative_uri_buffer_, "");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 
@@ -74,9 +69,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "");
-    EXPECT_EQ(request_line_info.uri_buffer_, "");
-    EXPECT_EQ(request_line_info.relative_uri_buffer_, "");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 
@@ -98,9 +90,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "data");
-    EXPECT_EQ(request_line_info.uri_buffer_, "");
-    EXPECT_EQ(request_line_info.relative_uri_buffer_, "");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 
@@ -122,9 +111,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/2.0");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "index.php");
-    EXPECT_EQ(request_line_info.uri_buffer_, "");
-    EXPECT_EQ(request_line_info.relative_uri_buffer_, "");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 
@@ -147,9 +133,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "ind;?+ex.php");
-    EXPECT_EQ(request_line_info.uri_buffer_, "/pa;?+th/ind;?+ex.php?i;?+d=1;?+1");
-    EXPECT_EQ(request_line_info.relative_uri_buffer_, "http://example.com/pa;?+th/ind;?+ex.php");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "ind;?+ex.php");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 
@@ -175,12 +158,6 @@ TEST_F(TransactionTest, ProcessUri) {
     EXPECT_EQ(request_line_info.protocol_, "HTTP/1.1");
     EXPECT_EQ(request_line_info.version_, version);
     EXPECT_EQ(request_line_info.base_name_, "index.cfm");
-    EXPECT_EQ(request_line_info.uri_buffer_, "//LAJG9Ins\"><script>alert(document.domain)</script>/"
-                                             "..CFIDE/administrator///index.cfm?cd=cd");
-    EXPECT_EQ(
-        request_line_info.relative_uri_buffer_,
-        "//LAJG9Ins\"><script>alert(document.domain)</script>/..CFIDE/administrator///index.cfm");
-    EXPECT_EQ(request_line_info.base_name_buffer_, "");
     EXPECT_TRUE(isEqual(request_line_info, trans2->getRequestLineInfo()));
   }
 }

@@ -25,10 +25,10 @@
 namespace Wge {
 namespace Common {
 namespace Ragel {
-void UriParser::init(std::string_view uri, Transaction::RequestLineInfo& req_line_info) {
+void UriParser::init(std::string_view uri, Transaction::RequestLineInfo& req_line_info,
+                     std::forward_list<std::string>& parser_buffer) {
   ::uriParser(uri, req_line_info.uri_, req_line_info.relative_uri_, req_line_info.query_,
-              req_line_info.base_name_, req_line_info.uri_buffer_,
-              req_line_info.relative_uri_buffer_, req_line_info.base_name_buffer_);
+              req_line_info.base_name_, parser_buffer);
 }
 } // namespace Ragel
 } // namespace Common
