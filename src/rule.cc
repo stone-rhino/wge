@@ -140,8 +140,7 @@ bool Rule::evaluate(Transaction& t) const {
   WGE_LOG_TRACE("------------------------------------");
 
   // Check whether the rule is unconditional(SecAction)
-  bool is_uncondition = operator_ == nullptr;
-  if (is_uncondition)
+  if (operator_ == nullptr)
     [[unlikely]] {
       WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id(), filePath(), line());
       // Evaluate the actions
@@ -171,8 +170,8 @@ bool Rule::evaluate(Transaction& t) const {
     evaluateVariable(t, var, result);
 
     // Evaluate each variable result
-    for (size_t i = 0; i < result.size(); i++) {
-      const Common::EvaluateElement& variable_value = result.at(i);
+    for (size_t i = 0; i < result.size(); ++i) {
+      const Common::EvaluateElement& variable_value = result[i];
       bool variable_matched = false;
       std::string_view captured_value;
       transformed_value.clear();
@@ -184,40 +183,25 @@ bool Rule::evaluate(Transaction& t) const {
         }
 
       // Evaluate the operator
-      if (transform_list.empty())
-        [[unlikely]] {
-          variable_matched = evaluateOperator(t, variable_value.variant_, var, captured_value);
-        }
-      else {
-        variable_matched = evaluateOperator(t, transformed_value.variant_, var, captured_value);
-      }
+      variable_matched = evaluateOperator(
+          t, transform_list.empty() ? variable_value.variant_ : transformed_value.variant_, var,
+          captured_value);
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        if (isNeedPushMatched()) {
-          t.pushMatchedVariable(var.get(), chain_index_, result.at(i), transformed_value,
-                                captured_value, std::move(transform_list));
+        WGE_LOG_TRACE([&]() {
+          if (!var->isCollection()) {
+            return std::format("variable is matched. {}{}", var->mainName(),
+                               var->subName().empty() ? "" : "." + var->subName());
+          } else {
+            return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                               variable_value.variable_sub_name_);
+          }
+        }());
 
-          WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
-            } else {
-              auto& matched_var = t.getMatchedVariables(chain_index_).back();
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 matched_var.transformed_value_.variable_sub_name_);
-            }
-          }());
-        } else {
-          WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
-            } else {
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 variable_value.variable_sub_name_);
-            }
-          }());
+        if (isNeedPushMatched()) {
+          t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
+                                captured_value, std::move(transform_list));
         }
 
         rule_matched = true;
@@ -477,30 +461,19 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
+        WGE_LOG_TRACE([&]() {
+          if (!var->isCollection()) {
+            return std::format("variable is matched. {}{}", var->mainName(),
+                               var->subName().empty() ? "" : "." + var->subName());
+          } else {
+            return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                               evaluated_value->variable_sub_name_);
+          }
+        }());
+
         if (isNeedPushMatched()) {
           t.pushMatchedVariable(var.get(), chain_index_, result.at(i), transformed_value,
                                 captured_value, std::move(transform_list));
-
-          WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
-            } else {
-              auto& matched_var = t.getMatchedVariables(chain_index_).back();
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 matched_var.transformed_value_.variable_sub_name_);
-            }
-          }());
-        } else {
-          WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
-            } else {
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 evaluated_value->variable_sub_name_);
-            }
-          }());
         }
 
         rule_matched = true;
