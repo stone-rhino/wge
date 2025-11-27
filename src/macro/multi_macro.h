@@ -48,20 +48,26 @@ public:
         auto pos2 = eval.find('}', pos1);
         assert(pos2 != std::string::npos);
         macro->evaluate(t, result);
-        if (IS_INT_VARIANT(result.front().variant_)) {
-          eval = eval.replace(pos1, pos2 - pos1 + 1,
-                              std::to_string(std::get<int64_t>(result.front().variant_)));
-        } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
-          std::string_view sv = std::get<std::string_view>(result.front().variant_);
-          eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
-        } else
-          [[unlikely]] {
-            // UNREACHABLE();
-            WGE_LOG_WARN(
-                "macro {} expanded: unexpected variant type {}, expected int64_t or string_view",
-                literal_value_, VISTIT_VARIANT_AS_STRING(result.front().variant_));
-            eval = eval.replace(pos1, pos2 - pos1 + 1, "");
-          }
+        if (!result.empty()) {
+          if (IS_INT_VARIANT(result.front().variant_)) {
+            eval = eval.replace(pos1, pos2 - pos1 + 1,
+                                std::to_string(std::get<int64_t>(result.front().variant_)));
+          } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+            std::string_view sv = std::get<std::string_view>(result.front().variant_);
+            eval = eval.replace(pos1, pos2 - pos1 + 1, sv.data(), sv.size());
+          } else
+            [[unlikely]] {
+              // UNREACHABLE();
+              WGE_LOG_WARN(
+                  "macro {} expanded: unexpected variant type {}, expected int64_t or string_view",
+                  literal_value_, VISTIT_VARIANT_AS_STRING(result.front().variant_));
+              eval = eval.replace(pos1, pos2 - pos1 + 1, "");
+            }
+        } else {
+          WGE_LOG_WARN("macro {} expanded: empty result, expected int64_t or string_view",
+                       literal_value_);
+          eval = eval.replace(pos1, pos2 - pos1 + 1, "");
+        }
 
         // Clear the result for the next macro.
         result.clear();

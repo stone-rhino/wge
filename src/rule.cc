@@ -454,7 +454,7 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     const Common::EvaluateElement* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
       if (evaluated_value == nullptr) {
-        evaluated_value = &result.at(i);
+        evaluated_value = &result[i];
       }
 
       // Evaluate the operator
@@ -473,7 +473,7 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         }());
 
         if (isNeedPushMatched()) {
-          t.pushMatchedVariable(var.get(), chain_index_, result.at(i), transformed_value,
+          t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
                                 captured_value, std::move(transform_list));
         }
 
