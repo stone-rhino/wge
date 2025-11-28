@@ -85,7 +85,7 @@ void Scanner::match(uint64_t id, std::string_view subject,
 void Scanner::match(const Pattern* pattern, std::string_view subject,
                     std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern);
-  if (!pattern_ || !pattern_->db())
+  if (!pattern || !pattern->db())
     [[unlikely]] { return; }
 
   int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
@@ -122,7 +122,7 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
 
 bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   assert(pattern);
-  if (!pattern_ || !pattern_->db())
+  if (!pattern || !pattern->db())
     [[unlikely]] { return false; }
 
   int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
@@ -178,7 +178,7 @@ void Scanner::matchGlobal(uint64_t id, std::string_view subject,
 void Scanner::matchGlobal(const Pattern* pattern, std::string_view subject,
                           std::vector<std::pair<size_t, size_t>>& result) const {
   assert(pattern);
-  if (!pattern_ || !pattern_->db())
+  if (!pattern || !pattern->db())
     [[unlikely]] { return; }
 
   int rc = 0;
