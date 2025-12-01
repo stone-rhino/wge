@@ -2543,7 +2543,7 @@ void Visitor::setRuleNeedPushMatched(Variable::VariableBase* variable) {
                                    main_name == Variable::MatchedVars::main_name_ ||
                                    main_name == Variable::MatchedVarsNames::main_name_;
   if (is_matched_variable) {
-    auto parent = current_rule_->get()->parentRule();
+    auto parent = current_rule_->parent();
     if (parent) {
       parent->isNeedPushMatched(true);
     } else {
