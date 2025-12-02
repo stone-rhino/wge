@@ -134,6 +134,7 @@ public:
   void clearRuleTagIndex(RuleIndex rule_index);
   void updateMarker(RuleIndex rule_index);
   void updateRuleIndex(RuleIndex rule_index);
+  void updateChainRule(RuleIndex rule_index);
   Rule* findRuleById(uint64_t id);
   std::unordered_set<Rule*> findRuleByMsg(const std::string& msg);
   std::unordered_set<Rule*> findRuleByTag(const std::string& tag);

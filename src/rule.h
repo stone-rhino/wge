@@ -242,8 +242,10 @@ public:
   }
   const Rule* parentRule() const { return detail_->parent_rule_; }
   Rule* parentRule() { return detail_->parent_rule_; }
+  void parentRule(Rule* parent_rule) { detail_->parent_rule_ = parent_rule; }
   const Rule* topRule() const { return detail_->top_rule_; }
   Rule* topRule() { return detail_->top_rule_; }
+  void topRule(Rule* top_rule) { detail_->top_rule_ = top_rule; }
 
 public:
   // String interning
