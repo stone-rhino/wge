@@ -530,7 +530,7 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   EXPECT_FALSE(except_var_pool[0]->isCounter());
   EXPECT_TRUE(except_var_pool[0]->isNot());
 
-  // variables map
+  // Variables map
   auto& rule_var_index = chain_rule->variablesIndex();
   {
     auto iter = rule_var_index.find({"ARGS_GET", ""});
@@ -543,10 +543,28 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
     EXPECT_EQ(&iter->second, rule_var_pool[1].get());
   }
 
-  // operator
+  // Operator
   auto& rule_operator = chain_rule->getOperator();
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->literalValue(), "bar");
+
+  // Parent rule
+  EXPECT_EQ(chain_rule->parentRule(), &parser.rules()[0].front());
+
+  // Test when adding rule(vector expansion), the parentRule of chain rule is still correct.
+  EXPECT_EQ(parser.rules()[0].capacity(), 1);
+  const std::string rule_directive2 = R"(SecRule ARGS:aaa "foo" "id:2,phase:1,msg:'aaa'")";
+  result = parser.load(rule_directive2);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules()[0].size(), 2);
+  EXPECT_EQ(parser.rules()[0].capacity(), 2);
+  EXPECT_EQ(chain_rule->parentRule(), &parser.rules()[0].front());
+  const std::string rule_directive3 = R"(SecAction "phase:1,setvar:'tx.score=100'")";
+  result = parser.load(rule_directive3);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules()[0].size(), 3);
+  EXPECT_EQ(parser.rules()[0].capacity(), 4);
+  EXPECT_EQ(chain_rule->parentRule(), &parser.rules()[0].front());
 }
 
 TEST_F(RuleActionParseTest, ActionInitCol) {

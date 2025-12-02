@@ -255,16 +255,29 @@ void Parser::secAction(std::unique_ptr<Rule>&& rule) {
     return;
   }
 
+  auto& phase_rules = rules_[rule->phase() - 1];
+
   // Check the rule count limit, ensure the index won't overflow
-  size_t phase_rules_size = rules_[rule->phase() - 1].size();
+  size_t phase_rules_size = phase_rules.size();
   if (static_cast<size_t>(std::numeric_limits<RuleIndexType>::max()) < phase_rules_size) {
     assert(false && "Too many rules in phase");
     return;
   }
 
   rule->index(phase_rules_size);
-  rules_[rule->phase() - 1].emplace_back(std::move(*rule));
+  bool need_update_chain_rule = phase_rules.capacity() == phase_rules_size;
+  phase_rules.emplace_back(std::move(*rule));
   rule.reset();
+
+  if (need_update_chain_rule) {
+    for (auto& rule : phase_rules) {
+      Rule* chain_rule = rule.chainRule(0);
+      if (chain_rule) {
+        chain_rule->parentRule(&rule);
+        chain_rule->topRule(&rule);
+      }
+    }
+  }
 }
 
 Rule* Parser::secRule(std::unique_ptr<Rule>&& rule) {
@@ -273,15 +286,18 @@ Rule* Parser::secRule(std::unique_ptr<Rule>&& rule) {
     return nullptr;
   }
 
+  auto& phase_rules = rules_[rule->phase() - 1];
+
   // Check the rule count limit, ensure the index won't overflow
-  size_t phase_rules_size = rules_[rule->phase() - 1].size();
+  size_t phase_rules_size = phase_rules.size();
   if (static_cast<size_t>(std::numeric_limits<RuleIndexType>::max()) < phase_rules_size) {
     assert(false && "Too many rules in phase");
     return nullptr;
   }
 
   rule->index(phase_rules_size);
-  auto& appended_rule = rules_[rule->phase() - 1].emplace_back(std::move(*rule));
+  bool need_update_chain_rule = phase_rules.capacity() == phase_rules_size;
+  auto& appended_rule = phase_rules.emplace_back(std::move(*rule));
   rule.reset();
 
   // Set indexes
@@ -291,19 +307,31 @@ Rule* Parser::secRule(std::unique_ptr<Rule>&& rule) {
     setRuleTagIndex({appended_rule.phase(), appended_rule.index()}, tag);
   }
 
+  if (need_update_chain_rule) {
+    for (auto& rule : phase_rules) {
+      Rule* chain_rule = rule.chainRule(0);
+      if (chain_rule) {
+        chain_rule->parentRule(&rule);
+        chain_rule->topRule(&rule);
+      }
+    }
+  }
+
   return &appended_rule;
 }
 
 void Parser::secRuleRemoveById(uint64_t id) {
   auto iter = rules_index_id_.find(id);
   if (iter != rules_index_id_.end()) {
-    clearRuleIdIndex(iter->second);
-    clearRuleTagIndex(iter->second);
-    clearRuleMsgIndex(iter->second);
-    updateMarker(iter->second);
-    updateRuleIndex(iter->second);
+    RuleIndex rule_index = iter->second;
+    clearRuleIdIndex(rule_index);
+    clearRuleTagIndex(rule_index);
+    clearRuleMsgIndex(rule_index);
+    updateMarker(rule_index);
+    updateRuleIndex(rule_index);
     auto& rules = rules_[iter->second.phase_ - 1];
     rules.erase(rules.begin() + iter->second.index_);
+    updateChainRule(rule_index);
   }
 }
 
@@ -534,6 +562,18 @@ void Parser::updateRuleIndex(RuleIndex rule_index) {
   auto& rules = rules_[rule_index.phase_ - 1];
   for (auto i = rule_index.index_ + 1; i < rules.size(); ++i) {
     rules[i].index(i - 1);
+  }
+}
+
+void Parser::updateChainRule(RuleIndex rule_index) {
+  auto& rules = rules_[rule_index.phase_ - 1];
+  for (auto i = rule_index.index_ + 1; i < rules.size(); ++i) {
+    Rule& parent_rule = rules[i];
+    Rule* chain_rule = parent_rule.chainRule(0);
+    if (chain_rule != nullptr) {
+      chain_rule->parentRule(&parent_rule);
+      chain_rule->topRule(&parent_rule);
+    }
   }
 }
 

@@ -109,7 +109,8 @@ TEST_F(RuleTest, RuleRemoveById) {
   SecRule ARGS "bar" "id:7,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:8,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:9,phase:1,tag:'tag6',msg:'msg6'"
-  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6'"
+  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6',chain"
+    SecRule ARGS "baz" "phase:1,tag:'tag7',msg:'msg7'"
   )";
 
   Antlr4::Parser parser;
@@ -119,6 +120,10 @@ TEST_F(RuleTest, RuleRemoveById) {
   auto& rules = parser.rules()[0];
   EXPECT_EQ(rules.size(), 10);
 
+  Rule* chain_rule = rules.back().chainRule(0);
+  EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+  EXPECT_EQ(chain_rule->topRule(), &rules.back());
+
   {
     const std::string rule_remove = R"(SecRuleRemoveById 1)";
     auto result = parser.load(rule_remove);
@@ -127,6 +132,8 @@ TEST_F(RuleTest, RuleRemoveById) {
     auto iter =
         std::find_if(rules.begin(), rules.end(), [](const Rule& rule) { return rule.id() == 1; });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 
   {
@@ -137,6 +144,8 @@ TEST_F(RuleTest, RuleRemoveById) {
     auto iter = std::find_if(rules.begin(), rules.end(),
                              [](const Rule& rule) { return rule.id() == 2 || rule.id() == 3; });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 
   {
@@ -148,6 +157,8 @@ TEST_F(RuleTest, RuleRemoveById) {
       return rule.id() == 4 || rule.id() == 5 || rule.id() == 6 || rule.id() == 7 || rule.id() == 8;
     });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 }
 
@@ -161,7 +172,8 @@ TEST_F(RuleTest, RuleRemoveByMsg) {
   SecRule ARGS "bar" "id:7,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:8,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:9,phase:1,tag:'tag6',msg:'msg6'"
-  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6'"
+  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6',chain"
+    SecRule ARGS "baz" "phase:1,tag:'tag7',msg:'msg7'"
   )";
 
   Antlr4::Parser parser;
@@ -171,6 +183,10 @@ TEST_F(RuleTest, RuleRemoveByMsg) {
   auto& rules = parser.rules()[0];
   EXPECT_EQ(rules.size(), 10);
 
+  Rule* chain_rule = rules.back().chainRule(0);
+  EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+  EXPECT_EQ(chain_rule->topRule(), &rules.back());
+
   {
     const std::string rule_remove = R"(SecRuleRemoveByMsg "msg1")";
     auto result = parser.load(rule_remove);
@@ -179,6 +195,8 @@ TEST_F(RuleTest, RuleRemoveByMsg) {
     auto iter =
         std::find_if(rules.begin(), rules.end(), [](const Rule& rule) { return rule.id() == 1; });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 
   {
@@ -204,7 +222,8 @@ TEST_F(RuleTest, RuleRemoveByTag) {
   SecRule ARGS "bar" "id:7,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:8,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:9,phase:1,tag:'tag6',msg:'msg6'"
-  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6'"
+  SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6',chain"
+    SecRule ARGS "baz" "phase:1,tag:'tag7',msg:'msg7'"
   )";
 
   Antlr4::Parser parser;
@@ -214,6 +233,10 @@ TEST_F(RuleTest, RuleRemoveByTag) {
   auto& rules = parser.rules()[0];
   EXPECT_EQ(rules.size(), 10);
 
+  Rule* chain_rule = rules.back().chainRule(0);
+  EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+  EXPECT_EQ(chain_rule->topRule(), &rules.back());
+
   {
     const std::string rule_remove = R"(SecRuleRemoveByTag "tag1")";
     auto result = parser.load(rule_remove);
@@ -222,6 +245,8 @@ TEST_F(RuleTest, RuleRemoveByTag) {
     auto iter =
         std::find_if(rules.begin(), rules.end(), [](const Rule& rule) { return rule.id() == 1; });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 
   {
@@ -232,6 +257,8 @@ TEST_F(RuleTest, RuleRemoveByTag) {
     auto iter = std::find_if(rules.begin(), rules.end(),
                              [](const Rule& rule) { return rule.id() == 2 || rule.id() == 3; });
     EXPECT_EQ(iter, rules.end());
+    EXPECT_EQ(chain_rule->parentRule(), &rules.back());
+    EXPECT_EQ(chain_rule->topRule(), &rules.back());
   }
 
   {
