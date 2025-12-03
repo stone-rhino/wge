@@ -255,5 +255,131 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
     EXPECT_FALSE(matched);
   }
 }
+
+TEST(RuleEvaluateLogicTest, MatchedVarPush) {
+  // Test the NEED_PUSH_MATCHED flag of the rule and chained rule is set correctly.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecRule ARGS "@streq test" \
+        "id:1, \
+        phase:1, \
+        pass, \
+        log, \
+        t:none, \
+        t:lowercase, \
+        chain"
+          SecRule &MATCHED_VARS "@eq 1" \
+          "t:none,chain"
+            SecRule ARGS "@streq test1" \
+            "t:none,t:lowercase,setvar:tx.test=1")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processUri("/index.php?id=test&user=test1", "GET", "HTTP/1.1");
+    ASSERT_TRUE(result.has_value());
+
+    auto rule = engine.findRuleById(1);
+    ASSERT_NE(rule, nullptr);
+    EXPECT_TRUE(rule->isNeedPushMatched());
+
+    Rule* child = (const_cast<Rule*>(rule))->chainRule(0);
+    ASSERT_NE(child, nullptr);
+    // The child rule's NEED_PUSH_MATCHED flag should be false
+    EXPECT_FALSE(child->isNeedPushMatched());
+    ASSERT_NE(child->chainRule(0), nullptr);
+    EXPECT_FALSE(child->chainRule(0)->isNeedPushMatched());
+
+    bool matched = false;
+    t->processRequestHeaders(
+        nullptr, nullptr, 0,
+        [](const Rule& rule, void* user_data) {
+          bool* matched = static_cast<bool*>(user_data);
+          *matched = true;
+        },
+        &matched);
+    // The rule is matched, and the action is executed.
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 1);
+    EXPECT_TRUE(matched);
+  }
+
+  // Test the NEED_PUSH_MATCHED flag of the rule and chained rule is set correctly when only the
+  // parent rule uses MATCHED_VAR.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecRule MATCHED_VAR "@streq test" \
+        "id:1, \
+        phase:1, \
+        pass, \
+        log, \
+        t:none, \
+        t:lowercase, \
+        chain"
+          SecRule ARGS "@rx test" \
+          "setvar:tx.test=1")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+    auto rule = engine.findRuleById(1);
+    ASSERT_NE(rule, nullptr);
+    // The parent rule's NEED_PUSH_MATCHED flag should be true
+    EXPECT_TRUE(rule->isNeedPushMatched());
+
+    Rule* child = (const_cast<Rule*>(rule))->chainRule(0);
+    ASSERT_NE(child, nullptr);
+    // The child rule's NEED_PUSH_MATCHED flag should be false
+    EXPECT_FALSE(child->isNeedPushMatched());
+  }
+
+  // Test the NEED_PUSH_MATCHED flag of the rule and chained rule is set correctly when only the
+  // parent rule's msg and logdata use MATCHED_VAR.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecRule ARGS "@streq test" \
+        "id:1, \
+        phase:1, \
+        pass, \
+        log, \
+        msg:'msg:%{MATCHED_VAR_NAME}=%{MATCHED_VAR}',\
+        logdata:'logdata:%{MATCHED_VAR_NAME}=%{MATCHED_VAR}'
+        t:none, \
+        t:lowercase, \
+        chain"
+          SecRule ARGS "@rx test" \
+          "setvar:tx.test=1")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+
+    auto rule = engine.findRuleById(1);
+    ASSERT_NE(rule, nullptr);
+    EXPECT_TRUE(rule->isNeedPushMatched());
+
+    Rule* child = (const_cast<Rule*>(rule))->chainRule(0);
+    ASSERT_NE(child, nullptr);
+    EXPECT_FALSE(child->isNeedPushMatched());
+
+    auto t = engine.makeTransaction();
+    t->processUri("/index.php?id=test&user=test1", "GET", "HTTP/1.1");
+    t->processRequestHeaders(
+        nullptr, nullptr, 0,
+        [](const Rule& rule, void* user_data) {
+          Transaction* t = static_cast<Transaction*>(user_data);
+          EXPECT_EQ(t->getMsgMacroExpanded(), "msg:ARGS:id=test");
+          EXPECT_EQ(t->getLogDataMacroExpanded(), "logdata:ARGS:id=test");
+        },
+        t.get());
+  }
+}
+
 } // namespace Integration
 } // namespace Wge
