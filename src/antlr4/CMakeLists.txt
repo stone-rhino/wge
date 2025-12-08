@@ -23,9 +23,13 @@ add_custom_command(
 
 find_package(antlr4-runtime CONFIG REQUIRED)
 
+add_subdirectory(debug)
+
 add_library(antlr4 ${local_source} ${generated_source})
 target_include_directories(antlr4 PRIVATE ${CMAKE_BINARY_DIR}/src/antlr4)
 target_link_libraries(antlr4 PRIVATE antlr4_static)
+add_dependencies(antlr4_debug_lexer antlr4)
+add_dependencies(antlr4_debug_parser antlr4)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(antlr4 PRIVATE spdlog::spdlog_header_only)
