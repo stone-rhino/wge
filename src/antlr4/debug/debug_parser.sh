@@ -2,23 +2,17 @@
 set -e
 
 DIR=$(dirname "$0")
-OUTPUT=debug/output
+PROJECT_ROOT=${DIR}/../../..
 
-function antlr4() {
-  java -Xmx500M -cp "/usr/local/lib/antlr-4.13.2-complete.jar:$CLASSPATH" org.antlr.v4.Tool "$@"
-}
+# Change to project root directory
+cd ${PROJECT_ROOT}
+BUILD_DIR=$(pwd)/build/debug
+INPUT_FILE=$(pwd)/src/antlr4/debug/input.txt
 
-cd ${DIR}/../
+# Build the antlr4_debug_lexer target using cmake
+echo "Building antlr4_debug_lexer target..."
+cmake --build "${BUILD_DIR}" --target antlr4_debug_parser
 
-# Generate lexer and parser files
-antlr4 -Dlanguage=Java -o ${OUTPUT} SecLangLexer.g4 SecLangParser.g4
-
-# Compile the generated lexer and parser files
-javac -cp "/usr/local/lib/antlr-4.13.2-complete.jar" ${OUTPUT}/*.java
-
-# Run the configuration rule on the input file, and print the parse tree
-# java -cp "/usr/local/lib/antlr-4.13.2-complete.jar:${OUTPUT}" org.antlr.v4.gui.TestRig SecLang configuration -tokens debug/input.txt
-java -cp "/usr/local/lib/antlr-4.13.2-complete.jar:${OUTPUT}" org.antlr.v4.gui.TestRig SecLang configuration -tree debug/input.txt
-
-# Clean up generated files
-rm -rf ${OUTPUT}
+# Run the debug lexer with the input file
+echo "Running antlr4_debug_parser with input file: ${INPUT_FILE}"
+${BUILD_DIR}/src/antlr4/debug/antlr4_debug_parser ${INPUT_FILE}
