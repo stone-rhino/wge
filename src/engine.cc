@@ -20,6 +20,8 @@
  */
 #include "engine.h"
 
+#include <boost/property_tree/json_parser.hpp>
+
 #include "action/ctl.h"
 #include "antlr4/parser.h"
 #include "common/assert.h"
@@ -56,6 +58,20 @@ std::expected<bool, std::string> Engine::load(const std::string& directive) {
   ASSERT_IS_MAIN_THREAD();
 
   return parser_->load(directive);
+}
+
+void Engine::propertyTree(const std::string& json_string) {
+  ASSERT_IS_MAIN_THREAD();
+
+  std::istringstream iss(json_string);
+  boost::property_tree::ptree temp_ptree;
+  boost::property_tree::read_json(iss, temp_ptree);
+
+  // Convert ptree to PropertyTree
+  property_tree_.clear();
+  property_tree_string_pool_.clear();
+  property_tree_string_pool_.reserve(json_string.size());
+  convertPtreeToPropertyTree(temp_ptree, property_tree_);
 }
 
 void Engine::init() {
@@ -177,6 +193,63 @@ void Engine::initRules() {
             rule.skip(skip);
           }
         }
+      }
+    }
+  }
+}
+
+void Engine::convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
+                                        PropertyTree& dest) {
+  auto convertValue = [&](const std::string& value) -> Common::Variant {
+    if (value.empty()) {
+      return std::monostate{};
+    }
+
+    // Try to parse as integer
+    if (std::all_of(value.begin(), value.end(), [&value](char c) {
+          return std::isdigit(c) || (c == '-' && &c == &value[0]);
+        })) {
+      return static_cast<int64_t>(std::stoll(value));
+    }
+
+    property_tree_string_pool_.append(value);
+    return std::string_view(property_tree_string_pool_.data() + property_tree_string_pool_.size() -
+                                value.size(),
+                            value.size());
+  };
+
+  // The array detection: all keys are empty strings
+  bool is_array = std::all_of(src.begin(), src.end(), [](const auto& pair) {
+    if (pair.first.empty()) {
+      return true;
+    }
+    return false;
+  });
+
+  if (is_array) {
+    for (const auto& [_, child_tree] : src) {
+      if (child_tree.empty()) {
+        // Leaf node - convert the value
+        PropertyTree child_dest;
+        child_dest.put("", convertValue(child_tree.data()));
+        dest.push_back(std::make_pair("", std::move(child_dest)));
+      } else {
+        // Branch node - recursively convert children
+        PropertyTree child_dest;
+        convertPtreeToPropertyTree(child_tree, child_dest);
+        dest.push_back(std::make_pair("", std::move(child_dest)));
+      }
+    }
+  } else {
+    for (const auto& [key, child_tree] : src) {
+      if (child_tree.empty()) {
+        // Leaf node - convert the value
+        dest.put(key, convertValue(child_tree.data()));
+      } else {
+        // Branch node - recursively convert children
+        PropertyTree child_dest;
+        convertPtreeToPropertyTree(child_tree, child_dest);
+        dest.put_child(key, std::move(child_dest));
       }
     }
   }

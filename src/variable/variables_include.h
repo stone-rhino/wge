@@ -68,6 +68,7 @@
 #include "multipart_unmatched_boundary.h"
 #include "outbound_data_error.h"
 #include "path_info.h"
+#include "ptree.h"
 #include "query_string.h"
 #include "remote_addr.h"
 #include "remote_host.h"

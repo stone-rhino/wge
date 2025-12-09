@@ -234,7 +234,8 @@ variable:
 	| variable_global
 	| variable_resource
 	| variable_ip
-	| variable_user;
+	| variable_user
+	| extension_variable;
 variable_args:
 	NOT? VAR_COUNT? VAR_ARGS (
 		(COLON | DOT) (
@@ -942,6 +943,16 @@ variable_user:
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
 		)
 	)?;
+extension_variable: variable_ptree;
+variable_ptree:
+	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
+variable_ptree_expression:
+	STRING (
+		DOT STRING (
+			(LEFT_SQUARE AND? RIGHT_SQUARE)
+			| (LEFT_BRACKET AND? RIGHT_BRACKET)
+		)?
+	)+;
 
 operator:
 	op_begins_with

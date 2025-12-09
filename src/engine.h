@@ -26,7 +26,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/property_tree/ptree.hpp>
+
 #include "common/log.h"
+#include "common/variant.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
@@ -68,6 +71,23 @@ public:
    * @result an error string is returned if fails, and returned true otherwise
    */
   std::expected<bool, std::string> load(const std::string& directive);
+
+  /**
+   * Set engine properties from a JSON string
+   * The Engine won't care about the structure and content of the JSON string, and just store it.
+   * We can use the PTREE variable to access the properties, and we must ensure the structure and
+   * content are correct.
+   * @param json_string JSON string representing engine properties
+   */
+  void propertyTree(const std::string& json_string);
+
+  using PropertyTree = boost::property_tree::basic_ptree<std::string, Common::Variant>;
+
+  /**
+   * Get engine properties as a property tree
+   * @return reference of property tree
+   */
+  const PropertyTree& propertyTree() const { return property_tree_; }
 
   /**
    * Initialize the engine
@@ -156,6 +176,7 @@ public:
 
 private:
   void initRules();
+  void convertPtreeToPropertyTree(const boost::property_tree::ptree& src, PropertyTree& dest);
 
 private:
   // Is the engine initialized
@@ -165,5 +186,8 @@ private:
   std::unique_ptr<Antlr4::Parser> parser_;
 
   mutable PersistentStorage::Storage storage_;
+
+  PropertyTree property_tree_;
+  std::string property_tree_string_pool_;
 };
 } // namespace Wge
