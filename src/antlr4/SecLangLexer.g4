@@ -50,9 +50,12 @@ DOT: '.';
 COLON: ':';
 SEMICOLON: ';';
 ASSIGN: '=';
+LEFT_SQUARE: '[';
+RIGHT_SQUARE: ']';
 LEFT_BRACKET: '{';
 RIGHT_BRACKET: '}';
 PER_CENT: '%';
+AND: '&';
 PIPE: '|';
 PLUS: '+';
 MINUS: '-';
@@ -447,23 +450,72 @@ VAR_GLOBAL: [gG][lL][oO][bB][aA][lL];
 VAR_RESOURCE: [rR][eE][sS][oO][uU][rR][cC][eE];
 VAR_IP: [iI][pP];
 VAR_USER: [uU][sS][eE][rR];
+VAR_PTREE:
+	[pP][tT][rR][eE][eE] -> pushMode(ModeSecRuleVariableNamePtree);
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
+ModeSecRuleVariableName_Regex_COLON:
+	COLON {[&](){
+	  char ahead = _input->LA(1);
+	  return ahead == '/' || ahead == '@';
+	}()}? -> type(COLON), pushMode(ModeSecRuleVariableSubNameWithRegex);
+ModeSecRuleVariableName_Regex_DOT:
+	DOT {[&](){
+	  char ahead = _input->LA(1);
+	  return ahead == '/' || ahead == '@';
+	}()}? -> type(DOT), pushMode(ModeSecRuleVariableSubNameWithRegex);
 ModeSecRuleVariableName_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubName);
 ModeSecRuleVariableName_DOT:
 	DOT -> type(DOT), pushMode(ModeSecRuleVariableSubName);
-ModeSecRuleVariableName_VAR_COUNT: '&' -> type(VAR_COUNT);
+ModeSecRuleVariableName_VAR_COUNT: AND -> type(VAR_COUNT);
 ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
 ModeSecRuleVariableName_LEFT_BRACKET:
 	LEFT_BRACKET -> type(LEFT_BRACKET);
 ModeSecRuleVariableName_RIGHT_BRACKET:
 	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
 
+mode ModeSecRuleVariableNamePtree;
+ModeSecRuleVariableNamePtree_WS: WS -> skip, popMode, popMode;
+ModeSecRuleVariableNamePtree_COLON:
+	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
+ModeSecRuleVariableNamePtree_DOT:
+	DOT -> type(DOT), pushMode(ModeSecRuleVariableSubNamePtree);
+ModeSecRuleVariableNamePtree_AND: AND -> type(AND);
+ModeSecRuleVariableNamePtree_LEFT_BRACKET:
+	LEFT_BRACKET -> type(LEFT_BRACKET);
+ModeSecRuleVariableNamePtree_RIGHT_BRACKET:
+	RIGHT_BRACKET {[&](){
+	  // If the next char is not a dot, we are at the end of the ptree variable
+	  return _input->LA(1) != '.';
+	}()}? -> type(RIGHT_BRACKET), popMode;
+ModeSecRuleVariableNamePtree_RIGHT_BRACKET2:
+	RIGHT_BRACKET -> type(RIGHT_BRACKET);
+ModeSecRuleVariableNamePtree_LEFT_SQUARE:
+	LEFT_SQUARE -> type(LEFT_SQUARE);
+ModeSecRuleVariableNamePtree_RIGHT_SQUARE:
+	RIGHT_SQUARE -> type(RIGHT_SQUARE);
+ModeSecRuleVariableNamePtree_PIPE: PIPE -> type(PIPE), popMode;
+
+mode ModeSecRuleVariableSubNamePtree;
+ModeSecRuleVariableSubNamePtree_VAR_SUB_NAME:
+	~[ :!&|"',.%{}\-\n[\]]+ -> type(STRING), popMode;
+
+mode ModeSecRuleVariableSubNameWithRegex;
+ModeSecRuleVariableSubNameWithRegex_VAR_SUB_NAME:
+	(
+		('/' ~[*] ~[ /]+ '/')
+		| ('@' ~[ @] '@')
+		| ('/*')
+		| ('/*@' ~[ @]+ '@')
+		| ('//@*')
+		| ('//@*@' ~[ @]+ '@')
+	) -> type(STRING), popMode;
+
 mode ModeSecRuleVariableSubName;
 ModeSecRuleVariableSubName_VAR_SUB_NAME:
-	~[ :!&|"',%{}\n]+ -> type(STRING), popMode;
+	~[ :!&|"',%{}\n[\]]+ -> type(STRING), popMode;
 ModeSecRuleVariableSubName_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleVariableSubNameWithSingleQuote)
 		;
@@ -653,7 +705,7 @@ VAR_VALUE:
 
 mode ModeSecRuleActionSetRawVarValue;
 VAR_RAW_VALUE:
-	.+? { [&](){
+	.+? {[&](){
         std::string lookahead;
         for (int i = 1; i <= 4; i++) {
             char c = _input->LA(i);

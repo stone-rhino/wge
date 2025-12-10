@@ -26,6 +26,7 @@
 #include "../common/empty_string.h"
 #include "../macro/macro_include.h"
 #include "../operator/pm_from_file.h"
+#include "../variable/ptree.h"
 
 #define RETURN_ERROR(msg)                                                                          \
   should_visit_next_child_ = false;                                                                \
@@ -441,6 +442,10 @@ public:
 
   std::any visitVariable_user(Antlr4Gen::SecLangParser::Variable_userContext* ctx) override;
 
+  // Extension variables
+public:
+  std::any visitVariable_ptree(Antlr4Gen::SecLangParser::Variable_ptreeContext* ctx) override;
+
   // SecRule operators
 public:
   std::any visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) override;
@@ -846,8 +851,12 @@ private:
 
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
-    if (ctx->STRING()) {
-      sub_name = ctx->STRING()->getText();
+    if constexpr (std::is_same_v<VarT, Variable::PTree>) {
+      sub_name = ctx->variable_ptree_expression()->getText();
+    } else {
+      if (ctx->STRING()) {
+        sub_name = ctx->STRING()->getText();
+      }
     }
     const bool is_not = ctx->NOT() != nullptr;
     const bool is_counter = ctx->VAR_COUNT() != nullptr;
@@ -880,7 +889,7 @@ private:
       if (variable->subName().empty()) {
         letera_value = std::format("%{{}}", variable->mainName());
       } else {
-        letera_value = std::format("%{{{}:{}}}", variable->mainName(), variable->subName());
+        letera_value = std::format("%{{{}.{}}}", variable->mainName(), variable->subName());
       }
 
       Macro::MacroBase* macro_ptr =
