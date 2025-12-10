@@ -151,6 +151,10 @@ public:
   void capture(bool value);
   bool multiMatch() const { return flags_.test(static_cast<size_t>(Flags::MULTI_MATCH)); }
   void multiMatch(bool value) { flags_.set(static_cast<size_t>(Flags::MULTI_MATCH), value); }
+  bool firstMatch() const { return flags_.test(static_cast<size_t>(Flags::FIRST_MATCH)); }
+  void firstMatch(bool value) { flags_.set(static_cast<size_t>(Flags::FIRST_MATCH), value); }
+  bool emptyMatch() const { return flags_.test(static_cast<size_t>(Flags::EMPTY_MATCH)); }
+  void emptyMatch(bool value);
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
     return transforms_;
   }
@@ -218,12 +222,14 @@ public:
   std::string_view filePath() const { return detail_->file_path_; }
   std::string_view msg() const { return detail_->msg_; }
   void msg(std::string&& value) { detail_->msg_ = intern(std::move(value)); }
-  void msg(std::unique_ptr<Macro::MacroBase>&& macro) { msg_macro_ = std::move(macro); }
-  const std::unique_ptr<Macro::MacroBase>& msgMacro() const { return msg_macro_; }
+  void msg(std::unique_ptr<Macro::MacroBase>&& macro) { detail_->msg_macro_ = std::move(macro); }
+  const std::unique_ptr<Macro::MacroBase>& msgMacro() const { return detail_->msg_macro_; }
   std::string_view logdata() const { return detail_->log_data_; }
   void logData(std::string&& value) { detail_->log_data_ = intern(std::move(value)); }
-  void logData(std::unique_ptr<Macro::MacroBase>&& macro) { log_data_macro_ = std::move(macro); }
-  const std::unique_ptr<Macro::MacroBase>& logDataMacro() const { return log_data_macro_; }
+  void logData(std::unique_ptr<Macro::MacroBase>&& macro) {
+    detail_->log_data_macro_ = std::move(macro);
+  }
+  const std::unique_ptr<Macro::MacroBase>& logDataMacro() const { return detail_->log_data_macro_; }
   std::string_view redirect() { return detail_->redirect_; }
   void redirect(std::string&& value) { detail_->redirect_ = intern(std::move(value)); }
   std::string_view status() const { return detail_->status_; }
@@ -293,6 +299,12 @@ private:
     // and after every anti-evasion transformation is performed.
     MULTI_MATCH,
 
+    // If enabled, WGE will stop evaluating the rule when the first variable value matches.
+    FIRST_MATCH,
+
+    // If enabled, and value of operator is a macro that evaluates to empty, the rule will match.
+    EMPTY_MATCH,
+
     // If enabled, WGE will ignore the default transformation for the matched variable.
     IGNORE_DEFAULT_TRANSFORM,
 
@@ -330,9 +342,6 @@ private:
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
   std::unique_ptr<Operator::OperatorBase> operator_;
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
-
-  std::unique_ptr<Macro::MacroBase> msg_macro_;
-  std::unique_ptr<Macro::MacroBase> log_data_macro_;
 
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.
   // Chained rules allow for more complex processing logic.
@@ -376,6 +385,11 @@ private:
     // Assigns a custom message to the rule or chain in which it appears. The message will be logged
     // along with every alert.
     std::string_view msg_;
+    std::unique_ptr<Macro::MacroBase> msg_macro_;
+
+    // Logs a data fragment as part of the alert message.
+    std::string_view log_data_;
+    std::unique_ptr<Macro::MacroBase> log_data_macro_;
 
     // Executes an external script supplied as parameter.
     // TODO(zhouyu 2025-11-05): Implement exec action.
@@ -389,9 +403,6 @@ private:
     // a new collection in memory.
     // TODO(zhouyu 2025-11-05): Implement initcol action.
     // std::string_view init_col_;
-
-    // Logs a data fragment as part of the alert message.
-    std::string_view log_data_;
 
     // Intercepts transaction by issuing an external (client-visible) redirection to the given
     // location.

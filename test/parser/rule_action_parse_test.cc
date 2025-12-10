@@ -787,5 +787,24 @@ TEST_F(RuleActionParseTest, ActionLogDataWithMacro) {
 
   EXPECT_TRUE(parser.rules()[0].back().logdata().empty());
 }
+
+TEST_F(RuleActionParseTest, ActionFirstMatch) {
+  const std::string rule_directive = R"(SecRule ARGS "foo" "id:1,phase:1,firstMatch,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_TRUE(parser.rules()[0].back().firstMatch());
+}
+
+TEST_F(RuleActionParseTest, ActionEmptyMatch) {
+  const std::string rule_directive =
+      R"(SecRule ARGS "@rx %{tx.foo}" "id:1,phase:1,emptyMatch,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_TRUE(parser.rules()[0].back().emptyMatch());
+}
 } // namespace Parser
 } // namespace Wge

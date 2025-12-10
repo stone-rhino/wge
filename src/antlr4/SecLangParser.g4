@@ -1029,7 +1029,8 @@ action:
 	| action_non_disruptive
 	| action_disruptive
 	| action_data
-	| action_flow;
+	| action_flow
+	| action_extension;
 
 action_meta_data:
 	action_meta_data_id
@@ -1373,6 +1374,10 @@ action_flow:
 action_flow_chain: Chain;
 action_flow_skip: Skip COLON INT;
 action_flow_skip_after: SkipAfter COLON STRING;
+
+action_extension: action_extension_first_match | action_extension_empty_match;
+action_extension_first_match: FirstMatch;
+action_extension_empty_match: EmptyMatch;
 
 audit_log_config:
 	sec_audit_engine

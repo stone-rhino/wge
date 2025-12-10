@@ -50,9 +50,14 @@ public:
           }
         else {
           MACRO_EXPAND_STRING_VIEW(macro_value);
-          matched = std::get<std::string_view>(operand).find(macro_value) != std::string_view::npos;
+          if (!macro_value) {
+            return empty_match_;
+          }
+
+          matched =
+              std::get<std::string_view>(operand).find(*macro_value) != std::string_view::npos;
           if (matched) {
-            t.stageCapture(0, macro_value);
+            t.stageCapture(0, *macro_value);
           }
         }
       }

@@ -51,7 +51,11 @@ public:
       [[likely]] { return operand_value == value_; }
     else {
       MACRO_EXPAND_INT(macro_value);
-      return operand_value == macro_value;
+      if (!macro_value) {
+        return empty_match_;
+      }
+
+      return operand_value == *macro_value;
     }
   }
 

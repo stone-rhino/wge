@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include "../common/variant.h"
@@ -36,14 +37,16 @@ private:                                                                        
 #define MACRO_EXPAND_STRING_VIEW(var)                                                              \
   Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  std::string_view var;                                                                            \
-  if (IS_STRING_VIEW_VARIANT(result.front().variant_))                                             \
+  std::optional<std::string_view> var;                                                             \
+  if (!result.empty() && IS_STRING_VIEW_VARIANT(result.front().variant_))                          \
     [[likely]] { var = std::get<std::string_view>(result.front().variant_); }
 
 #define MACRO_EXPAND_INT(var)                                                                      \
   Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  int64_t var = std::get<int64_t>(result.front().variant_);
+  std::optional<int64_t> var;                                                                      \
+  if (!result.empty() && IS_INT_VARIANT(result.front().variant_))                                  \
+    [[likely]] { var = std::get<int64_t>(result.front().variant_); }
 
 namespace Wge {
 namespace Operator {
@@ -79,6 +82,18 @@ public:
    */
   bool isNot() const { return is_not_; }
 
+  /**
+   * If enabled, and value of operator is a macro that evaluates to empty, the rule will match.
+   * @param value true to enable empty match, false to disable.
+   */
+  void emptyMatch(bool value) { empty_match_ = value; }
+
+  /**
+   * Check if empty match is enabled.
+   * @return true if empty match is enabled, false otherwise.
+   */
+  bool emptyMatch() const { return empty_match_; }
+
 public:
   /**
    * Evaluate the operator.
@@ -98,6 +113,7 @@ protected:
   std::string literal_value_;
   bool is_not_;
   std::unique_ptr<Macro::MacroBase> macro_;
+  bool empty_match_{false};
 };
 
 } // namespace Operator

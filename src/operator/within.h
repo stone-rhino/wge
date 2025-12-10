@@ -76,9 +76,12 @@ public:
     if (macro_)
       [[unlikely]] {
         MACRO_EXPAND_STRING_VIEW(macro_value);
+        if (!macro_value) {
+          return empty_match_;
+        }
 
         // Split the literal value into tokens.
-        std::vector<std::string_view> tokens = Common::SplitTokens(macro_value);
+        std::vector<std::string_view> tokens = Common::SplitTokens(*macro_value);
 
         // Calculate the order independent hash value of all tokens.
         int64_t hash = calcOrderIndependentHash(tokens);

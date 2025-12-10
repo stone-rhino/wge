@@ -62,6 +62,9 @@ public:
     if (macro_)
       [[unlikely]] {
         MACRO_EXPAND_STRING_VIEW(macro_value);
+        if (!macro_value) {
+          return empty_match_;
+        }
 
         // All the threads will try to access the macro_pcre_cache_ at the same time, so we need to
         // lock the macro_chche_mutex_.
@@ -69,13 +72,13 @@ public:
         // probablity of the macro expansion is very low, so we use the lock here.
         std::lock_guard<std::mutex> lock(macro_chche_mutex_);
 
-        auto iter = macro_scanner_cache_.find(macro_value);
+        auto iter = macro_scanner_cache_.find(*macro_value);
         if (iter == macro_scanner_cache_.end()) {
           // To avoid copying the macro value when we find scanner in the macro_scanner_cache_ by
           // std::string type key, we use std::string_view type key to find scanner in the
           // macro_scanner_cache_, And store the macro value in the macro_value_cache_.
-          macro_value_cache_.emplace_front(macro_value);
-          auto macro_scanner = createScanner(macro_value);
+          macro_value_cache_.emplace_front(*macro_value);
+          auto macro_scanner = createScanner(*macro_value);
           scanner =
               &(macro_scanner_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner))
                     .first->second);

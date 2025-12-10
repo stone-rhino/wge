@@ -804,6 +804,14 @@ public:
   std::any visitAction_flow_skip_after(
       Antlr4Gen::SecLangParser::Action_flow_skip_afterContext* ctx) override;
 
+  // Extension actions
+public:
+  std::any visitAction_extension_first_match(
+      Antlr4Gen::SecLangParser::Action_extension_first_matchContext* ctx) override;
+
+  std::any visitAction_extension_empty_match(
+      Antlr4Gen::SecLangParser::Action_extension_empty_matchContext* ctx) override;
+
   // Audit log configurations
 public:
   std::any visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) override;

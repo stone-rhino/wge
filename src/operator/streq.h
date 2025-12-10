@@ -47,7 +47,11 @@ public:
           [[likely]] { return literal_value_ == std::get<std::string_view>(operand); }
         else {
           MACRO_EXPAND_STRING_VIEW(macro_value);
-          return macro_value == std::get<std::string_view>(operand);
+          if (!macro_value) {
+            return empty_match_;
+          }
+
+          return *macro_value == std::get<std::string_view>(operand);
         }
       }
     else {

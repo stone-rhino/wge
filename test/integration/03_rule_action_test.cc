@@ -762,5 +762,70 @@ TEST_F(RuleActionTest, ActionAllowRequest) {
   EXPECT_TRUE(t->hasVariable("phase3"));
   EXPECT_TRUE(t->hasVariable("phase4"));
 }
+
+TEST_F(RuleActionTest, ActionFirstMatch) {
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.test1=1,setvar:tx.test2=1,setvar:tx.test3=1"
+      SecRule TX "@gt 0" "allow:request,id:1,phase:1,setvar:tx.result=+1,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("result")), 3);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.test1=1,setvar:tx.test2=1,setvar:tx.test3=1"
+      SecRule TX "@gt 0" "allow:request,id:1,phase:1,setvar:tx.result=+1,firstMatch,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("result")), 1);
+  }
+}
+
+TEST_F(RuleActionTest, ActionEmptyMatch) {
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.aaa=1"
+      SecRule TX:aaa "@gt %{tx.test}" "allow:request,id:1,phase:1,setvar:tx.result=+1,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_FALSE(t->hasVariable("result"));
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.aaa=1"
+      SecRule TX:aaa "@gt %{tx.test}" "allow:request,id:1,phase:1,setvar:tx.result=+1,emptyMatch,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("result")), 1);
+  }
+}
+
 } // namespace Integration
 } // namespace Wge

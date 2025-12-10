@@ -208,6 +208,13 @@ bool Rule::evaluate(Transaction& t) const {
 
         // Evaluate the default actions and the action defined actions
         evaluateActions(t);
+
+        // If the first match is enabled, stop evaluating the rule
+        if (firstMatch())
+          [[unlikely]] {
+            WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
+            break;
+          }
       }
     }
   }
@@ -250,6 +257,14 @@ void Rule::capture(bool value) {
     rx->capture(value);
   }
   flags_.set(static_cast<size_t>(Flags::CAPTURE), value);
+}
+
+void Rule::emptyMatch(bool value) {
+  if (operator_) {
+    operator_->emptyMatch(value);
+  }
+
+  flags_.set(static_cast<size_t>(Flags::EMPTY_MATCH), value);
 }
 
 void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
@@ -481,6 +496,13 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
         // Evaluate the default actions and the action defined actions
         evaluateActions(t);
+
+        // If the first match is enabled, stop evaluating the rule
+        if (firstMatch())
+          [[unlikely]] {
+            WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
+            break;
+          }
 
         // The variable value is matched, evaluate next variable value
         i++;
