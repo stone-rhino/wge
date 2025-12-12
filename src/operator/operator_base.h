@@ -23,6 +23,8 @@
 #include <optional>
 #include <string>
 
+#include "macro_logic_matcher.h"
+
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
 #include "../transaction.h"
@@ -33,20 +35,6 @@ public:                                                                         
                                                                                                    \
 private:                                                                                           \
   static constexpr char name_[] = #n;
-
-#define MACRO_EXPAND_STRING_VIEW(var)                                                              \
-  Common::EvaluateResults result;                                                                  \
-  macro_->evaluate(t, result);                                                                     \
-  std::optional<std::string_view> var;                                                             \
-  if (!result.empty() && IS_STRING_VIEW_VARIANT(result.front().variant_))                          \
-    [[likely]] { var = std::get<std::string_view>(result.front().variant_); }
-
-#define MACRO_EXPAND_INT(var)                                                                      \
-  Common::EvaluateResults result;                                                                  \
-  macro_->evaluate(t, result);                                                                     \
-  std::optional<int64_t> var;                                                                      \
-  if (!result.empty() && IS_INT_VARIANT(result.front().variant_))                                  \
-    [[likely]] { var = std::get<int64_t>(result.front().variant_); }
 
 namespace Wge {
 namespace Operator {
@@ -59,7 +47,8 @@ public:
       : literal_value_(std::move(literal_value)), is_not_(is_not) {}
 
   OperatorBase(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not)
-      : macro_(std::move(macro)), is_not_(is_not) {}
+      : is_not_(is_not),
+        macro_logic_matcher_(std::make_unique<MacroLogicMatcher>(std::move(macro))) {}
 
   virtual ~OperatorBase() = default;
 
@@ -71,10 +60,10 @@ public:
   const std::string& literalValue() const { return literal_value_; }
 
   /**
-   * Get the macro of the operator.
-   * @return the macro of the operator.
+   * Get the macro logic matcher of the operator.
+   * @return the macro logic matcher of the operator.
    */
-  std::unique_ptr<Macro::MacroBase>& macro() { return macro_; }
+  std::unique_ptr<MacroLogicMatcher>& macroLogicMatcher() { return macro_logic_matcher_; }
 
   /**
    * Check if the operator is a NOT operator.
@@ -112,9 +101,8 @@ public:
 protected:
   std::string literal_value_;
   bool is_not_;
-  std::unique_ptr<Macro::MacroBase> macro_;
   bool empty_match_{false};
+  std::unique_ptr<MacroLogicMatcher> macro_logic_matcher_;
 };
-
 } // namespace Operator
 } // namespace Wge

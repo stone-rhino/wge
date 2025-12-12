@@ -28,6 +28,15 @@ class PTree final : public VariableBase {
   DECLARE_VIRABLE_NAME(PTREE);
 
 public:
+  struct Path {
+    enum class Type : uint8_t { Map, Array, Value };
+    enum class Flag : uint8_t { Single, And, Or };
+    std::string name_;
+    Type type_;
+    Flag flag_;
+  };
+
+public:
   PTree(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {
     initPaths();
@@ -35,19 +44,13 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override;
+  const std::vector<Path>& paths() const { return paths_; }
 
 private:
   void initPaths();
   void evaluateNode(const void* node, size_t path_index, Common::EvaluateResults& result) const;
 
 private:
-  struct Path {
-    enum class Type : uint8_t { Map, Array, Value };
-    enum class Flag : uint8_t { Or, And };
-    std::string name_;
-    Type type_;
-    Flag flag_;
-  };
   std::vector<Path> paths_;
 };
 } // namespace Variable

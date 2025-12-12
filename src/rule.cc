@@ -393,7 +393,9 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
 
   WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
                 operator_->isNot() ? "!" : "", operator_->name(),
-                operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(),
+                operator_->macroLogicMatcher()
+                    ? operator_->macroLogicMatcher()->macro()->literalValue()
+                    : operator_->literalValue(),
                 matched);
   return matched;
 }

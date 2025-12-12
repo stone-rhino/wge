@@ -56,7 +56,7 @@ void PTree::initPaths() {
     } else {
       path.name_ = std::string(token);
       path.type_ = i == tokens.size() - 1 ? Path::Type::Value : Path::Type::Map;
-      path.flag_ = Path::Flag::Or;
+      path.flag_ = Path::Flag::Single;
     }
 
     paths_.emplace_back(std::move(path));

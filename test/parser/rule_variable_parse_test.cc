@@ -93,9 +93,10 @@ TEST_F(RuleVariableParseTest, PTreeMacro) {
   ASSERT_TRUE(result.has_value());
 
   auto& op = parser.rules()[0].back().getOperator();
-  EXPECT_NE(op->macro(), nullptr);
-  EXPECT_EQ(op->macro()->literalValue(), "%{PTREE.config.server_list[&].domain{}}");
-  EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macro().get()), nullptr);
+  EXPECT_NE(op->macroLogicMatcher(), nullptr);
+  EXPECT_EQ(op->macroLogicMatcher()->macro()->literalValue(),
+            "%{PTREE.config.server_list[&].domain{}}");
+  EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macroLogicMatcher()->macro().get()), nullptr);
 }
 
 } // namespace Parser

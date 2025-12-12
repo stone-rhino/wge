@@ -817,7 +817,7 @@ TEST_F(RuleActionTest, ActionEmptyMatch) {
       SecAction "phase:1,setvar:tx.aaa=1"
       SecRule TX:aaa "@gt %{tx.test}" "allow:request,id:1,phase:1,setvar:tx.result=+1,emptyMatch,msg:'aaa bbb'")";
 
-    Engine engine(spdlog::level::off);
+    Engine engine(spdlog::level::trace);
     auto result = engine.load(rule_directive);
     ASSERT_TRUE(result.has_value());
     engine.init();

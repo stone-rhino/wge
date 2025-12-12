@@ -40,7 +40,7 @@ public:
     bool matched = false;
     if (IS_STRING_VIEW_VARIANT(operand))
       [[likely]] {
-        if (!macro_)
+        if (!macro_logic_matcher_)
           [[likely]] {
             matched =
                 std::get<std::string_view>(operand).find(literal_value_) != std::string_view::npos;
@@ -49,15 +49,44 @@ public:
             }
           }
         else {
-          MACRO_EXPAND_STRING_VIEW(macro_value);
-          if (!macro_value) {
-            return empty_match_;
-          }
+          std::vector<std::string_view> captrue_array;
+          matched = macro_logic_matcher_->match(
+              t, operand, empty_match_,
+              [](Transaction& t, const Common::Variant& left_operand,
+                 const Common::EvaluateElement& right_operand, void* user_data) {
+                assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
+                if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
+                  return false;
+                }
 
-          matched =
-              std::get<std::string_view>(operand).find(*macro_value) != std::string_view::npos;
+                std::vector<std::string_view>& captrue_array =
+                    *static_cast<std::vector<std::string_view>*>(user_data);
+
+                bool matched = std::get<std::string_view>(left_operand)
+                                   .find(std::get<std::string_view>(right_operand.variant_)) !=
+                               std::string_view::npos;
+                if (matched) {
+                  captrue_array.emplace_back(std::get<std::string_view>(right_operand.variant_));
+                }
+
+                WGE_LOG_TRACE([&]() {
+                  std::string sub_name;
+                  if (!right_operand.variable_sub_name_.empty()) {
+                    sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+                  }
+                  return std::format("{} @{} {}{} => {}", std::get<std::string_view>(left_operand),
+                                     name_, sub_name,
+                                     std::get<std::string_view>(right_operand.variant_), matched);
+                }());
+
+                return matched;
+              },
+              &captrue_array);
+
           if (matched) {
-            t.stageCapture(0, *macro_value);
+            for (size_t i = 0; i < captrue_array.size(); ++i) {
+              t.stageCapture(i, captrue_array[i]);
+            }
           }
         }
       }

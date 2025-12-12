@@ -30,7 +30,7 @@ class Ge final : public OperatorBase {
 public:
   Ge(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
       : OperatorBase(std::move(literal_value), is_not) {
-    value_ = ::atoll(literal_value_.c_str());
+    right_value_ = ::atoll(literal_value_.c_str());
   }
 
   Ge(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not, std::string_view curr_rule_file_path)
@@ -41,21 +41,40 @@ public:
     if (!IS_INT_VARIANT(operand))
       [[unlikely]] { return false; }
 
-    int64_t operand_value = std::get<int64_t>(operand);
-    if (!macro_)
-      [[likely]] { return operand_value >= value_; }
-    else {
-      MACRO_EXPAND_INT(macro_value);
-      if (!macro_value) {
-        return empty_match_;
+    if (!macro_logic_matcher_)
+      [[likely]] {
+        int64_t left_value = std::get<int64_t>(operand);
+        return left_value >= right_value_;
       }
+    else {
+      return macro_logic_matcher_->match(
+          t, operand, empty_match_,
+          [](Transaction& t, const Common::Variant& left_operand,
+             const Common::EvaluateElement& right_operand, void* user_data) {
+            assert(IS_INT_VARIANT(right_operand.variant_));
+            if (!IS_INT_VARIANT(right_operand.variant_)) {
+              return false;
+            }
+            bool matched =
+                std::get<int64_t>(left_operand) >= std::get<int64_t>(right_operand.variant_);
 
-      return operand_value >= *macro_value;
+            WGE_LOG_TRACE([&]() {
+              std::string sub_name;
+              if (!right_operand.variable_sub_name_.empty()) {
+                sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+              }
+              return std::format("{} @{} {}{} => {}", std::get<int64_t>(left_operand), name_,
+                                 sub_name, std::get<int64_t>(right_operand.variant_), matched);
+            }());
+
+            return matched;
+          },
+          nullptr);
     }
   }
 
 private:
-  int64_t value_;
+  int64_t right_value_;
 };
 } // namespace Operator
 } // namespace Wge

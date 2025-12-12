@@ -859,7 +859,7 @@ std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variabl
     if (variable->subName().empty()) {
       letera_value = std::format("%{{}}", variable->mainName());
     } else {
-      letera_value = std::format("%{{{}:{}}}", variable->mainName(), variable->subName());
+      letera_value = std::format("%{{{}.{}}}", variable->mainName(), variable->subName());
     }
 
     Macro::MacroBase* macro_ptr =

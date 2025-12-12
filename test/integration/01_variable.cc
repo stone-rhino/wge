@@ -740,6 +740,7 @@ TEST_F(VariableTest, PTREE) {
   engine.init();
   auto t = engine.makeTransaction();
   Common::EvaluateResults result;
+  std::vector<Common::EvaluateResults> structured_result;
 
   {
     Variable::PTree var("config.max_connection", false, false, "");

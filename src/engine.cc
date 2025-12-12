@@ -65,7 +65,12 @@ void Engine::propertyTree(const std::string& json_string) {
 
   std::istringstream iss(json_string);
   boost::property_tree::ptree temp_ptree;
-  boost::property_tree::read_json(iss, temp_ptree);
+  try {
+    boost::property_tree::read_json(iss, temp_ptree);
+  } catch (const boost::property_tree::json_parser_error& e) {
+    WGE_LOG_ERROR("Failed to parse property tree JSON string: {}", e.what());
+    return;
+  }
 
   // Convert ptree to PropertyTree
   property_tree_.clear();

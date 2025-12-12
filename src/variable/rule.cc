@@ -49,7 +49,7 @@ void Rule::initEvaluateFunc() {
           {"operator_value", [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
                if (t.getCurrentEvaluateRule()->getOperator()->literalValue().empty() &&
-                   t.getCurrentEvaluateRule()->getOperator()->macro() == nullptr) {
+                   t.getCurrentEvaluateRule()->getOperator()->macroLogicMatcher() == nullptr) {
                  result.emplace_back(0, "operator_value");
                } else {
                  result.emplace_back(1, "operator_value");

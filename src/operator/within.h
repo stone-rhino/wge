@@ -24,6 +24,7 @@
 
 #include "../common/evaluate_result.h"
 #include "../common/hyperscan/scanner.h"
+#include "../common/log.h"
 #include "../common/lru_cache.hpp"
 #include "../common/string.h"
 
@@ -69,62 +70,116 @@ public:
     if (!IS_STRING_VIEW_VARIANT(operand))
       [[unlikely]] { return false; }
 
-    std::unique_ptr<Common::Hyperscan::Scanner> macro_scanner;
-    Common::Hyperscan::Scanner* scanner = scanner_.get();
-
-    // If there is a macro, expand it and create or reuse a scanner.
-    if (macro_)
+    if (macro_logic_matcher_)
       [[unlikely]] {
-        MACRO_EXPAND_STRING_VIEW(macro_value);
-        if (!macro_value) {
-          return empty_match_;
+        struct MatchParam {
+          const Within* parent;
+          std::vector<std::string_view> capture_array;
+        } match_param = {this};
+
+        bool matched = macro_logic_matcher_->match(
+            t, operand, empty_match_,
+            [](Transaction& t, const Common::Variant& left_operand,
+               const Common::EvaluateElement& right_operand, void* user_data) {
+              assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
+              if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
+                return false;
+              }
+
+              MatchParam* match_param = static_cast<MatchParam*>(user_data);
+
+              // Split the literal value into tokens.
+              std::vector<std::string_view> tokens =
+                  Common::SplitTokens(std::get<std::string_view>(right_operand.variant_));
+
+              // Calculate the order independent hash value of all tokens.
+              int64_t hash = match_param->parent->calcOrderIndependentHash(tokens);
+
+              // Load the hyperscan database and create a scanner.
+              // We cache the hyperscan database to avoid loading(complie) the same database
+              // multiple times.
+              std::unique_ptr<Common::Hyperscan::Scanner> scanner;
+              match_param->parent->database_cache_.access(
+                  hash,
+                  [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
+                    scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+                  },
+                  [&]() {
+                    return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, true,
+                                                                           false, false);
+                  });
+
+              // The hyperscan scanner is thread-safe, so we can use the same scanner for all
+              // transactions.
+              // Actually, the scanner uses a thread-local scratch space to avoid the overhead of
+              // creating a scratch space for each transaction.
+              std::pair<unsigned long long, unsigned long long> result(0, 0);
+              scanner->registMatchCallback(
+                  [](uint64_t id, unsigned long long from, unsigned long long to,
+                     unsigned int flags, void* user_data) -> int {
+                    std::pair<unsigned long long, unsigned long long>* result =
+                        static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
+                    result->first = from;
+                    result->second = to;
+                    return 1;
+                  },
+                  &result);
+              std::string_view left_operand_str = std::get<std::string_view>(left_operand);
+              scanner->blockScan(left_operand_str);
+
+              bool matched = result.first != result.second;
+              if (matched) {
+                match_param->capture_array.emplace_back(left_operand_str.data() + result.first,
+                                                        result.second - result.first);
+              }
+
+              WGE_LOG_TRACE([&]() {
+                std::string sub_name;
+                if (!right_operand.variable_sub_name_.empty()) {
+                  sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+                }
+                return std::format("{} @{} {}{} => {}", std::get<std::string_view>(left_operand),
+                                   name_, sub_name,
+                                   std::get<std::string_view>(right_operand.variant_), matched);
+              }());
+
+              return matched;
+            },
+            &match_param);
+
+        if (matched) {
+          for (size_t i = 0; i < match_param.capture_array.size(); ++i) {
+            t.stageCapture(i, match_param.capture_array[i]);
+          }
         }
 
-        // Split the literal value into tokens.
-        std::vector<std::string_view> tokens = Common::SplitTokens(*macro_value);
+        return matched;
+      }
+    else {
+      // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
+      // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
+      // scratch space for each transaction.
+      std::pair<unsigned long long, unsigned long long> result(0, 0);
+      scanner_->registMatchCallback(
+          [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
+             void* user_data) -> int {
+            std::pair<unsigned long long, unsigned long long>* result =
+                static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
+            result->first = from;
+            result->second = to;
+            return 1;
+          },
+          &result);
+      std::string_view operand_str = std::get<std::string_view>(operand);
+      scanner_->blockScan(operand_str);
 
-        // Calculate the order independent hash value of all tokens.
-        int64_t hash = calcOrderIndependentHash(tokens);
-
-        // Load the hyperscan database and create a scanner.
-        // We cache the hyperscan database to avoid loading(complie) the same database multiple
-        // times.
-        database_cache_.access(
-            hash,
-            [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
-              macro_scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-              scanner = macro_scanner.get();
-            },
-            [&]() {
-              return std::make_shared<Common::Hyperscan::HsDataBase>(tokens, true, true, true,
-                                                                     false, false);
-            });
+      bool matched = result.first != result.second;
+      if (matched) {
+        t.stageCapture(0, {operand_str.data() + result.first, result.second - result.first});
       }
 
-    // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
-    // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
-    // scratch space for each transaction.
-    std::pair<unsigned long long, unsigned long long> result(0, 0);
-    scanner->registMatchCallback(
-        [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-           void* user_data) -> int {
-          std::pair<unsigned long long, unsigned long long>* result =
-              static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
-          result->first = from;
-          result->second = to;
-          return 1;
-        },
-        &result);
-    std::string_view operand_str = std::get<std::string_view>(operand);
-    scanner->blockScan(std::get<std::string_view>(operand));
-
-    bool matched = result.first != result.second;
-    if (matched) {
-      t.stageCapture(
-          0, t.internString({operand_str.data() + result.first, result.second - result.first}));
+      return matched;
     }
-
-    return matched;
   }
 
 private:

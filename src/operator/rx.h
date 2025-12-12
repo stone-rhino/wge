@@ -56,57 +56,110 @@ public:
     if (!IS_STRING_VIEW_VARIANT(operand))
       [[unlikely]] { return false; }
 
-    const Scanner* scanner = &scanner_;
-
     // If there is a macro, expand it and create or reuse a scanner.
-    if (macro_)
+    if (macro_logic_matcher_)
       [[unlikely]] {
-        MACRO_EXPAND_STRING_VIEW(macro_value);
-        if (!macro_value) {
-          return empty_match_;
+        struct MatchParam {
+          const Rx* parent;
+          std::vector<std::string_view> capture_array;
+        } match_param = {this};
+
+        bool matched = macro_logic_matcher_->match(
+            t, operand, empty_match_,
+            [](Transaction& t, const Common::Variant& left_operand,
+               const Common::EvaluateElement& right_operand, void* user_data) {
+              assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
+              if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
+                return false;
+              }
+
+              MatchParam* match_param = static_cast<MatchParam*>(user_data);
+
+              // All the threads will try to access the macro_pcre_cache_ at the same time, so we
+              // need to
+              // lock the macro_chche_mutex_.
+              // May be we can use thread local storage to store the scanner, to avoid the lock. But
+              // the probablity of the macro expansion is very low, so we use the lock here.
+              std::lock_guard<std::mutex> lock(match_param->parent->macro_chche_mutex_);
+
+              const Scanner* scanner;
+              std::string_view left_str = std::get<std::string_view>(left_operand);
+              std::string_view right_str = std::get<std::string_view>(right_operand.variant_);
+              auto iter = match_param->parent->macro_scanner_cache_.find(right_str);
+              if (iter == match_param->parent->macro_scanner_cache_.end()) {
+                // To avoid copying the macro value when we find scanner in the macro_scanner_cache_
+                // by std::string type key, we use std::string_view type key to find scanner in the
+                // macro_scanner_cache_, And store the macro value in the macro_value_cache_.
+                match_param->parent->macro_value_cache_.emplace_front(right_str);
+                auto macro_scanner = match_param->parent->createScanner(right_str);
+                scanner = &(match_param->parent->macro_scanner_cache_
+                                .emplace(macro_value_cache_.front(), std::move(macro_scanner))
+                                .first->second);
+              } else {
+                scanner = &iter->second;
+              }
+
+              std::vector<std::pair<size_t, size_t>> result;
+              std::visit(
+                  [&](auto&& arg) {
+                    using T = std::decay_t<decltype(arg)>;
+                    if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
+                      if (t.getEngine().config().pcre_match_limit_) {
+                        arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
+                      }
+                    }
+                    arg->match(left_str, result);
+                  },
+                  *scanner);
+
+              for (const auto& [from, to] : result) {
+                match_param->capture_array.emplace_back(left_str.data() + from, to - from);
+              }
+
+              WGE_LOG_TRACE([&]() {
+                std::string sub_name;
+                if (!right_operand.variable_sub_name_.empty()) {
+                  sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+                }
+                return std::format(
+                    "{} @{} {}{} => {}", std::get<std::string_view>(left_operand), name_, sub_name,
+                    std::get<std::string_view>(right_operand.variant_), !result.empty());
+              }());
+
+              return !result.empty();
+            },
+            &match_param);
+
+        if (matched) {
+          for (size_t i = 0; i < match_param.capture_array.size(); ++i) {
+            t.stageCapture(i, match_param.capture_array[i]);
+          }
         }
 
-        // All the threads will try to access the macro_pcre_cache_ at the same time, so we need to
-        // lock the macro_chche_mutex_.
-        // May be we can use thread local storage to store the scanner, to avoid the lock. But the
-        // probablity of the macro expansion is very low, so we use the lock here.
-        std::lock_guard<std::mutex> lock(macro_chche_mutex_);
+        return matched;
+      }
+    else {
+      std::vector<std::pair<size_t, size_t>> result;
+      const std::string_view& operand_str = std::get<std::string_view>(operand);
+      std::visit(
+          [&](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
+              if (t.getEngine().config().pcre_match_limit_) {
+                arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
+              }
+            }
+            arg->match(operand_str, result);
+          },
+          scanner_);
 
-        auto iter = macro_scanner_cache_.find(*macro_value);
-        if (iter == macro_scanner_cache_.end()) {
-          // To avoid copying the macro value when we find scanner in the macro_scanner_cache_ by
-          // std::string type key, we use std::string_view type key to find scanner in the
-          // macro_scanner_cache_, And store the macro value in the macro_value_cache_.
-          macro_value_cache_.emplace_front(*macro_value);
-          auto macro_scanner = createScanner(*macro_value);
-          scanner =
-              &(macro_scanner_cache_.emplace(macro_value_cache_.front(), std::move(macro_scanner))
-                    .first->second);
-        } else {
-          scanner = &iter->second;
-        }
+      size_t capture_index = 0;
+      for (const auto& [from, to] : result) {
+        t.stageCapture(capture_index++, {operand_str.data() + from, to - from});
       }
 
-    std::vector<std::pair<size_t, size_t>> result;
-    const std::string_view& operand_str = std::get<std::string_view>(operand);
-    std::visit(
-        [&](auto&& arg) {
-          using T = std::decay_t<decltype(arg)>;
-          if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
-            if (t.getEngine().config().pcre_match_limit_) {
-              arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
-            }
-          }
-          arg->match(operand_str, result);
-        },
-        *scanner);
-
-    size_t capture_index = 0;
-    for (const auto& [from, to] : result) {
-      t.stageCapture(capture_index++, {operand_str.data() + from, to - from});
+      return !result.empty();
     }
-
-    return !result.empty();
   }
 
 public:

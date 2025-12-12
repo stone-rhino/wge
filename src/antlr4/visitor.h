@@ -956,9 +956,9 @@ private:
                   new OperatorT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
                                 parser_->currLoadFile()));
             } else {
-              op = std::unique_ptr<Operator::OperatorBase>(
-                  new OperatorT(std::move(current_rule_->get()->getOperator()->macro()),
-                                ctx->NOT() != nullptr, parser_->currLoadFile()));
+              op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
+                  std::move(current_rule_->get()->getOperator()->macroLogicMatcher()->macro()),
+                  ctx->NOT() != nullptr, parser_->currLoadFile()));
             }
           } else {
             op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
