@@ -37,6 +37,15 @@
 namespace Wge {
 namespace Common {
 namespace Pcre {
+
+inline bool Pattern::isPcreJitAvailable() {
+  static bool jit_available = [] {
+    uint32_t jit_capability = 0;
+    return pcre2_config(PCRE2_CONFIG_JIT, &jit_capability) == 0 && jit_capability == 1;
+  }();
+  return jit_available;
+}
+
 Pattern::Pattern(const std::string& pattern, bool case_less, bool capture) : db_(nullptr) {
   compile(pattern, case_less, capture);
 }
@@ -68,24 +77,25 @@ void Pattern::compile(const std::string_view pattern, bool case_less, bool captu
   }
   db_ = pcre2_compile(reinterpret_cast<const unsigned char*>(pattern.data()), pattern.length(),
                       flag, &error_number, &error_offset, nullptr);
-  if (db_ == nullptr)
-    [[unlikely]] {
-      char buffer[256];
-      pcre2_get_error_message(error_number, reinterpret_cast<unsigned char*>(buffer),
-                              sizeof(buffer));
-      WGE_LOG_ERROR("pcre compile error: {}", buffer);
-      return;
+  if (db_ == nullptr) [[unlikely]] {
+    char buffer[256];
+    pcre2_get_error_message(error_number, reinterpret_cast<unsigned char*>(buffer), sizeof(buffer));
+    WGE_LOG_ERROR("pcre compile error: {}", buffer);
+    return;
+  }
+  if (isPcreJitAvailable()) [[likely]] {
+    int rc = pcre2_jit_compile(reinterpret_cast<pcre2_code_8*>(db_), PCRE2_JIT_COMPLETE);
+    if (rc != 0) [[unlikely]] {
+      WGE_LOG_ERROR("JIT compile failed: pattern='{}', rc={}", pattern, rc);
     }
-
-  pcre2_jit_compile(reinterpret_cast<pcre2_code_8*>(db_), PCRE2_JIT_COMPLETE);
+  }
 }
 
 void PatternList::add(const std::string& pattern, bool case_less, bool capture, uint64_t id) {
-  if (pattern_map_.find(id) != pattern_map_.end())
-    [[unlikely]] {
-      WGE_LOG_ERROR("add pattern failure! there has same id: {} {}", id, pattern);
-      return;
-    }
+  if (pattern_map_.find(id) != pattern_map_.end()) [[unlikely]] {
+    WGE_LOG_ERROR("add pattern failure! there has same id: {} {}", id, pattern);
+    return;
+  }
 
   pattern_map_.emplace(std::piecewise_construct, std::forward_as_tuple(id),
                        std::forward_as_tuple(pattern, case_less, capture));
@@ -93,8 +103,9 @@ void PatternList::add(const std::string& pattern, bool case_less, bool capture, 
 
 const Pattern* PatternList::get(uint64_t id) const {
   const auto iter = pattern_map_.find(id);
-  if (iter == pattern_map_.end())
-    [[unlikely]] { return nullptr; }
+  if (iter == pattern_map_.end()) [[unlikely]] {
+    return nullptr;
+  }
 
   return &iter->second;
 }

@@ -38,6 +38,7 @@ public:
   Pattern(std::string_view pattern, bool case_less, bool capture);
   Pattern(const Pattern&) = delete;
   ~Pattern();
+  static inline bool isPcreJitAvailable();
 
 public:
   void* db() const { return db_; }
