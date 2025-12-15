@@ -88,10 +88,10 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
   if (!pattern || !pattern->db())
     [[unlikely]] { return; }
 
-  int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
-                           reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
-                           0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
-                           static_cast<pcre2_match_context*>(match_context_));
+  int rc = pcre2_match(static_cast<const pcre2_code_8*>(pattern->db()),
+                       reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
+                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                       static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0)
     [[unlikely]] {
       switch (rc) {
@@ -125,10 +125,10 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
   if (!pattern || !pattern->db())
     [[unlikely]] { return false; }
 
-  int rc = pcre2_jit_match(static_cast<const pcre2_code_8*>(pattern->db()),
-                           reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
-                           0, 0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
-                           static_cast<pcre2_match_context*>(match_context_));
+  int rc = pcre2_match(static_cast<const pcre2_code_8*>(pattern->db()),
+                       reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
+                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                       static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0)
     [[unlikely]] {
       switch (rc) {
