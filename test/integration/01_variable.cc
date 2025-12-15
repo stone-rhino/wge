@@ -20,6 +20,7 @@
  */
 #include <gtest/gtest.h>
 
+#include "antlr4/parser.h"
 #include "engine.h"
 #include "variable/variables_include.h"
 
@@ -500,10 +501,10 @@ TEST_F(VariableTest, RULE) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  ASSERT_TRUE(t->hasVariable("test_count"));
-  EXPECT_EQ(std::get<int64_t>(t->getVariable("test_count")), 2);
-  ASSERT_TRUE(t->hasVariable("operator_value"));
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("operator_value")), "1");
+  ASSERT_TRUE(t->hasVariable("", "test_count"));
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test_count")), 2);
+  ASSERT_TRUE(t->hasVariable("", "operator_value"));
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "operator_value")), "1");
 }
 
 TEST_F(VariableTest, SERVER_ADDR) {
@@ -567,7 +568,109 @@ TEST_F(VariableTest, TIME) {
 }
 
 TEST_F(VariableTest, TX) {
-  // TODO(zhouyu 2025-03-27): add the test cast
+  Common::EvaluateResults result;
+
+  t_->setVariable("", "global_foo", "global_foo_value");
+  t_->setVariable("", "global_bar", "global_bar_value");
+  t_->setVariable("ns", "ns_foo", "ns_foo_value");
+  t_->setVariable("ns", "ns_bar", "ns_bar_value");
+  t_->setVariable("ns", "ns_foo1", "ns_foo1_value");
+  t_->setVariable("ns", "ns_bar1", "ns_bar1_value");
+
+  Variable::Tx global_all("", "", std::nullopt, false, false, "");
+  result.clear();
+  global_all.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 2);
+  EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "global_foo_value");
+  EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "global_bar_value");
+
+  Variable::Tx global_all_count("", "", std::nullopt, false, true, "");
+  result.clear();
+  global_all_count.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<int64_t>(result[0].variant_), 2);
+
+  Variable::Tx global_sub("", "global_foo", std::nullopt, false, false, "");
+  result.clear();
+  global_sub.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "global_foo_value");
+
+  Variable::Tx global_sub_count("", "global_foo", std::nullopt, false, true, "");
+  result.clear();
+  global_sub_count.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
+
+  {
+    Variable::Tx global_sub_regex("", "/^global_/", std::nullopt, false, false, "");
+    result.clear();
+    global_sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "global_foo_value");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "global_bar_value");
+  }
+
+  {
+    Variable::Tx global_sub_regex("", "/^global_f/", std::nullopt, false, false, "");
+    result.clear();
+    global_sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "global_foo_value");
+  }
+
+  {
+    Variable::Tx global_sub_regex("", "/^global_b/", std::nullopt, false, false, "");
+    result.clear();
+    global_sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "global_bar_value");
+  }
+
+  Variable::Tx ns_all("ns", "", std::nullopt, false, false, "");
+  result.clear();
+  ns_all.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 4);
+  EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "ns_foo_value");
+  EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "ns_bar_value");
+  EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "ns_foo1_value");
+  EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "ns_bar1_value");
+
+  Variable::Tx ns_all_count("ns", "", std::nullopt, false, true, "");
+  result.clear();
+  ns_all_count.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<int64_t>(result[0].variant_), 4);
+
+  Variable::Tx ns_sub("ns", "ns_foo", std::nullopt, false, false, "");
+  result.clear();
+  ns_sub.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "ns_foo_value");
+
+  Variable::Tx ns_sub_count("ns", "ns_foo", std::nullopt, false, true, "");
+  result.clear();
+  ns_sub_count.evaluate(*t_, result);
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
+
+  {
+    Variable::Tx ns_sub_regex("ns", "/^ns_fo/", std::nullopt, false, false, "");
+    result.clear();
+    ns_sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "ns_foo_value");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "ns_foo1_value");
+  }
+
+  {
+    Variable::Tx ns_sub_regex("ns", "/^ns_ba/", std::nullopt, false, false, "");
+    result.clear();
+    ns_sub_regex.evaluate(*t_, result);
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "ns_bar_value");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "ns_bar1_value");
+  }
 }
 
 TEST_F(VariableTest, UNIQUE_ID) {
@@ -622,19 +725,19 @@ TEST_F(VariableTest, XML) {
   t->processRequestBody(xml_body);
 
   // rule id: 1
-  EXPECT_TRUE(t->hasVariable("tag_values_str"));
+  EXPECT_TRUE(t->hasVariable("", "tag_values_str"));
 
   // rule id: 2
-  EXPECT_EQ(std::get<int64_t>(t->getVariable("tag_values_str_count")), 3);
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_1")), "1");
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_2")), "fiction");
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_3")), "en");
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "tag_values_str_count")), 3);
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "tag_attr_str_1")), "1");
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "tag_attr_str_2")), "fiction");
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "tag_attr_str_3")), "en");
 
   // rule id: 3
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_value_pmf")), "XML Guide");
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "tag_value_pmf")), "XML Guide");
 
   // rule id: 4
-  EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_value_pmf")), "en");
+  EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "tag_attr_value_pmf")), "en");
 
   // Test for parse xml into args option(On)
   {
@@ -662,10 +765,10 @@ TEST_F(VariableTest, XML) {
     t->processRequestBody(xml_body);
 
     // rule id: 1
-    EXPECT_TRUE(t->hasVariable("tag_values_str"));
+    EXPECT_TRUE(t->hasVariable("", "tag_values_str"));
 
     // rule id: 2
-    EXPECT_TRUE(t->hasVariable("args_count"));
+    EXPECT_TRUE(t->hasVariable("", "args_count"));
   }
 
   // Test for parse xml into args option(OnlyArgs)
@@ -694,10 +797,10 @@ TEST_F(VariableTest, XML) {
     t->processRequestBody(xml_body);
 
     // rule id: 1
-    EXPECT_FALSE(t->hasVariable("tag_values_str"));
+    EXPECT_FALSE(t->hasVariable("", "tag_values_str"));
 
     // rule id: 2
-    EXPECT_TRUE(t->hasVariable("args_count"));
+    EXPECT_TRUE(t->hasVariable("", "args_count"));
   }
 }
 

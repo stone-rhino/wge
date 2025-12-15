@@ -102,7 +102,7 @@ const std::vector<Rule>& Engine::rules(RulePhaseType phase) const {
 
 TransactionPtr Engine::makeTransaction() const {
   assert(is_init_);
-  return std::unique_ptr<Transaction>(new Transaction(*this, parser_->getTxVariableIndexSize()));
+  return std::unique_ptr<Transaction>(new Transaction(*this));
 }
 
 const EngineConfig& Engine::config() const { return parser_->engineConfig(); }
@@ -143,12 +143,17 @@ void Engine::findRuleByTag(
   }
 }
 
-std::optional<size_t> Engine::getTxVariableIndex(const std::string& name) const {
-  return parser_->getTxVariableIndex(name, false);
+const std::unordered_map<std::string, size_t>& Engine::getTxVariableIndexSize() const {
+  return parser_->getTxVariableIndexSize();
 }
 
-std::string_view Engine::getTxVariableIndexReverse(size_t index) const {
-  return parser_->getTxVariableIndexReverse(index);
+std::optional<size_t> Engine::getTxVariableIndex(const std::string& ns,
+                                                 const std::string& name) const {
+  return parser_->getTxVariableIndex(ns, name, false);
+}
+
+std::string_view Engine::getTxVariableIndexReverse(const std::string& ns, size_t index) const {
+  return parser_->getTxVariableIndexReverse(ns, index);
 }
 
 void Engine::initRules() {

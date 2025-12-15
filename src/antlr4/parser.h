@@ -142,9 +142,14 @@ public:
     return curr_load_file_.empty() ? "" : curr_load_file_.top();
   }
 
-  size_t getTxVariableIndexSize() const { return tx_variable_index_.size(); }
-  std::optional<size_t> getTxVariableIndex(const std::string& name, bool force);
-  std::string_view getTxVariableIndexReverse(size_t index) const;
+  const std::unordered_map<std::string, size_t>& getTxVariableIndexSize() const {
+    return tx_variable_index_size_;
+  }
+  std::optional<size_t> getTxVariableIndex(const std::string& ns, const std::string& name,
+                                           bool force);
+  std::string_view getTxVariableIndexReverse(const std::string& ns, size_t index) const;
+  void setCurrentNamespace(const std::string& ns) { curr_namespace_ = ns; }
+  const std::string& getCurrentNamespace() const { return curr_namespace_; }
 
 private:
   std::array<std::vector<Rule>, PHASE_TOTAL> rules_;
@@ -160,8 +165,12 @@ private:
   std::set<std::string> loaded_file_paths_;
   std::stack<std::string_view> curr_load_file_;
 
-  // Used to store the tx variable index of the vector tx_vec_.
-  std::unordered_map<std::string, size_t> tx_variable_index_;
-  std::vector<std::string> tx_variable_index_reverse_;
+  struct TxVariableIndex {
+    std::unordered_map<std::string, size_t> index_;
+    std::vector<std::string> index_reverse_;
+  };
+  std::unordered_map<std::string /*namespace*/, TxVariableIndex> tx_variable_index_;
+  std::unordered_map<std::string /*namespace*/, size_t> tx_variable_index_size_;
+  std::string curr_namespace_;
 };
 } // namespace Wge::Antlr4

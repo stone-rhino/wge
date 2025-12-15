@@ -153,6 +153,8 @@ SecRuleUpdateOperatorById:
 	'SecRuleUpdateOperatorById' -> pushMode(ModeRuleUpdateOperatorById);
 SecRuleUpdateOperatorByTag:
 	'SecRuleUpdateOperatorByTag' -> pushMode(ModeRuleUpdateOperatorByTag);
+SecTxNamespace:
+	'SecTxNamespace' -> pushMode(ModeAuditLogString);
 
 mode ModeInclude;
 ModeInclude_WS: WS -> skip;
@@ -452,6 +454,7 @@ VAR_IP: [iI][pP];
 VAR_USER: [uU][sS][eE][rR];
 VAR_PTREE:
 	[pP][tT][rR][eE][eE] -> pushMode(ModeSecRuleVariableNamePtree);
+VAR_GTX: [gG][tT][xX];
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
@@ -496,7 +499,8 @@ ModeSecRuleVariableNamePtree_LEFT_SQUARE:
 	LEFT_SQUARE -> type(LEFT_SQUARE);
 ModeSecRuleVariableNamePtree_RIGHT_SQUARE:
 	RIGHT_SQUARE -> type(RIGHT_SQUARE);
-ModeSecRuleVariableNamePtree_PIPE: PIPE -> type(PIPE), popMode;
+ModeSecRuleVariableNamePtree_PIPE:
+	PIPE -> type(PIPE), popMode;
 
 mode ModeSecRuleVariableSubNamePtree;
 ModeSecRuleVariableSubNamePtree_VAR_SUB_NAME:

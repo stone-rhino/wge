@@ -47,7 +47,7 @@ TEST_F(CacheTest, hit) {
   Common::Variant data = test_data;
 
   Common::EvaluateElement transform_buffer(data, "");
-  Variable::Tx variable(std::string("test"), std::nullopt, false, false, "");
+  Variable::Tx variable("", std::string("test"), std::nullopt, false, false, "");
   bool ret = trans->evaluate(*t_, &variable, transform_buffer, transform_buffer);
   EXPECT_TRUE(ret);
   std::string_view result = std::get<std::string_view>(transform_buffer.variant_);

@@ -99,5 +99,37 @@ TEST_F(RuleVariableParseTest, PTreeMacro) {
   EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macroLogicMatcher()->macro().get()), nullptr);
 }
 
+TEST_F(RuleVariableParseTest, Tx) {
+  const std::string directive = R"(SecTxNamespace hello
+  SecRule TX:aaa "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 1);
+  const auto* variable = dynamic_cast<const Variable::Tx*>(variables[0].get());
+  ASSERT_NE(variable, nullptr);
+  EXPECT_EQ(variable->subName(), "aaa");
+  EXPECT_EQ(variable->getNamespace(), "hello");
+}
+
+TEST_F(RuleVariableParseTest, Gtx) {
+  const std::string directive = R"(SecTxNamespace hello
+  SecRule GTX:aaa "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 1);
+  const auto* variable = dynamic_cast<const Variable::Tx*>(variables[0].get());
+  ASSERT_NE(variable, nullptr);
+  EXPECT_EQ(variable->subName(), "aaa");
+  EXPECT_EQ(variable->getNamespace(), "");
+}
+
 } // namespace Parser
 } // namespace Wge

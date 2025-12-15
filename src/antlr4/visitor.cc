@@ -819,73 +819,8 @@ Visitor::visitVariable_time_year(Antlr4Gen::SecLangParser::Variable_time_yearCon
   return appendVariable<Variable::TimeYear>(ctx);
 };
 
-template <>
-std::any Visitor::appendVariable<Variable::Tx>(Antlr4Gen::SecLangParser::Variable_txContext* ctx) {
-  std::string sub_name;
-  if (ctx->STRING()) {
-    sub_name = ctx->STRING()->getText();
-  }
-  bool is_not = ctx->NOT() != nullptr;
-  bool is_counter = ctx->VAR_COUNT() != nullptr;
-
-  std::optional<size_t> index;
-  if (!sub_name.empty()) {
-    index = parser_->getTxVariableIndex(sub_name, true);
-  }
-
-  if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
-    // std::any is copyable, so we can't return a unique_ptr
-    std::shared_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
-
-    // Only accept xxx:yyy format
-    if (ctx->DOT()) {
-      RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
-                               variable->subName()));
-    }
-
-    return variable;
-  } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
-    std::unique_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, false, false, parser_->currLoadFile()));
-
-    // Only accept xxx.yyy format
-    if (ctx->COLON()) {
-      RETURN_ERROR(std::format("Variable name cannot contain ':': {}.{}", variable->mainName(),
-                               variable->subName()));
-    }
-
-    std::string letera_value;
-    if (variable->subName().empty()) {
-      letera_value = std::format("%{{}}", variable->mainName());
-    } else {
-      letera_value = std::format("%{{{}.{}}}", variable->mainName(), variable->subName());
-    }
-
-    Macro::MacroBase* macro_ptr =
-        new Macro::VariableMacro(std::move(letera_value), std::move(variable));
-
-    // The raw pointer will be managed by std::unique_ptr in getMacro
-    return macro_ptr;
-  } else {
-    std::unique_ptr<Variable::VariableBase> variable(
-        new Variable::Tx(std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
-
-    // Only accept xxx:yyy format
-    if (ctx->DOT()) {
-      RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
-                               variable->subName()));
-    }
-
-    // Append variable
-    current_rule_->get()->appendVariable(std::move(variable));
-
-    return EMPTY_STRING;
-  }
-}
-
 std::any Visitor::visitVariable_tx(Antlr4Gen::SecLangParser::Variable_txContext* ctx) {
-  return appendVariable<Variable::Tx>(ctx);
+  return appendTxVariable(ctx, parser_->getCurrentNamespace());
 };
 
 std::any
@@ -994,6 +929,10 @@ std::any Visitor::visitVariable_ptree(Antlr4Gen::SecLangParser::Variable_ptreeCo
   }
 
   return appendVariable<Variable::PTree>(ctx);
+}
+
+std::any Visitor::visitVariable_gtx(Antlr4Gen::SecLangParser::Variable_gtxContext* ctx) {
+  return appendTxVariable(ctx, "");
 }
 
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
@@ -1365,12 +1304,14 @@ std::any Visitor::visitAction_non_disruptive_setvar_create(
   auto& actions = current_rule_->get()->actions();
   if (key_macro.value()) {
     actions.emplace_back(std::make_unique<Action::SetVar>(
-        std::move(key_macro.value()), Common::Variant(), Action::SetVar::EvaluateType::Create));
+        parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
+        Action::SetVar::EvaluateType::Create));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        std::move(key), parser_->getTxVariableIndex(key, true).value(), Common::Variant(),
-        Action::SetVar::EvaluateType::Create));
+    size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
+    actions.emplace_back(std::make_unique<Action::SetVar>(parser_->getCurrentNamespace(),
+                                                          std::move(key), index, Common::Variant(),
+                                                          Action::SetVar::EvaluateType::Create));
   }
 
   return EMPTY_STRING;
@@ -1420,22 +1361,23 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key_macro.value()), std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::CreateAndInit));
-    } else {
-      actions.emplace_back(
-          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
-                                           Action::SetVar::EvaluateType::CreateAndInit));
-    }
-  } else {
-    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
-    if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::CreateAndInit));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
+          Action::SetVar::EvaluateType::CreateAndInit));
+    }
+  } else {
+    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
+    size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::CreateAndInit));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::CreateAndInit));
     }
   }
@@ -1457,12 +1399,14 @@ std::any Visitor::visitAction_non_disruptive_setvar_remove(
   auto& actions = current_rule_->get()->actions();
   if (key_macro.value()) {
     actions.emplace_back(std::make_unique<Action::SetVar>(
-        std::move(key_macro.value()), Common::Variant(), Action::SetVar::EvaluateType::Remove));
+        parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
+        Action::SetVar::EvaluateType::Remove));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        std::move(key), parser_->getTxVariableIndex(key, true).value(), Common::Variant(),
-        Action::SetVar::EvaluateType::Remove));
+    size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
+    actions.emplace_back(std::make_unique<Action::SetVar>(parser_->getCurrentNamespace(),
+                                                          std::move(key), index, Common::Variant(),
+                                                          Action::SetVar::EvaluateType::Remove));
   }
 
   return EMPTY_STRING;
@@ -1503,22 +1447,23 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key_macro.value()), std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::Increase));
-    } else {
-      actions.emplace_back(
-          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
-                                           Action::SetVar::EvaluateType::Increase));
-    }
-  } else {
-    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
-    if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::Increase));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
+          Action::SetVar::EvaluateType::Increase));
+    }
+  } else {
+    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
+    size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::Increase));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::Increase));
     }
   }
@@ -1561,22 +1506,23 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
   if (key_macro.value()) {
     if (value_macro.value()) {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key_macro.value()), std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::Decrease));
-    } else {
-      actions.emplace_back(
-          std::make_unique<Action::SetVar>(std::move(key_macro.value()), std::move(value_variant),
-                                           Action::SetVar::EvaluateType::Decrease));
-    }
-  } else {
-    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
-    if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::Decrease));
     } else {
       actions.emplace_back(std::make_unique<Action::SetVar>(
-          std::move(key), parser_->getTxVariableIndex(key, true).value(), std::move(value_variant),
+          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
+          Action::SetVar::EvaluateType::Decrease));
+    }
+  } else {
+    std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
+    size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
+    if (value_macro.value()) {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
+          Action::SetVar::EvaluateType::Decrease));
+    } else {
+      actions.emplace_back(std::make_unique<Action::SetVar>(
+          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::Decrease));
     }
   }
@@ -2491,6 +2437,12 @@ std::any Visitor::visitSec_rule_update_operator_by_tag(
     }
   }
 
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_tx_namespace(Antlr4Gen::SecLangParser::Sec_tx_namespaceContext* ctx) {
+  std::string ns = ctx->STRING()->getText();
+  parser_->setCurrentNamespace(ns);
   return EMPTY_STRING;
 }
 

@@ -27,6 +27,7 @@
 #include "../macro/macro_include.h"
 #include "../operator/pm_from_file.h"
 #include "../variable/ptree.h"
+#include "../variable/tx.h"
 
 #define RETURN_ERROR(msg)                                                                          \
   should_visit_next_child_ = false;                                                                \
@@ -445,6 +446,7 @@ public:
   // Extension variables
 public:
   std::any visitVariable_ptree(Antlr4Gen::SecLangParser::Variable_ptreeContext* ctx) override;
+  std::any visitVariable_gtx(Antlr4Gen::SecLangParser::Variable_gtxContext* ctx) override;
 
   // SecRule operators
 public:
@@ -845,6 +847,7 @@ public:
       Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_idContext* ctx) override;
   std::any visitSec_rule_update_operator_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_tagContext* ctx) override;
+  std::any visitSec_tx_namespace(Antlr4Gen::SecLangParser::Sec_tx_namespaceContext* ctx) override;
 
 private:
   static bool optionStr2Bool(const std::string& option_str);
@@ -909,6 +912,70 @@ private:
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
       setRuleNeedPushMatched(variable.get());
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      // Append variable
+      current_rule_->get()->appendVariable(std::move(variable));
+
+      return EMPTY_STRING;
+    }
+  }
+
+  template <class CtxT> std::any appendTxVariable(CtxT* ctx, const std::string& ns) {
+    std::string sub_name;
+    if (ctx->STRING()) {
+      sub_name = ctx->STRING()->getText();
+    }
+    bool is_not = ctx->NOT() != nullptr;
+    bool is_counter = ctx->VAR_COUNT() != nullptr;
+
+    std::optional<size_t> index;
+    if (!sub_name.empty()) {
+      index = parser_->getTxVariableIndex(ns, sub_name, true);
+    }
+
+    if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
+      // std::any is copyable, so we can't return a unique_ptr
+      std::shared_ptr<Variable::VariableBase> variable(new Variable::Tx(
+          ns, std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      return variable;
+    } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
+      std::unique_ptr<Variable::VariableBase> variable(
+          new Variable::Tx(ns, std::move(sub_name), index, false, false, parser_->currLoadFile()));
+
+      // Only accept xxx.yyy format
+      if (ctx->COLON()) {
+        RETURN_ERROR(std::format("Variable name cannot contain ':': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      std::string letera_value;
+      if (variable->subName().empty()) {
+        letera_value = std::format("%{{}}", variable->mainName());
+      } else {
+        letera_value = std::format("%{{{}.{}}}", variable->mainName(), variable->subName());
+      }
+
+      Macro::MacroBase* macro_ptr =
+          new Macro::VariableMacro(std::move(letera_value), std::move(variable));
+
+      // The raw pointer will be managed by std::unique_ptr in getMacro
+      return macro_ptr;
+    } else {
+      std::unique_ptr<Variable::VariableBase> variable(new Variable::Tx(
+          ns, std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {

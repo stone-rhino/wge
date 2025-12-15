@@ -25,18 +25,9 @@
 
 namespace Wge {
 namespace Action {
-SetVar::SetVar(std::string&& key, size_t index, Common::Variant&& value, EvaluateType type)
-    : key_(std::move(key)), index_(index), value_(std::move(value)), type_(type) {
-  // Holds the string value of the variant
-  if (IS_STRING_VIEW_VARIANT(value_)) {
-    const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
-    const_cast<Common::Variant&>(value_) = value_buffer_;
-  }
-}
-
-SetVar::SetVar(std::string&& key, size_t index, std::unique_ptr<Macro::MacroBase>&& value,
+SetVar::SetVar(const std::string& ns, std::string&& key, size_t index, Common::Variant&& value,
                EvaluateType type)
-    : key_(std::move(key)), index_(index), value_macro_(std::move(value)), type_(type) {
+    : namespace_(ns), key_(std::move(key)), index_(index), value_(std::move(value)), type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
@@ -44,8 +35,10 @@ SetVar::SetVar(std::string&& key, size_t index, std::unique_ptr<Macro::MacroBase
   }
 }
 
-SetVar::SetVar(std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value, EvaluateType type)
-    : key_macro_(std::move(key)), value_(std::move(value)), type_(type) {
+SetVar::SetVar(const std::string& ns, std::string&& key, size_t index,
+               std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type)
+    : namespace_(ns), key_(std::move(key)), index_(index), value_macro_(std::move(value)),
+      type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
@@ -53,9 +46,19 @@ SetVar::SetVar(std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value,
   }
 }
 
-SetVar::SetVar(std::unique_ptr<Macro::MacroBase>&& key, std::unique_ptr<Macro::MacroBase>&& value,
-               EvaluateType type)
-    : key_macro_(std::move(key)), value_macro_(std::move(value)), type_(type) {
+SetVar::SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
+               Common::Variant&& value, EvaluateType type)
+    : namespace_(ns), key_macro_(std::move(key)), value_(std::move(value)), type_(type) {
+  // Holds the string value of the variant
+  if (IS_STRING_VIEW_VARIANT(value_)) {
+    const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
+    const_cast<Common::Variant&>(value_) = value_buffer_;
+  }
+}
+
+SetVar::SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
+               std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type)
+    : namespace_(ns), key_macro_(std::move(key)), value_macro_(std::move(value)), type_(type) {
   // Holds the string value of the variant
   if (IS_STRING_VIEW_VARIANT(value_)) {
     const_cast<std::string&>(value_buffer_) = std::get<std::string_view>(value_);
@@ -72,11 +75,11 @@ void SetVar::evaluate(Transaction& t) const {
         key_macro_->evaluate(t, result);
         std::string_view key = std::get<std::string_view>(result.front().variant_);
         WGE_LOG_TRACE("setvar(Create): tx.{}=1", key);
-        t.setVariable({key.data(), key.size()}, 1);
+        t.setVariable(namespace_, {key.data(), key.size()}, 1);
       }
     else {
       WGE_LOG_TRACE("setvar(Create): tx.{}[{}]=1", key_, index_);
-      t.setVariable(index_, 1);
+      t.setVariable(namespace_, index_, 1);
     }
 
   } break;
@@ -92,11 +95,11 @@ void SetVar::evaluate(Transaction& t) const {
               value_macro_->evaluate(t, result);
               WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key,
                             VISTIT_VARIANT_AS_STRING(result.front().variant_));
-              t.setVariable({key.data(), key.size()}, result.front().variant_);
+              t.setVariable(namespace_, {key.data(), key.size()}, result.front().variant_);
             }
           else {
             WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}={}", key, VISTIT_VARIANT_AS_STRING(value_));
-            t.setVariable({key.data(), key.size()}, Common::Variant(value_));
+            t.setVariable(namespace_, {key.data(), key.size()}, Common::Variant(value_));
           }
         }
       else {
@@ -106,12 +109,12 @@ void SetVar::evaluate(Transaction& t) const {
             value_macro_->evaluate(t, result);
             WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
                           VISTIT_VARIANT_AS_STRING(result.front().variant_));
-            t.setVariable(index_, result.front().variant_);
+            t.setVariable(namespace_, index_, result.front().variant_);
           }
         else {
           WGE_LOG_TRACE("setvar(CreateAndInit): tx.{}[{}]={}", key_, index_,
                         VISTIT_VARIANT_AS_STRING(value_));
-          t.setVariable(index_, value_);
+          t.setVariable(namespace_, index_, value_);
         }
       }
     }
@@ -123,11 +126,11 @@ void SetVar::evaluate(Transaction& t) const {
         key_macro_->evaluate(t, result);
         std::string_view key = std::get<std::string_view>(result.front().variant_);
         WGE_LOG_TRACE("setvar(Remove): tx.{}", key);
-        t.removeVariable({key.data(), key.size()});
+        t.removeVariable(namespace_, {key.data(), key.size()});
       }
     else {
       WGE_LOG_TRACE("setvar(Remove): tx.{}[{}]", key_, index_);
-      t.removeVariable(index_);
+      t.removeVariable(namespace_, index_);
     }
 
   } break;
@@ -143,7 +146,7 @@ void SetVar::evaluate(Transaction& t) const {
           if (IS_INT_VARIANT(result.front().variant_)) {
             int64_t value = std::get<int64_t>(result.front().variant_);
             WGE_LOG_TRACE("setvar(Increase): tx.{}=+{}", key, value);
-            t.increaseVariable({key.data(), key.size()}, value);
+            t.increaseVariable(namespace_, {key.data(), key.size()}, value);
           } else {
             WGE_LOG_WARN("setvar(Increase): tx.{}=+{}: value is not an integer, ignored.", key,
                          value_macro_->literalValue());
@@ -151,7 +154,7 @@ void SetVar::evaluate(Transaction& t) const {
         } else {
           if (IS_INT_VARIANT(value_)) {
             WGE_LOG_TRACE("setvar(Increase): tx.{}=+{}", key, std::get<int64_t>(value_));
-            t.increaseVariable({key.data(), key.size()}, std::get<int64_t>(value_));
+            t.increaseVariable(namespace_, {key.data(), key.size()}, std::get<int64_t>(value_));
           } else {
             WGE_LOG_WARN("setvar(Increase): tx.{}=+{}: value is not an integer, ignored.", key,
                          VISTIT_VARIANT_AS_STRING(value_));
@@ -165,7 +168,7 @@ void SetVar::evaluate(Transaction& t) const {
         if (IS_INT_VARIANT(result.front().variant_)) {
           int64_t value = std::get<int64_t>(result.front().variant_);
           WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]=+{}", key_, index_, value);
-          t.increaseVariable(index_, value);
+          t.increaseVariable(namespace_, index_, value);
         } else {
           WGE_LOG_WARN("setvar(Increase): tx.{}[{}]=+{}: value is not an integer, ignored.", key_,
                        index_, value_macro_->literalValue());
@@ -173,7 +176,7 @@ void SetVar::evaluate(Transaction& t) const {
       } else {
         if (IS_INT_VARIANT(value_)) {
           WGE_LOG_TRACE("setvar(Increase): tx.{}[{}]=+{}", key_, index_, std::get<int64_t>(value_));
-          t.increaseVariable(index_, std::get<int64_t>(value_));
+          t.increaseVariable(namespace_, index_, std::get<int64_t>(value_));
         } else {
           WGE_LOG_WARN("setvar(Increase): tx.{}[{}]=+{}: value is not an integer, ignored.", key_,
                        index_, VISTIT_VARIANT_AS_STRING(value_));
@@ -194,7 +197,7 @@ void SetVar::evaluate(Transaction& t) const {
           if (IS_INT_VARIANT(result.front().variant_)) {
             int64_t value = std::get<int64_t>(result.front().variant_);
             WGE_LOG_TRACE("setvar(Decrease): tx.{}=-{}", key, value);
-            t.increaseVariable({key.data(), key.size()}, -value);
+            t.increaseVariable(namespace_, {key.data(), key.size()}, -value);
           } else {
             WGE_LOG_WARN("setvar(Decrease): tx.{}=-{}: value is not an integer, ignored.", key,
                          value_macro_->literalValue());
@@ -202,7 +205,7 @@ void SetVar::evaluate(Transaction& t) const {
         } else {
           if (IS_INT_VARIANT(value_)) {
             WGE_LOG_TRACE("setvar(Decrease): tx.{}=-{}", key, std::get<int64_t>(value_));
-            t.increaseVariable({key.data(), key.size()}, -std::get<int64_t>(value_));
+            t.increaseVariable(namespace_, {key.data(), key.size()}, -std::get<int64_t>(value_));
           } else {
             WGE_LOG_WARN("setvar(Decrease): tx.{}=-{}: value is not an integer, ignored.", key,
                          VISTIT_VARIANT_AS_STRING(value_));
@@ -216,7 +219,7 @@ void SetVar::evaluate(Transaction& t) const {
         if (IS_INT_VARIANT(result.front().variant_)) {
           int64_t value = std::get<int64_t>(result.front().variant_);
           WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, value);
-          t.increaseVariable(index_, -value);
+          t.increaseVariable(namespace_, index_, -value);
         } else {
           WGE_LOG_WARN("setvar(Decrease): tx.{}[{}]=-{}: value is not an integer, ignored.", key_,
                        index_, value_macro_->literalValue());
@@ -224,7 +227,7 @@ void SetVar::evaluate(Transaction& t) const {
       } else {
         if (IS_INT_VARIANT(value_)) {
           WGE_LOG_TRACE("setvar(Decrease): tx.{}[{}]-={}", key_, index_, std::get<int64_t>(value_));
-          t.increaseVariable(index_, -std::get<int64_t>(value_));
+          t.increaseVariable(namespace_, index_, -std::get<int64_t>(value_));
         } else {
           WGE_LOG_WARN("setvar(Decrease): tx.{}[{}]=-{}: value is not an integer, ignored.", key_,
                        index_, VISTIT_VARIANT_AS_STRING(value_));

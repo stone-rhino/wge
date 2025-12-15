@@ -32,10 +32,10 @@ class Tx final : public VariableBase, public CollectionBase {
   DECLARE_VIRABLE_NAME(TX);
 
 public:
-  Tx(std::string&& sub_name, std::optional<size_t> index, bool is_not, bool is_counter,
-     std::string_view curr_rule_file_path)
+  Tx(const std::string& ns, std::string&& sub_name, std::optional<size_t> index, bool is_not,
+     bool is_counter, std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path), index_(index) {
+        CollectionBase(sub_name_, curr_rule_file_path), namespace_(ns), index_(index) {
     if (!sub_name_.empty() && std::all_of(sub_name_.begin(), sub_name_.end(), ::isdigit)) {
       capture_index_ = ::atoi(sub_name_.c_str());
     }
@@ -59,22 +59,23 @@ public:
     // Process single variable and collection
     RETURN_IF_COUNTER(
         // collection
-        { result.emplace_back(t.getVariablesCount()); },
+        { result.emplace_back(t.getVariablesCount(namespace_)); },
         // specify subname
         {
           if (index_.has_value())
             [[likely]] {
-              t.hasVariable(index_.value()) ? result.emplace_back(1) : result.emplace_back(0);
+              t.hasVariable(namespace_, index_.value()) ? result.emplace_back(1)
+                                                        : result.emplace_back(0);
             }
           else {
-            t.hasVariable(sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
+            t.hasVariable(namespace_, sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
           }
         });
 
     RETURN_VALUE(
         // collection
         {
-          auto variables = t.getVariables();
+          auto variables = t.getVariables(namespace_);
           for (auto variable : variables) {
             if (!hasExceptVariable(t, main_name_, variable.first))
               [[likely]] { result.emplace_back(*variable.second, variable.first); }
@@ -82,7 +83,7 @@ public:
         },
         // collection regex
         {
-          auto variables = t.getVariables();
+          auto variables = t.getVariables(namespace_);
           for (auto variable : variables) {
             if (!hasExceptVariable(t, main_name_, variable.first))
               [[likely]] {
@@ -95,16 +96,20 @@ public:
         // specify subname
         {
           if (index_.has_value())
-            [[likely]] { result.emplace_back(t.getVariable(index_.value())); }
+            [[likely]] { result.emplace_back(t.getVariable(namespace_, index_.value())); }
           else {
-            result.emplace_back(t.getVariable(sub_name_));
+            result.emplace_back(t.getVariable(namespace_, sub_name_));
           }
         });
   }
 
   bool isCollection() const override { return sub_name_.empty(); };
 
+public:
+  const std::string& getNamespace() const { return namespace_; }
+
 private:
+  std::string namespace_;
   std::optional<size_t> index_;
   std::optional<size_t> capture_index_;
 };
