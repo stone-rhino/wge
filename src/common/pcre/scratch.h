@@ -29,7 +29,7 @@ public:
   ~Scratch();
 
 public:
-  void* hanlde() const { return scratch_; }
+  void* handle() const { return scratch_; }
 
 private:
   void* scratch_;

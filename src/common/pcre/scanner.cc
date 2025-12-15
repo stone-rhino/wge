@@ -90,7 +90,7 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
 
   int rc = pcre2_match(static_cast<const pcre2_code_8*>(pattern->db()),
                        reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
-                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.handle()),
                        static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0)
     [[unlikely]] {
@@ -114,7 +114,7 @@ void Scanner::match(const Pattern* pattern, std::string_view subject,
     }
 
   auto ovector = pcre2_get_ovector_pointer(
-      reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()));
+      reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.handle()));
   for (size_t i = 0; i < rc; i++) {
     result.emplace_back(std::make_pair(ovector[i * 2], ovector[i * 2 + 1]));
   }
@@ -127,7 +127,7 @@ bool Scanner::match(const Pattern* pattern, std::string_view subject) const {
 
   int rc = pcre2_match(static_cast<const pcre2_code_8*>(pattern->db()),
                        reinterpret_cast<const unsigned char*>(subject.data()), subject.length(), 0,
-                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()),
+                       0, static_cast<pcre2_match_data_8*>(per_thread_scratch_.handle()),
                        static_cast<pcre2_match_context*>(match_context_));
   if (rc < 0)
     [[unlikely]] {
@@ -187,10 +187,10 @@ void Scanner::matchGlobal(const Pattern* pattern, std::string_view subject,
     rc = pcre2_match(reinterpret_cast<const pcre2_code_8*>(pattern->db()),
                      reinterpret_cast<const unsigned char*>(subject.data()), subject.length(),
                      start_offset, 0,
-                     reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()), nullptr);
+                     reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.handle()), nullptr);
     if (rc == 1) {
       auto ovector = pcre2_get_ovector_pointer(
-          reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.hanlde()));
+          reinterpret_cast<pcre2_match_data_8*>(per_thread_scratch_.handle()));
       result.emplace_back(std::make_pair(ovector[0], ovector[1]));
       start_offset = ovector[1] + 1;
     }
