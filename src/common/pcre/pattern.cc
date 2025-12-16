@@ -37,6 +37,15 @@
 namespace Wge {
 namespace Common {
 namespace Pcre {
+
+inline bool Pattern::isPcreJitAvailable() {
+  static bool jit_available = [] {
+    uint32_t jit_capability = 0;
+    return pcre2_config(PCRE2_CONFIG_JIT, &jit_capability) == 0 && jit_capability == 1;
+  }();
+  return jit_available;
+}
+
 Pattern::Pattern(const std::string& pattern, bool case_less, bool capture) : db_(nullptr) {
   compile(pattern, case_less, capture);
 }
@@ -76,8 +85,12 @@ void Pattern::compile(const std::string_view pattern, bool case_less, bool captu
       WGE_LOG_ERROR("pcre compile error: {}", buffer);
       return;
     }
-
-  pcre2_jit_compile(reinterpret_cast<pcre2_code_8*>(db_), PCRE2_JIT_COMPLETE);
+  if (isPcreJitAvailable())
+    [[likely]] {
+      int rc = pcre2_jit_compile(reinterpret_cast<pcre2_code_8*>(db_), PCRE2_JIT_COMPLETE);
+      if (rc != 0)
+        [[unlikely]] { WGE_LOG_ERROR("JIT compile failed: pattern='{}', rc={}", pattern, rc); }
+    }
 }
 
 void PatternList::add(const std::string& pattern, bool case_less, bool capture, uint64_t id) {
