@@ -60,7 +60,7 @@ std::expected<bool, std::string> Engine::load(const std::string& directive) {
   return parser_->load(directive);
 }
 
-void Engine::propertyTree(const std::string& json_string) {
+std::expected<bool, std::string> Engine::propertyTree(const std::string& json_string) {
   ASSERT_IS_MAIN_THREAD();
 
   std::istringstream iss(json_string);
@@ -69,7 +69,7 @@ void Engine::propertyTree(const std::string& json_string) {
     boost::property_tree::read_json(iss, temp_ptree);
   } catch (const boost::property_tree::json_parser_error& e) {
     WGE_LOG_ERROR("Failed to parse property tree JSON string: {}", e.what());
-    return;
+    return std::unexpected<std::string>(e.what());
   }
 
   // Convert ptree to PropertyTree
@@ -77,6 +77,8 @@ void Engine::propertyTree(const std::string& json_string) {
   property_tree_string_pool_.clear();
   property_tree_string_pool_.reserve(json_string.size());
   convertPtreeToPropertyTree(temp_ptree, property_tree_);
+
+  return true;
 }
 
 void Engine::init() {

@@ -838,8 +838,9 @@ TEST_F(VariableTest, PTREE) {
     }
 })";
 
-  Engine engine(spdlog::level::trace);
-  engine.propertyTree(json);
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.propertyTree(json);
+  ASSERT_TRUE(pt_result.has_value());
   engine.init();
   auto t = engine.makeTransaction();
   Common::EvaluateResults result;

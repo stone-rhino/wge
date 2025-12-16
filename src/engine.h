@@ -78,8 +78,9 @@ public:
    * We can use the PTREE variable to access the properties, and we must ensure the structure and
    * content are correct.
    * @param json_string JSON string representing engine properties
+   * @result an error string is returned if fails, and returned true otherwise
    */
-  void propertyTree(const std::string& json_string);
+  std::expected<bool, std::string> propertyTree(const std::string& json_string);
 
   using PropertyTree = boost::property_tree::basic_ptree<std::string, Common::Variant>;
 
