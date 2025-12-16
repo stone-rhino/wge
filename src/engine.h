@@ -151,19 +151,28 @@ public:
                      std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rule_set) const;
 
   /**
+   * Get all namespaces and their variable index sizes
+   * @return map of namespace and variable index size. The key is the namespace, and the value is
+   * the size of the variable index.
+   */
+  const std::unordered_map<std::string, size_t>& getTxVariableIndexSize() const;
+
+  /**
    * Get the transaction variable index
+   * @param ns the variable namespace
    * @param name the variable name
    * @param force if true, insert a new index if the variable is not found
    * @return the index of the variable if found, and std::nullopt otherwise
    */
-  std::optional<size_t> getTxVariableIndex(const std::string& name) const;
+  std::optional<size_t> getTxVariableIndex(const std::string& ns, const std::string& name) const;
 
   /**
    * Get the transaction variable index reverse
+   * @param ns the variable namespace
    * @param index the index of the variable
    * @return the variable name. if the index is out of range, an empty string is returned
    */
-  std::string_view getTxVariableIndexReverse(size_t index) const;
+  std::string_view getTxVariableIndexReverse(const std::string& ns, size_t index) const;
 
   // std::optional<const std::vector<const Rule*>::iterator> marker(std::string_view name,
   //                                                                int phase) const;

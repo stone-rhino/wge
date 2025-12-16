@@ -49,12 +49,14 @@ public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(std::string&& key, size_t index, Common::Variant&& value, EvaluateType type);
-  SetVar(std::string&& key, size_t index, std::unique_ptr<Macro::MacroBase>&& value,
+  SetVar(const std::string& ns, std::string&& key, size_t index, Common::Variant&& value,
          EvaluateType type);
-  SetVar(std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value, EvaluateType type);
-  SetVar(std::unique_ptr<Macro::MacroBase>&& key, std::unique_ptr<Macro::MacroBase>&& value,
+  SetVar(const std::string& ns, std::string&& key, size_t index,
+         std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type);
+  SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value,
          EvaluateType type);
+  SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
+         std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type);
 
 public:
   void evaluate(Transaction& t) const override;
@@ -65,6 +67,7 @@ public:
   size_t index() const { return index_; }
 
 private:
+  std::string namespace_;
   std::string key_;
   size_t index_;
   const Common::Variant value_;

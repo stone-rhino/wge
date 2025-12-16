@@ -943,7 +943,7 @@ variable_user:
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
 		)
 	)?;
-extension_variable: variable_ptree;
+extension_variable: variable_ptree | variable_gtx;
 variable_ptree:
 	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
 variable_ptree_expression:
@@ -953,6 +953,13 @@ variable_ptree_expression:
 			| (LEFT_BRACKET AND? RIGHT_BRACKET)
 		)?
 	)+;
+variable_gtx:
+	NOT? VAR_COUNT? VAR_GTX (
+		(COLON | DOT) (
+			STRING
+			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
+		)
+	)?;
 
 operator:
 	op_begins_with
@@ -1386,7 +1393,9 @@ action_flow_chain: Chain;
 action_flow_skip: Skip COLON INT;
 action_flow_skip_after: SkipAfter COLON STRING;
 
-action_extension: action_extension_first_match | action_extension_empty_match;
+action_extension:
+	action_extension_first_match
+	| action_extension_empty_match;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
 
@@ -1419,7 +1428,8 @@ sec_component_signature:
 
 extension_directive:
 	sec_rule_update_operator_by_id
-	| sec_rule_update_operator_by_tag;
+	| sec_rule_update_operator_by_tag
+	| sec_tx_namespace;
 sec_rule_update_operator_by_id:
 	SecRuleUpdateOperatorById (
 		INT
@@ -1428,3 +1438,4 @@ sec_rule_update_operator_by_id:
 	) (INT | INT_RANGE | ID_AND_CHAIN_INDEX)* QUOTE operator QUOTE;
 sec_rule_update_operator_by_tag:
 	SecRuleUpdateOperatorByTag QUOTE STRING QUOTE QUOTE operator QUOTE;
+sec_tx_namespace: SecTxNamespace STRING;

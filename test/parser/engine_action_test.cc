@@ -78,5 +78,21 @@ TEST_F(EngineActionTest, SecDefaultAction) {
   EXPECT_TRUE(rule2.auditLog());
   EXPECT_EQ(rule2.disruptive(), Rule::Disruptive::PASS);
 }
+
+TEST_F(EngineActionTest, SexTxNamespace) {
+  std::string directive = R"(SecTxNamespace hello)";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_EQ(parser.getCurrentNamespace(), "hello");
+
+  directive = R"(SecTxNamespace world)";
+  result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_EQ(parser.getCurrentNamespace(), "world");
+}
 } // namespace Parsr
 } // namespace Wge

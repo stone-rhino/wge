@@ -62,7 +62,7 @@ TEST_F(RuleOperatorTest, additionalCondition) {
     t->processRequestHeaders(nullptr, nullptr, 0, nullptr, nullptr,
                              [](const Rule& rule, const Variable::VariableBase& variable,
                                 std::string_view value, void* user_data) { return true; });
-    EXPECT_TRUE(t->hasVariable("v1"));
+    EXPECT_TRUE(t->hasVariable("", "v1"));
   }
 
   {
@@ -72,7 +72,7 @@ TEST_F(RuleOperatorTest, additionalCondition) {
     t->processRequestHeaders(nullptr, nullptr, 0, nullptr, nullptr,
                              [](const Rule& rule, const Variable::VariableBase& variable,
                                 std::string_view value, void* user_data) { return false; });
-    EXPECT_FALSE(t->hasVariable("v1"));
+    EXPECT_FALSE(t->hasVariable("", "v1"));
   }
 }
 
@@ -88,8 +88,8 @@ TEST_F(RuleOperatorTest, beginsWith) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("v1"));
-  EXPECT_FALSE(t->hasVariable("v2"));
+  EXPECT_TRUE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
 }
 
 TEST_F(RuleOperatorTest, beginsWithMacro) {
@@ -104,8 +104,8 @@ TEST_F(RuleOperatorTest, beginsWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("v1"));
-  EXPECT_FALSE(t->hasVariable("v2"));
+  EXPECT_TRUE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
 }
 
 TEST_F(RuleOperatorTest, endsWith) {
@@ -120,8 +120,8 @@ TEST_F(RuleOperatorTest, endsWith) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("v1"));
-  EXPECT_FALSE(t->hasVariable("v2"));
+  EXPECT_TRUE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
 }
 
 TEST_F(RuleOperatorTest, endsWithMacro) {
@@ -136,8 +136,8 @@ TEST_F(RuleOperatorTest, endsWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("v1"));
-  EXPECT_FALSE(t->hasVariable("v2"));
+  EXPECT_TRUE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
 }
 
 TEST_F(RuleOperatorTest, detect_sqli) {
@@ -151,7 +151,7 @@ TEST_F(RuleOperatorTest, detect_sqli) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("v1"));
+  EXPECT_TRUE(t->hasVariable("", "v1"));
 }
 
 TEST_F(RuleOperatorTest, ipMatch) {
@@ -173,14 +173,14 @@ TEST_F(RuleOperatorTest, ipMatch) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("ipv4_true"));
-  EXPECT_FALSE(t->hasVariable("ipv4_false"));
-  EXPECT_TRUE(t->hasVariable("ipv4_mark_true"));
-  EXPECT_FALSE(t->hasVariable("ipv4_mark_false"));
-  EXPECT_TRUE(t->hasVariable("ipv6_true"));
-  EXPECT_FALSE(t->hasVariable("ipv6_false"));
-  EXPECT_TRUE(t->hasVariable("ipv6_mask_true"));
-  EXPECT_FALSE(t->hasVariable("ipv6_mask_false"));
+  EXPECT_TRUE(t->hasVariable("", "ipv4_true"));
+  EXPECT_FALSE(t->hasVariable("", "ipv4_false"));
+  EXPECT_TRUE(t->hasVariable("", "ipv4_mark_true"));
+  EXPECT_FALSE(t->hasVariable("", "ipv4_mark_false"));
+  EXPECT_TRUE(t->hasVariable("", "ipv6_true"));
+  EXPECT_FALSE(t->hasVariable("", "ipv6_false"));
+  EXPECT_TRUE(t->hasVariable("", "ipv6_mask_true"));
+  EXPECT_FALSE(t->hasVariable("", "ipv6_mask_false"));
 }
 
 TEST_F(RuleOperatorTest, pm) {
@@ -198,11 +198,11 @@ TEST_F(RuleOperatorTest, pm) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true1"));
-  EXPECT_TRUE(t->hasVariable("true2"));
-  EXPECT_TRUE(t->hasVariable("true3"));
-  EXPECT_FALSE(t->hasVariable("false1"));
-  EXPECT_FALSE(t->hasVariable("false2"));
+  EXPECT_TRUE(t->hasVariable("", "true1"));
+  EXPECT_TRUE(t->hasVariable("", "true2"));
+  EXPECT_TRUE(t->hasVariable("", "true3"));
+  EXPECT_FALSE(t->hasVariable("", "false1"));
+  EXPECT_FALSE(t->hasVariable("", "false2"));
 }
 
 TEST_F(RuleOperatorTest, within) {
@@ -220,11 +220,11 @@ TEST_F(RuleOperatorTest, within) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true1"));
-  EXPECT_TRUE(t->hasVariable("true2"));
-  EXPECT_TRUE(t->hasVariable("true3"));
-  EXPECT_FALSE(t->hasVariable("false1"));
-  EXPECT_FALSE(t->hasVariable("false2"));
+  EXPECT_TRUE(t->hasVariable("", "true1"));
+  EXPECT_TRUE(t->hasVariable("", "true2"));
+  EXPECT_TRUE(t->hasVariable("", "true3"));
+  EXPECT_FALSE(t->hasVariable("", "false1"));
+  EXPECT_FALSE(t->hasVariable("", "false2"));
 }
 
 TEST_F(RuleOperatorTest, withinWithMacro) {
@@ -248,12 +248,12 @@ TEST_F(RuleOperatorTest, withinWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true1"));
-  EXPECT_TRUE(t->hasVariable("true2"));
-  EXPECT_TRUE(t->hasVariable("true3"));
-  EXPECT_TRUE(t->hasVariable("true4"));
-  EXPECT_FALSE(t->hasVariable("false1"));
-  EXPECT_FALSE(t->hasVariable("false2"));
+  EXPECT_TRUE(t->hasVariable("", "true1"));
+  EXPECT_TRUE(t->hasVariable("", "true2"));
+  EXPECT_TRUE(t->hasVariable("", "true3"));
+  EXPECT_TRUE(t->hasVariable("", "true4"));
+  EXPECT_FALSE(t->hasVariable("", "false1"));
+  EXPECT_FALSE(t->hasVariable("", "false2"));
 }
 
 TEST_F(RuleOperatorTest, rx) {
@@ -269,9 +269,9 @@ TEST_F(RuleOperatorTest, rx) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true1"));
-  EXPECT_TRUE(t->hasVariable("true2"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true1"));
+  EXPECT_TRUE(t->hasVariable("", "true2"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 // Issue #77 - RX operator should handle invalid patterns gracefully
@@ -286,7 +286,7 @@ TEST_F(RuleOperatorTest, rxWithInvalidPattern) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_FALSE(t->hasVariable("true1"));
+  EXPECT_FALSE(t->hasVariable("", "true1"));
 }
 
 TEST_F(RuleOperatorTest, rxWithMacro) {
@@ -306,10 +306,10 @@ TEST_F(RuleOperatorTest, rxWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true1"));
-  EXPECT_TRUE(t->hasVariable("true2"));
-  EXPECT_TRUE(t->hasVariable("true3"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true1"));
+  EXPECT_TRUE(t->hasVariable("", "true2"));
+  EXPECT_TRUE(t->hasVariable("", "true3"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, pmFromFile) {
@@ -324,8 +324,8 @@ TEST_F(RuleOperatorTest, pmFromFile) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, streq) {
@@ -340,8 +340,8 @@ TEST_F(RuleOperatorTest, streq) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, streqWithMacro) {
@@ -356,8 +356,8 @@ TEST_F(RuleOperatorTest, streqWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, validateUrlEncoding) {
@@ -372,8 +372,8 @@ TEST_F(RuleOperatorTest, validateUrlEncoding) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_FALSE(t->hasVariable("false"));
-  EXPECT_TRUE(t->hasVariable("true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
 }
 
 TEST_F(RuleOperatorTest, contains) {
@@ -388,8 +388,8 @@ TEST_F(RuleOperatorTest, contains) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, containsWithMacro) {
@@ -404,8 +404,8 @@ TEST_F(RuleOperatorTest, containsWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, validateByteRange) {
@@ -420,8 +420,8 @@ SecRule TX:bar "@validateByteRange 65,66-68" "id:2,phase:1,setvar:'tx.false'")";
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_TRUE(t->hasVariable("true"));
-  EXPECT_FALSE(t->hasVariable("false"));
+  EXPECT_TRUE(t->hasVariable("", "true"));
+  EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
 TEST_F(RuleOperatorTest, macroLogicMatcher) {
@@ -597,22 +597,22 @@ TEST_F(RuleOperatorTest, macroLogicMatcher) {
   ASSERT_TRUE(result.has_value());
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
-  EXPECT_FALSE(t->hasVariable("v1"));
-  EXPECT_FALSE(t->hasVariable("v2"));
-  EXPECT_FALSE(t->hasVariable("v3"));
-  EXPECT_TRUE(t->hasVariable("v4"));
-  EXPECT_TRUE(t->hasVariable("v5"));
-  EXPECT_TRUE(t->hasVariable("v6"));
-  EXPECT_TRUE(t->hasVariable("v7"));
-  EXPECT_TRUE(t->hasVariable("v8"));
-  EXPECT_TRUE(t->hasVariable("v9"));
-  EXPECT_TRUE(t->hasVariable("v10"));
-  EXPECT_TRUE(t->hasVariable("v11"));
-  EXPECT_TRUE(t->hasVariable("v12"));
-  EXPECT_TRUE(t->hasVariable("v13"));
-  EXPECT_TRUE(t->hasVariable("v14"));
-  EXPECT_TRUE(t->hasVariable("v15"));
-  EXPECT_TRUE(t->hasVariable("v16"));
+  EXPECT_FALSE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
+  EXPECT_FALSE(t->hasVariable("", "v3"));
+  EXPECT_TRUE(t->hasVariable("", "v4"));
+  EXPECT_TRUE(t->hasVariable("", "v5"));
+  EXPECT_TRUE(t->hasVariable("", "v6"));
+  EXPECT_TRUE(t->hasVariable("", "v7"));
+  EXPECT_TRUE(t->hasVariable("", "v8"));
+  EXPECT_TRUE(t->hasVariable("", "v9"));
+  EXPECT_TRUE(t->hasVariable("", "v10"));
+  EXPECT_TRUE(t->hasVariable("", "v11"));
+  EXPECT_TRUE(t->hasVariable("", "v12"));
+  EXPECT_TRUE(t->hasVariable("", "v13"));
+  EXPECT_TRUE(t->hasVariable("", "v14"));
+  EXPECT_TRUE(t->hasVariable("", "v15"));
+  EXPECT_TRUE(t->hasVariable("", "v16"));
 }
 } // namespace Integration
 } // namespace Wge

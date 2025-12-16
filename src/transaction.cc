@@ -39,17 +39,20 @@ namespace Wge {
 constexpr size_t variable_key_with_macro_size = 100;
 constexpr int max_capture_size = 100;
 
-Transaction::Transaction(const Engine& engin, size_t literal_key_size)
-    : engine_(engin), tx_variables_(literal_key_size + variable_key_with_macro_size),
-      literal_key_size_(literal_key_size) {
-  tx_variables_.resize(literal_key_size);
-  local_tx_variable_index_.reserve(variable_key_with_macro_size);
-  local_tx_variable_index_reverse_.reserve(variable_key_with_macro_size);
+Transaction::Transaction(const Engine& engin) : engine_(engin) {
+  for (auto& [ns, size] : engine_.getTxVariableIndexSize()) {
+    auto& tx_var_info = tx_variables_[ns];
+    tx_var_info.variables_.reserve(size + variable_key_with_macro_size);
+    tx_var_info.variables_.resize(size);
+    assert(tx_var_info.variables_.capacity() == size + variable_key_with_macro_size);
+    tx_var_info.local_index_.reserve(variable_key_with_macro_size);
+    tx_var_info.local_index_reverse_.reserve(variable_key_with_macro_size);
+  }
+
   captured_.reserve(4);
   temp_captured_.reserve(4);
   matched_variables_.reserve(4);
   transform_cache_.reserve(100);
-  assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
 }
 
 void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
@@ -275,131 +278,170 @@ bool Transaction::processResponseBody(std::string_view body, LogCallback log_cal
   return result;
 }
 
-void Transaction::setVariable(size_t index, const Common::Variant& value) {
-  assert(index < tx_variables_.size());
-  if (index < tx_variables_.size()) {
-    assert(!IS_EMPTY_VARIANT(value));
-    tx_variables_[index] = value;
-  }
-}
-
-void Transaction::setVariable(std::string&& name, const Common::Variant& value) {
-  auto index = engine_.getTxVariableIndex(name);
-  if (index.has_value())
-    [[likely]] { setVariable(index.value(), value); }
-  else {
-    auto local_index = getLocalVariableIndex(name, true);
-    assert(local_index.has_value());
-    if (local_index.has_value())
-      [[likely]] { setVariable(local_index.value(), value); }
-  }
-}
-
-void Transaction::removeVariable(size_t index) {
-  assert(index < tx_variables_.size());
-  if (index < tx_variables_.size()) {
-    assert(!IS_EMPTY_VARIANT(tx_variables_[index]));
-    tx_variables_[index] = EMPTY_VARIANT;
-  }
-}
-
-void Transaction::removeVariable(const std::string& name) {
-  auto index = engine_.getTxVariableIndex(name);
-  if (index.has_value()) {
-    removeVariable(index.value());
-  } else {
-    auto local_index = getLocalVariableIndex(name, false);
-    assert(local_index.has_value());
-    if (local_index.has_value())
-      [[likely]] { removeVariable(local_index.value()); }
-  }
-}
-
-void Transaction::increaseVariable(size_t index, int64_t value) {
-  assert(index < tx_variables_.size());
-  if (index < tx_variables_.size()) {
-    auto& variant = tx_variables_[index];
-    if (IS_INT_VARIANT(variant))
-      [[likely]] { variant = std::get<int64_t>(variant) + value; }
-    else if (IS_EMPTY_VARIANT(variant)) {
-      variant = value;
+void Transaction::setVariable(const std::string& ns, size_t index, const Common::Variant& value) {
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns != tx_variables_.end()) {
+    auto& variables = iter_ns->second.variables_;
+    assert(index < variables.size());
+    if (index < variables.size()) {
+      assert(!IS_EMPTY_VARIANT(value));
+      variables[index] = value;
     }
   }
 }
 
-void Transaction::increaseVariable(const std::string& name, int64_t value) {
-  auto index = engine_.getTxVariableIndex(name);
-  if (index.has_value()) {
-    increaseVariable(index.value(), value);
-  } else {
-    auto local_index = getLocalVariableIndex(name, true);
-    assert(local_index.has_value());
-    if (local_index.has_value())
-      [[likely]] { increaseVariable(local_index.value(), value); }
+void Transaction::setVariable(const std::string& ns, std::string&& name,
+                              const Common::Variant& value) {
+  auto index = engine_.getTxVariableIndex(ns, name);
+  if (index.has_value())
+    [[likely]] { setVariable(ns, index.value(), value); }
+  else {
+    auto local_index = getOrCreateLocalVariableIndex(ns, name);
+    setVariable(ns, local_index, value);
   }
 }
 
-const Common::Variant& Transaction::getVariable(size_t index) const {
-  assert(index < tx_variables_.size());
-  if (index < tx_variables_.size()) {
-    return tx_variables_[index];
+void Transaction::removeVariable(const std::string& ns, size_t index) {
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns != tx_variables_.end()) {
+    auto& variables = iter_ns->second.variables_;
+    assert(index < variables.size());
+    if (index < variables.size()) {
+      assert(!IS_EMPTY_VARIANT(variables[index]));
+      variables[index] = EMPTY_VARIANT;
+    }
+  }
+}
+
+void Transaction::removeVariable(const std::string& ns, const std::string& name) {
+  auto index = engine_.getTxVariableIndex(ns, name);
+  if (index.has_value()) {
+    removeVariable(ns, index.value());
+  } else {
+    auto local_index = getLocalVariableIndex(ns, name);
+    assert(local_index.has_value());
+    if (local_index.has_value())
+      [[likely]] { removeVariable(ns, local_index.value()); }
+  }
+}
+
+void Transaction::increaseVariable(const std::string& ns, size_t index, int64_t value) {
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns != tx_variables_.end()) {
+    auto& variables = iter_ns->second.variables_;
+    assert(index < variables.size());
+    if (index < variables.size()) {
+      auto& variant = variables[index];
+      if (IS_INT_VARIANT(variant))
+        [[likely]] { variant = std::get<int64_t>(variant) + value; }
+      else if (IS_EMPTY_VARIANT(variant)) {
+        variant = value;
+      }
+    }
+  }
+}
+
+void Transaction::increaseVariable(const std::string& ns, const std::string& name, int64_t value) {
+  auto index = engine_.getTxVariableIndex(ns, name);
+  if (index.has_value()) {
+    increaseVariable(ns, index.value(), value);
+  } else {
+    auto local_index = getOrCreateLocalVariableIndex(ns, name);
+    increaseVariable(ns, local_index, value);
+  }
+}
+
+const Common::Variant& Transaction::getVariable(const std::string& ns, size_t index) const {
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns != tx_variables_.end()) {
+    auto& variables = iter_ns->second.variables_;
+    assert(index < variables.size());
+    if (index < variables.size()) {
+      return variables[index];
+    }
   }
 
   return EMPTY_VARIANT;
 }
 
-const Common::Variant& Transaction::getVariable(const std::string& name) {
-  auto index = engine_.getTxVariableIndex(name);
+const Common::Variant& Transaction::getVariable(const std::string& ns,
+                                                const std::string& name) const {
+  auto index = engine_.getTxVariableIndex(ns, name);
   if (index.has_value()) {
-    return getVariable(index.value());
+    return getVariable(ns, index.value());
   } else {
-    auto local_index = getLocalVariableIndex(name, false);
+    auto local_index = getLocalVariableIndex(ns, name);
     assert(local_index.has_value());
     if (local_index.has_value())
-      [[likely]] { return getVariable(local_index.value()); }
+      [[likely]] { return getVariable(ns, local_index.value()); }
   }
 
   return EMPTY_VARIANT;
 }
 
-std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVariables() {
-  std::vector<std::pair<std::string_view, Common::Variant*>> variables;
-  variables.reserve(tx_variables_.size());
-  for (size_t i = 0; i < tx_variables_.size(); ++i) {
-    auto& variable = tx_variables_[i];
+std::vector<std::pair<std::string_view, const Common::Variant*>>
+Transaction::getVariables(const std::string& ns) const {
+  std::vector<std::pair<std::string_view, const Common::Variant*>> results;
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns == tx_variables_.end())
+    [[unlikely]] { return results; }
+
+  size_t literal_key_size = 0;
+  auto iter_size = engine_.getTxVariableIndexSize().find(ns);
+  if (iter_size != engine_.getTxVariableIndexSize().end()) {
+    literal_key_size = iter_size->second;
+  }
+
+  const auto& variables = iter_ns->second.variables_;
+  results.reserve(variables.size());
+  for (size_t i = 0; i < variables.size(); ++i) {
+    const auto& variable = variables[i];
     if (!IS_EMPTY_VARIANT(variable)) {
-      if (i < literal_key_size_) {
-        variables.emplace_back(engine_.getTxVariableIndexReverse(i), &variable);
+      if (i < literal_key_size) {
+        results.emplace_back(engine_.getTxVariableIndexReverse(ns, i), &variable);
       } else {
-        auto iter = local_tx_variable_index_reverse_.find(i);
-        if (iter != local_tx_variable_index_reverse_.end()) {
-          variables.emplace_back(iter->second, &variable);
+        auto iter = iter_ns->second.local_index_reverse_.find(i);
+        if (iter != iter_ns->second.local_index_reverse_.end()) {
+          results.emplace_back(iter->second, &variable);
         }
       }
     }
   }
-  return variables;
+  return results;
 }
 
-int64_t Transaction::getVariablesCount() const {
+int64_t Transaction::getVariablesCount(const std::string& ns) const {
   int64_t count = 0;
-  for (auto& variable : tx_variables_) {
-    if (!IS_EMPTY_VARIANT(variable)) {
-      ++count;
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns != tx_variables_.end()) {
+    for (auto& variable : iter_ns->second.variables_) {
+      if (!IS_EMPTY_VARIANT(variable)) {
+        ++count;
+      }
     }
   }
   return count;
 }
 
-bool Transaction::hasVariable(size_t index) const {
-  assert(index < tx_variables_.size());
-  return index < tx_variables_.size() && !IS_EMPTY_VARIANT(tx_variables_[index]);
+bool Transaction::hasVariable(const std::string& ns, size_t index) const {
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns == tx_variables_.end())
+    [[unlikely]] { return false; }
+
+  assert(index < iter_ns->second.variables_.size());
+  return index < iter_ns->second.variables_.size() &&
+         !IS_EMPTY_VARIANT(iter_ns->second.variables_[index]);
 }
 
-bool Transaction::hasVariable(const std::string& name) const {
-  auto index = engine_.getTxVariableIndex(name);
-  assert(index.has_value());
-  return index.has_value() && hasVariable(index.value());
+bool Transaction::hasVariable(const std::string& ns, const std::string& name) const {
+  auto index = engine_.getTxVariableIndex(ns, name);
+  if (index.has_value())
+    [[likely]] { return index.has_value() && hasVariable(ns, index.value()); }
+  else {
+    auto local_index = getLocalVariableIndex(ns, name);
+    assert(local_index.has_value());
+    return local_index.has_value() && hasVariable(ns, local_index.value());
+  }
 }
 
 void Transaction::stageCapture(size_t index, std::string_view value) {
@@ -687,26 +729,50 @@ inline bool Transaction::process(RulePhaseType phase) {
   return true;
 }
 
-inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::string& key,
-                                                                bool force_create) {
+inline std::optional<size_t> Transaction::getLocalVariableIndex(const std::string& ns,
+                                                                const std::string& key) const {
   // The key is case insensitive
   std::string less_case_key;
   less_case_key.reserve(key.size());
   std::transform(key.begin(), key.end(), std::back_inserter(less_case_key), ::tolower);
 
-  auto iter = local_tx_variable_index_.find(less_case_key);
-  if (iter == local_tx_variable_index_.end())
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns == tx_variables_.end())
+    [[unlikely]] { return std::nullopt; }
+
+  auto iter = iter_ns->second.local_index_.find(less_case_key);
+  if (iter == iter_ns->second.local_index_.end())
+    [[unlikely]] { return std::nullopt; }
+
+  return iter->second;
+}
+
+inline size_t Transaction::getOrCreateLocalVariableIndex(const std::string& ns,
+                                                         const std::string& key) {
+
+  // The key is case insensitive
+  std::string less_case_key;
+  less_case_key.reserve(key.size());
+  std::transform(key.begin(), key.end(), std::back_inserter(less_case_key), ::tolower);
+
+  auto iter_ns = tx_variables_.find(ns);
+  if (iter_ns == tx_variables_.end())
     [[unlikely]] {
-      if (force_create)
-        [[likely]] {
-          local_tx_variable_index_.insert({less_case_key, tx_variables_.size()});
-          local_tx_variable_index_reverse_.insert({tx_variables_.size(), less_case_key});
-          tx_variables_.emplace_back();
-          return tx_variables_.size() - 1;
-        }
-      else {
-        return std::nullopt;
-      }
+      auto inserted_iter = tx_variables_.emplace(ns, TxVariables{}).first;
+      inserted_iter->second.local_index_.insert({less_case_key, 0});
+      inserted_iter->second.local_index_reverse_.insert({0, less_case_key});
+      inserted_iter->second.variables_.emplace_back();
+      return 0;
+    }
+
+  auto iter = iter_ns->second.local_index_.find(less_case_key);
+  if (iter == iter_ns->second.local_index_.end())
+    [[unlikely]] {
+      auto& variables = iter_ns->second.variables_;
+      iter_ns->second.local_index_.insert({less_case_key, variables.size()});
+      iter_ns->second.local_index_reverse_.insert({variables.size(), less_case_key});
+      variables.emplace_back();
+      return variables.size() - 1;
     }
 
   return iter->second;

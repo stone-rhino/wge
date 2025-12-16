@@ -62,7 +62,7 @@ class Transaction final {
   friend class Engine;
 
 protected:
-  Transaction(const Engine& engin, size_t literal_key_size);
+  Transaction(const Engine& engin);
 
 public:
   // The connection info
@@ -292,10 +292,11 @@ public:
    * the variable by the order of the key in the collection. This solution is more efficient than
    * the other solution that the key is a macro that only can be evaluated at runtime. Because we
    * must calculate the hash value of the key every time when we want to get the variable.
+   * @param ns the variable namespace.
    * @param index the index of the variable.
    * @param value the value of the variable.
    */
-  void setVariable(size_t index, const Common::Variant& value);
+  void setVariable(const std::string& ns, size_t index, const Common::Variant& value);
 
   /**
    * Create or update a variable in the transient transaction collection.
@@ -305,104 +306,116 @@ public:
    * runtime. Because we must calculate the hash value of the key every time when we want to get the
    * variable, this solution is less efficient than the other solution that the key is a literal
    * string.
+   * @param ns the variable namespace.
    * @param name the name of the variable.
    * @param value the value of the variable.
    */
-  void setVariable(std::string&& name, const Common::Variant& value);
+  void setVariable(const std::string& ns, std::string&& name, const Common::Variant& value);
 
   /**
    * Remove a variable from the transient transaction collection
    *
    * Used for remove a variable that the key of the variable can be evaluated at parse time.
    * Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param index the index of the variable.
    */
-  void removeVariable(size_t index);
+  void removeVariable(const std::string& ns, size_t index);
 
   /**
    * Remove a variable from the transient transaction collection
    *
    * Used for remove a variable that the key of the variable can't be evaluated at parse time.
    * Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param name the name of the variable.
    * @note This method only used in the test. An efficient and rational design should not call this
    * method in the worker thread.
    */
-  void removeVariable(const std::string& name);
+  void removeVariable(const std::string& ns, const std::string& name);
 
   /**
    * Increase the value of a variable in the transient transaction collection
    *
    * Used for increase the value of a variable that the key of the variable can be evaluated at
    * parse time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param index the index of the variable.
    * @param value the int64_t value to increase.
    */
-  void increaseVariable(size_t index, int64_t value = 1);
+  void increaseVariable(const std::string& ns, size_t index, int64_t value = 1);
 
   /**
    * Increase the value of a variable in the transient transaction collection
    *
    * Used for increase the value of a variable that the key of the variable can't be evaluated at
    * parse time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param name the name of the variable.
    * @param value the int64_t value to increase.
    */
-  void increaseVariable(const std::string& name, int64_t value = 1);
+  void increaseVariable(const std::string& ns, const std::string& name, int64_t value = 1);
 
   /**
    * Get the value of a variable in the transient transaction collection
    *
    * Used for get the value of a variable that the key of the variable can be evaluated at parse
    * time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param index the index of the variable.
    * @return the value of the variable. if the variable does not exist, return an empty variant.
    */
-  const Common::Variant& getVariable(size_t index) const;
+  const Common::Variant& getVariable(const std::string& ns, size_t index) const;
 
   /**
    * Get the value of a variable in the transient transaction collection
    *
    * Used for get the value of a variable that the key of the variable can't be evaluated at parse
    * time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param name the name of the variable.
    * @return the value of the variable. if the variable does not exist, return an empty variant.
    */
-  const Common::Variant& getVariable(const std::string& name);
+  const Common::Variant& getVariable(const std::string& ns, const std::string& name) const;
 
   /**
    * Get the variables that the value is not empty in the transient transaction collection.
+   * @param ns the variable namespace.
    * @return the variables. the first element is the name of the variable, and the second element is
    * the value of the variable.
    */
-  std::vector<std::pair<std::string_view, Common::Variant*>> getVariables();
+  std::vector<std::pair<std::string_view, const Common::Variant*>>
+  getVariables(const std::string& ns) const;
 
   /**
    * Get the count of the variables, which the value is not empty in the transient transaction
    * collection.
+   * @param ns the variable namespace.
    * @return the count of the variables.
    */
-  int64_t getVariablesCount() const;
+  int64_t getVariablesCount(const std::string& ns) const;
 
   /**
    * Check if the variable exists in the transient transaction collection
    *
    * Used for check if the variable exists that the key of the variable can be evaluated at parse
    * time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param index the index of the variable.
    * @return true if the variable exists, false otherwise.
    */
-  bool hasVariable(size_t index) const;
+  bool hasVariable(const std::string& ns, size_t index) const;
 
   /**
    * Check if the variable exists in the transient transaction collection
    *
    * Used for check if the variable exists that the key of the variable can't be evaluated at
    * parse time. Please refer to the createVariable method for more details.
+   * @param ns the variable namespace.
    * @param name the name of the variable.
    * @return true if the variable exists, false otherwise.
    */
-  bool hasVariable(const std::string& name) const;
+  bool hasVariable(const std::string& ns, const std::string& name) const;
 
   /**
    * Stages a captured string from operator matching. After calling this method, we should
@@ -545,7 +558,9 @@ public:
 private:
   void initUniqueId() const;
   inline bool process(RulePhaseType phase);
-  inline std::optional<size_t> getLocalVariableIndex(const std::string& key, bool force_create);
+  inline std::optional<size_t> getLocalVariableIndex(const std::string& ns,
+                                                     const std::string& key) const;
+  inline size_t getOrCreateLocalVariableIndex(const std::string& ns, const std::string& key);
   void initCookies() const;
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
 
@@ -570,11 +585,15 @@ private:
   const Engine& engine_;
   RulePhaseType current_phase_{1};
   const Rule* current_rule_{nullptr};
-  std::vector<Common::Variant> tx_variables_;
-  std::unordered_map<std::string, size_t> local_tx_variable_index_;
-  std::unordered_map<size_t, std::string> local_tx_variable_index_reverse_;
   std::vector<std::string_view> captured_;
   std::vector<std::string_view> temp_captured_;
+
+  struct TxVariables {
+    std::vector<Common::Variant> variables_;
+    std::unordered_map<std::string, size_t> local_index_;
+    std::unordered_map<size_t, std::string> local_index_reverse_;
+  };
+  std::unordered_map<std::string /*namespace*/, TxVariables> tx_variables_;
 
   // Stores all matched variables organized by rule chain index.
   // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
@@ -609,7 +628,6 @@ private:
 
 private:
   mutable std::optional<std::string> unique_id_;
-  const size_t literal_key_size_;
   LogCallback log_callback_;
   void* log_user_data_;
   AdditionalCondCallback additional_cond_;

@@ -77,8 +77,9 @@ public:
 
 Parser::Parser() {
   constexpr size_t tx_variable_index_size = 1000;
-  tx_variable_index_.reserve(tx_variable_index_size);
-  tx_variable_index_reverse_.reserve(tx_variable_index_size);
+  auto inserted_iter = tx_variable_index_.emplace("", TxVariableIndex{}).first;
+  inserted_iter->second.index_.reserve(tx_variable_index_size);
+  inserted_iter->second.index_reverse_.reserve(tx_variable_index_size);
 }
 
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
@@ -606,32 +607,45 @@ std::unordered_set<Rule*> Parser::findRuleByTag(const std::string& tag) {
   return result;
 }
 
-std::optional<size_t> Parser::getTxVariableIndex(const std::string& name, bool force) {
+std::optional<size_t> Parser::getTxVariableIndex(const std::string& ns, const std::string& name,
+                                                 bool force) {
   // The name is case insensitive
   std::string less_case_name;
   less_case_name.reserve(name.size());
   std::transform(name.begin(), name.end(), std::back_inserter(less_case_name), ::tolower);
 
-  auto iter = tx_variable_index_.find(less_case_name);
-  if (iter != tx_variable_index_.end()) {
-    return iter->second;
-  } else {
-    if (force) {
+  auto iter_ns = tx_variable_index_.find(ns);
+  if (iter_ns != tx_variable_index_.end()) {
+    auto iter_index = iter_ns->second.index_.find(less_case_name);
+    if (iter_index != iter_ns->second.index_.end()) {
+      return iter_index->second;
+    } else if (force) {
       ASSERT_IS_MAIN_THREAD();
-      auto [insert_iter, _] =
-          tx_variable_index_.insert({less_case_name, tx_variable_index_.size()});
-      tx_variable_index_reverse_.emplace_back(insert_iter->first);
-      return tx_variable_index_.size() - 1;
+      iter_ns->second.index_.insert({less_case_name, iter_ns->second.index_.size()}).first;
+      iter_ns->second.index_reverse_.emplace_back(less_case_name);
+      size_t& size = tx_variable_index_size_[ns];
+      size++;
+      return iter_ns->second.index_.size() - 1;
     }
+  } else if (force) {
+    ASSERT_IS_MAIN_THREAD();
+    auto iter_index = tx_variable_index_.emplace(ns, TxVariableIndex{}).first;
+    iter_index->second.index_.insert({less_case_name, 0});
+    iter_index->second.index_reverse_.emplace_back(less_case_name);
+    tx_variable_index_size_.emplace(ns, 1);
+    return 0;
   }
 
   return std::nullopt;
 }
 
-std::string_view Parser::getTxVariableIndexReverse(size_t index) const {
-  assert(index < tx_variable_index_reverse_.size());
-  if (index < tx_variable_index_reverse_.size()) {
-    return tx_variable_index_reverse_[index];
+std::string_view Parser::getTxVariableIndexReverse(const std::string& ns, size_t index) const {
+  auto iter_ns = tx_variable_index_.find(ns);
+  if (iter_ns != tx_variable_index_.end()) {
+    assert(index < iter_ns->second.index_reverse_.size());
+    if (index < iter_ns->second.index_reverse_.size()) {
+      return iter_ns->second.index_reverse_[index];
+    }
   }
 
   return EMPTY_STRING_VIEW;

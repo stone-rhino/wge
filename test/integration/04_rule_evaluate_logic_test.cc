@@ -59,7 +59,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
           *matched = true;
         },
         &matched);
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
     EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
@@ -97,11 +97,11 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
           *matched = true;
         },
         &matched);
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
     EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
-    EXPECT_EQ(std::get<std::string_view>(t->getVariable("chain")), "true");
+    EXPECT_EQ(std::get<std::string_view>(t->getVariable("", "chain")), "true");
   }
 
   // Test that chained rule is not matched, and starter rule is not matched, and the msg and logdata
@@ -137,7 +137,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
           *matched = true;
         },
         &matched);
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 3);
     EXPECT_FALSE(matched);
 
     // Even though the rule is not matched, the msg and logdata macro can evluate manually.
@@ -177,7 +177,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
           *matched = true;
         },
         &matched);
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 4);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 4);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
     // The first matched variable is TX:foo3, and last matched variable is TX:foo4.
@@ -214,7 +214,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
           *matched = true;
         },
         &matched);
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 4);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 4);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
     // The first matched variable is TX:foo3, and last matched variable is TX:foo4.
@@ -251,7 +251,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
           *matched = true;
         },
         &matched);
-    EXPECT_FALSE(t->hasVariable("test"));
+    EXPECT_FALSE(t->hasVariable("", "test"));
     EXPECT_FALSE(matched);
   }
 }
@@ -301,7 +301,7 @@ TEST(RuleEvaluateLogicTest, MatchedVarPush) {
         },
         &matched);
     // The rule is matched, and the action is executed.
-    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 1);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 1);
     EXPECT_TRUE(matched);
   }
 
