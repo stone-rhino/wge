@@ -999,7 +999,8 @@ operator:
 	| op_verify_cpf
 	| op_verify_ssn
 	| op_within
-	| op_rx_default;
+	| op_rx_default
+	| op_extensions;
 op_begins_with: NOT? AT OP_BEGINS_WITH string_with_macro;
 op_contains: NOT? AT OP_CONTAINS string_with_macro;
 op_contains_word: NOT? AT OP_CONTAINS_WORD string_with_macro;
@@ -1041,6 +1042,8 @@ op_verify_cpf: NOT? AT OP_VERIFY_CPF string_with_macro;
 op_verify_ssn: NOT? AT OP_VERIFY_SSN string_with_macro;
 op_within: NOT? AT OP_WITHIN string_with_macro;
 op_rx_default: string_with_macro;
+op_extensions: op_xor;
+op_xor: NOT? AT OP_XOR string_with_macro;
 
 action:
 	action_meta_data

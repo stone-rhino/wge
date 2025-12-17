@@ -532,6 +532,10 @@ public:
 
   std::any visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultContext* ctx) override;
 
+  // Extension operators
+public:
+  std::any visitOp_xor(Antlr4Gen::SecLangParser::Op_xorContext* ctx) override;
+
   // Action Group: Meta-data
 public:
   std::any

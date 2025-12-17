@@ -600,6 +600,7 @@ OP_VERIFY_CC: [vV][eE][rR][iI][fF][yY][cC][cC];
 OP_VERIFY_CPF: [vV][eE][rR][iI][fF][yY][cC][pP][fF];
 OP_VERIFY_SSN: [vV][eE][rR][iI][fF][yY][sS][sS][nN];
 OP_WITHIN: [wW][iI][tT][hH][iI][nN];
+OP_XOR: [xX][oO][rR];
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:

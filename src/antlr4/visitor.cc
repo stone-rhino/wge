@@ -1128,6 +1128,10 @@ std::any Visitor::visitOp_rx_default(Antlr4Gen::SecLangParser::Op_rx_defaultCont
   return EMPTY_STRING;
 }
 
+std::any Visitor::visitOp_xor(Antlr4Gen::SecLangParser::Op_xorContext* ctx) {
+  return setOperator<Operator::Xor>(ctx);
+}
+
 std::any
 Visitor::visitAction_meta_data_id(Antlr4Gen::SecLangParser::Action_meta_data_idContext* ctx) {
   // The SecRuleUpdateAction cannot be used to change the id of a rule

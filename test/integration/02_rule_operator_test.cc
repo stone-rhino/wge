@@ -424,6 +424,27 @@ SecRule TX:bar "@validateByteRange 65,66-68" "id:2,phase:1,setvar:'tx.false'")";
   EXPECT_FALSE(t->hasVariable("", "false"));
 }
 
+TEST_F(RuleOperatorTest, xor) {
+  const std::string directive =
+      R"(SecAction "phase:1,setvar:tx.foo=1,setvar:tx.bar=0"
+SecRule TX:foo "@xor 0" "id:1,phase:1,setvar:'tx.v1'"
+SecRule TX:foo "@xor 1" "id:2,phase:1,setvar:'tx.v2'"
+SecRule TX:bar "@xor 0" "id:3,phase:1,setvar:'tx.v3'"
+SecRule TX:bar "@xor 1" "id:4,phase:1,setvar:'tx.v4'"
+)";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+  EXPECT_TRUE(t->hasVariable("", "v1"));
+  EXPECT_FALSE(t->hasVariable("", "v2"));
+  EXPECT_FALSE(t->hasVariable("", "v3"));
+  EXPECT_TRUE(t->hasVariable("", "v4"));
+}
+
 TEST_F(RuleOperatorTest, macroLogicMatcher) {
   std::string ptree_json = R"EOF({
   "world": {

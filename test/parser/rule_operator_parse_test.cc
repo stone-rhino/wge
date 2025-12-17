@@ -67,6 +67,11 @@ TEST_F(RuleOperatorParseTest, beginsWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("beginsWith"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
 
 TEST_F(RuleOperatorParseTest, endsWith) {
@@ -95,6 +100,11 @@ TEST_F(RuleOperatorParseTest, endsWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("endsWith"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
 
 TEST_F(RuleOperatorParseTest, ipMatch) {
@@ -175,6 +185,11 @@ TEST_F(RuleOperatorParseTest, withinWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("within"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.v5}");
 }
 
 TEST_F(RuleOperatorParseTest, rx) {
@@ -203,6 +218,11 @@ TEST_F(RuleOperatorParseTest, rxWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("rx"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.hello}");
 }
 
 TEST_F(RuleOperatorParseTest, pmFromFile) {
@@ -245,6 +265,11 @@ TEST_F(RuleOperatorParseTest, streqWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("streq"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.hello}");
 }
 
 TEST_F(RuleOperatorParseTest, validateUrlEncoding) {
@@ -287,6 +312,11 @@ TEST_F(RuleOperatorParseTest, containsWithMacro) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("contains"));
   EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
 }
 
 TEST_F(RuleOperatorParseTest, validateByteRange) {
@@ -301,6 +331,37 @@ TEST_F(RuleOperatorParseTest, validateByteRange) {
   auto& op = rule.getOperator();
   EXPECT_EQ(op->name(), std::string_view("validateByteRange"));
   EXPECT_EQ(op->literalValue(), "65,66-68");
+}
+
+TEST_F(RuleOperatorParseTest, xor) {
+  const std::string directive = R"(SecRule TX:foo "@xor 0" "id:2,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
+  EXPECT_EQ(op->name(), std::string_view("xor"));
+  EXPECT_EQ(op->literalValue(), "0");
+}
+
+TEST_F(RuleOperatorParseTest, xorWithMacro) {
+  const std::string directive = R"(SecRule TX:foo "@xor %{tx.bar}" "id:2,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& rule = parser.rules()[0].back();
+  auto& op = rule.getOperator();
+  EXPECT_EQ(op->name(), std::string_view("xor"));
+  EXPECT_EQ(op->literalValue(), "");
+  auto& macro_matcher = op->macroLogicMatcher();
+  ASSERT_NE(macro_matcher, nullptr);
+  auto& macro = macro_matcher->macro();
+  ASSERT_NE(macro, nullptr);
+  EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
 } // namespace Parser
 } // namespace Wge

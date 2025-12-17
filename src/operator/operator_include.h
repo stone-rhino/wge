@@ -56,3 +56,4 @@
 #include "verify_cpf.h"
 #include "verify_ssn.h"
 #include "within.h"
+#include "xor.h"
