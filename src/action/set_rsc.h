@@ -37,11 +37,14 @@ class SetRsc final : public ActionBase {
   DECLARE_ACTION_NAME(setrsc);
 
 public:
-  SetRsc(std::string&& value);
-  SetRsc(std::unique_ptr<Macro::MacroBase>&& macro);
+  SetRsc(ActionBase::Branch branch, std::string&& value);
+  SetRsc(ActionBase::Branch branch, std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
+
+public:
+  const std::string& value() const { return value_; }
 
 private:
   std::string value_;

@@ -1130,7 +1130,7 @@ action_non_disruptive_setvar:
 	| action_non_disruptive_setvar_increase
 	| action_non_disruptive_setvar_decrease;
 action_non_disruptive_setvar_create:
-	Setvar COLON (
+	(ALWAYS | UNMATCHED)? Setvar COLON (
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname SINGLE_QUOTE
 		)
@@ -1145,7 +1145,7 @@ action_non_disruptive_setvar_varname: (
 		)
 	);
 action_non_disruptive_setvar_create_init:
-	Setvar COLON (
+	(ALWAYS | UNMATCHED)? Setvar COLON (
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname ASSIGN
 				action_non_disruptive_setvar_create_init_value SINGLE_QUOTE
@@ -1165,14 +1165,14 @@ action_non_disruptive_setvar_create_init_value: (
 		| (LEFT_RAW_FLAG VAR_RAW_VALUE RIGHT_RAW_FLAG)
 	);
 action_non_disruptive_setvar_remove:
-	Setvar COLON (
+	(ALWAYS | UNMATCHED)? Setvar COLON (
 		(
 			SINGLE_QUOTE NOT TX DOT action_non_disruptive_setvar_varname SINGLE_QUOTE
 		)
 		| (NOT TX DOT action_non_disruptive_setvar_varname)
 	);
 action_non_disruptive_setvar_increase:
-	Setvar COLON (
+	(ALWAYS | UNMATCHED)? Setvar COLON (
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname ASSIGN PLUS (
 				VAR_VALUE
@@ -1187,7 +1187,7 @@ action_non_disruptive_setvar_increase:
 		)
 	);
 action_non_disruptive_setvar_decrease:
-	Setvar COLON (
+	(ALWAYS | UNMATCHED)? Setvar COLON (
 		(
 			SINGLE_QUOTE TX DOT action_non_disruptive_setvar_varname ASSIGN MINUS (
 				VAR_VALUE
@@ -1203,23 +1203,23 @@ action_non_disruptive_setvar_decrease:
 	);
 
 action_non_disruptive_setenv:
-	Setenv COLON SINGLE_QUOTE VAR_NAME ASSIGN (
+	(ALWAYS | UNMATCHED)? Setenv COLON SINGLE_QUOTE VAR_NAME ASSIGN (
 		VAR_VALUE
 		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	) SINGLE_QUOTE;
 
 action_non_disruptive_setuid:
-	Setuid COLON (
+	(ALWAYS | UNMATCHED)? Setuid COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
 		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
 action_non_disruptive_setrsc:
-	Setrsc COLON (
+	(ALWAYS | UNMATCHED)? Setrsc COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
 		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
 action_non_disruptive_setsid:
-	Setsid COLON (
+	(ALWAYS | UNMATCHED)? Setsid COLON (
 		(SINGLE_QUOTE STRING SINGLE_QUOTE)
 		| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 	);
@@ -1306,7 +1306,7 @@ action_non_disruptive_t_trim_right: TRIM_RIGHT;
 action_non_disruptive_t_trim: TRIM;
 
 action_non_disruptive_ctl:
-	Ctl COLON (
+	(ALWAYS | UNMATCHED)? Ctl COLON (
 		action_non_disruptive_ctl_audit_engine
 		| action_non_disruptive_ctl_audit_log_parts
 		| action_non_disruptive_ctl_force_request_body_variable
@@ -1362,7 +1362,7 @@ action_non_disruptive_logdata:
 action_non_disruptive_capture: Capture;
 action_non_disruptive_multi_match: MultiMatch;
 action_non_disruptive_initcol:
-	Initcol COLON persistent_storage_collection ASSIGN string_with_macro;
+	(ALWAYS | UNMATCHED)? Initcol COLON persistent_storage_collection ASSIGN string_with_macro;
 persistent_storage_collection:
 	INIT_COL_GLOBAL
 	| INIT_COL_RESOURCE
@@ -1392,7 +1392,7 @@ action_flow:
 	action_flow_chain
 	| action_flow_skip
 	| action_flow_skip_after;
-action_flow_chain: Chain;
+action_flow_chain: (ALWAYS | UNMATCHED)? Chain;
 action_flow_skip: Skip COLON INT;
 action_flow_skip_after: SkipAfter COLON STRING;
 

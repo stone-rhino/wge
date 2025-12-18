@@ -22,9 +22,11 @@
 
 namespace Wge {
 namespace Action {
-SetSid::SetSid(std::string&& value) : value_(std::move(value)) {}
+SetSid::SetSid(ActionBase::Branch branch, std::string&& value)
+    : ActionBase(branch), value_(std::move(value)) {}
 
-SetSid::SetSid(std::unique_ptr<Macro::MacroBase>&& macro) : macro_(std::move(macro)) {}
+SetSid::SetSid(ActionBase::Branch branch, std::unique_ptr<Macro::MacroBase>&& macro)
+    : ActionBase(branch), macro_(std::move(macro)) {}
 
 void SetSid::evaluate(Transaction& t) const { throw "Not implemented!"; }
 } // namespace Action

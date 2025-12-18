@@ -35,11 +35,21 @@ namespace Wge {
 namespace Action {
 class ActionBase {
 public:
+  enum class Branch { Matched, Unmatched, Always };
+
+public:
+  ActionBase(Branch branch) : branch_(branch){};
   virtual ~ActionBase() = default;
 
 public:
   virtual void evaluate(Transaction& t) const = 0;
   virtual const char* name() const = 0;
+
+public:
+  Branch branch() const { return branch_; }
+
+private:
+  Branch branch_;
 };
 } // namespace Action
 } // namespace Wge

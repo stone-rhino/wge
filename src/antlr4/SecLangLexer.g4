@@ -39,7 +39,8 @@ tokens{
 	INT_RANGE,
 	OPTION,
 	STRING,
-	VAR_COUNT
+	VAR_COUNT,
+	UNMATCHED
 }
 
 QUOTE: '"';
@@ -607,7 +608,8 @@ ModeSecRuleOperatorValue_QUOTE:
 	QUOTE -> type(QUOTE), popMode, popMode, popMode, pushMode(ModeSecRuleAction);
 ModeSecRuleOperatorValue_STRING: (
 		'\\"'
-		| ('|' { [&](){
+		| (
+			'|' { [&](){
 			// Allow | if not followed by @<valid_operator>
 			if (_input->LA(1) != '@') return true;
 			
@@ -630,7 +632,8 @@ ModeSecRuleOperatorValue_STRING: (
 			
 			// Don't match | if it's followed by a valid operator
 			return operators.find(lookahead) == operators.end();
-		}()}?)
+		}()}?
+		)
 		| ~["%|]
 		| ('%' ~[{\\])
 		| ('%\\' .)
@@ -655,6 +658,8 @@ ModeSecRuleActionName_COMMA: COMMA -> type(COMMA);
 ModeSecRuleActionName_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), pushMode(ModeSecRuleActionString);
 ModeSecRuleActionName_INT: INT -> type(INT);
+ModeSecRuleActionName_UNMATCHED: NOT -> type(UNMATCHED);
+ALWAYS: '*';
 LEVEL: [1-9];
 Accuracy: 'accuracy';
 Allow: 'allow';

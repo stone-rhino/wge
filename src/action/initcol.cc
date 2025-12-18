@@ -24,12 +24,13 @@
 
 namespace Wge {
 namespace Action {
-InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value)
-    : type_(type), key_(std::move(key)), value_(std::move(value)) {}
+InitCol::InitCol(ActionBase::Branch branch, PersistentStorage::Storage::Type type,
+                 std::string&& key, std::string&& value)
+    : ActionBase(branch), type_(type), key_(std::move(key)), value_(std::move(value)) {}
 
-InitCol::InitCol(PersistentStorage::Storage::Type type, std::string&& key,
-                 std::unique_ptr<Macro::MacroBase>&& value)
-    : type_(type), key_(std::move(key)), value_macro_(std::move(value)) {}
+InitCol::InitCol(ActionBase::Branch branch, PersistentStorage::Storage::Type type,
+                 std::string&& key, std::unique_ptr<Macro::MacroBase>&& value)
+    : ActionBase(branch), type_(type), key_(std::move(key)), value_macro_(std::move(value)) {}
 
 void InitCol::evaluate(Transaction& t) const {
   if (value_macro_) {

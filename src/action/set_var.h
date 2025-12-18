@@ -49,13 +49,13 @@ public:
   enum class EvaluateType { Create, CreateAndInit, Remove, Increase, Decrease };
 
 public:
-  SetVar(const std::string& ns, std::string&& key, size_t index, Common::Variant&& value,
-         EvaluateType type);
-  SetVar(const std::string& ns, std::string&& key, size_t index,
+  SetVar(ActionBase::Branch branch, const std::string& ns, std::string&& key, size_t index,
+         Common::Variant&& value, EvaluateType type);
+  SetVar(ActionBase::Branch branch, const std::string& ns, std::string&& key, size_t index,
          std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type);
-  SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key, Common::Variant&& value,
-         EvaluateType type);
-  SetVar(const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
+  SetVar(ActionBase::Branch branch, const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
+         Common::Variant&& value, EvaluateType type);
+  SetVar(ActionBase::Branch branch, const std::string& ns, std::unique_ptr<Macro::MacroBase>&& key,
          std::unique_ptr<Macro::MacroBase>&& value, EvaluateType type);
 
 public:

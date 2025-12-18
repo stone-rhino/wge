@@ -31,12 +31,17 @@ class InitCol final : public ActionBase {
   DECLARE_ACTION_NAME(initcol);
 
 public:
-  InitCol(PersistentStorage::Storage::Type type, std::string&& key, std::string&& value);
-  InitCol(PersistentStorage::Storage::Type type, std::string&& key,
+  InitCol(ActionBase::Branch branch, PersistentStorage::Storage::Type type, std::string&& key,
+          std::string&& value);
+  InitCol(ActionBase::Branch branch, PersistentStorage::Storage::Type type, std::string&& key,
           std::unique_ptr<Macro::MacroBase>&& value);
 
 public:
   void evaluate(Transaction& t) const override;
+
+public:
+  const std::string& key() const { return key_; }
+  const std::string& value() const { return value_; }
 
 private:
   std::string key_;

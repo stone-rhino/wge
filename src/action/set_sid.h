@@ -37,11 +37,14 @@ class SetSid final : public ActionBase {
   DECLARE_ACTION_NAME(setsid);
 
 public:
-  SetSid(std::string&& value);
-  SetSid(std::unique_ptr<Macro::MacroBase>&& macro);
+  SetSid(ActionBase::Branch branch, std::string&& value);
+  SetSid(ActionBase::Branch branch, std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
+
+public:
+  const std::string& value() const { return value_; }
 
 private:
   std::string value_;

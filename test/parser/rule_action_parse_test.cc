@@ -57,15 +57,49 @@ TEST_F(RuleActionParseTest, NoAction) {
 
 TEST_F(RuleActionParseTest, ActionSetVar) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score',msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setvar:'tx.score0',!setvar:'tx.score1',*setvar:'tx.score2', msg:'aaa'")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = parser.rules()[0].back().actions();
-  EXPECT_EQ(actions.size(), 1);
-  EXPECT_EQ(std::string_view(actions.back()->name()), "setvar");
+  auto& all_actions = parser.rules()[0].back().actions();
+  auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+  auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+  ASSERT_EQ(all_actions.size(), 3);
+  ASSERT_EQ(matched_branch_actions.size(), 2);
+  ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+  const Action::SetVar* all_action0 = dynamic_cast<const Action::SetVar*>(all_actions[0].get());
+  const Action::SetVar* all_action1 = dynamic_cast<const Action::SetVar*>(all_actions[1].get());
+  const Action::SetVar* all_action2 = dynamic_cast<const Action::SetVar*>(all_actions[2].get());
+  const Action::SetVar* matched_action0 =
+      dynamic_cast<const Action::SetVar*>(matched_branch_actions[0]);
+  const Action::SetVar* matched_action1 =
+      dynamic_cast<const Action::SetVar*>(matched_branch_actions[1]);
+  const Action::SetVar* unmatched_action0 =
+      dynamic_cast<const Action::SetVar*>(unmatched_branch_actions[0]);
+  const Action::SetVar* unmatched_action1 =
+      dynamic_cast<const Action::SetVar*>(unmatched_branch_actions[1]);
+  ASSERT_NE(all_action0, nullptr);
+  ASSERT_NE(all_action1, nullptr);
+  ASSERT_NE(all_action2, nullptr);
+  ASSERT_NE(matched_action0, nullptr);
+  ASSERT_NE(matched_action1, nullptr);
+  ASSERT_NE(unmatched_action0, nullptr);
+  ASSERT_NE(unmatched_action1, nullptr);
+
+  EXPECT_EQ(all_action0, matched_action0);
+  EXPECT_EQ(all_action1, unmatched_action0);
+  EXPECT_EQ(all_action2, matched_action1);
+  EXPECT_EQ(all_action2, unmatched_action1);
+
+  EXPECT_EQ(std::string_view(all_actions[0]->name()), "setvar");
+  EXPECT_EQ(std::string_view(all_actions[1]->name()), "setvar");
+  EXPECT_EQ(std::string_view(all_actions[2]->name()), "setvar");
+  EXPECT_EQ(all_action0->key(), "score0");
+  EXPECT_EQ(all_action1->key(), "score1");
+  EXPECT_EQ(all_action2->key(), "score2");
 }
 
 TEST_F(RuleActionParseTest, ActionSetVarWithNoSigleQuote) {
@@ -83,29 +117,97 @@ TEST_F(RuleActionParseTest, ActionSetVarWithNoSigleQuote) {
 
 TEST_F(RuleActionParseTest, ActionSetEnv) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setenv:'var1=hello',msg:'aaa bbb'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setenv:'score0=hello',!setenv:'score1=hello',*setenv:'score2=hello',msg:'aaa bbb'")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& actions = parser.rules()[0].back().actions();
-  EXPECT_EQ(actions.size(), 1);
-  EXPECT_EQ(std::string_view(actions.back()->name()), "setenv");
+  auto& all_actions = parser.rules()[0].back().actions();
+  auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+  auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+  ASSERT_EQ(all_actions.size(), 3);
+  ASSERT_EQ(matched_branch_actions.size(), 2);
+  ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+  const Action::SetEnv* all_action0 = dynamic_cast<const Action::SetEnv*>(all_actions[0].get());
+  const Action::SetEnv* all_action1 = dynamic_cast<const Action::SetEnv*>(all_actions[1].get());
+  const Action::SetEnv* all_action2 = dynamic_cast<const Action::SetEnv*>(all_actions[2].get());
+  const Action::SetEnv* matched_action0 =
+      dynamic_cast<const Action::SetEnv*>(matched_branch_actions[0]);
+  const Action::SetEnv* matched_action1 =
+      dynamic_cast<const Action::SetEnv*>(matched_branch_actions[1]);
+  const Action::SetEnv* unmatched_action0 =
+      dynamic_cast<const Action::SetEnv*>(unmatched_branch_actions[0]);
+  const Action::SetEnv* unmatched_action1 =
+      dynamic_cast<const Action::SetEnv*>(unmatched_branch_actions[1]);
+  ASSERT_NE(all_action0, nullptr);
+  ASSERT_NE(all_action1, nullptr);
+  ASSERT_NE(all_action2, nullptr);
+  ASSERT_NE(matched_action0, nullptr);
+  ASSERT_NE(matched_action1, nullptr);
+  ASSERT_NE(unmatched_action0, nullptr);
+  ASSERT_NE(unmatched_action1, nullptr);
+
+  EXPECT_EQ(all_action0, matched_action0);
+  EXPECT_EQ(all_action1, unmatched_action0);
+  EXPECT_EQ(all_action2, matched_action1);
+  EXPECT_EQ(all_action2, unmatched_action1);
+
+  EXPECT_EQ(std::string_view(all_actions[0]->name()), "setenv");
+  EXPECT_EQ(std::string_view(all_actions[1]->name()), "setenv");
+  EXPECT_EQ(std::string_view(all_actions[2]->name()), "setenv");
+  EXPECT_EQ(all_action0->key(), "score0");
+  EXPECT_EQ(all_action1->key(), "score1");
+  EXPECT_EQ(all_action2->key(), "score2");
 }
 
 TEST_F(RuleActionParseTest, ActionSetRsc) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setrsc:'this is rsc',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setrsc:'this is rsc0',!setrsc:'this is rsc1',*setrsc:'this is rsc2',msg:'aaa'")";
 
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules()[0].back().actions();
-    EXPECT_EQ(actions.size(), 1);
-    EXPECT_EQ(std::string_view(actions.back()->name()), "setrsc");
+
+    auto& all_actions = parser.rules()[0].back().actions();
+    auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+    auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+    ASSERT_EQ(all_actions.size(), 3);
+    ASSERT_EQ(matched_branch_actions.size(), 2);
+    ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+    const Action::SetRsc* all_action0 = dynamic_cast<const Action::SetRsc*>(all_actions[0].get());
+    const Action::SetRsc* all_action1 = dynamic_cast<const Action::SetRsc*>(all_actions[1].get());
+    const Action::SetRsc* all_action2 = dynamic_cast<const Action::SetRsc*>(all_actions[2].get());
+    const Action::SetRsc* matched_action0 =
+        dynamic_cast<const Action::SetRsc*>(matched_branch_actions[0]);
+    const Action::SetRsc* matched_action1 =
+        dynamic_cast<const Action::SetRsc*>(matched_branch_actions[1]);
+    const Action::SetRsc* unmatched_action0 =
+        dynamic_cast<const Action::SetRsc*>(unmatched_branch_actions[0]);
+    const Action::SetRsc* unmatched_action1 =
+        dynamic_cast<const Action::SetRsc*>(unmatched_branch_actions[1]);
+    ASSERT_NE(all_action0, nullptr);
+    ASSERT_NE(all_action1, nullptr);
+    ASSERT_NE(all_action2, nullptr);
+    ASSERT_NE(matched_action0, nullptr);
+    ASSERT_NE(matched_action1, nullptr);
+    ASSERT_NE(unmatched_action0, nullptr);
+    ASSERT_NE(unmatched_action1, nullptr);
+
+    EXPECT_EQ(all_action0, matched_action0);
+    EXPECT_EQ(all_action1, unmatched_action0);
+    EXPECT_EQ(all_action2, matched_action1);
+    EXPECT_EQ(all_action2, unmatched_action1);
+
+    EXPECT_EQ(std::string_view(all_actions[0]->name()), "setrsc");
+    EXPECT_EQ(std::string_view(all_actions[1]->name()), "setrsc");
+    EXPECT_EQ(std::string_view(all_actions[2]->name()), "setrsc");
+    EXPECT_EQ(all_action0->value(), "this is rsc0");
+    EXPECT_EQ(all_action1->value(), "this is rsc1");
+    EXPECT_EQ(all_action2->value(), "this is rsc2");
   }
 
   // Macro expansion
@@ -126,13 +228,48 @@ TEST_F(RuleActionParseTest, ActionSetRsc) {
 TEST_F(RuleActionParseTest, ActionSetSid) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setsid:'this is sid',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setsid:'this is sid0',!setsid:'this is sid1',*setsid:'this is sid2',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules()[0].back().actions();
-    EXPECT_EQ(actions.size(), 1);
-    EXPECT_EQ(std::string_view(actions.back()->name()), "setsid");
+
+    auto& all_actions = parser.rules()[0].back().actions();
+    auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+    auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+    ASSERT_EQ(all_actions.size(), 3);
+    ASSERT_EQ(matched_branch_actions.size(), 2);
+    ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+    const Action::SetSid* all_action0 = dynamic_cast<const Action::SetSid*>(all_actions[0].get());
+    const Action::SetSid* all_action1 = dynamic_cast<const Action::SetSid*>(all_actions[1].get());
+    const Action::SetSid* all_action2 = dynamic_cast<const Action::SetSid*>(all_actions[2].get());
+    const Action::SetSid* matched_action0 =
+        dynamic_cast<const Action::SetSid*>(matched_branch_actions[0]);
+    const Action::SetSid* matched_action1 =
+        dynamic_cast<const Action::SetSid*>(matched_branch_actions[1]);
+    const Action::SetSid* unmatched_action0 =
+        dynamic_cast<const Action::SetSid*>(unmatched_branch_actions[0]);
+    const Action::SetSid* unmatched_action1 =
+        dynamic_cast<const Action::SetSid*>(unmatched_branch_actions[1]);
+    ASSERT_NE(all_action0, nullptr);
+    ASSERT_NE(all_action1, nullptr);
+    ASSERT_NE(all_action2, nullptr);
+    ASSERT_NE(matched_action0, nullptr);
+    ASSERT_NE(matched_action1, nullptr);
+    ASSERT_NE(unmatched_action0, nullptr);
+    ASSERT_NE(unmatched_action1, nullptr);
+
+    EXPECT_EQ(all_action0, matched_action0);
+    EXPECT_EQ(all_action1, unmatched_action0);
+    EXPECT_EQ(all_action2, matched_action1);
+    EXPECT_EQ(all_action2, unmatched_action1);
+
+    EXPECT_EQ(std::string_view(all_actions[0]->name()), "setsid");
+    EXPECT_EQ(std::string_view(all_actions[1]->name()), "setsid");
+    EXPECT_EQ(std::string_view(all_actions[2]->name()), "setsid");
+    EXPECT_EQ(all_action0->value(), "this is sid0");
+    EXPECT_EQ(all_action1->value(), "this is sid1");
+    EXPECT_EQ(all_action2->value(), "this is sid2");
   }
 
   // Macro expansion
@@ -151,13 +288,48 @@ TEST_F(RuleActionParseTest, ActionSetSid) {
 TEST_F(RuleActionParseTest, ActionSetUid) {
   {
     const std::string rule_directive =
-        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setuid:'this is uid',msg:'aaa'")";
+        R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,setuid:'this is uid0',!setuid:'this is uid1',*setuid:'this is uid2',msg:'aaa'")";
     Antlr4::Parser parser;
     auto result = parser.load(rule_directive);
     ASSERT_TRUE(result.has_value());
-    auto& actions = parser.rules()[0].back().actions();
-    EXPECT_EQ(actions.size(), 1);
-    EXPECT_EQ(std::string_view(actions.back()->name()), "setuid");
+
+    auto& all_actions = parser.rules()[0].back().actions();
+    auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+    auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+    ASSERT_EQ(all_actions.size(), 3);
+    ASSERT_EQ(matched_branch_actions.size(), 2);
+    ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+    const Action::SetUid* all_action0 = dynamic_cast<const Action::SetUid*>(all_actions[0].get());
+    const Action::SetUid* all_action1 = dynamic_cast<const Action::SetUid*>(all_actions[1].get());
+    const Action::SetUid* all_action2 = dynamic_cast<const Action::SetUid*>(all_actions[2].get());
+    const Action::SetUid* matched_action0 =
+        dynamic_cast<const Action::SetUid*>(matched_branch_actions[0]);
+    const Action::SetUid* matched_action1 =
+        dynamic_cast<const Action::SetUid*>(matched_branch_actions[1]);
+    const Action::SetUid* unmatched_action0 =
+        dynamic_cast<const Action::SetUid*>(unmatched_branch_actions[0]);
+    const Action::SetUid* unmatched_action1 =
+        dynamic_cast<const Action::SetUid*>(unmatched_branch_actions[1]);
+    ASSERT_NE(all_action0, nullptr);
+    ASSERT_NE(all_action1, nullptr);
+    ASSERT_NE(all_action2, nullptr);
+    ASSERT_NE(matched_action0, nullptr);
+    ASSERT_NE(matched_action1, nullptr);
+    ASSERT_NE(unmatched_action0, nullptr);
+    ASSERT_NE(unmatched_action1, nullptr);
+
+    EXPECT_EQ(all_action0, matched_action0);
+    EXPECT_EQ(all_action1, unmatched_action0);
+    EXPECT_EQ(all_action2, matched_action1);
+    EXPECT_EQ(all_action2, unmatched_action1);
+
+    EXPECT_EQ(std::string_view(all_actions[0]->name()), "setuid");
+    EXPECT_EQ(std::string_view(all_actions[1]->name()), "setuid");
+    EXPECT_EQ(std::string_view(all_actions[2]->name()), "setuid");
+    EXPECT_EQ(all_action0->value(), "this is uid0");
+    EXPECT_EQ(all_action1->value(), "this is uid1");
+    EXPECT_EQ(all_action2->value(), "this is uid2");
   }
 
   // Macro expansion
@@ -321,10 +493,43 @@ TEST_F(RuleActionParseTest, ActionXmlns) {
 
 TEST_F(RuleActionParseTest, ActionCtlAuditEngine) {
   const std::string rule_directive =
-      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=On,msg:'aaa'")";
+      R"(SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ctl:auditEngine=On,!ctl:auditEngine=On,*ctl:auditEngine=On,msg:'aaa'")";
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
+
+  auto& all_actions = parser.rules()[0].back().actions();
+  auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+  auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+  ASSERT_EQ(all_actions.size(), 3);
+  ASSERT_EQ(matched_branch_actions.size(), 2);
+  ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+  const Action::Ctl* all_action0 = dynamic_cast<const Action::Ctl*>(all_actions[0].get());
+  const Action::Ctl* all_action1 = dynamic_cast<const Action::Ctl*>(all_actions[1].get());
+  const Action::Ctl* all_action2 = dynamic_cast<const Action::Ctl*>(all_actions[2].get());
+  const Action::Ctl* matched_action0 = dynamic_cast<const Action::Ctl*>(matched_branch_actions[0]);
+  const Action::Ctl* matched_action1 = dynamic_cast<const Action::Ctl*>(matched_branch_actions[1]);
+  const Action::Ctl* unmatched_action0 =
+      dynamic_cast<const Action::Ctl*>(unmatched_branch_actions[0]);
+  const Action::Ctl* unmatched_action1 =
+      dynamic_cast<const Action::Ctl*>(unmatched_branch_actions[1]);
+  ASSERT_NE(all_action0, nullptr);
+  ASSERT_NE(all_action1, nullptr);
+  ASSERT_NE(all_action2, nullptr);
+  ASSERT_NE(matched_action0, nullptr);
+  ASSERT_NE(matched_action1, nullptr);
+  ASSERT_NE(unmatched_action0, nullptr);
+  ASSERT_NE(unmatched_action1, nullptr);
+
+  EXPECT_EQ(all_action0, matched_action0);
+  EXPECT_EQ(all_action1, unmatched_action0);
+  EXPECT_EQ(all_action2, matched_action1);
+  EXPECT_EQ(all_action2, unmatched_action1);
+
+  EXPECT_EQ(std::string_view(all_actions[0]->name()), "ctl");
+  EXPECT_EQ(std::string_view(all_actions[1]->name()), "ctl");
+  EXPECT_EQ(std::string_view(all_actions[2]->name()), "ctl");
 
   {
     const std::string rule_directive =
@@ -578,6 +783,50 @@ TEST_F(RuleActionParseTest, ActionInitCol) {
   auto& actions = parser.rules()[0].back().actions();
   EXPECT_EQ(actions.size(), 2);
   EXPECT_NE(nullptr, dynamic_cast<Action::InitCol*>(actions.front().get()));
+
+  {
+    const std::string rule_directive =
+        R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,initcol:ip=%{remote_addr}_%{MATCHED_VAR},!initcol:ip=%{remote_addr}_%{MATCHED_VAR},*initcol:ip=%{remote_addr}_%{MATCHED_VAR}")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& all_actions = parser.rules()[0].back().actions();
+    auto& matched_branch_actions = parser.rules()[0].back().matchedBranchActions();
+    auto& unmatched_branch_actions = parser.rules()[0].back().unmatchedBranchActions();
+    ASSERT_EQ(all_actions.size(), 3);
+    ASSERT_EQ(matched_branch_actions.size(), 2);
+    ASSERT_EQ(unmatched_branch_actions.size(), 2);
+
+    const Action::InitCol* all_action0 = dynamic_cast<const Action::InitCol*>(all_actions[0].get());
+    const Action::InitCol* all_action1 = dynamic_cast<const Action::InitCol*>(all_actions[1].get());
+    const Action::InitCol* all_action2 = dynamic_cast<const Action::InitCol*>(all_actions[2].get());
+    const Action::InitCol* matched_action0 =
+        dynamic_cast<const Action::InitCol*>(matched_branch_actions[0]);
+    const Action::InitCol* matched_action1 =
+        dynamic_cast<const Action::InitCol*>(matched_branch_actions[1]);
+    const Action::InitCol* unmatched_action0 =
+        dynamic_cast<const Action::InitCol*>(unmatched_branch_actions[0]);
+    const Action::InitCol* unmatched_action1 =
+        dynamic_cast<const Action::InitCol*>(unmatched_branch_actions[1]);
+    ASSERT_NE(all_action0, nullptr);
+    ASSERT_NE(all_action1, nullptr);
+    ASSERT_NE(all_action2, nullptr);
+    ASSERT_NE(matched_action0, nullptr);
+    ASSERT_NE(matched_action1, nullptr);
+    ASSERT_NE(unmatched_action0, nullptr);
+    ASSERT_NE(unmatched_action1, nullptr);
+
+    EXPECT_EQ(all_action0, matched_action0);
+    EXPECT_EQ(all_action1, unmatched_action0);
+    EXPECT_EQ(all_action2, matched_action1);
+    EXPECT_EQ(all_action2, unmatched_action1);
+
+    EXPECT_EQ(std::string_view(all_actions[0]->name()), "initcol");
+    EXPECT_EQ(std::string_view(all_actions[1]->name()), "initcol");
+    EXPECT_EQ(std::string_view(all_actions[2]->name()), "initcol");
+  }
 }
 
 TEST_F(RuleActionParseTest, ActionSkipAfter) {

@@ -22,9 +22,11 @@
 
 namespace Wge {
 namespace Action {
-SetUid::SetUid(std::string&& value) : value_(std::move(value)) {}
+SetUid::SetUid(ActionBase::Branch branch, std::string&& value)
+    : ActionBase(branch), value_(std::move(value)) {}
 
-SetUid::SetUid(std::unique_ptr<Macro::MacroBase>&& macro) : macro_(std::move(macro)) {}
+SetUid::SetUid(ActionBase::Branch branch, std::unique_ptr<Macro::MacroBase>&& macro)
+    : ActionBase(branch), macro_(std::move(macro)) {}
 
 void SetUid::evaluate(Transaction& t) const { throw "Not implemented!"; }
 } // namespace Action

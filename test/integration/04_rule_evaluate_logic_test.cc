@@ -146,6 +146,77 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
   }
 }
 
+TEST(RuleEvaluateLogicTest, operatorOrCombination) {
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=foo"
+        SecRule TX:foo "@streq hello|@beginsWith world|@streq foo|@rx hi"  "phase:1,id:1, setvar:tx.matched"
+    )";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(directive);
+  engine.init();
+  auto t = engine.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  bool matched = false;
+  t->processRequestHeaders(nullptr, nullptr, 0);
+  EXPECT_TRUE(t->hasVariable("", "matched"));
+}
+
+TEST(RuleEvaluateLogicTest, unmatchedBranch) {
+  // Test the ALWAYS and UNMATCHED action branches.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=foo"
+        SecRule TX:foo "@streq foo"  "phase:1,id:1, !setvar:tx.unmatched0, setvar:tx.matched0, *setvar:tx.always0"
+        SecRule TX:foo "!@streq foo"  "phase:1,id:2, !setvar:tx.unmatched1, setvar:tx.matched1,*setvar:tx.always1"
+    )";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0);
+    EXPECT_TRUE(t->hasVariable("", "matched0"));
+    EXPECT_FALSE(t->hasVariable("", "unmatched0"));
+    EXPECT_TRUE(t->hasVariable("", "always0"));
+    EXPECT_FALSE(t->hasVariable("", "matched1"));
+    EXPECT_TRUE(t->hasVariable("", "unmatched1"));
+    EXPECT_TRUE(t->hasVariable("", "always1"));
+  }
+
+  // Test the chained rules with ALWAYS and UNMATCHED action branches.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=foo"
+        SecRule TX:foo "!@streq foo"  "phase:1,id:1, chain"
+          SecRule TX:foo "@streq foo"  "setvar:tx.v1"
+        SecRule TX:foo "!@streq foo"  "phase:1,id:2, !chain"
+          SecRule TX:foo "@streq foo"  "setvar:tx.v2"
+        SecRule TX:foo "!@streq foo"  "phase:1,id:3, *chain"
+          SecRule TX:foo "@streq foo"  "setvar:tx.v3"
+    )";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0);
+    EXPECT_FALSE(t->hasVariable("", "v1"));
+    EXPECT_TRUE(t->hasVariable("", "v2"));
+    EXPECT_TRUE(t->hasVariable("", "v3"));
+  }
+}
+
 TEST(RuleEvaluateLogicTest, exceptVariable) {
   // Test that the except variable is won't be evaluated.
   {

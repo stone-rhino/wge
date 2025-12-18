@@ -34,11 +34,15 @@ class SetEnv final : public ActionBase {
   DECLARE_ACTION_NAME(setenv);
 
 public:
-  SetEnv(std::string&& key, std::string&& value);
-  SetEnv(std::string&& key, std::unique_ptr<Macro::MacroBase>&& macro);
+  SetEnv(ActionBase::Branch branch, std::string&& key, std::string&& value);
+  SetEnv(ActionBase::Branch branch, std::string&& key, std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
+
+public:
+  const std::string& key() const { return key_; }
+  const std::string& value() const { return value_; }
 
 private:
   std::string key_;

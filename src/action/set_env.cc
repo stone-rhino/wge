@@ -26,15 +26,16 @@
 
 namespace Wge {
 namespace Action {
-SetEnv::SetEnv(std::string&& key, std::string&& value)
-    : key_(std::move(key)), value_(std::move(value)) {
+SetEnv::SetEnv(ActionBase::Branch branch, std::string&& key, std::string&& value)
+    : ActionBase(branch), key_(std::move(key)), value_(std::move(value)) {
   // The variable name is case insensitive
   std::transform(key_.begin(), key_.end(), key_.begin(),
                  [](unsigned char c) { return std::tolower(c); });
 }
 
-SetEnv::SetEnv(std::string&& key, std::unique_ptr<Macro::MacroBase>&& macro)
-    : key_(std::move(key)), macro_(std::move(macro)) {
+SetEnv::SetEnv(ActionBase::Branch branch, std::string&& key,
+               std::unique_ptr<Macro::MacroBase>&& macro)
+    : ActionBase(branch), key_(std::move(key)), macro_(std::move(macro)) {
   // The variable name is case insensitive
   std::transform(key_.begin(), key_.end(), key_.begin(),
                  [](unsigned char c) { return std::tolower(c); });

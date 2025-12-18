@@ -155,6 +155,12 @@ public:
   void firstMatch(bool value) { flags_.set(static_cast<size_t>(Flags::FIRST_MATCH), value); }
   bool emptyMatch() const { return flags_.test(static_cast<size_t>(Flags::EMPTY_MATCH)); }
   void emptyMatch(bool value);
+  bool matchedChain() const { return flags_.test(static_cast<size_t>(Flags::MATCHED_CHAIN)); }
+  void matchedChain(bool value) { flags_.set(static_cast<size_t>(Flags::MATCHED_CHAIN), value); }
+  bool unmatchedChain() const { return flags_.test(static_cast<size_t>(Flags::UNMATCHED_CHAIN)); }
+  void unmatchedChain(bool value) {
+    flags_.set(static_cast<size_t>(Flags::UNMATCHED_CHAIN), value);
+  }
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
     return transforms_;
   }
@@ -183,22 +189,30 @@ public:
   void index(RuleIndexType value) { index_ = value; }
   int16_t skip() const { return skip_; }
   void skip(int16_t value) { skip_ = value; }
-  const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const { return actions_; }
-  std::vector<std::unique_ptr<Action::ActionBase>>& actions() { return actions_; }
-  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
+  const std::vector<std::unique_ptr<Action::ActionBase>>& actions() const {
+    return detail_->actions_;
+  }
+  const std::vector<const Action::ActionBase*>& matchedBranchActions() const {
+    return matched_branch_actions_;
+  }
+  const std::vector<const Action::ActionBase*>& unmatchedBranchActions() const {
+    return unmatched_branch_actions_;
+  }
+  void appendAction(std::unique_ptr<Action::ActionBase>&& action);
   const std::vector<std::unique_ptr<Variable::VariableBase>>& variables() const {
     return variables_;
   }
+  void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
   const std::vector<std::unique_ptr<Variable::VariableBase>>& exceptVariables() const {
     return detail_->except_variables_;
   }
   const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
     return detail_->variables_index_by_full_name_;
   }
-  void appendOperator(std::unique_ptr<Operator::OperatorBase>&& op);
   const std::vector<std::unique_ptr<Operator::OperatorBase>>& operators() const {
     return operators_;
   }
+  void appendOperator(std::unique_ptr<Operator::OperatorBase>&& op);
   void clearOperators() { operators_.clear(); }
   void appendChainRule(std::unique_ptr<Rule>&& rule);
 
@@ -275,7 +289,7 @@ private:
                                const std::unique_ptr<Wge::Variable::VariableBase>& var,
                                std::string_view& capture_value) const;
   inline bool evaluateChain(Transaction& t) const;
-  inline void evaluateActions(Transaction& t) const;
+  inline void evaluateActions(Transaction& t, Action::ActionBase::Branch branch) const;
   bool evaluateWithMultiMatch(Transaction& t) const;
 
 private:
@@ -307,6 +321,12 @@ private:
 
     // If enabled, and value of operator is a macro that evaluates to empty, the rule will match.
     EMPTY_MATCH,
+
+    // Indicates that the matched branch actions have chain action.
+    MATCHED_CHAIN,
+
+    // Indicates that the unmatched branch actions have chain action.
+    UNMATCHED_CHAIN,
 
     // If enabled, WGE will ignore the default transformation for the matched variable.
     IGNORE_DEFAULT_TRANSFORM,
@@ -344,7 +364,8 @@ private:
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
   std::vector<std::unique_ptr<Operator::OperatorBase>> operators_;
-  std::vector<std::unique_ptr<Action::ActionBase>> actions_;
+  std::vector<const Action::ActionBase*> matched_branch_actions_;
+  std::vector<const Action::ActionBase*> unmatched_branch_actions_;
 
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.
   // Chained rules allow for more complex processing logic.
@@ -443,6 +464,8 @@ private:
     std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;
 
     std::vector<std::unique_ptr<Variable::VariableBase>> except_variables_;
+
+    std::vector<std::unique_ptr<Action::ActionBase>> actions_;
   };
 
   std::unique_ptr<Detail> detail_;

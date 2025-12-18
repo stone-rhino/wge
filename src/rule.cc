@@ -144,7 +144,7 @@ bool Rule::evaluate(Transaction& t) const {
     [[unlikely]] {
       WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id(), filePath(), line());
       // Evaluate the actions
-      for (auto& action : actions_) {
+      for (auto& action : matched_branch_actions_) {
         action->evaluate(t);
       }
       return true;
@@ -206,8 +206,8 @@ bool Rule::evaluate(Transaction& t) const {
 
         rule_matched = true;
 
-        // Evaluate the default actions and the action defined actions
-        evaluateActions(t);
+        // Evaluate the matched branch actions
+        evaluateActions(t, Action::ActionBase::Branch::Matched);
 
         // If the first match is enabled, stop evaluating the rule
         if (firstMatch())
@@ -215,23 +215,38 @@ bool Rule::evaluate(Transaction& t) const {
             WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
             break;
           }
+      } else {
+        // Evaluate the unmatched branch actions
+        evaluateActions(t, Action::ActionBase::Branch::Unmatched);
       }
     }
   }
 
   // Evaluate the chained rules
-  if (rule_matched) {
-    if (chain_)
-      [[unlikely]] {
-        // If the chained rules are matched means the rule is matched, otherwise the rule is not
-        // matched
-        if (!evaluateChain(t)) {
-          rule_matched = false;
-        }
-      }
+  if (chain_) {
+    if ((rule_matched && matchedChain()) || (!rule_matched && unmatchedChain())) {
+      rule_matched = evaluateChain(t);
+    }
   }
 
   return rule_matched;
+}
+
+void Rule::appendAction(std::unique_ptr<Action::ActionBase>&& action) {
+  ASSERT_IS_MAIN_THREAD();
+  detail_->actions_.emplace_back(std::move(action));
+  switch (detail_->actions_.back()->branch()) {
+  case Action::ActionBase::Branch::Matched:
+    matched_branch_actions_.emplace_back(detail_->actions_.back().get());
+    break;
+  case Action::ActionBase::Branch::Unmatched:
+    unmatched_branch_actions_.emplace_back(detail_->actions_.back().get());
+    break;
+  case Action::ActionBase::Branch::Always:
+    matched_branch_actions_.emplace_back(detail_->actions_.back().get());
+    unmatched_branch_actions_.emplace_back(detail_->actions_.back().get());
+    break;
+  }
 }
 
 void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
@@ -418,34 +433,40 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
 
 bool Rule::evaluateChain(Transaction& t) const {
   bool matched = true;
-  if (chain_) {
-    WGE_LOG_TRACE("evaluate chained rule. id: {}", chain_->id());
-    WGE_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
+  assert(chain_);
+  WGE_LOG_TRACE("evaluate chained rule. id: {}", chain_->id());
+  WGE_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
 
-    // Set the chained rule as the current evaluate rule
-    t.setCurrentEvaluateRule(chain_.get());
+  // Set the chained rule as the current evaluate rule
+  t.setCurrentEvaluateRule(chain_.get());
 
-    matched = chain_->evaluate(t);
+  matched = chain_->evaluate(t);
 
-    // Restore the current rule to the transaction
-    t.setCurrentEvaluateRule(this);
-  }
+  // Restore the current rule to the transaction
+  t.setCurrentEvaluateRule(this);
 
   return matched;
 }
 
-void Rule::evaluateActions(Transaction& t) const {
-  // Evaluate the default actions
-  const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
-  if (default_action) {
-    for (auto& action : default_action->actions()) {
+void Rule::evaluateActions(Transaction& t, Action::ActionBase::Branch branch) const {
+  if (branch != Action::ActionBase::Branch::Unmatched) {
+    // Evaluate the default actions
+    const Wge::Rule* default_action = t.getEngine().defaultActions(phase_);
+    if (default_action) {
+      for (auto& action : default_action->actions()) {
+        action->evaluate(t);
+      }
+    }
+
+    // Evaluate the matched branch actions
+    for (auto& action : matched_branch_actions_) {
       action->evaluate(t);
     }
-  }
-
-  // Evaluate the action defined actions
-  for (auto& action : actions_) {
-    action->evaluate(t);
+  } else {
+    // Evaluate the unmatched branch actions
+    for (auto& action : unmatched_branch_actions_) {
+      action->evaluate(t);
+    }
   }
 }
 
@@ -512,8 +533,8 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
         rule_matched = true;
 
-        // Evaluate the default actions and the action defined actions
-        evaluateActions(t);
+        // Evaluate the matched branch actions
+        evaluateActions(t, Action::ActionBase::Branch::Matched);
 
         // If the first match is enabled, stop evaluating the rule
         if (firstMatch())
@@ -527,6 +548,9 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         curr_transform_index = 0;
         evaluated_value = nullptr;
       } else {
+        // Evaluate the unmatched branch actions
+        evaluateActions(t, Action::ActionBase::Branch::Unmatched);
+
         // The variable value is not matched, evaluate the transformation and try to match again
         if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_))
           [[likely]] {
@@ -561,15 +585,10 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   }
 
   // Evaluate the chained rules
-  if (rule_matched) {
-    if (chain_)
-      [[unlikely]] {
-        // If the chained rules are matched means the rule is matched, otherwise the rule is not
-        // matched
-        if (!evaluateChain(t)) {
-          rule_matched = false;
-        }
-      }
+  if (chain_) {
+    if ((rule_matched && matchedChain()) || (!rule_matched && unmatchedChain())) {
+      rule_matched = evaluateChain(t);
+    }
   }
 
   return rule_matched;

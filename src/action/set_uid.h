@@ -37,11 +37,14 @@ class SetUid final : public ActionBase {
   DECLARE_ACTION_NAME(setuid);
 
 public:
-  SetUid(std::string&& value);
-  SetUid(std::unique_ptr<Macro::MacroBase>&& macro);
+  SetUid(ActionBase::Branch branch, std::string&& value);
+  SetUid(ActionBase::Branch branch, std::unique_ptr<Macro::MacroBase>&& macro);
 
 public:
   void evaluate(Transaction& t) const override;
+
+public:
+  const std::string& value() const { return value_; }
 
 private:
   std::string value_;

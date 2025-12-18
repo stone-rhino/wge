@@ -27,7 +27,8 @@
 
 namespace Wge {
 namespace Action {
-Ctl::Ctl(CtlType type, std::any&& value) : type_(type), value_(std::move(value)) {
+Ctl::Ctl(ActionBase::Branch branch, CtlType type, std::any&& value)
+    : ActionBase(branch), type_(type), value_(std::move(value)) {
   switch (type_) {
   case CtlType::AuditEngine:
     evaluate_func_ = std::bind(&Ctl::evaluate_audit_engine, this, std::placeholders::_1);

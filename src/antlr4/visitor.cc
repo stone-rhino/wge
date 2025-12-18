@@ -1305,17 +1305,25 @@ std::any Visitor::visitAction_non_disruptive_setvar_create(
     RETURN_ERROR(key_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (key_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
+    current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+        branch, parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
         Action::SetVar::EvaluateType::Create));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
-    actions.emplace_back(std::make_unique<Action::SetVar>(parser_->getCurrentNamespace(),
-                                                          std::move(key), index, Common::Variant(),
-                                                          Action::SetVar::EvaluateType::Create));
+    current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+        branch, parser_->getCurrentNamespace(), std::move(key), index, Common::Variant(),
+        Action::SetVar::EvaluateType::Create));
   }
 
   return EMPTY_STRING;
@@ -1323,7 +1331,6 @@ std::any Visitor::visitAction_non_disruptive_setvar_create(
 
 std::any Visitor::visitAction_non_disruptive_setvar_create_init(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_create_initContext* ctx) {
-  auto& actions = current_rule_->get()->actions();
   std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
@@ -1362,26 +1369,35 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
     }
   }
 
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (key_macro.value()) {
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::CreateAndInit));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
-          Action::SetVar::EvaluateType::CreateAndInit));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
+          std::move(value_variant), Action::SetVar::EvaluateType::CreateAndInit));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::CreateAndInit));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index,
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::CreateAndInit));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::CreateAndInit));
     }
   }
@@ -1400,17 +1416,25 @@ std::any Visitor::visitAction_non_disruptive_setvar_remove(
     RETURN_ERROR(key_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (key_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetVar>(
-        parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
+    current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+        branch, parser_->getCurrentNamespace(), std::move(key_macro.value()), Common::Variant(),
         Action::SetVar::EvaluateType::Remove));
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
-    actions.emplace_back(std::make_unique<Action::SetVar>(parser_->getCurrentNamespace(),
-                                                          std::move(key), index, Common::Variant(),
-                                                          Action::SetVar::EvaluateType::Remove));
+    current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+        branch, parser_->getCurrentNamespace(), std::move(key), index, Common::Variant(),
+        Action::SetVar::EvaluateType::Remove));
   }
 
   return EMPTY_STRING;
@@ -1418,7 +1442,6 @@ std::any Visitor::visitAction_non_disruptive_setvar_remove(
 
 std::any Visitor::visitAction_non_disruptive_setvar_increase(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_increaseContext* ctx) {
-  auto& actions = current_rule_->get()->actions();
   std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
@@ -1448,26 +1471,35 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
     }
   }
 
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (key_macro.value()) {
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::Increase));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
-          Action::SetVar::EvaluateType::Increase));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
+          std::move(value_variant), Action::SetVar::EvaluateType::Increase));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::Increase));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index,
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::Increase));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::Increase));
     }
   }
@@ -1477,7 +1509,6 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
 
 std::any Visitor::visitAction_non_disruptive_setvar_decrease(
     Antlr4Gen::SecLangParser::Action_non_disruptive_setvar_decreaseContext* ctx) {
-  auto& actions = current_rule_->get()->actions();
   std::expected<std::unique_ptr<Macro::MacroBase>, std::string> key_macro =
       getMacro(ctx->action_non_disruptive_setvar_varname()->getText(),
                ctx->action_non_disruptive_setvar_varname()->variable(),
@@ -1507,26 +1538,35 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
     }
   }
 
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (key_macro.value()) {
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
           std::move(value_macro.value()), Action::SetVar::EvaluateType::Decrease));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key_macro.value()), std::move(value_variant),
-          Action::SetVar::EvaluateType::Decrease));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key_macro.value()),
+          std::move(value_variant), Action::SetVar::EvaluateType::Decrease));
     }
   } else {
     std::string key = ctx->action_non_disruptive_setvar_varname()->getText();
     size_t index = parser_->getTxVariableIndex(parser_->getCurrentNamespace(), key, true).value();
     if (value_macro.value()) {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_macro.value()),
-          Action::SetVar::EvaluateType::Decrease));
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index,
+          std::move(value_macro.value()), Action::SetVar::EvaluateType::Decrease));
     } else {
-      actions.emplace_back(std::make_unique<Action::SetVar>(
-          parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
+      current_rule_->get()->appendAction(std::make_unique<Action::SetVar>(
+          branch, parser_->getCurrentNamespace(), std::move(key), index, std::move(value_variant),
           Action::SetVar::EvaluateType::Decrease));
     }
   }
@@ -1543,13 +1583,21 @@ std::any Visitor::visitAction_non_disruptive_setenv(
     RETURN_ERROR(value_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(),
-                                                          std::move(value_macro.value())));
+    current_rule_->get()->appendAction(std::make_unique<Action::SetEnv>(
+        branch, ctx->VAR_NAME()->getText(), std::move(value_macro.value())));
   } else {
-    actions.emplace_back(
-        std::make_unique<Action::SetEnv>(ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText()));
+    current_rule_->get()->appendAction(std::make_unique<Action::SetEnv>(
+        branch, ctx->VAR_NAME()->getText(), ctx->VAR_VALUE()->getText()));
   }
 
   return EMPTY_STRING;
@@ -1564,11 +1612,21 @@ std::any Visitor::visitAction_non_disruptive_setuid(
     RETURN_ERROR(value_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetUid>(std::move(value_macro.value())));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetUid>(branch, std::move(value_macro.value())));
   } else {
-    actions.emplace_back(std::make_unique<Action::SetUid>(ctx->STRING()->getText()));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetUid>(branch, ctx->STRING()->getText()));
   }
 
   return EMPTY_STRING;
@@ -1583,11 +1641,21 @@ std::any Visitor::visitAction_non_disruptive_setrsc(
     RETURN_ERROR(value_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetRsc>(std::move(value_macro.value())));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetRsc>(branch, std::move(value_macro.value())));
   } else {
-    actions.emplace_back(std::make_unique<Action::SetRsc>(ctx->STRING()->getText()));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetRsc>(branch, ctx->STRING()->getText()));
   }
 
   return EMPTY_STRING;
@@ -1602,11 +1670,21 @@ std::any Visitor::visitAction_non_disruptive_setsid(
     RETURN_ERROR(value_macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (value_macro.value()) {
-    actions.emplace_back(std::make_unique<Action::SetSid>(std::move(value_macro.value())));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetSid>(branch, std::move(value_macro.value())));
   } else {
-    actions.emplace_back(std::make_unique<Action::SetSid>(ctx->STRING()->getText()));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::SetSid>(branch, ctx->STRING()->getText()));
   }
 
   return EMPTY_STRING;
@@ -1891,9 +1969,16 @@ std::any Visitor::visitAction_non_disruptive_ctl_audit_engine(
     option = Option::RelevantOnly;
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
 
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::AuditEngine, option));
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::AuditEngine, option));
 
   return EMPTY_STRING;
 }
@@ -1902,8 +1987,16 @@ std::any Visitor::visitAction_non_disruptive_ctl_audit_log_parts(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_audit_log_partsContext* ctx) {
   std::string parts = ctx->AUDIT_PARTS()->getText();
 
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::AuditLogParts, parts));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::AuditLogParts, parts));
 
   return EMPTY_STRING;
 }
@@ -1926,9 +2019,16 @@ std::any Visitor::visitAction_non_disruptive_ctl_parse_xml_into_args(
     option = Option::OnlyArgs;
   }
 
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(
-      std::make_unique<Action::Ctl>(Action::Ctl::CtlType::ParseXmlIntoArgs, option));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::ParseXmlIntoArgs, option));
   return EMPTY_STRING;
 }
 
@@ -1942,69 +2042,121 @@ std::any Visitor::visitAction_non_disruptive_ctl_request_body_access(
     option = Option::On;
   }
 
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(
-      std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyAccess, option));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RequestBodyAccess, option));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_url_encode(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_url_encodeContext*
         ctx) {
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     BodyProcessorType::UrlEncoded));
+
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(std::make_unique<Action::Ctl>(
+      branch, Action::Ctl::CtlType::RequestBodyProcessor, BodyProcessorType::UrlEncoded));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_multi_part(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_multi_partContext*
         ctx) {
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     BodyProcessorType::MultiPart));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(std::make_unique<Action::Ctl>(
+      branch, Action::Ctl::CtlType::RequestBodyProcessor, BodyProcessorType::MultiPart));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_xml(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_xmlContext* ctx) {
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     BodyProcessorType::Xml));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(std::make_unique<Action::Ctl>(
+      branch, Action::Ctl::CtlType::RequestBodyProcessor, BodyProcessorType::Xml));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_request_body_processor_json(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_request_body_processor_jsonContext* ctx) {
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RequestBodyProcessor,
-                                                     BodyProcessorType::Json));
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(std::make_unique<Action::Ctl>(
+      branch, Action::Ctl::CtlType::RequestBodyProcessor, BodyProcessorType::Json));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_engine(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_engineContext* ctx) {
   Wge::EngineConfig::Option option = optionStr2EnumValue(ctx->OPTION()->getText());
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleEngine, option));
+
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RuleEngine, option));
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_id(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_idContext* ctx) {
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (ctx->INT()) {
     uint64_t id = ::atoll(ctx->INT()->getText().c_str());
-    auto& actions = current_rule_->get()->actions();
-    actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveById, id));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RuleRemoveById, id));
   } else {
     std::string id_range_str = ctx->INT_RANGE()->getText();
     auto pos = id_range_str.find('-');
     if (pos != std::string::npos) {
       uint64_t first = ::atoll(id_range_str.substr(0, pos).c_str());
       uint64_t last = ::atoll(id_range_str.substr(pos + 1).c_str());
-      auto& actions = current_rule_->get()->actions();
-      actions.emplace_back(std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByIdRange,
-                                                         std::make_pair(first, last)));
+      current_rule_->get()->appendAction(std::make_unique<Action::Ctl>(
+          branch, Action::Ctl::CtlType::RuleRemoveByIdRange, std::make_pair(first, last)));
     }
   }
 
@@ -2014,9 +2166,17 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_id(
 std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_by_tag(
     Antlr4Gen::SecLangParser::Action_non_disruptive_ctl_rule_remove_by_tagContext* ctx) {
   std::string tag = ctx->STRING()->getText();
-  auto& actions = current_rule_->get()->actions();
-  actions.emplace_back(
-      std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveByTag, std::move(tag)));
+
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  auto* parent_ctx =
+      dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+  if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+    branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                  : Action::ActionBase::Branch::Unmatched;
+  }
+
+  current_rule_->get()->appendAction(
+      std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RuleRemoveByTag, std::move(tag)));
   return EMPTY_STRING;
 }
 
@@ -2038,9 +2198,16 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_id(
       variable_objects.emplace_back(var_obj);
     }
 
-    auto& actions = current_rule_->get()->actions();
-    actions.emplace_back(
-        std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveTargetById,
+    Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+    auto* parent_ctx =
+        dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+    if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+      branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                    : Action::ActionBase::Branch::Unmatched;
+    }
+
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RuleRemoveTargetById,
                                       std::make_pair(id, std::move(variable_objects))));
   } catch (const std::bad_any_cast& ex) {
     assert(false);
@@ -2071,9 +2238,16 @@ std::any Visitor::visitAction_non_disruptive_ctl_rule_remove_target_by_tag(
       variable_objects.emplace_back(var_obj);
     }
 
-    auto& actions = current_rule_->get()->actions();
-    actions.emplace_back(
-        std::make_unique<Action::Ctl>(Action::Ctl::CtlType::RuleRemoveTargetByTag,
+    Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+    auto* parent_ctx =
+        dynamic_cast<Antlr4Gen::SecLangParser::Action_non_disruptive_ctlContext*>(ctx->parent);
+    if (parent_ctx && (parent_ctx->ALWAYS() || parent_ctx->UNMATCHED())) {
+      branch = parent_ctx->ALWAYS() ? Action::ActionBase::Branch::Always
+                                    : Action::ActionBase::Branch::Unmatched;
+    }
+
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::Ctl>(branch, Action::Ctl::CtlType::RuleRemoveTargetByTag,
                                       std::make_pair(std::move(tag), std::move(variable_objects))));
   } catch (const std::bad_any_cast& ex) {
     current_rule_->visitVariableMode(old_visit_variable_mode);
@@ -2167,13 +2341,21 @@ std::any Visitor::visitAction_non_disruptive_initcol(
     RETURN_ERROR(macro.error());
   }
 
-  auto& actions = current_rule_->get()->actions();
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
   if (macro.value()) {
-    actions.emplace_back(
-        std::make_unique<Action::InitCol>(type, std::move(name), std::move(macro.value())));
+    current_rule_->get()->appendAction(
+        std::make_unique<Action::InitCol>(branch, type, std::move(name), std::move(macro.value())));
   } else {
-    actions.emplace_back(std::make_unique<Action::InitCol>(type, std::move(name),
-                                                           ctx->string_with_macro()->getText()));
+    current_rule_->get()->appendAction(std::make_unique<Action::InitCol>(
+        branch, type, std::move(name), ctx->string_with_macro()->getText()));
   }
 
   return EMPTY_STRING;
@@ -2237,6 +2419,31 @@ Visitor::visitAction_data_xml_ns(Antlr4Gen::SecLangParser::Action_data_xml_nsCon
 
 std::any Visitor::visitAction_flow_chain(Antlr4Gen::SecLangParser::Action_flow_chainContext* ctx) {
   chain_ = true;
+
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
+  switch (branch) {
+  case Action::ActionBase::Branch::Matched:
+    current_rule_->get()->matchedChain(true);
+    break;
+  case Action::ActionBase::Branch::Unmatched:
+    current_rule_->get()->unmatchedChain(true);
+    break;
+  case Action::ActionBase::Branch::Always:
+    current_rule_->get()->matchedChain(true);
+    current_rule_->get()->unmatchedChain(true);
+    break;
+  default:
+    break;
+  }
+
   return EMPTY_STRING;
 }
 

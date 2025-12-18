@@ -58,7 +58,7 @@ public:
   };
 
 public:
-  Ctl(CtlType type, std::any&& value);
+  Ctl(ActionBase::Branch branch, CtlType type, std::any&& value);
 
 public:
   void evaluate(Transaction& t) const override { evaluate_func_(t); }
