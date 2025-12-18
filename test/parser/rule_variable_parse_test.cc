@@ -92,7 +92,7 @@ TEST_F(RuleVariableParseTest, PTreeMacro) {
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& op = parser.rules()[0].back().getOperator();
+  auto& op = parser.rules()[0].back().operators().front();
   EXPECT_NE(op->macroLogicMatcher(), nullptr);
   EXPECT_EQ(op->macroLogicMatcher()->macro()->literalValue(),
             "%{PTREE.config.server_list[&].domain{}}");

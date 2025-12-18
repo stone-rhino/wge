@@ -94,7 +94,7 @@ TEST_F(RuleTest, Rule) {
   }
 
   // operator
-  auto& rule_operator = parser.rules()[0].back().getOperator();
+  auto& rule_operator = parser.rules()[0].back().operators().front();
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }

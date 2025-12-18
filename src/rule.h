@@ -195,8 +195,11 @@ public:
   const std::unordered_map<Variable::FullName, Variable::VariableBase&>& variablesIndex() const {
     return detail_->variables_index_by_full_name_;
   }
-  void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
-  const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
+  void appendOperator(std::unique_ptr<Operator::OperatorBase>&& op);
+  const std::vector<std::unique_ptr<Operator::OperatorBase>>& operators() const {
+    return operators_;
+  }
+  void clearOperators() { operators_.clear(); }
   void appendChainRule(std::unique_ptr<Rule>&& rule);
 
   /**
@@ -340,7 +343,7 @@ private:
 
   std::vector<std::unique_ptr<Variable::VariableBase>> variables_;
   std::vector<std::unique_ptr<Transformation::TransformBase>> transforms_;
-  std::unique_ptr<Operator::OperatorBase> operator_;
+  std::vector<std::unique_ptr<Operator::OperatorBase>> operators_;
   std::vector<std::unique_ptr<Action::ActionBase>> actions_;
 
   // Chains the current rule with the rule that immediately follows it, creating a rule chain.

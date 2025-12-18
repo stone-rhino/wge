@@ -532,7 +532,7 @@ ModeSecRuleVariableSubNameWithSingleQuote_VAR_SUB_NAME:
 
 mode ModeSecRuleOperator;
 ModeSecRuleOperator_NOT: NOT -> type(NOT);
-AT: '@' -> popMode, pushMode(ModeSecRuleOperatorName);
+AT: '@' -> pushMode(ModeSecRuleOperatorName);
 ModeSecRuleOperator_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
 RX_DEFUALT: ('\\"' | ~[" @!%] | ('%' ~[{\\]) | ('%\\' .)) (
@@ -545,16 +545,16 @@ ModeSecRuleOperator_PER_CENT:
 
 mode ModeSecRuleOperatorName;
 ModeSecRuleOperator_WS:
-	WS -> skip, popMode, pushMode(ModeSecRuleOperatorValue);
+	WS -> skip, pushMode(ModeSecRuleOperatorValue);
 OP_BEGINS_WITH:
 	[bB][eE][gG][iI][nN][sS][wW][iI][tT][hH];
 OP_CONTAINS: [cC][oO][nN][tT][aA][iI][nN][sS];
 OP_CONTAINS_WORD:
 	[cC][oO][nN][tT][aA][iI][nN][sS][wW][oO][rR][dD];
 OP_DETECT_SQLI:
-	[dD][eE][tT][eE][cC][tT][sS][qQ][lL][iI] -> popMode, pushMode(ModeSecRuleOperatorValue);
+	[dD][eE][tT][eE][cC][tT][sS][qQ][lL][iI] -> pushMode(ModeSecRuleOperatorValue);
 OP_DETECT_XSS:
-	[dD][eE][tT][eE][cC][tT][xX][sS][sS] -> popMode, pushMode(ModeSecRuleOperatorValue);
+	[dD][eE][tT][eE][cC][tT][xX][sS][sS] -> pushMode(ModeSecRuleOperatorValue);
 OP_ENDS_WITH: [eE][nN][dD][sS][wW][iI][tT][hH];
 OP_FUZZY_HASH: [fF][uU][zZ][zZ][yY][hH][aA][sS][hH];
 OP_EQ: [eE][qQ];
@@ -570,7 +570,7 @@ OP_IP_MATCH_FROM_FILE:
 OP_LE: [lL][eE];
 OP_LT: [lL][tT];
 OP_NO_MATCH:
-	[nN][oO][mM][aA][tT][cC][hH] -> popMode, pushMode( ModeSecRuleOperatorValue);
+	[nN][oO][mM][aA][tT][cC][hH] -> pushMode( ModeSecRuleOperatorValue);
 OP_PM: [pP][mM];
 OP_PMF: [pP][mM][fF];
 OP_PM_FROM_FILE:
@@ -582,7 +582,7 @@ OP_RX_GLOBAL: [rR][xX][gG][lL][oO][bB][aA][lL];
 OP_STREQ: [sS][tT][rR][eE][qQ];
 OP_STRMATCH: [sS][tT][rR][mM][aA][tT][cC][hH];
 OP_UNCONDITIONAL_MATCH:
-	[uU][nN][cC][oO][nN][dD][iI][tT][iI][oO][nN][aA][lL][mM][aA][tT][cC][hH] -> popMode, pushMode(
+	[uU][nN][cC][oO][nN][dD][iI][tT][iI][oO][nN][aA][lL][mM][aA][tT][cC][hH] -> pushMode(
 		ModeSecRuleOperatorValue);
 OP_VALIDATE_BYTE_RANGE:
 	[vV][aA][lL][iI][dD][aA][tT][eE][bB][yY][tT][eE] [rR][aA][nN][gG][eE];
@@ -591,11 +591,11 @@ OP_VALIDATE_DTD:
 OP_VALIDATE_SCHEMA:
 	[vV][aA][lL][iI][dD][aA][tT][eE][sS][cC][hH][eE][mM][aA];
 OP_VALIDATE_URL_ENCODING:
-	[vV][aA][lL][iI][dD][aA][tT][eE][uU][rR][lL][eE][nN][cC][oO][dD][iI][nN][gG] -> popMode,
-		pushMode(ModeSecRuleOperatorValue);
+	[vV][aA][lL][iI][dD][aA][tT][eE][uU][rR][lL][eE][nN][cC][oO][dD][iI][nN][gG] -> pushMode(
+		ModeSecRuleOperatorValue);
 OP_VALIDATE_UTF8_ENCODING:
-	[vV][aA][lL][iI][dD][aA][tT][eE][uU][tT][fF]'8' [eE][nN][cC][oO][dD][iI][nN][gG] -> popMode,
-		pushMode(ModeSecRuleOperatorValue);
+	[vV][aA][lL][iI][dD][aA][tT][eE][uU][tT][fF]'8' [eE][nN][cC][oO][dD][iI][nN][gG] -> pushMode(
+		ModeSecRuleOperatorValue);
 OP_VERIFY_CC: [vV][eE][rR][iI][fF][yY][cC][cC];
 OP_VERIFY_CPF: [vV][eE][rR][iI][fF][yY][cC][pP][fF];
 OP_VERIFY_SSN: [vV][eE][rR][iI][fF][yY][sS][sS][nN];
@@ -604,13 +604,39 @@ OP_XOR: [xX][oO][rR];
 
 mode ModeSecRuleOperatorValue;
 ModeSecRuleOperatorValue_QUOTE:
-	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleAction);
+	QUOTE -> type(QUOTE), popMode, popMode, popMode, pushMode(ModeSecRuleAction);
 ModeSecRuleOperatorValue_STRING: (
 		'\\"'
-		| ~["%]
+		| ('|' { [&](){
+			// Allow | if not followed by @<valid_operator>
+			if (_input->LA(1) != '@') return true;
+			
+			// Look ahead to see what comes after @
+			std::string lookahead;
+			for (int i = 2; i <= 50; i++) {
+				char c = _input->LA(i);
+				if (c == EOF || c == ' ') break;
+				lookahead += std::tolower(c);
+			}
+			
+			static const std::unordered_set<std::string> operators = {
+				"beginswith", "contains", "containsword", "detectsqli", "detectxss", "endswith",
+				"fuzzyhash", "eq", "ge", "geolookup", "gt", "inspectfile", "ipmatch", "ipmatchf", 
+				"ipmatchfromfile", "le", "lt", "nomatch", "pm", "pmf", "pmfromfile", "rbl", 
+				"rsub", "rx", "rxglobal", "streq", "strmatch", "unconditionalmatch",
+				"validatebyterange", "validatedtd", "validateschema", "validateurlencoding", 
+				"validateutf8encoding", "verifycc", "verifycpf", "verifyssn", "within", "xor"
+			};
+			
+			// Don't match | if it's followed by a valid operator
+			return operators.find(lookahead) == operators.end();
+		}()}?)
+		| ~["%|]
 		| ('%' ~[{\\])
 		| ('%\\' .)
 	)+ -> type(STRING);
+ModeSecRuleOperatorValue_PIPE:
+	PIPE -> type(PIPE), popMode, popMode;
 ModeSecRuleOperatorValue_PER_CENT:
 	PER_CENT -> type(PER_CENT), pushMode(ModeSecRuleVariableName);
 

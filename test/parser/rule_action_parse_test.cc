@@ -544,7 +544,7 @@ SecRule ARGS_GET|ARGS_POST:foo|!ARGS_GET:foo|&ARGS "bar" "id:2,tag:'foo',msg:'ba
   }
 
   // Operator
-  auto& rule_operator = chain_rule->getOperator();
+  auto& rule_operator = chain_rule->operators().front();
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 
@@ -753,7 +753,7 @@ TEST_F(RuleActionParseTest, ActionIdWithString) {
   }
 
   // operator
-  auto& rule_operator = parser.rules()[0].back().getOperator();
+  auto& rule_operator = parser.rules()[0].back().operators().front();
   EXPECT_EQ(rule_operator->name(), std::string("rx"));
   EXPECT_EQ(rule_operator->literalValue(), "bar");
 }

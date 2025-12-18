@@ -682,9 +682,7 @@ inline bool Transaction::process(RulePhaseType phase) {
     // Evaluate the rule
     auto is_matched = current_rule_->evaluate(*this);
 
-    if (!is_matched ||
-        current_rule_->getOperator() == nullptr // It's a rule that defined by SecAction
-    )
+    if (!is_matched || current_rule_->operators().empty())
       [[likely]] {
         ++iter;
         continue;

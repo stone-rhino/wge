@@ -994,7 +994,7 @@ private:
     }
   }
 
-  template <class OperatorT, class CtxT> std::any setOperator(CtxT* ctx) {
+  template <class OperatorT, class CtxT> std::any appendOperator(CtxT* ctx) {
     std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
         getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
                  ctx->string_with_macro()->STRING().empty());
@@ -1009,8 +1009,8 @@ private:
       if (current_rule_->visitOperatorMode() ==
           CurrentRule::VisitOperatorMode::SecRuleUpdateOperator) {
         // In the SecRuleUpdateOperator mode:
-        // - If the macro type is VariableMacro and the variable is RULE.operator_value, we need
-        // expand the macro to get the original value of the operator.
+        // - If the macro type is VariableMacro and the variable is RULE.operator_value, we reject
+        // it
         // - If the macro type is VariableMacro but the varaible is not RULE.operator_value, we use
         // it directly.
         // - If the macro type is MultiMacro, we don't support it yet.
@@ -1020,17 +1020,8 @@ private:
           std::string_view variable_main_name = variable_macro_ptr->getVariable()->mainName();
           const std::string& variable_sub_name = variable_macro_ptr->getVariable()->subName();
           if (variable_main_name == "RULE" && variable_sub_name == "operator_value") {
-            std::string original_operator_literal_value =
-                current_rule_->get()->getOperator()->literalValue();
-            if (!original_operator_literal_value.empty()) {
-              op = std::unique_ptr<Operator::OperatorBase>(
-                  new OperatorT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
-                                parser_->currLoadFile()));
-            } else {
-              op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
-                  std::move(current_rule_->get()->getOperator()->macroLogicMatcher()->macro()),
-                  ctx->NOT() != nullptr, parser_->currLoadFile()));
-            }
+            assert(false);
+            RETURN_ERROR("%{RULE.operator_value} is not supported yet in SecRuleUpdateOperator.");
           } else {
             op = std::unique_ptr<Operator::OperatorBase>(new OperatorT(
                 std::move(macro_ptr), ctx->NOT() != nullptr, parser_->currLoadFile()));
@@ -1053,7 +1044,7 @@ private:
           ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
     }
 
-    current_rule_->get()->setOperator(std::move(op));
+    current_rule_->get()->appendOperator(std::move(op));
     return EMPTY_STRING;
   }
 

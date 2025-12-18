@@ -127,7 +127,7 @@ sec_rule_update_target_by_tag:
 sec_marker: SecMarker ((QUOTE STRING QUOTE) | STRING);
 
 sec_rule:
-	SecRule variables QUOTE operator QUOTE (
+	SecRule variables QUOTE operator (PIPE operator)* QUOTE (
 		QUOTE action (COMMA? action)* QUOTE
 	)?;
 
@@ -1438,7 +1438,11 @@ sec_rule_update_operator_by_id:
 		INT
 		| INT_RANGE
 		| ID_AND_CHAIN_INDEX
-	) (INT | INT_RANGE | ID_AND_CHAIN_INDEX)* QUOTE operator QUOTE;
+	) (INT | INT_RANGE | ID_AND_CHAIN_INDEX)* QUOTE operator (
+		PIPE operator
+	)* QUOTE;
 sec_rule_update_operator_by_tag:
-	SecRuleUpdateOperatorByTag QUOTE STRING QUOTE QUOTE operator QUOTE;
+	SecRuleUpdateOperatorByTag QUOTE STRING QUOTE QUOTE operator (
+		PIPE operator
+	)* QUOTE;
 sec_tx_namespace: SecTxNamespace STRING;

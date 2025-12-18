@@ -48,19 +48,14 @@ void Rule::initEvaluateFunc() {
            }},
           {"operator_value", [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               if (t.getCurrentEvaluateRule()->getOperator()->literalValue().empty() &&
-                   t.getCurrentEvaluateRule()->getOperator()->macroLogicMatcher() == nullptr) {
-                 result.emplace_back(0, "operator_value");
-               } else {
-                 result.emplace_back(1, "operator_value");
-               }
-
+               result.emplace_back(
+                   static_cast<int64_t>(t.getCurrentEvaluateRule()->operators().size()),
+                   "operator_value");
                return;
              }
 
-             if (!t.getCurrentEvaluateRule()->getOperator()->literalValue().empty()) {
-               result.emplace_back(t.getCurrentEvaluateRule()->getOperator()->literalValue(),
-                                   "operator_value");
+             for (auto& op : t.getCurrentEvaluateRule()->operators()) {
+               result.emplace_back(op->literalValue(), "operator_value");
              }
            }}};
   std::string sub_name_ignore_case;

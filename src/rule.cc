@@ -92,8 +92,8 @@ void Rule::initExceptVariables() {
 void Rule::initPmfOperator(const std::string& serialize_dir) {
   ASSERT_IS_MAIN_THREAD();
 
-  if (operator_) {
-    Operator::PmFromFile* pm_from_file = dynamic_cast<Operator::PmFromFile*>(operator_.get());
+  for (auto& op : operators_) {
+    Operator::PmFromFile* pm_from_file = dynamic_cast<Operator::PmFromFile*>(op.get());
     if (pm_from_file) {
       pm_from_file->init(serialize_dir);
     }
@@ -140,7 +140,7 @@ bool Rule::evaluate(Transaction& t) const {
   WGE_LOG_TRACE("------------------------------------");
 
   // Check whether the rule is unconditional(SecAction)
-  if (operator_ == nullptr)
+  if (operators_.empty())
     [[unlikely]] {
       WGE_LOG_TRACE("evaluate SecAction. id: {} [{}:{}]", id(), filePath(), line());
       // Evaluate the actions
@@ -252,24 +252,25 @@ void Rule::appendVariable(std::unique_ptr<Variable::VariableBase>&& var) {
 }
 
 void Rule::capture(bool value) {
-  Operator::Rx* rx = dynamic_cast<Operator::Rx*>(operator_.get());
-  if (rx) {
-    rx->capture(value);
+  for (auto& op : operators_) {
+    Operator::Rx* rx = dynamic_cast<Operator::Rx*>(op.get());
+    if (rx) {
+      rx->capture(value);
+    }
   }
   flags_.set(static_cast<size_t>(Flags::CAPTURE), value);
 }
 
 void Rule::emptyMatch(bool value) {
-  if (operator_) {
-    operator_->emptyMatch(value);
+  for (auto& op : operators_) {
+    op->emptyMatch(value);
   }
-
   flags_.set(static_cast<size_t>(Flags::EMPTY_MATCH), value);
 }
 
-void Rule::setOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
+void Rule::appendOperator(std::unique_ptr<Operator::OperatorBase>&& op) {
   ASSERT_IS_MAIN_THREAD();
-  operator_ = std::move(op);
+  operators_.emplace_back(std::move(op));
 }
 
 void Rule::appendChainRule(std::unique_ptr<Rule>&& rule) {
@@ -370,8 +371,13 @@ void Rule::evaluateTransform(
 bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
                             const std::unique_ptr<Wge::Variable::VariableBase>& var,
                             std::string_view& capture_value) const {
-  bool matched = operator_->evaluate(t, var_value);
-  matched = operator_->isNot() ^ matched;
+  bool matched = false;
+  for (auto& op : operators_) {
+    if (op->evaluate(t, var_value) ^ op->isNot()) {
+      matched = true;
+      break;
+    }
+  }
 
   // Call additional conditions if they are defined
   if (matched && t.getAdditionalCond()) {
@@ -391,12 +397,22 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
     t.rollbackCapture();
   }
 
-  WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
-                operator_->isNot() ? "!" : "", operator_->name(),
-                operator_->macroLogicMatcher()
-                    ? operator_->macroLogicMatcher()->macro()->literalValue()
-                    : operator_->literalValue(),
-                matched);
+  WGE_LOG_TRACE([&]() {
+    std::string operators_str;
+    for (auto& op : operators_) {
+      if (!operators_str.empty()) {
+        operators_str += " | ";
+      }
+
+      operators_str +=
+          std::format("{}@{} {}", op->isNot() ? "!" : "", op->name(),
+                      op->macroLogicMatcher() ? op->macroLogicMatcher()->macro()->literalValue()
+                                              : op->literalValue());
+    }
+
+    return std::format("evaluate operator: {}", operators_str);
+  }());
+
   return matched;
 }
 

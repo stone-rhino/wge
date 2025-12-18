@@ -47,7 +47,7 @@ TEST_F(EngineActionTest, SecAction) {
   auto& rule = rules.front();
   EXPECT_EQ(rule.id(), 1);
   EXPECT_EQ(rule.phase(), 2);
-  EXPECT_EQ(rule.getOperator(), nullptr);
+  EXPECT_EQ(rule.operators().size(), 0);
 
   auto& actions = rule.actions();
   EXPECT_EQ(actions.size(), 2);
