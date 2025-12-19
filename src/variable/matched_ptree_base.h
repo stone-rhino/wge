@@ -20,42 +20,38 @@
  */
 #pragma once
 
+#include "ptree.h"
 #include "variable_base.h"
-
-#include "../common/property_tree.h"
 
 namespace Wge {
 namespace Variable {
-class PTree final : public VariableBase {
-  DECLARE_VIRABLE_NAME(PTREE);
-
+class MatchedPTreeBase : public VariableBase {
 public:
-  struct Path {
-    enum class Type : uint8_t { Map, Array, Value };
-    enum class Flag : uint8_t { Single, And, Or };
-    std::string name_;
-    Type type_;
-    Flag flag_;
-  };
-
-public:
-  PTree(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
+  MatchedPTreeBase(std::string&& sub_name, bool is_not, bool is_counter,
+                   std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {
-    initPaths(sub_name_, paths_);
+    // Find count of '../' in sub_name
+    parent_count_ = 0;
+    size_t pos = 0;
+    while ((pos = sub_name_.find("../", pos)) != std::string::npos) {
+      ++parent_count_;
+      pos += 3;
+    }
+
+    // Remove '../' from sub_name
+    std::string no_parent_sub_name = sub_name_.substr(parent_count_ * 3);
+
+    // Initialize paths
+    PTree::initPaths(no_parent_sub_name, paths_);
   }
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override;
-  const std::vector<Path>& paths() const { return paths_; }
+  size_t parentCount() const { return parent_count_; }
+  const std::vector<PTree::Path>& paths() const { return paths_; }
 
-public:
-  static void initPaths(const std::string& sub_name, std::vector<Path>& paths);
-
-  static void evaluateNode(const Common::PropertyTree* node, const std::vector<Path>& paths,
-                           size_t path_index, Common::EvaluateResults& result);
-
-private:
-  std::vector<Path> paths_;
+protected:
+  size_t parent_count_;
+  std::vector<PTree::Path> paths_;
 };
 } // namespace Variable
 } // namespace Wge

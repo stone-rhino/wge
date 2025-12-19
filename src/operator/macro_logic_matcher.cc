@@ -79,26 +79,36 @@ bool MacroLogicMatcher::complexMatch(Transaction& t, const Common::Variant& left
                         &t.getEngine().propertyTree(), 0);
 }
 
-bool matchWithAndOr(Variable::PTree::Path::Flag and_or, const Engine::PropertyTree& node,
+bool matchWithAndOr(Variable::PTree::Path::Flag and_or, const Common::PropertyTree& node,
                     Transaction& t, const Common::Variant& left_operand, bool empty_match,
                     MacroLogicMatcher::Matcher matcher, void* user_data) {
   if (node.empty()) {
+    if (empty_match) {
+      t.stageMatchedOPTree(&node);
+    } else {
+      t.rollbackMatchedOPTree();
+    }
     return empty_match;
   }
 
   if (and_or == Variable::PTree::Path::Flag::And) {
     for (const auto& [key, child_tree] : node) {
       if (!matcher(t, left_operand, {child_tree.data(), key}, user_data)) {
+        t.rollbackMatchedOPTree();
         return false;
+      } else {
+        t.stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&child_tree));
       }
     }
     return true;
   } else if (and_or == Variable::PTree::Path::Flag::Or) {
     for (const auto& [key, child_tree] : node) {
       if (matcher(t, left_operand, {child_tree.data(), key}, user_data)) {
+        t.stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&child_tree));
         return true;
       }
     }
+    t.rollbackMatchedOPTree();
     return false;
   } else {
     UNREACHABLE();
@@ -109,8 +119,8 @@ bool matchWithAndOr(Variable::PTree::Path::Flag and_or, const Engine::PropertyTr
 
 bool MacroLogicMatcher::matchPtreeNode(Transaction& t, const Common::Variant& left_operand,
                                        bool empty_match, Matcher matcher, void* user_data,
-                                       const void* node, size_t path_index) const {
-  const Engine::PropertyTree* current_node = static_cast<const Engine::PropertyTree*>(node);
+                                       const Common::PropertyTree* node, size_t path_index) const {
+  const Common::PropertyTree* current_node = node;
   auto& paths = ptree_->paths();
   bool matched = false;
   for (size_t i = path_index; i < paths.size(); ++i) {
@@ -147,9 +157,14 @@ bool MacroLogicMatcher::matchPtreeNode(Transaction& t, const Common::Variant& le
       WGE_LOG_WARN("The node '{}' is not found in the property tree. Node index: {}", path.name_,
                    i);
       matched = empty_match;
+      if (empty_match) {
+        t.stageMatchedOPTree(nullptr);
+      } else {
+        t.rollbackMatchedOPTree();
+      }
       break;
     }
-    current_node = &child.get();
+    current_node = static_cast<const Common::PropertyTree*>(&child.get());
     switch (path.type_) {
     case Variable::PTree::Path::Type::Map: {
       // If it's the last node and it's a map, we match the values of the map
@@ -168,16 +183,16 @@ bool MacroLogicMatcher::matchPtreeNode(Transaction& t, const Common::Variant& le
         switch (path.flag_) {
         case Variable::PTree::Path::Flag::And:
           for (const auto& [key, child_tree] : *current_node) {
-            if (!matchPtreeNode(t, left_operand, empty_match, matcher, user_data, &child_tree,
-                                i + 1)) {
+            if (!matchPtreeNode(t, left_operand, empty_match, matcher, user_data,
+                                static_cast<const Common::PropertyTree*>(&child_tree), i + 1)) {
               return false;
             }
           }
           return true;
         case Variable::PTree::Path::Flag::Or:
           for (const auto& [key, child_tree] : *current_node) {
-            if (matchPtreeNode(t, left_operand, empty_match, matcher, user_data, &child_tree,
-                               i + 1)) {
+            if (matchPtreeNode(t, left_operand, empty_match, matcher, user_data,
+                               static_cast<const Common::PropertyTree*>(&child_tree), i + 1)) {
               return true;
             }
           }
@@ -192,6 +207,11 @@ bool MacroLogicMatcher::matchPtreeNode(Transaction& t, const Common::Variant& le
       auto value = current_node->data();
       assert(!IS_EMPTY_VARIANT(value));
       matched = matcher(t, left_operand, {value, path.name_}, user_data);
+      if (matched) {
+        t.stageMatchedOPTree(current_node);
+      } else {
+        t.rollbackMatchedOPTree();
+      }
     } break;
     default:
       break;

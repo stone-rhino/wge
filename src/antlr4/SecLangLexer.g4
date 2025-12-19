@@ -40,7 +40,8 @@ tokens{
 	OPTION,
 	STRING,
 	VAR_COUNT,
-	UNMATCHED
+	UNMATCHED,
+	PARENT
 }
 
 QUOTE: '"';
@@ -455,6 +456,12 @@ VAR_IP: [iI][pP];
 VAR_USER: [uU][sS][eE][rR];
 VAR_PTREE:
 	[pP][tT][rR][eE][eE] -> pushMode(ModeSecRuleVariableNamePtree);
+VAR_MATCHED_VPTREE:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][pP][tT][rR][eE][eE] -> pushMode(
+		ModeSecRuleVariableNamePtree);
+VAR_MATCHED_OPTREE:
+	[mM][aA][tT][cC][hH][eE][dD]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
+		ModeSecRuleVariableNamePtree);
 VAR_GTX: [gG][tT][xX];
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
@@ -482,6 +489,10 @@ ModeSecRuleVariableName_RIGHT_BRACKET:
 
 mode ModeSecRuleVariableNamePtree;
 ModeSecRuleVariableNamePtree_WS: WS -> skip, popMode, popMode;
+PARENT1:
+	'../' { _input->LA(1) != ' ' && _input->LA(1) != '|' && _input->LA(1) != '}' && _input->LA(1) != '.' }? -> type (PARENT)
+		, pushMode(ModeSecRuleVariableSubNamePtree);
+PARENT2: '../' -> type(PARENT);
 ModeSecRuleVariableNamePtree_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
 ModeSecRuleVariableNamePtree_DOT:

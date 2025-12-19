@@ -844,7 +844,6 @@ TEST_F(VariableTest, PTREE) {
   engine.init();
   auto t = engine.makeTransaction();
   Common::EvaluateResults result;
-  std::vector<Common::EvaluateResults> structured_result;
 
   {
     Variable::PTree var("config.max_connection", false, false, "");
@@ -896,6 +895,152 @@ TEST_F(VariableTest, PTREE) {
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
     EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
     EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "v1.1");
+  }
+}
+
+TEST_F(VariableTest, MATCHED_OPTREE) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.propertyTree(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+  Common::EvaluateResults result;
+
+  // config.server_list[].port../host
+  {
+    auto& matched_optree =
+        engine.propertyTree().get_child("config.server_list").front().second.get_child("port");
+    EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
+    t->stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&matched_optree));
+    t->commitMatchedOPTree(-1);
+    Variable::MatchedOPTree var("../host", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
+  }
+
+  // config.server_list[].tags[]../../domain.name
+  {
+    auto& matched_optree = engine.propertyTree()
+                               .get_child("config.server_list")
+                               .back()
+                               .second.get_child("tags")
+                               .front()
+                               .second;
+    EXPECT_EQ(std::get<std::string_view>(matched_optree.data()), "staging");
+    t->stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&matched_optree));
+    t->commitMatchedOPTree(-1);
+    Variable::MatchedOPTree var("../../domain.name", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
+  }
+}
+
+TEST_F(VariableTest, MATCHED_VPTREE) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.propertyTree(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+  Common::EvaluateResults result;
+
+  // config.server_list[].port../host
+  {
+    auto& matched_vptree =
+        engine.propertyTree().get_child("config.server_list").front().second.get_child("port");
+    EXPECT_EQ(std::get<int64_t>(matched_vptree.data()), 8080);
+    t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
+    Variable::MatchedVPTree var("../host", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
+  }
+
+  // config.server_list[].tags[]../../domain.name
+  {
+    auto& matched_vptree = engine.propertyTree()
+                               .get_child("config.server_list")
+                               .back()
+                               .second.get_child("tags")
+                               .front()
+                               .second;
+    EXPECT_EQ(std::get<std::string_view>(matched_vptree.data()), "staging");
+    t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
+    Variable::MatchedVPTree var("../../domain.name", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
   }
 }
 } // namespace Integration

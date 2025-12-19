@@ -131,5 +131,77 @@ TEST_F(RuleVariableParseTest, Gtx) {
   EXPECT_EQ(variable->getNamespace(), "");
 }
 
+TEST_F(RuleVariableParseTest, MatchedOPTree) {
+  const std::string directive =
+      R"(SecRule MATCHED_OPTREE../../|MATCHED_OPTREE:foo.bar|MATCHED_OPTREE../hello.world|MATCHED_OPTREE "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 4);
+  const auto* variable0 = dynamic_cast<const Variable::MatchedOPTree*>(variables[0].get());
+  const auto* variable1 = dynamic_cast<const Variable::MatchedOPTree*>(variables[1].get());
+  const auto* variable2 = dynamic_cast<const Variable::MatchedOPTree*>(variables[2].get());
+  const auto* variable3 = dynamic_cast<const Variable::MatchedOPTree*>(variables[3].get());
+  ASSERT_NE(variable0, nullptr);
+  ASSERT_NE(variable1, nullptr);
+  ASSERT_NE(variable2, nullptr);
+  ASSERT_NE(variable3, nullptr);
+
+  EXPECT_EQ(variable0->parentCount(), 2);
+  EXPECT_EQ(variable0->subName(), "../../");
+  EXPECT_EQ(variable0->paths().size(), 0);
+
+  EXPECT_EQ(variable1->parentCount(), 0);
+  EXPECT_EQ(variable1->subName(), "foo.bar");
+  EXPECT_EQ(variable1->paths().size(), 2);
+
+  EXPECT_EQ(variable2->parentCount(), 1);
+  EXPECT_EQ(variable2->subName(), "../hello.world");
+  EXPECT_EQ(variable2->paths().size(), 2);
+
+  EXPECT_EQ(variable3->parentCount(), 0);
+  EXPECT_EQ(variable3->subName(), "");
+  EXPECT_EQ(variable3->paths().size(), 0);
+}
+
+TEST_F(RuleVariableParseTest, MatchedVPTree) {
+  const std::string directive =
+      R"(SecRule MATCHED_VPTREE../../|MATCHED_VPTREE:foo.bar|MATCHED_VPTREE../hello.world|MATCHED_VPTREE "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 4);
+  const auto* variable0 = dynamic_cast<const Variable::MatchedVPTree*>(variables[0].get());
+  const auto* variable1 = dynamic_cast<const Variable::MatchedVPTree*>(variables[1].get());
+  const auto* variable2 = dynamic_cast<const Variable::MatchedVPTree*>(variables[2].get());
+  const auto* variable3 = dynamic_cast<const Variable::MatchedVPTree*>(variables[3].get());
+  ASSERT_NE(variable0, nullptr);
+  ASSERT_NE(variable1, nullptr);
+  ASSERT_NE(variable2, nullptr);
+  ASSERT_NE(variable3, nullptr);
+
+  EXPECT_EQ(variable0->parentCount(), 2);
+  EXPECT_EQ(variable0->subName(), "../../");
+  EXPECT_EQ(variable0->paths().size(), 0);
+
+  EXPECT_EQ(variable1->parentCount(), 0);
+  EXPECT_EQ(variable1->subName(), "foo.bar");
+  EXPECT_EQ(variable1->paths().size(), 2);
+
+  EXPECT_EQ(variable2->parentCount(), 1);
+  EXPECT_EQ(variable2->subName(), "../hello.world");
+  EXPECT_EQ(variable2->paths().size(), 2);
+
+  EXPECT_EQ(variable3->parentCount(), 0);
+  EXPECT_EQ(variable3->subName(), "");
+  EXPECT_EQ(variable3->paths().size(), 0);
+}
+
 } // namespace Parser
 } // namespace Wge

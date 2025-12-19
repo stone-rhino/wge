@@ -935,6 +935,16 @@ std::any Visitor::visitVariable_gtx(Antlr4Gen::SecLangParser::Variable_gtxContex
   return appendTxVariable(ctx, "");
 }
 
+std::any Visitor::visitVariable_matched_vptree(
+    Antlr4Gen::SecLangParser::Variable_matched_vptreeContext* ctx) {
+  return appendVariable<Variable::MatchedVPTree>(ctx);
+}
+
+std::any Visitor::visitVariable_matched_optree(
+    Antlr4Gen::SecLangParser::Variable_matched_optreeContext* ctx) {
+  return appendVariable<Variable::MatchedOPTree>(ctx);
+}
+
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
   return appendOperator<Operator::BeginsWith>(ctx);
 }

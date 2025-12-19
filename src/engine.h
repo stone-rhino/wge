@@ -26,10 +26,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/property_tree/ptree.hpp>
-
 #include "common/log.h"
-#include "common/variant.h"
+#include "common/property_tree.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
@@ -82,13 +80,11 @@ public:
    */
   std::expected<bool, std::string> propertyTree(const std::string& json_string);
 
-  using PropertyTree = boost::property_tree::basic_ptree<std::string, Common::Variant>;
-
   /**
    * Get engine properties as a property tree
    * @return reference of property tree
    */
-  const PropertyTree& propertyTree() const { return property_tree_; }
+  const Common::PropertyTree& propertyTree() const { return property_tree_; }
 
   /**
    * Initialize the engine
@@ -186,7 +182,8 @@ public:
 
 private:
   void initRules();
-  void convertPtreeToPropertyTree(const boost::property_tree::ptree& src, PropertyTree& dest);
+  void convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
+                                  Common::PropertyTree& dest);
 
 private:
   // Is the engine initialized
@@ -197,7 +194,7 @@ private:
 
   mutable PersistentStorage::Storage storage_;
 
-  PropertyTree property_tree_;
+  Common::PropertyTree property_tree_;
   std::string property_tree_string_pool_;
 };
 } // namespace Wge

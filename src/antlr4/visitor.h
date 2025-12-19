@@ -26,6 +26,8 @@
 #include "../common/empty_string.h"
 #include "../macro/macro_include.h"
 #include "../operator/pm_from_file.h"
+#include "../variable/matched_optree.h"
+#include "../variable/matched_vptree.h"
 #include "../variable/ptree.h"
 #include "../variable/tx.h"
 
@@ -447,6 +449,10 @@ public:
 public:
   std::any visitVariable_ptree(Antlr4Gen::SecLangParser::Variable_ptreeContext* ctx) override;
   std::any visitVariable_gtx(Antlr4Gen::SecLangParser::Variable_gtxContext* ctx) override;
+  std::any visitVariable_matched_vptree(
+      Antlr4Gen::SecLangParser::Variable_matched_vptreeContext* ctx) override;
+  std::any visitVariable_matched_optree(
+      Antlr4Gen::SecLangParser::Variable_matched_optreeContext* ctx) override;
 
   // SecRule operators
 public:
@@ -866,8 +872,21 @@ private:
 
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
-    if constexpr (std::is_same_v<VarT, Variable::PTree>) {
-      sub_name = ctx->variable_ptree_expression()->getText();
+    if constexpr (std::is_same_v<VarT, Variable::PTree> ||
+                  std::is_same_v<VarT, Variable::MatchedOPTree> ||
+                  std::is_same_v<VarT, Variable::MatchedVPTree>) {
+      if constexpr (std::is_same_v<VarT, Variable::MatchedOPTree> ||
+                    std::is_same_v<VarT, Variable::MatchedVPTree>) {
+        // The subname still needs the parent node information to prevent their full name from
+        // conflicting. Otherwise, there will be fail append to list of variables caused by same
+        // full name.
+        for (size_t i = 0; i < ctx->PARENT().size(); ++i) {
+          sub_name += "../";
+        }
+      }
+      if (ctx->variable_ptree_expression()) {
+        sub_name += ctx->variable_ptree_expression()->getText();
+      }
     } else {
       if (ctx->STRING()) {
         sub_name = ctx->STRING()->getText();

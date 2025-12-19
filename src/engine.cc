@@ -211,23 +211,25 @@ void Engine::initRules() {
 }
 
 void Engine::convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
-                                        PropertyTree& dest) {
-  auto convertValue = [&](const std::string& value) -> Common::Variant {
+                                        Common::PropertyTree& dest) {
+  auto convertValue = [&](const std::string& value,
+                          Common::PropertyTree* parent) -> Common::PropertyTreeValue {
     if (value.empty()) {
-      return std::monostate{};
+      return {std::monostate{}, parent};
     }
 
     // Try to parse as integer
     if (std::all_of(value.begin(), value.end(), [&value](char c) {
           return std::isdigit(c) || (c == '-' && &c == &value[0]);
         })) {
-      return static_cast<int64_t>(std::stoll(value));
+      return {static_cast<int64_t>(std::stoll(value)), parent};
     }
 
     property_tree_string_pool_.append(value);
-    return std::string_view(property_tree_string_pool_.data() + property_tree_string_pool_.size() -
-                                value.size(),
-                            value.size());
+    return {std::string_view(property_tree_string_pool_.data() + property_tree_string_pool_.size() -
+                                 value.size(),
+                             value.size()),
+            parent};
   };
 
   // The array detection: all keys are empty strings
@@ -242,26 +244,26 @@ void Engine::convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
     for (const auto& [_, child_tree] : src) {
       if (child_tree.empty()) {
         // Leaf node - convert the value
-        PropertyTree child_dest;
-        child_dest.put("", convertValue(child_tree.data()));
-        dest.push_back(std::make_pair("", std::move(child_dest)));
+        dest.push_back(std::make_pair("", Common::PropertyTree(&dest)));
+        Common::PropertyTree* new_tree = static_cast<Common::PropertyTree*>(&dest.back().second);
+        new_tree->put("", convertValue(child_tree.data(), &dest));
       } else {
         // Branch node - recursively convert children
-        PropertyTree child_dest;
-        convertPtreeToPropertyTree(child_tree, child_dest);
-        dest.push_back(std::make_pair("", std::move(child_dest)));
+        dest.push_back(std::make_pair("", Common::PropertyTree(&dest)));
+        Common::PropertyTree* new_tree = static_cast<Common::PropertyTree*>(&dest.back().second);
+        convertPtreeToPropertyTree(child_tree, *new_tree);
       }
     }
   } else {
     for (const auto& [key, child_tree] : src) {
       if (child_tree.empty()) {
         // Leaf node - convert the value
-        dest.put(key, convertValue(child_tree.data()));
+        dest.put(key, convertValue(child_tree.data(), &dest));
       } else {
         // Branch node - recursively convert children
-        PropertyTree child_dest;
-        convertPtreeToPropertyTree(child_tree, child_dest);
-        dest.put_child(key, std::move(child_dest));
+        Common::PropertyTree* new_tree =
+            static_cast<Common::PropertyTree*>(&dest.put_child(key, Common::PropertyTree(&dest)));
+        convertPtreeToPropertyTree(child_tree, *new_tree);
       }
     }
   }

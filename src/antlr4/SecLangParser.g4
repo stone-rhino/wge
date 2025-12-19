@@ -943,22 +943,39 @@ variable_user:
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
 		)
 	)?;
-extension_variable: variable_ptree | variable_gtx;
+extension_variable:
+	variable_ptree
+	| variable_gtx
+	| variable_matched_vptree
+	| variable_matched_optree;
 variable_ptree:
 	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
 variable_ptree_expression:
 	STRING (
+		(LEFT_SQUARE AND? RIGHT_SQUARE)
+		| (LEFT_BRACKET AND? RIGHT_BRACKET)
+	)? (
 		DOT STRING (
 			(LEFT_SQUARE AND? RIGHT_SQUARE)
 			| (LEFT_BRACKET AND? RIGHT_BRACKET)
 		)?
-	)+;
+	)*;
 variable_gtx:
 	NOT? VAR_COUNT? VAR_GTX (
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
 		)
+	)?;
+variable_matched_vptree:
+	NOT? VAR_COUNT? VAR_MATCHED_VPTREE (
+		((COLON | DOT) variable_ptree_expression)
+		| (PARENT+ variable_ptree_expression?)
+	)?;
+variable_matched_optree:
+	NOT? VAR_COUNT? VAR_MATCHED_OPTREE (
+		((COLON | DOT) variable_ptree_expression)
+		| (PARENT+ variable_ptree_expression?)
 	)?;
 
 operator:

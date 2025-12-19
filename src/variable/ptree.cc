@@ -27,11 +27,11 @@
 namespace Wge {
 namespace Variable {
 void Variable::PTree::evaluate(Transaction& t, Common::EvaluateResults& result) const {
-  evaluateNode(&t.getEngine().propertyTree(), 0, result);
+  evaluateNode(&t.getEngine().propertyTree(), paths_, 0, result);
 }
 
-void PTree::initPaths() {
-  std::vector<std::string_view> tokens = Common::SplitTokens(sub_name_, '.');
+void PTree::initPaths(const std::string& sub_name, std::vector<Path>& paths) {
+  std::vector<std::string_view> tokens = Common::SplitTokens(sub_name, '.');
   for (size_t i = 0; i < tokens.size(); ++i) {
     auto& token = tokens[i];
     Path path;
@@ -59,15 +59,15 @@ void PTree::initPaths() {
       path.flag_ = Path::Flag::Single;
     }
 
-    paths_.emplace_back(std::move(path));
+    paths.emplace_back(std::move(path));
   }
 }
 
-void PTree::evaluateNode(const void* node, size_t path_index,
-                         Common::EvaluateResults& result) const {
-  const Engine::PropertyTree* current_node = static_cast<const Engine::PropertyTree*>(node);
-  for (size_t i = path_index; i < paths_.size(); ++i) {
-    auto& path = paths_[i];
+void PTree::evaluateNode(const Common::PropertyTree* node, const std::vector<Path>& paths,
+                         size_t path_index, Common::EvaluateResults& result) {
+  const Common::PropertyTree* current_node = node;
+  for (size_t i = path_index; i < paths.size(); ++i) {
+    auto& path = paths[i];
     switch (path.type_) {
     case Path::Type::Map: {
       auto child = current_node->get_child_optional(path.name_);
@@ -76,10 +76,10 @@ void PTree::evaluateNode(const void* node, size_t path_index,
         result.clear();
         return;
       }
-      current_node = &child.get();
+      current_node = static_cast<const Common::PropertyTree*>(&child.get());
 
       // If it's the last node and it's a map, we return the values of the map
-      if (i == paths_.size() - 1) {
+      if (i == paths.size() - 1) {
         for (const auto& [key, child_tree] : *current_node) {
           result.emplace_back(child_tree.data(), key);
         }
@@ -92,9 +92,9 @@ void PTree::evaluateNode(const void* node, size_t path_index,
         result.clear();
         return;
       }
-      current_node = &child.get();
+      current_node = static_cast<const Common::PropertyTree*>(&child.get());
 
-      if (i == paths_.size() - 1) {
+      if (i == paths.size() - 1) {
         // If it's the last node and it's an array, we return the values of the array
         for (const auto& [key, child_tree] : *current_node) {
           result.emplace_back(child_tree.data(), key);
@@ -103,12 +103,12 @@ void PTree::evaluateNode(const void* node, size_t path_index,
         // Otherwise, we walk through each element in the array
         ++i;
         for (const auto& [key, child_tree] : *current_node) {
-          evaluateNode(&child_tree, i, result);
+          evaluateNode(static_cast<const Common::PropertyTree*>(&child_tree), paths, i, result);
         }
       }
     } break;
     case Path::Type::Value: {
-      auto value = current_node->get_optional<Common::Variant>(path.name_);
+      auto value = current_node->get_optional<Common::PropertyTreeValue>(path.name_);
       if (!value) {
         WGE_LOG_WARN("The value node '{}' is not found in the property tree.", path.name_);
         result.clear();

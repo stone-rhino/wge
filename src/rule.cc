@@ -204,6 +204,10 @@ bool Rule::evaluate(Transaction& t) const {
                                 captured_value, std::move(transform_list));
         }
 
+        if (variable_value.ptree_node_) {
+          t.pushMatchedVPTree(chain_index_, variable_value.ptree_node_);
+        }
+
         rule_matched = true;
 
         // Evaluate the matched branch actions
@@ -408,8 +412,10 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
     if (committed_count) {
       capture_value = t.getCapture(0);
     }
+    t.commitMatchedOPTree(chain_index_);
   } else {
     t.rollbackCapture();
+    t.rollbackMatchedOPTree();
   }
 
   WGE_LOG_TRACE([&]() {

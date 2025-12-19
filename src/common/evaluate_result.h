@@ -27,6 +27,7 @@
 
 #include "assert.h"
 #include "empty_string.h"
+#include "property_tree.h"
 #include "variant.h"
 
 namespace Wge {
@@ -34,9 +35,11 @@ namespace Common {
 struct EvaluateElement {
   Common::Variant variant_;
   std::string_view variable_sub_name_;
+  const Common::PropertyTree* ptree_node_{nullptr};
   void clear() {
     variant_ = EMPTY_VARIANT;
     variable_sub_name_ = {};
+    ptree_node_ = nullptr;
   }
 };
 

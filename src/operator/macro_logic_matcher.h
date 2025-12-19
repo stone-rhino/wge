@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "../common/evaluate_result.h"
+#include "../common/property_tree.h"
 #include "../macro/macro_base.h"
 #include "../transaction.h"
 
@@ -90,7 +91,8 @@ private:
   bool complexMatch(Transaction& t, const Common::Variant& left_operand, bool empty_match,
                     Matcher matcher, void* user_data) const;
   bool matchPtreeNode(Transaction& t, const Common::Variant& left_operand, bool empty_match,
-                      Matcher matcher, void* user_data, const void* node, size_t path_index) const;
+                      Matcher matcher, void* user_data, const Common::PropertyTree* node,
+                      size_t path_index) const;
 
 private:
   std::unique_ptr<Macro::MacroBase> macro_;
