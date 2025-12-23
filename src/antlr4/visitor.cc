@@ -2480,6 +2480,37 @@ std::any Visitor::visitAction_extension_empty_match(
   return EMPTY_STRING;
 }
 
+std::any Visitor::visitAction_extension_multi_chain(
+    Antlr4Gen::SecLangParser::Action_extension_multi_chainContext* ctx) {
+  chain_ = true;
+
+  Action::ActionBase::Branch branch = Action::ActionBase::Branch::Matched;
+  if (ctx->ALWAYS() || ctx->UNMATCHED()) {
+    if (current_rule_->visitActionMode() != CurrentRule::VisitActionMode::SecRule) {
+      RETURN_ERROR("The ALWAYS and UNMATCHED branches are only allowed in SecRule actions.");
+    }
+    branch =
+        ctx->ALWAYS() ? Action::ActionBase::Branch::Always : Action::ActionBase::Branch::Unmatched;
+  }
+
+  switch (branch) {
+  case Action::ActionBase::Branch::Matched:
+    current_rule_->get()->matchedMultiChain(true);
+    break;
+  case Action::ActionBase::Branch::Unmatched:
+    current_rule_->get()->unmatchedMultiChain(true);
+    break;
+  case Action::ActionBase::Branch::Always:
+    current_rule_->get()->matchedMultiChain(true);
+    current_rule_->get()->unmatchedMultiChain(true);
+    break;
+  default:
+    break;
+  }
+
+  return EMPTY_STRING;
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = Wge::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

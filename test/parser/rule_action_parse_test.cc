@@ -1055,5 +1055,52 @@ TEST_F(RuleActionParseTest, ActionEmptyMatch) {
 
   EXPECT_TRUE(parser.rules()[0].back().emptyMatch());
 }
+
+TEST_F(RuleActionParseTest, ActionMultiChain) {
+  {
+    const std::string rule_directive = R"(
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,multiChain, msg:'aaa'"
+          SecRule ARGS:ccc "baz" "id:2,phase:1,msg:'bbb'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& rule = parser.rules()[0].back();
+
+    EXPECT_TRUE(rule.matchedMultiChain());
+    EXPECT_FALSE(rule.unmatchedMultiChain());
+  }
+
+  {
+    const std::string rule_directive = R"(
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,!multiChain, msg:'aaa'"
+          SecRule ARGS:ccc "baz" "id:2,phase:1,msg:'bbb'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& rule = parser.rules()[0].back();
+
+    EXPECT_FALSE(rule.matchedMultiChain());
+    EXPECT_TRUE(rule.unmatchedMultiChain());
+  }
+
+  {
+    const std::string rule_directive = R"(
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,*multiChain, msg:'aaa'"
+          SecRule ARGS:ccc "baz" "id:2,phase:1,msg:'bbb'")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& rule = parser.rules()[0].back();
+
+    EXPECT_TRUE(rule.matchedMultiChain());
+    EXPECT_TRUE(rule.unmatchedMultiChain());
+  }
+}
 } // namespace Parser
 } // namespace Wge

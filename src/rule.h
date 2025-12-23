@@ -161,6 +161,18 @@ public:
   void unmatchedChain(bool value) {
     flags_.set(static_cast<size_t>(Flags::UNMATCHED_CHAIN), value);
   }
+  bool matchedMultiChain() const {
+    return flags_.test(static_cast<size_t>(Flags::MATCHED_MULTI_CHAIN));
+  }
+  void matchedMultiChain(bool value) {
+    flags_.set(static_cast<size_t>(Flags::MATCHED_MULTI_CHAIN), value);
+  }
+  bool unmatchedMultiChain() const {
+    return flags_.test(static_cast<size_t>(Flags::UNMATCHED_MULTI_CHAIN));
+  }
+  void unmatchedMultiChain(bool value) {
+    flags_.set(static_cast<size_t>(Flags::UNMATCHED_MULTI_CHAIN), value);
+  }
   const std::vector<std::unique_ptr<Transformation::TransformBase>>& transforms() const {
     return transforms_;
   }
@@ -327,6 +339,14 @@ private:
 
     // Indicates that the unmatched branch actions have chain action.
     UNMATCHED_CHAIN,
+
+    // If enabled, WGE will continue evaluating the chained rules when every variable value of the
+    // rule is matched. (By default, WGE will evaluating the chained rules after all variable values
+    // were evaluated and the rule matched).
+    MATCHED_MULTI_CHAIN,
+
+    // Similar to MATCHED_MULTI_CHAIN, but for the unmatched branch.
+    UNMATCHED_MULTI_CHAIN,
 
     // If enabled, WGE will ignore the default transformation for the matched variable.
     IGNORE_DEFAULT_TRANSFORM,

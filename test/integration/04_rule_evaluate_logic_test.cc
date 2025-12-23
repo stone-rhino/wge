@@ -217,6 +217,48 @@ TEST(RuleEvaluateLogicTest, unmatchedBranch) {
   }
 }
 
+TEST(RuleEvaluateLogicTest, multiChain) {
+  // Test the multiChain for matched branch
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=100,setvar:tx.bar=200,setvar:tx.baz=300"
+        SecRule TX "@lt 300"  "phase:1,id:1, multiChain"
+          SecRule TX:foo "@unconditionalMatch"  "setvar:tx.test=+1"
+    )";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 2);
+  }
+
+  // Test the multiChain for unmatched branch
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=100,setvar:tx.bar=200,setvar:tx.baz=300"
+        SecRule TX "@lt 300"  "phase:1,id:1, !multiChain"
+          SecRule TX:foo "@unconditionalMatch"  "setvar:tx.test=+1"
+    )";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    bool matched = false;
+    t->processRequestHeaders(nullptr, nullptr, 0);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 1);
+  }
+}
+
 TEST(RuleEvaluateLogicTest, exceptVariable) {
   // Test that the except variable is won't be evaluated.
   {

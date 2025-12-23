@@ -490,8 +490,8 @@ ModeSecRuleVariableName_RIGHT_BRACKET:
 mode ModeSecRuleVariableNamePtree;
 ModeSecRuleVariableNamePtree_WS: WS -> skip, popMode, popMode;
 PARENT1:
-	'../' { _input->LA(1) != ' ' && _input->LA(1) != '|' && _input->LA(1) != '}' && _input->LA(1) != '.' }? -> type (PARENT)
-		, pushMode(ModeSecRuleVariableSubNamePtree);
+	'../' { _input->LA(1) != ' ' && _input->LA(1) != '|' && _input->LA(1) != '}' && _input->LA(1) != '.' 
+		}? -> type (PARENT), pushMode(ModeSecRuleVariableSubNamePtree);
 PARENT2: '../' -> type(PARENT);
 ModeSecRuleVariableNamePtree_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
@@ -714,6 +714,7 @@ Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 // Extensions:
 FirstMatch: 'firstMatch';
 EmptyMatch: 'emptyMatch';
+MultiChain: 'multiChain';
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;

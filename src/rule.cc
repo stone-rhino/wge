@@ -213,6 +213,10 @@ bool Rule::evaluate(Transaction& t) const {
         // Evaluate the matched branch actions
         evaluateActions(t, Action::ActionBase::Branch::Matched);
 
+        // Evaluate the chained rules
+        if (chain_ && matchedMultiChain())
+          [[unlikely]] { rule_matched = evaluateChain(t); }
+
         // If the first match is enabled, stop evaluating the rule
         if (firstMatch())
           [[unlikely]] {
@@ -222,16 +226,21 @@ bool Rule::evaluate(Transaction& t) const {
       } else {
         // Evaluate the unmatched branch actions
         evaluateActions(t, Action::ActionBase::Branch::Unmatched);
+
+        // Evaluate the chained rules
+        if (chain_ && unmatchedMultiChain())
+          [[unlikely]] { rule_matched = evaluateChain(t); }
       }
     }
   }
 
   // Evaluate the chained rules
-  if (chain_) {
-    if ((rule_matched && matchedChain()) || (!rule_matched && unmatchedChain())) {
-      rule_matched = evaluateChain(t);
+  if (chain_ && !matchedMultiChain() && !unmatchedMultiChain())
+    [[unlikely]] {
+      if ((rule_matched && matchedChain()) || (!rule_matched && unmatchedChain())) {
+        rule_matched = evaluateChain(t);
+      }
     }
-  }
 
   return rule_matched;
 }
@@ -542,6 +551,10 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         // Evaluate the matched branch actions
         evaluateActions(t, Action::ActionBase::Branch::Matched);
 
+        // Evaluate the chained rules
+        if (chain_ && matchedMultiChain())
+          [[unlikely]] { rule_matched = evaluateChain(t); }
+
         // If the first match is enabled, stop evaluating the rule
         if (firstMatch())
           [[unlikely]] {
@@ -556,6 +569,10 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
       } else {
         // Evaluate the unmatched branch actions
         evaluateActions(t, Action::ActionBase::Branch::Unmatched);
+
+        // Evaluate the chained rules
+        if (chain_ && unmatchedMultiChain())
+          [[unlikely]] { rule_matched = evaluateChain(t); }
 
         // The variable value is not matched, evaluate the transformation and try to match again
         if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_))
@@ -591,7 +608,7 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   }
 
   // Evaluate the chained rules
-  if (chain_) {
+  if (chain_ && !matchedMultiChain() && !unmatchedMultiChain()) {
     if ((rule_matched && matchedChain()) || (!rule_matched && unmatchedChain())) {
       rule_matched = evaluateChain(t);
     }

@@ -1415,9 +1415,11 @@ action_flow_skip_after: SkipAfter COLON STRING;
 
 action_extension:
 	action_extension_first_match
-	| action_extension_empty_match;
+	| action_extension_empty_match
+	| action_extension_multi_chain;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
+action_extension_multi_chain: (ALWAYS | UNMATCHED)? MultiChain;
 
 audit_log_config:
 	sec_audit_engine
