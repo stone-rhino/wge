@@ -286,6 +286,9 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
         std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), appended_rule);
   } else {
     current_rule_ = std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), nullptr);
+
+    // Clear alias for new rule
+    alias_.clear();
   }
 
   chain_ = false;
@@ -943,6 +946,35 @@ std::any Visitor::visitVariable_matched_vptree(
 std::any Visitor::visitVariable_matched_optree(
     Antlr4Gen::SecLangParser::Variable_matched_optreeContext* ctx) {
   return appendVariable<Variable::MatchedOPTree>(ctx);
+}
+
+std::any Visitor::visitVariable_alias(Antlr4Gen::SecLangParser::Variable_aliasContext* ctx) {
+  std::string alias_name = ctx->VAR_ALIAS()->getText();
+  auto iter = alias_.find(alias_name);
+  if (iter == alias_.end()) {
+    RETURN_ERROR("Alias '" + alias_name + "' is not defined.");
+  }
+
+  // Extract sub_name from alias value (remove "matched_optree" and "matched_vptree" prefix)
+  std::string sub_name = iter->second.substr(14);
+  if (ctx->variable_ptree_expression()) {
+    if (!sub_name.empty() && sub_name.back() != '/') {
+      sub_name += "." + ctx->variable_ptree_expression()->getText();
+    } else {
+      sub_name = ctx->variable_ptree_expression()->getText();
+    }
+  }
+
+  if (iter->second.starts_with("matched_optree")) {
+    return appendAliasVariable<Variable::MatchedOPTree>(ctx, std::move(sub_name));
+  } else if (iter->second.starts_with("matched_vptree")) {
+    return appendAliasVariable<Variable::MatchedVPTree>(ctx, std::move(sub_name));
+  } else {
+    RETURN_ERROR("Alias '" + alias_name +
+                 "' is not a valid variable alias for matched optree or vptree.");
+  }
+
+  return EMPTY_STRING;
 }
 
 std::any Visitor::visitOp_begins_with(Antlr4Gen::SecLangParser::Op_begins_withContext* ctx) {
@@ -2507,6 +2539,23 @@ std::any Visitor::visitAction_extension_multi_chain(
   default:
     break;
   }
+
+  return EMPTY_STRING;
+}
+
+std::any
+Visitor::visitAction_extension_alias(Antlr4Gen::SecLangParser::Action_extension_aliasContext* ctx) {
+  std::string matched_tree;
+  std::string low_case_matched_tree;
+  if (ctx->variable_matched_optree()) {
+    matched_tree = ctx->variable_matched_optree()->getText();
+    low_case_matched_tree = "matched_optree" + matched_tree.substr(14);
+  } else if (ctx->variable_matched_vptree()) {
+    matched_tree = ctx->variable_matched_vptree()->getText();
+    low_case_matched_tree = "matched_vptree" + matched_tree.substr(14);
+  }
+
+  alias_[ctx->ALIAS_NAME()->getText()] = low_case_matched_tree;
 
   return EMPTY_STRING;
 }

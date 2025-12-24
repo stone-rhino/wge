@@ -453,6 +453,7 @@ public:
       Antlr4Gen::SecLangParser::Variable_matched_vptreeContext* ctx) override;
   std::any visitVariable_matched_optree(
       Antlr4Gen::SecLangParser::Variable_matched_optreeContext* ctx) override;
+  std::any visitVariable_alias(Antlr4Gen::SecLangParser::Variable_aliasContext* ctx) override;
 
   // SecRule operators
 public:
@@ -829,6 +830,8 @@ public:
       Antlr4Gen::SecLangParser::Action_extension_empty_matchContext* ctx) override;
   std::any visitAction_extension_multi_chain(
       Antlr4Gen::SecLangParser::Action_extension_multi_chainContext* ctx) override;
+  std::any visitAction_extension_alias(
+      Antlr4Gen::SecLangParser::Action_extension_aliasContext* ctx) override;
 
   // Audit log configurations
 public:
@@ -1014,6 +1017,65 @@ private:
     }
   }
 
+  template <class VarT, class CtxT>
+  std::any appendAliasVariable(CtxT* ctx, std::string&& sub_name) {
+    const bool is_not = ctx->NOT() != nullptr;
+    const bool is_counter = ctx->VAR_COUNT() != nullptr;
+
+    if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
+      // std::any is copyable, so we can't return a unique_ptr
+      std::shared_ptr<Variable::VariableBase> variable(
+          new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      return variable;
+    } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
+      std::unique_ptr<Variable::VariableBase> variable(
+          new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
+
+      // Only accept xxx.yyy format
+      if (ctx->COLON()) {
+        RETURN_ERROR(std::format("Variable name cannot contain ':': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      std::string letera_value;
+      if (variable->subName().empty()) {
+        letera_value = std::format("%{{}}", variable->mainName());
+      } else {
+        letera_value = std::format("%{{{}.{}}}", variable->mainName(), variable->subName());
+      }
+
+      Macro::MacroBase* macro_ptr =
+          new Macro::VariableMacro(std::move(letera_value), std::move(variable));
+
+      // The raw pointer will be managed by std::unique_ptr in getMacro
+      return macro_ptr;
+    } else {
+      std::unique_ptr<Variable::VariableBase> variable(
+          new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
+
+      // Only accept xxx:yyy format
+      if (ctx->DOT()) {
+        RETURN_ERROR(std::format("Variable name cannot contain '.': {}.{}", variable->mainName(),
+                                 variable->subName()));
+      }
+
+      // Append variable
+      current_rule_->get()->appendVariable(std::move(variable));
+
+      return EMPTY_STRING;
+    }
+  }
+
   template <class OperatorT, class CtxT> std::any appendOperator(CtxT* ctx) {
     std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
         getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
@@ -1157,7 +1219,7 @@ private:
   Parser* parser_;
   std::unique_ptr<CurrentRule> current_rule_;
   bool chain_{false};
-  std::unordered_multimap<std::string, std::string> action_map_;
   bool should_visit_next_child_{true};
+  std::unordered_map<std::string, std::string> alias_;
 };
 } // namespace Wge::Antlr4
