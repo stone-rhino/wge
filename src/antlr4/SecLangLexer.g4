@@ -463,6 +463,7 @@ VAR_MATCHED_OPTREE:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
 		ModeSecRuleVariableNamePtree);
 VAR_GTX: [gG][tT][xX];
+VAR_ALIAS: [a-zA-Z_][0-9a-zA-Z_]*;
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
@@ -490,8 +491,10 @@ ModeSecRuleVariableName_RIGHT_BRACKET:
 mode ModeSecRuleVariableNamePtree;
 ModeSecRuleVariableNamePtree_WS: WS -> skip, popMode, popMode;
 PARENT1:
-	'../' { _input->LA(1) != ' ' && _input->LA(1) != '|' && _input->LA(1) != '}' && _input->LA(1) != '.' 
-		}? -> type (PARENT), pushMode(ModeSecRuleVariableSubNamePtree);
+	'../' {[&](){
+	  std::string str = " |}.,\"";
+	  return str.find(_input->LA(1)) == std::string::npos;
+	}()}? -> type (PARENT), pushMode(ModeSecRuleVariableSubNamePtree);
 PARENT2: '../' -> type(PARENT);
 ModeSecRuleVariableNamePtree_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
@@ -513,6 +516,15 @@ ModeSecRuleVariableNamePtree_RIGHT_SQUARE:
 	RIGHT_SQUARE -> type(RIGHT_SQUARE);
 ModeSecRuleVariableNamePtree_PIPE:
 	PIPE -> type(PIPE), popMode;
+ModeSecRuleVariableNamePtree_COMMA:
+	COMMA { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
+		}? -> type(COMMA), popMode, popMode, popMode;
+ModeSecRuleVariableNamePtree_SINGLE_QUOTE:
+	SINGLE_QUOTE { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
+		}? -> type(SINGLE_QUOTE), popMode, popMode, popMode;
+ModeSecRuleVariableNamePtree_QUOTE:
+	QUOTE { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
+		}? -> type(QUOTE), popMode, popMode, popMode;
 
 mode ModeSecRuleVariableSubNamePtree;
 ModeSecRuleVariableSubNamePtree_VAR_SUB_NAME:
@@ -715,6 +727,7 @@ Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 FirstMatch: 'firstMatch';
 EmptyMatch: 'emptyMatch';
 MultiChain: 'multiChain';
+Alias: 'alias' -> pushMode(ModeSecRuleActionAlias);
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;
@@ -788,6 +801,15 @@ ModeSecRuleActionSetUid_SINGLE_QUOTE:
 ModeSecRuleActionSetUid_QUOTE: QUOTE -> type(QUOTE), popMode;
 ModeSecRuleActionSetUid_COMMA: COMMA -> type(COMMA), popMode;
 ModeSecRuleActionSetUid_COLON: COLON -> type(COLON);
+
+mode ModeSecRuleActionAlias;
+ModeSecRuleActionAlias_WS: WS -> skip;
+ModeSecRuleActionAlias_COLON: COLON -> type(COLON);
+ModeSecRuleActionAlias_SINGLE_QUOTE:
+	SINGLE_QUOTE -> type(SINGLE_QUOTE);
+ALIAS_NAME: [a-zA-Z_][0-9a-zA-Z_]*;
+ModeSecRuleActionAlias_ASSIGN:
+	ASSIGN -> type(ASSIGN), pushMode(ModeSecRuleVariableName);
 
 mode ModeSecRuleActionT;
 ModeSecRuleActionT_COLON: COLON -> type(COLON);

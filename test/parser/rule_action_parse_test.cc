@@ -29,6 +29,7 @@
 #include "action/actions_include.h"
 #include "antlr4/parser.h"
 #include "engine.h"
+#include "macro/macro_include.h"
 #include "transformation/transform_include.h"
 #include "variable/variables_include.h"
 
@@ -1101,6 +1102,46 @@ TEST_F(RuleActionParseTest, ActionMultiChain) {
     EXPECT_TRUE(rule.matchedMultiChain());
     EXPECT_TRUE(rule.unmatchedMultiChain());
   }
+}
+
+TEST_F(RuleActionParseTest, ActionAlias) {
+  Antlr4::Parser parser;
+
+  // 1. Test alias is defined correctly and stored in parser as lowercase.
+  // 2. Test alias in variable list is parsed correctly.
+  // 3. Test alias in macro is parsed correctly.
+  // 4. Test the alias were cleared after parsing is done.
+  const std::string rule_directive = R"(
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,alias:test0=MATCHED_OPTREE,alias:test1=MATCHED_VPTREE../../foo.bar,alias:test2=MATCHED_OPTREE../,msg:'aaa',chain"
+          SecRule test0|test1:world "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
+        SecRule test0|test1:world "baz" "id:3,phase:1,msg:'bbb'")";
+
+  auto result = parser.load(rule_directive);
+  ASSERT_FALSE(result.has_value());
+
+  // The last rule should be parsed error since the alias were cleared after parsing is done.
+  EXPECT_EQ(parser.rules()[0].size(), 1);
+
+  auto& rule_var_pool = parser.rules()[0].front().chainRule(0)->variables();
+  ASSERT_EQ(rule_var_pool.size(), 2);
+  Variable::MatchedOPTree* var0 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[0].get());
+  Variable::MatchedVPTree* var1 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[1].get());
+  ASSERT_NE(var0, nullptr);
+  ASSERT_NE(var1, nullptr);
+  EXPECT_EQ(var0->subName(), "");
+  EXPECT_EQ(var1->subName(), "../../foo.bar.world");
+  EXPECT_EQ(var0->parentCount(), 0);
+  EXPECT_EQ(var1->parentCount(), 2);
+  EXPECT_EQ(var0->paths().size(), 0);
+  EXPECT_EQ(var1->paths().size(), 3);
+
+  auto& op = parser.rules()[0].front().chainRule(0)->operators().front();
+  EXPECT_EQ(op->literalValue(), "");
+  EXPECT_EQ(op->macroLogicMatcher()->macro()->literalValue(), "%{MATCHED_OPTREE.for.bar}");
+  Macro::VariableMacro* op_var_macro =
+      dynamic_cast<Macro::VariableMacro*>(op->macroLogicMatcher()->macro().get());
+  ASSERT_NE(op_var_macro, nullptr);
+  EXPECT_EQ(op_var_macro->getVariable()->subName(), "for.bar");
 }
 } // namespace Parser
 } // namespace Wge

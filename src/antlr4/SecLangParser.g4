@@ -947,7 +947,8 @@ extension_variable:
 	variable_ptree
 	| variable_gtx
 	| variable_matched_vptree
-	| variable_matched_optree;
+	| variable_matched_optree
+	| variable_alias;
 variable_ptree:
 	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
 variable_ptree_expression:
@@ -976,6 +977,10 @@ variable_matched_optree:
 	NOT? VAR_COUNT? VAR_MATCHED_OPTREE (
 		((COLON | DOT) variable_ptree_expression)
 		| (PARENT+ variable_ptree_expression?)
+	)?;
+variable_alias:
+	NOT? VAR_COUNT? VAR_ALIAS (
+		(COLON | DOT) variable_ptree_expression
 	)?;
 
 operator:
@@ -1416,10 +1421,26 @@ action_flow_skip_after: SkipAfter COLON STRING;
 action_extension:
 	action_extension_first_match
 	| action_extension_empty_match
-	| action_extension_multi_chain;
+	| action_extension_multi_chain
+	| action_extension_alias;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
 action_extension_multi_chain: (ALWAYS | UNMATCHED)? MultiChain;
+action_extension_alias:
+	Alias COLON (
+		(
+			SINGLE_QUOTE ALIAS_NAME ASSIGN (
+				variable_matched_optree
+				| variable_matched_vptree
+			) SINGLE_QUOTE
+		)
+		| (
+			ALIAS_NAME ASSIGN (
+				variable_matched_optree
+				| variable_matched_vptree
+			)
+		)
+	);
 
 audit_log_config:
 	sec_audit_engine
