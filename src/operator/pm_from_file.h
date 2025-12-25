@@ -87,12 +87,12 @@ public:
   void init(const std::string& serialize_dir);
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!scanner_)
-      [[unlikely]] { return false; }
-
-    if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] { return false; }
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+    if (!scanner_ || !IS_STRING_VIEW_VARIANT(operand))
+      [[unlikely]] {
+        results.emplace_back(false);
+        return;
+      }
 
     // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
     // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
@@ -113,10 +113,11 @@ public:
 
     bool matched = result.first != result.second;
     if (matched) {
-      t.stageCapture(0, {operand_str.data() + result.first, result.second - result.first});
+      results.emplace_back(matched, std::string_view{operand_str.data() + result.first,
+                                                     result.second - result.first});
+    } else {
+      results.emplace_back(false);
     }
-
-    return matched;
   }
 
 private:

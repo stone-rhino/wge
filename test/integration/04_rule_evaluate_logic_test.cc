@@ -146,6 +146,24 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
   }
 }
 
+TEST(RuleEvaluateLogicTest, cartesianProduct) {
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=foo,setvar:tx.bar=bar,setvar:tx.baz=baz,setvar:tx.matched_count=0,setvar:tx.unmatched_count=0,setvar:tx.total_count=0"
+        SecRule TX "@streq %{TX}"  "phase:1,id:1, *setvar:tx.total_count=+1, setvar:tx.matched_count=+1, !setvar:tx.unmatched_count=+1"
+    )";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(directive);
+  engine.init();
+  auto t = engine.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  bool matched = false;
+  t->processRequestHeaders(nullptr, nullptr, 0);
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "total_count")), 6 * 6);
+}
+
 TEST(RuleEvaluateLogicTest, operatorOrCombination) {
   const std::string directive = R"(
         SecRuleEngine On

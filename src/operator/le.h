@@ -37,39 +37,53 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_INT_VARIANT(operand))
-      [[unlikely]] { return false; }
-
-    if (!macro_logic_matcher_)
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+    if (!macro_)
       [[likely]] {
-        int64_t left_value = std::get<int64_t>(operand);
-        return left_value <= right_value_;
+        if (IS_INT_VARIANT(operand))
+          [[likely]] {
+            int64_t left_value = std::get<int64_t>(operand);
+            results.emplace_back(left_value <= right_value_);
+          }
+        else {
+          results.emplace_back(false);
+        }
       }
     else {
-      return macro_logic_matcher_->match(
-          t, operand, empty_match_,
-          [](Transaction& t, const Common::Variant& left_operand,
-             const Common::EvaluateElement& right_operand, void* user_data) {
-            assert(IS_INT_VARIANT(right_operand.variant_));
-            if (!IS_INT_VARIANT(right_operand.variant_)) {
-              return false;
-            }
-            bool matched =
-                std::get<int64_t>(left_operand) <= std::get<int64_t>(right_operand.variant_);
+      Common::EvaluateResults macro_result;
+      macro_->evaluate(t, macro_result);
+      if (macro_result.empty()) {
+        results.emplace_back(empty_match_);
+        return;
+      }
 
+      for (const auto& right_operand : macro_result) {
+        if (IS_INT_VARIANT(right_operand.variant_))
+          [[likely]] {
+            if (!IS_INT_VARIANT(operand))
+              [[unlikely]] {
+                results.emplace_back(false);
+                continue;
+              }
+
+            results.emplace_back(std::get<int64_t>(operand) <=
+                                 std::get<int64_t>(right_operand.variant_));
             WGE_LOG_TRACE([&]() {
               std::string sub_name;
               if (!right_operand.variable_sub_name_.empty()) {
                 sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
               }
-              return std::format("{} @{} {}{} => {}", std::get<int64_t>(left_operand), name_,
-                                 sub_name, std::get<int64_t>(right_operand.variant_), matched);
+              return std::format("{} @{} {}{} => {}", std::get<int64_t>(operand), name_, sub_name,
+                                 std::get<int64_t>(right_operand.variant_),
+                                 results.back().matched_);
             }());
-
-            return matched;
-          },
-          nullptr);
+          }
+        else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
+          results.emplace_back(empty_match_);
+        } else {
+          results.emplace_back(false);
+        }
+      }
     }
   }
 

@@ -40,9 +40,12 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
     if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] { return false; }
+      [[unlikely]] {
+        results.emplace_back(false);
+        return;
+      }
 
     // Check that after percent character must be two hexadecimal characters.
     std::string_view input = std::get<std::string_view>(operand);
@@ -53,18 +56,20 @@ public:
         // If there are less than two characters after '%', it is not a valid URL encoding (for
         // example, it ends with "%2" or "%") and is considered illegal.
         if (i + 2 >= len) {
-          return true;
+          results.emplace_back(true);
+          return;
         }
 
         if (!::isxdigit(input[i + 1]) || !::isxdigit(input[i + 2])) {
-          return true;
+          results.emplace_back(true);
+          return;
         }
 
         i += 2;
       }
     }
 
-    return false;
+    results.emplace_back(false);
   }
 };
 } // namespace Operator

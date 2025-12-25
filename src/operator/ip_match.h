@@ -73,7 +73,7 @@ public:
   }
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
     if (IS_STRING_VIEW_VARIANT(operand))
       [[likely]] {
         // Copy the operand to a null-terminated string for inet_pton
@@ -86,22 +86,24 @@ public:
         // initialize it when Transaction::processConnection is called. But this will decrease the
         // maintainability of the code. I don't think it is worth it.
         if (!mask_.has_value()) {
-          return literal_value_ == ip;
+          results.emplace_back(literal_value_ == ip);
         } else {
           if (!ipv6_.has_value()) {
             uint32_t ip_value;
             ::inet_pton(AF_INET, ip.data(), &ip_value);
-            return applyMask4(ip_value, mask_.value()) == applyMask4(ipv4_, mask_.value());
+            results.emplace_back(applyMask4(ip_value, mask_.value()) ==
+                                 applyMask4(ipv4_, mask_.value()));
           } else {
             std::array<uint32_t, 4> ip_value;
             const uint32_t* tt = ip_value.data();
             ::inet_pton(AF_INET6, ip.data(), ip_value.data());
-            return applyMask6(ip_value, mask_.value()) == applyMask6(ipv6_.value(), mask_.value());
+            results.emplace_back(applyMask6(ip_value, mask_.value()) ==
+                                 applyMask6(ipv6_.value(), mask_.value()));
           }
         }
       }
     else {
-      return false;
+      results.emplace_back(false);
     }
   }
 

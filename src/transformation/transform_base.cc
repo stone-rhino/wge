@@ -54,6 +54,7 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
         [[likely]] {
           output.variant_ = iter->second->variant_;
           output.variable_sub_name_ = input.variable_sub_name_;
+          output.ptree_node_ = input.ptree_node_;
           return true;
         }
       else {
@@ -69,6 +70,7 @@ bool TransformBase::evaluate(Transaction& t, const Variable::VariableBase* varia
         transform_cache.emplace(cache_key, t.internString(std::move(output_buffer))).first;
     output.variant_ = iter_transform_result->second->variant_;
     output.variable_sub_name_ = input.variable_sub_name_;
+    output.ptree_node_ = input.ptree_node_;
   } else {
     // Store nullopt to indicate failure
     transform_cache.emplace(cache_key, std::nullopt);

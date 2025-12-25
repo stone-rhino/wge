@@ -50,7 +50,6 @@ Transaction::Transaction(const Engine& engin) : engine_(engin) {
   }
 
   captured_.reserve(4);
-  temp_captured_.reserve(4);
   matched_variables_.reserve(4);
   transform_cache_.reserve(100);
 }
@@ -444,33 +443,14 @@ bool Transaction::hasVariable(const std::string& ns, const std::string& name) co
   }
 }
 
-void Transaction::stageCapture(size_t index, std::string_view value) {
+void Transaction::setCapture(size_t index, std::string_view value) {
   if (index < max_capture_size)
     [[likely]] {
-      if (temp_captured_.size() <= index) {
-        temp_captured_.resize(index + 1);
+      if (captured_.size() <= index) {
+        captured_.resize(index + 1);
       }
-      temp_captured_[index] = value;
+      captured_[index] = value;
     }
-}
-
-size_t Transaction::commitCapture() {
-  size_t committed_count = 0;
-
-  // Commit the temp_captured_ into captured_
-  if (!temp_captured_.empty()) {
-    committed_count = temp_captured_.size();
-    if (temp_captured_.size() >= captured_.size()) {
-      captured_.swap(temp_captured_);
-    } else {
-      for (size_t i = 0; i < temp_captured_.size(); ++i) {
-        captured_[i] = temp_captured_[i];
-      }
-    }
-    temp_captured_.clear();
-  }
-
-  return committed_count;
 }
 
 std::string_view Transaction::getCapture(size_t index) const {

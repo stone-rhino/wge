@@ -20,10 +20,9 @@
  */
 #pragma once
 
-#include <optional>
 #include <string>
 
-#include "macro_logic_matcher.h"
+#include <absl/container/inlined_vector.h>
 
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
@@ -43,12 +42,18 @@ namespace Operator {
  */
 class OperatorBase {
 public:
+  struct Result {
+    bool matched_;
+    std::string_view capture_;
+  };
+  using Results = absl::InlinedVector<Result, 1>;
+
+public:
   OperatorBase(std::string&& literal_value, bool is_not)
       : literal_value_(std::move(literal_value)), is_not_(is_not) {}
 
   OperatorBase(std::unique_ptr<Macro::MacroBase>&& macro, bool is_not)
-      : is_not_(is_not),
-        macro_logic_matcher_(std::make_unique<MacroLogicMatcher>(std::move(macro))) {}
+      : macro_(std::move(macro)), is_not_(is_not) {}
 
   virtual ~OperatorBase() = default;
 
@@ -60,10 +65,10 @@ public:
   const std::string& literalValue() const { return literal_value_; }
 
   /**
-   * Get the macro logic matcher of the operator.
-   * @return the macro logic matcher of the operator.
+   * Get the macro of the operator.
+   * @return the macro of the operator.
    */
-  std::unique_ptr<MacroLogicMatcher>& macroLogicMatcher() { return macro_logic_matcher_; }
+  std::unique_ptr<Macro::MacroBase>& macro() { return macro_; }
 
   /**
    * Check if the operator is a NOT operator.
@@ -88,9 +93,9 @@ public:
    * Evaluate the operator.
    * @param t the transaction.
    * @param operand the operand to evaluate.
-   * @return true if the value matches the operator, false otherwise.
+   * @param results the results of the evaluation.
    */
-  virtual bool evaluate(Transaction& t, const Common::Variant& operand) const = 0;
+  virtual void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const = 0;
 
   /**
    * Get the name of the operator.
@@ -101,8 +106,8 @@ public:
 protected:
   std::string literal_value_;
   bool is_not_;
+  std::unique_ptr<Macro::MacroBase> macro_;
   bool empty_match_{false};
-  std::unique_ptr<MacroLogicMatcher> macro_logic_matcher_;
 };
 } // namespace Operator
 } // namespace Wge

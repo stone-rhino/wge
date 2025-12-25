@@ -78,18 +78,22 @@ public:
   }
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
     if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] { return false; }
+      [[unlikely]] {
+        results.emplace_back(false);
+        return;
+      }
 
     std::string_view operand_str = std::get<std::string_view>(operand);
     for (auto& c : operand_str) {
       if (!byte_range_.test(static_cast<uint8_t>(c))) {
-        return true;
+        results.emplace_back(true);
+        return;
       }
     }
 
-    return false;
+    results.emplace_back(false);
   }
 
 private:

@@ -500,7 +500,6 @@ ModeSecRuleVariableNamePtree_COLON:
 	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
 ModeSecRuleVariableNamePtree_DOT:
 	DOT -> type(DOT), pushMode(ModeSecRuleVariableSubNamePtree);
-ModeSecRuleVariableNamePtree_AND: AND -> type(AND);
 ModeSecRuleVariableNamePtree_LEFT_BRACKET:
 	LEFT_BRACKET -> type(LEFT_BRACKET);
 ModeSecRuleVariableNamePtree_RIGHT_BRACKET:

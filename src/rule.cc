@@ -162,6 +162,7 @@ bool Rule::evaluate(Transaction& t) const {
 
   static thread_local Common::EvaluateElement transformed_value;
   static thread_local std::list<const Transformation::TransformBase*> transform_list;
+  static thread_local Operator::OperatorBase::Results op_results;
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -172,8 +173,6 @@ bool Rule::evaluate(Transaction& t) const {
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); ++i) {
       const Common::EvaluateElement& variable_value = result[i];
-      bool variable_matched = false;
-      std::string_view captured_value;
       transformed_value.clear();
       transform_list.clear();
       if (IS_STRING_VIEW_VARIANT(variable_value.variant_))
@@ -183,55 +182,64 @@ bool Rule::evaluate(Transaction& t) const {
         }
 
       // Evaluate the operator
-      variable_matched = evaluateOperator(
+      op_results.clear();
+      evaluateOperator(
           t, transform_list.empty() ? variable_value.variant_ : transformed_value.variant_, var,
-          captured_value);
+          op_results);
+      assert(!op_results.empty());
 
-      // If the variable is matched, evaluate the actions
-      if (variable_matched) {
-        WGE_LOG_TRACE([&]() {
-          if (!var->isCollection()) {
-            return std::format("variable is matched. {}{}", var->mainName(),
-                               var->subName().empty() ? "" : "." + var->subName());
-          } else {
-            return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                               variable_value.variable_sub_name_);
+      for (auto& op_result : op_results) {
+        // If the variable is matched, evaluate the actions
+        if (op_result.matched_) {
+          WGE_LOG_TRACE([&]() {
+            if (!var->isCollection()) {
+              return std::format("variable is matched. {}{}", var->mainName(),
+                                 var->subName().empty() ? "" : "." + var->subName());
+            } else {
+              return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                                 variable_value.variable_sub_name_);
+            }
+          }());
+
+          if (isNeedPushMatched()) {
+            t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
+                                  op_result.capture_, std::move(transform_list));
           }
-        }());
 
-        if (isNeedPushMatched()) {
-          t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
-                                captured_value, std::move(transform_list));
-        }
-
-        if (variable_value.ptree_node_) {
-          t.pushMatchedVPTree(chain_index_, variable_value.ptree_node_);
-        }
-
-        rule_matched = true;
-
-        // Evaluate the matched branch actions
-        evaluateActions(t, Action::ActionBase::Branch::Matched);
-
-        // Evaluate the chained rules
-        if (chain_ && matchedMultiChain())
-          [[unlikely]] { rule_matched = evaluateChain(t); }
-
-        // If the first match is enabled, stop evaluating the rule
-        if (firstMatch())
-          [[unlikely]] {
-            WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
-            break;
+          if (variable_value.ptree_node_) {
+            t.pushMatchedVPTree(chain_index_, variable_value.ptree_node_);
           }
-      } else {
-        // Evaluate the unmatched branch actions
-        evaluateActions(t, Action::ActionBase::Branch::Unmatched);
 
-        // Evaluate the chained rules
-        if (chain_ && unmatchedMultiChain())
-          [[unlikely]] { rule_matched = evaluateChain(t); }
+          rule_matched = true;
+
+          // Evaluate the matched branch actions
+          evaluateActions(t, Action::ActionBase::Branch::Matched);
+
+          // Evaluate the chained rules
+          if (chain_ && matchedMultiChain())
+            [[unlikely]] { rule_matched = evaluateChain(t); }
+
+          // If the first match is enabled, stop evaluating the rule
+          if (firstMatch())
+            [[unlikely]] {
+              WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
+              break;
+            }
+        } else {
+          // Evaluate the unmatched branch actions
+          evaluateActions(t, Action::ActionBase::Branch::Unmatched);
+
+          // Evaluate the chained rules
+          if (chain_ && unmatchedMultiChain())
+            [[unlikely]] { rule_matched = evaluateChain(t); }
+        }
       }
+
+      if (firstMatch() && rule_matched)
+        [[unlikely]] { break; }
     }
+    if (firstMatch() && rule_matched)
+      [[unlikely]] { break; }
   }
 
   // Evaluate the chained rules
@@ -396,35 +404,40 @@ void Rule::evaluateTransform(
   }
 }
 
-bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
+void Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
                             const std::unique_ptr<Wge::Variable::VariableBase>& var,
-                            std::string_view& capture_value) const {
-  bool matched = false;
+                            Operator::OperatorBase::Results& results) const {
+  std::optional<bool> additional_cond_matched;
   for (auto& op : operators_) {
-    if (op->evaluate(t, var_value) ^ op->isNot()) {
-      matched = true;
+    op->evaluate(t, var_value, results);
+    for (auto& element : results) {
+      element.matched_ ^= op->isNot();
+      // Call additional condition if defined and just call once
+      if (element.matched_ && t.getAdditionalCond() && !additional_cond_matched.has_value() &&
+          IS_STRING_VIEW_VARIANT(var_value)) {
+        additional_cond_matched =
+            t.getAdditionalCond()(*this, *var.get(), std::get<std::string_view>(var_value),
+                                  t.getAdditionalCondUserdata());
+        WGE_LOG_TRACE("call additional condition: {}", *additional_cond_matched);
+        if (*additional_cond_matched == false) {
+          break;
+        }
+      }
+    }
+
+    if (additional_cond_matched.has_value() && *additional_cond_matched == false) {
+      results.resize(1);
+      results.front().matched_ = false;
       break;
     }
   }
 
-  // Call additional conditions if they are defined
-  if (matched && t.getAdditionalCond()) {
-    if (IS_STRING_VIEW_VARIANT(var_value)) {
-      matched = t.getAdditionalCond()(*this, *var.get(), std::get<std::string_view>(var_value),
-                                      t.getAdditionalCondUserdata());
-      WGE_LOG_TRACE("call additional condition: {}", matched);
+  // Set the captured strings to the transaction
+  size_t capture_index = 0;
+  for (auto& element : results) {
+    if (element.matched_ && !element.capture_.empty()) {
+      t.setCapture(capture_index++, element.capture_);
     }
-  }
-
-  if (matched) {
-    auto committed_count = t.commitCapture();
-    if (committed_count) {
-      capture_value = t.getCapture(0);
-    }
-    t.commitMatchedOPTree(chain_index_);
-  } else {
-    t.rollbackCapture();
-    t.rollbackMatchedOPTree();
   }
 
   WGE_LOG_TRACE([&]() {
@@ -434,16 +447,12 @@ bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
         operators_str += " | ";
       }
 
-      operators_str +=
-          std::format("{}@{} {}", op->isNot() ? "!" : "", op->name(),
-                      op->macroLogicMatcher() ? op->macroLogicMatcher()->macro()->literalValue()
-                                              : op->literalValue());
+      operators_str += std::format("{}@{} {}", op->isNot() ? "!" : "", op->name(),
+                                   op->macro() ? op->macro()->literalValue() : op->literalValue());
     }
 
     return std::format("evaluate operator: {}", operators_str);
   }());
-
-  return matched;
 }
 
 bool Rule::evaluateChain(Transaction& t) const {
@@ -507,6 +516,7 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
   static thread_local Common::EvaluateElement transformed_value;
   static thread_local std::list<const Transformation::TransformBase*> transform_list;
+  static thread_local Operator::OperatorBase::Results op_results;
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -517,7 +527,6 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     size_t curr_transform_index = 0;
 
     // Evaluate each variable result
-    std::string_view captured_value;
     transformed_value.clear();
     transform_list.clear();
     const Common::EvaluateElement* evaluated_value = nullptr;
@@ -527,53 +536,68 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
       }
 
       // Evaluate the operator
-      bool variable_matched = evaluateOperator(t, evaluated_value->variant_, var, captured_value);
+      op_results.clear();
+      evaluateOperator(t, evaluated_value->variant_, var, op_results);
+      assert(!op_results.empty());
 
-      // If the variable is matched, evaluate the actions
-      if (variable_matched) {
-        WGE_LOG_TRACE([&]() {
-          if (!var->isCollection()) {
-            return std::format("variable is matched. {}{}", var->mainName(),
-                               var->subName().empty() ? "" : "." + var->subName());
-          } else {
-            return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                               evaluated_value->variable_sub_name_);
+      bool variable_matched = false;
+      for (auto& op_result : op_results) {
+        // If the variable is matched, evaluate the actions
+        if (op_result.matched_) {
+          WGE_LOG_TRACE([&]() {
+            if (!var->isCollection()) {
+              return std::format("variable is matched. {}{}", var->mainName(),
+                                 var->subName().empty() ? "" : "." + var->subName());
+            } else {
+              return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                                 evaluated_value->variable_sub_name_);
+            }
+          }());
+
+          if (isNeedPushMatched()) {
+            t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
+                                  op_result.capture_, std::move(transform_list));
           }
-        }());
 
-        if (isNeedPushMatched()) {
-          t.pushMatchedVariable(var.get(), chain_index_, result[i], transformed_value,
-                                captured_value, std::move(transform_list));
+          if (evaluated_value->ptree_node_) {
+            t.pushMatchedVPTree(chain_index_, evaluated_value->ptree_node_);
+          }
+
+          variable_matched = true;
+          rule_matched = true;
+
+          // Evaluate the matched branch actions
+          evaluateActions(t, Action::ActionBase::Branch::Matched);
+
+          // Evaluate the chained rules
+          if (chain_ && matchedMultiChain())
+            [[unlikely]] { rule_matched = evaluateChain(t); }
+
+          // If the first match is enabled, stop evaluating the rule
+          if (firstMatch())
+            [[unlikely]] {
+              WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
+              break;
+            }
+        } else {
+          // Evaluate the unmatched branch actions
+          evaluateActions(t, Action::ActionBase::Branch::Unmatched);
+
+          // Evaluate the chained rules
+          if (chain_ && unmatchedMultiChain())
+            [[unlikely]] { rule_matched = evaluateChain(t); }
         }
+      }
 
-        rule_matched = true;
+      if (firstMatch() && rule_matched)
+        [[unlikely]] { break; }
 
-        // Evaluate the matched branch actions
-        evaluateActions(t, Action::ActionBase::Branch::Matched);
-
-        // Evaluate the chained rules
-        if (chain_ && matchedMultiChain())
-          [[unlikely]] { rule_matched = evaluateChain(t); }
-
-        // If the first match is enabled, stop evaluating the rule
-        if (firstMatch())
-          [[unlikely]] {
-            WGE_LOG_TRACE("first match is enabled, stop evaluating the rule");
-            break;
-          }
-
+      if (variable_matched) {
         // The variable value is matched, evaluate next variable value
         i++;
         curr_transform_index = 0;
         evaluated_value = nullptr;
       } else {
-        // Evaluate the unmatched branch actions
-        evaluateActions(t, Action::ActionBase::Branch::Unmatched);
-
-        // Evaluate the chained rules
-        if (chain_ && unmatchedMultiChain())
-          [[unlikely]] { rule_matched = evaluateChain(t); }
-
         // The variable value is not matched, evaluate the transformation and try to match again
         if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_))
           [[likely]] {
@@ -605,6 +629,8 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         }
       }
     }
+    if (firstMatch() && rule_matched)
+      [[unlikely]] { break; }
   }
 
   // Evaluate the chained rules

@@ -66,40 +66,37 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] { return false; }
-
-    if (macro_logic_matcher_)
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+    if (macro_)
       [[unlikely]] {
-        struct MatchParam {
-          const Within* parent;
-          std::vector<std::string_view> capture_array;
-        } match_param = {this};
+        Common::EvaluateResults macro_result;
+        macro_->evaluate(t, macro_result);
+        if (macro_result.empty()) {
+          results.emplace_back(empty_match_);
+          return;
+        }
 
-        bool matched = macro_logic_matcher_->match(
-            t, operand, empty_match_,
-            [](Transaction& t, const Common::Variant& left_operand,
-               const Common::EvaluateElement& right_operand, void* user_data) {
-              assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
-              if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
-                return false;
-              }
-
-              MatchParam* match_param = static_cast<MatchParam*>(user_data);
+        for (const auto& right_operand : macro_result) {
+          if (IS_STRING_VIEW_VARIANT(right_operand.variant_))
+            [[likely]] {
+              if (!IS_STRING_VIEW_VARIANT(operand))
+                [[unlikely]] {
+                  results.emplace_back(false);
+                  continue;
+                }
 
               // Split the literal value into tokens.
               std::vector<std::string_view> tokens =
                   Common::SplitTokens(std::get<std::string_view>(right_operand.variant_));
 
               // Calculate the order independent hash value of all tokens.
-              int64_t hash = match_param->parent->calcOrderIndependentHash(tokens);
+              int64_t hash = calcOrderIndependentHash(tokens);
 
               // Load the hyperscan database and create a scanner.
               // We cache the hyperscan database to avoid loading(complie) the same database
               // multiple times.
               std::unique_ptr<Common::Hyperscan::Scanner> scanner;
-              match_param->parent->database_cache_.access(
+              database_cache_.access(
                   hash,
                   [&](const std::shared_ptr<Common::Hyperscan::HsDataBase>& hs_db) {
                     scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
@@ -124,13 +121,15 @@ public:
                     return 1;
                   },
                   &result);
-              std::string_view left_operand_str = std::get<std::string_view>(left_operand);
+              std::string_view left_operand_str = std::get<std::string_view>(operand);
               scanner->blockScan(left_operand_str);
 
               bool matched = result.first != result.second;
               if (matched) {
-                match_param->capture_array.emplace_back(left_operand_str.data() + result.first,
-                                                        result.second - result.first);
+                results.emplace_back(true, std::string_view{left_operand_str.data() + result.first,
+                                                            result.second - result.first});
+              } else {
+                results.emplace_back(false);
               }
 
               WGE_LOG_TRACE([&]() {
@@ -138,47 +137,47 @@ public:
                 if (!right_operand.variable_sub_name_.empty()) {
                   sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
                 }
-                return std::format("{} @{} {}{} => {}", std::get<std::string_view>(left_operand),
-                                   name_, sub_name,
-                                   std::get<std::string_view>(right_operand.variant_), matched);
+                return std::format("{} @{} {}{} => {}", std::get<std::string_view>(operand), name_,
+                                   sub_name, std::get<std::string_view>(right_operand.variant_),
+                                   results.back().matched_);
               }());
-
-              return matched;
-            },
-            &match_param);
-
-        if (matched) {
-          for (size_t i = 0; i < match_param.capture_array.size(); ++i) {
-            t.stageCapture(i, match_param.capture_array[i]);
+            }
+          else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
+            results.emplace_back(empty_match_);
+          } else {
+            results.emplace_back(false);
           }
         }
-
-        return matched;
       }
     else {
-      // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
-      // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
-      // scratch space for each transaction.
-      std::pair<unsigned long long, unsigned long long> result(0, 0);
-      scanner_->registMatchCallback(
-          [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-             void* user_data) -> int {
-            std::pair<unsigned long long, unsigned long long>* result =
-                static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
-            result->first = from;
-            result->second = to;
-            return 1;
-          },
-          &result);
-      std::string_view operand_str = std::get<std::string_view>(operand);
-      scanner_->blockScan(operand_str);
+      if (IS_STRING_VIEW_VARIANT(operand)) {
+        // The hyperscan scanner is thread-safe, so we can use the same scanner for all
+        // transactions. Actually, the scanner uses a thread-local scratch space to avoid the
+        // overhead of creating a scratch space for each transaction.
+        std::pair<unsigned long long, unsigned long long> result(0, 0);
+        scanner_->registMatchCallback(
+            [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
+               void* user_data) -> int {
+              std::pair<unsigned long long, unsigned long long>* result =
+                  static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
+              result->first = from;
+              result->second = to;
+              return 1;
+            },
+            &result);
+        std::string_view operand_str = std::get<std::string_view>(operand);
+        scanner_->blockScan(operand_str);
 
-      bool matched = result.first != result.second;
-      if (matched) {
-        t.stageCapture(0, {operand_str.data() + result.first, result.second - result.first});
+        bool matched = result.first != result.second;
+        if (matched) {
+          results.emplace_back(true, std::string_view{operand_str.data() + result.first,
+                                                      result.second - result.first});
+        } else {
+          results.emplace_back(false);
+        }
+      } else {
+        results.emplace_back(false);
       }
-
-      return matched;
     }
   }
 

@@ -36,7 +36,9 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override { return true; }
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+    results.emplace_back(true);
+  }
 };
 } // namespace Operator
 } // namespace Wge

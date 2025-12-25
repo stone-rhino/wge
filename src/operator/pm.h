@@ -41,8 +41,8 @@ public:
   }
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    return within_.evaluate(t, operand);
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+    return within_.evaluate(t, operand, results);
   }
 
 private:

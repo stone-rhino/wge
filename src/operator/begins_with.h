@@ -40,41 +40,53 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (IS_STRING_VIEW_VARIANT(operand))
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
+
+    if (!macro_)
       [[likely]] {
-        if (!macro_logic_matcher_)
-          [[likely]] { return std::get<std::string_view>(operand).starts_with(literal_value_); }
+        if (IS_STRING_VIEW_VARIANT(operand))
+          [[likely]] {
+            results.emplace_back(std::get<std::string_view>(operand).starts_with(literal_value_));
+          }
         else {
-          return macro_logic_matcher_->match(
-              t, operand, empty_match_,
-              [](Transaction& t, const Common::Variant& left_operand,
-                 const Common::EvaluateElement& right_operand, void* user_data) {
-                assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
-                if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
-                  return false;
-                }
-
-                bool matched = std::get<std::string_view>(left_operand)
-                                   .starts_with(std::get<std::string_view>(right_operand.variant_));
-
-                WGE_LOG_TRACE([&]() {
-                  std::string sub_name;
-                  if (!right_operand.variable_sub_name_.empty()) {
-                    sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
-                  }
-                  return std::format("{} @{} {}{} => {}", std::get<std::string_view>(left_operand),
-                                     name_, sub_name,
-                                     std::get<std::string_view>(right_operand.variant_), matched);
-                }());
-
-                return matched;
-              },
-              nullptr);
+          results.emplace_back(false);
         }
       }
     else {
-      return false;
+      Common::EvaluateResults macro_result;
+      macro_->evaluate(t, macro_result);
+      if (macro_result.empty()) {
+        results.emplace_back(empty_match_);
+        return;
+      }
+
+      for (const auto& right_operand : macro_result) {
+        if (IS_STRING_VIEW_VARIANT(right_operand.variant_))
+          [[likely]] {
+            if (!IS_STRING_VIEW_VARIANT(operand))
+              [[unlikely]] {
+                results.emplace_back(false);
+                continue;
+              }
+
+            results.emplace_back(std::get<std::string_view>(operand).starts_with(
+                std::get<std::string_view>(right_operand.variant_)));
+            WGE_LOG_TRACE([&]() {
+              std::string sub_name;
+              if (!right_operand.variable_sub_name_.empty()) {
+                sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+              }
+              return std::format("{} @{} {}{} => {}", std::get<std::string_view>(operand), name_,
+                                 sub_name, std::get<std::string_view>(right_operand.variant_),
+                                 results.back().matched_);
+            }());
+          }
+        else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
+          results.emplace_back(empty_match_);
+        } else {
+          results.emplace_back(false);
+        }
+      }
     }
   }
 };

@@ -297,9 +297,9 @@ private:
   evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
                     const Common::EvaluateElement& input, Common::EvaluateElement& output,
                     std::list<const Transformation::TransformBase*>& transform_list) const;
-  inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value,
+  inline void evaluateOperator(Transaction& t, const Common::Variant& var_value,
                                const std::unique_ptr<Wge::Variable::VariableBase>& var,
-                               std::string_view& capture_value) const;
+                               Operator::OperatorBase::Results& results) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateActions(Transaction& t, Action::ActionBase::Branch branch) const;
   bool evaluateWithMultiMatch(Transaction& t) const;

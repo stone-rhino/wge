@@ -1137,9 +1137,8 @@ TEST_F(RuleActionParseTest, ActionAlias) {
 
   auto& op = parser.rules()[0].front().chainRule(0)->operators().front();
   EXPECT_EQ(op->literalValue(), "");
-  EXPECT_EQ(op->macroLogicMatcher()->macro()->literalValue(), "%{MATCHED_OPTREE.for.bar}");
-  Macro::VariableMacro* op_var_macro =
-      dynamic_cast<Macro::VariableMacro*>(op->macroLogicMatcher()->macro().get());
+  EXPECT_EQ(op->macro()->literalValue(), "%{MATCHED_OPTREE.for.bar}");
+  Macro::VariableMacro* op_var_macro = dynamic_cast<Macro::VariableMacro*>(op->macro().get());
   ASSERT_NE(op_var_macro, nullptr);
   EXPECT_EQ(op_var_macro->getVariable()->subName(), "for.bar");
 }

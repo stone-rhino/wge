@@ -52,47 +52,44 @@ public:
       : OperatorBase(std::move(macro), is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] { return false; }
-
+  void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
     // If there is a macro, expand it and create or reuse a scanner.
-    if (macro_logic_matcher_)
+    if (macro_)
       [[unlikely]] {
-        struct MatchParam {
-          const Rx* parent;
-          std::vector<std::string_view> capture_array;
-        } match_param = {this};
+        Common::EvaluateResults macro_result;
+        macro_->evaluate(t, macro_result);
+        if (macro_result.empty()) {
+          results.emplace_back(empty_match_);
+          return;
+        }
 
-        bool matched = macro_logic_matcher_->match(
-            t, operand, empty_match_,
-            [](Transaction& t, const Common::Variant& left_operand,
-               const Common::EvaluateElement& right_operand, void* user_data) {
-              assert(IS_STRING_VIEW_VARIANT(right_operand.variant_));
-              if (!IS_STRING_VIEW_VARIANT(right_operand.variant_)) {
-                return false;
-              }
-
-              MatchParam* match_param = static_cast<MatchParam*>(user_data);
+        for (const auto& right_operand : macro_result) {
+          if (IS_STRING_VIEW_VARIANT(right_operand.variant_))
+            [[likely]] {
+              if (!IS_STRING_VIEW_VARIANT(operand))
+                [[unlikely]] {
+                  results.emplace_back(false);
+                  continue;
+                }
 
               // All the threads will try to access the macro_pcre_cache_ at the same time, so we
               // need to
               // lock the macro_chche_mutex_.
               // May be we can use thread local storage to store the scanner, to avoid the lock. But
               // the probablity of the macro expansion is very low, so we use the lock here.
-              std::lock_guard<std::mutex> lock(match_param->parent->macro_chche_mutex_);
+              std::lock_guard<std::mutex> lock(macro_chche_mutex_);
 
               const Scanner* scanner;
-              std::string_view left_str = std::get<std::string_view>(left_operand);
+              std::string_view left_str = std::get<std::string_view>(operand);
               std::string_view right_str = std::get<std::string_view>(right_operand.variant_);
-              auto iter = match_param->parent->macro_scanner_cache_.find(right_str);
-              if (iter == match_param->parent->macro_scanner_cache_.end()) {
+              auto iter = macro_scanner_cache_.find(right_str);
+              if (iter == macro_scanner_cache_.end()) {
                 // To avoid copying the macro value when we find scanner in the macro_scanner_cache_
                 // by std::string type key, we use std::string_view type key to find scanner in the
                 // macro_scanner_cache_, And store the macro value in the macro_value_cache_.
-                match_param->parent->macro_value_cache_.emplace_front(right_str);
-                auto macro_scanner = match_param->parent->createScanner(right_str);
-                scanner = &(match_param->parent->macro_scanner_cache_
+                macro_value_cache_.emplace_front(right_str);
+                auto macro_scanner = createScanner(right_str);
+                scanner = &(macro_scanner_cache_
                                 .emplace(macro_value_cache_.front(), std::move(macro_scanner))
                                 .first->second);
               } else {
@@ -112,8 +109,12 @@ public:
                   },
                   *scanner);
 
-              for (const auto& [from, to] : result) {
-                match_param->capture_array.emplace_back(left_str.data() + from, to - from);
+              if (!result.empty()) {
+                for (const auto& [from, to] : result) {
+                  results.emplace_back(true, std::string_view{left_str.data() + from, to - from});
+                }
+              } else {
+                results.emplace_back(false);
               }
 
               WGE_LOG_TRACE([&]() {
@@ -121,44 +122,44 @@ public:
                 if (!right_operand.variable_sub_name_.empty()) {
                   sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
                 }
-                return std::format(
-                    "{} @{} {}{} => {}", std::get<std::string_view>(left_operand), name_, sub_name,
-                    std::get<std::string_view>(right_operand.variant_), !result.empty());
+                return std::format("{} @{} {}{} => {}", std::get<std::string_view>(operand), name_,
+                                   sub_name, std::get<std::string_view>(right_operand.variant_),
+                                   results.back().matched_);
               }());
-
-              return !result.empty();
-            },
-            &match_param);
-
-        if (matched) {
-          for (size_t i = 0; i < match_param.capture_array.size(); ++i) {
-            t.stageCapture(i, match_param.capture_array[i]);
+            }
+          else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
+            results.emplace_back(empty_match_);
+          } else {
+            results.emplace_back(false);
           }
         }
-
-        return matched;
       }
     else {
-      std::vector<std::pair<size_t, size_t>> result;
-      const std::string_view& operand_str = std::get<std::string_view>(operand);
-      std::visit(
-          [&](auto&& arg) {
-            using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
-              if (t.getEngine().config().pcre_match_limit_) {
-                arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
+      if (IS_STRING_VIEW_VARIANT(operand)) {
+        std::vector<std::pair<size_t, size_t>> result;
+        const std::string_view& operand_str = std::get<std::string_view>(operand);
+        std::visit(
+            [&](auto&& arg) {
+              using T = std::decay_t<decltype(arg)>;
+              if constexpr (std::is_same_v<T, std::unique_ptr<Common::Pcre::Scanner>>) {
+                if (t.getEngine().config().pcre_match_limit_) {
+                  arg->setMatchLimit(t.getEngine().config().pcre_match_limit_);
+                }
               }
-            }
-            arg->match(operand_str, result);
-          },
-          scanner_);
+              arg->match(operand_str, result);
+            },
+            scanner_);
 
-      size_t capture_index = 0;
-      for (const auto& [from, to] : result) {
-        t.stageCapture(capture_index++, {operand_str.data() + from, to - from});
+        if (!result.empty()) {
+          for (const auto& [from, to] : result) {
+            results.emplace_back(true, std::string_view{operand_str.data() + from, to - from});
+          }
+        } else {
+          results.emplace_back(false);
+        }
+      } else {
+        results.emplace_back(false);
       }
-
-      return !result.empty();
     }
   }
 

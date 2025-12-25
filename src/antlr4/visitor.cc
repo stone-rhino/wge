@@ -925,12 +925,6 @@ std::any Visitor::visitVariable_user(Antlr4Gen::SecLangParser::Variable_userCont
 }
 
 std::any Visitor::visitVariable_ptree(Antlr4Gen::SecLangParser::Variable_ptreeContext* ctx) {
-  if (current_rule_->visitVariableMode() != CurrentRule::VisitVariableMode::Macro) {
-    if (!ctx->variable_ptree_expression()->AND().empty()) {
-      RETURN_ERROR("The '&' syntax in PTREE is only allowed in macro definitions.");
-    }
-  }
-
   return appendVariable<Variable::PTree>(ctx);
 }
 

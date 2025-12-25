@@ -67,9 +67,7 @@ TEST_F(RuleOperatorParseTest, beginsWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("beginsWith"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
@@ -100,9 +98,7 @@ TEST_F(RuleOperatorParseTest, endsWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("endsWith"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
@@ -186,9 +182,7 @@ TEST_F(RuleOperatorParseTest, withinWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("within"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.v5}");
 }
@@ -219,9 +213,7 @@ TEST_F(RuleOperatorParseTest, rxWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("rx"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.hello}");
 }
@@ -266,9 +258,7 @@ TEST_F(RuleOperatorParseTest, streqWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("streq"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.hello}");
 }
@@ -313,9 +303,7 @@ TEST_F(RuleOperatorParseTest, containsWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("contains"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
 }
@@ -358,9 +346,7 @@ TEST_F(RuleOperatorParseTest, xorWithMacro) {
   auto& op = rule.operators().front();
   EXPECT_EQ(op->name(), std::string_view("xor"));
   EXPECT_EQ(op->literalValue(), "");
-  auto& macro_matcher = op->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = op->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.bar}");
 }
@@ -382,17 +368,13 @@ TEST_F(RuleOperatorParseTest, operatorCombination) {
   EXPECT_EQ(operators[1]->literalValue(), "ar");
   EXPECT_EQ(operators[2]->name(), std::string_view("contains"));
   EXPECT_EQ(operators[2]->literalValue(), "");
-  auto& macro_matcher = operators[2]->macroLogicMatcher();
-  ASSERT_NE(macro_matcher, nullptr);
-  auto& macro = macro_matcher->macro();
+  auto& macro = operators[2]->macro();
   ASSERT_NE(macro, nullptr);
   EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
   {
     EXPECT_EQ(operators[3]->name(), std::string_view("rx"));
     EXPECT_EQ(operators[3]->literalValue(), "");
-    auto& macro_matcher = operators[3]->macroLogicMatcher();
-    ASSERT_NE(macro_matcher, nullptr);
-    auto& macro = macro_matcher->macro();
+    auto& macro = operators[3]->macro();
     ASSERT_NE(macro, nullptr);
     EXPECT_EQ(macro->literalValue(), "%{TX.foo2}");
   }
