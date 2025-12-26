@@ -828,6 +828,8 @@ public:
       Antlr4Gen::SecLangParser::Action_extension_first_matchContext* ctx) override;
   std::any visitAction_extension_empty_match(
       Antlr4Gen::SecLangParser::Action_extension_empty_matchContext* ctx) override;
+  std::any visitAction_extension_all_match(
+      Antlr4Gen::SecLangParser::Action_extension_all_matchContext* ctx) override;
   std::any visitAction_extension_multi_chain(
       Antlr4Gen::SecLangParser::Action_extension_multi_chainContext* ctx) override;
   std::any visitAction_extension_alias(

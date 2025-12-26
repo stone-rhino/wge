@@ -230,8 +230,20 @@ bool Rule::evaluate(Transaction& t) const {
           evaluateActions(t, Action::ActionBase::Branch::Unmatched);
 
           // Evaluate the chained rules
+          bool chain_matched = false;
           if (chain_ && unmatchedMultiChain())
-            [[unlikely]] { rule_matched = evaluateChain(t); }
+            [[unlikely]] {
+              chain_matched = evaluateChain(t);
+              rule_matched = chain_matched;
+            }
+
+          // If all match is enabled, and the variable is not matched, stop evaluating the rule
+          if (!chain_matched && allMatch())
+            [[unlikely]] {
+              WGE_LOG_TRACE(
+                  "all match is enabled, but variable is not matched, stop evaluating the rule");
+              return false;
+            }
         }
       }
 
@@ -584,8 +596,20 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           evaluateActions(t, Action::ActionBase::Branch::Unmatched);
 
           // Evaluate the chained rules
+          bool chain_matched = false;
           if (chain_ && unmatchedMultiChain())
-            [[unlikely]] { rule_matched = evaluateChain(t); }
+            [[unlikely]] {
+              chain_matched = evaluateChain(t);
+              rule_matched = chain_matched;
+            }
+
+          // If all match is enabled, and the variable is not matched, stop evaluating the rule
+          if (!chain_matched && allMatch())
+            [[unlikely]] {
+              WGE_LOG_TRACE(
+                  "all match is enabled, but variable is not matched, stop evaluating the rule");
+              return false;
+            }
         }
       }
 

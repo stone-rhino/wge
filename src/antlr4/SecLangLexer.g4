@@ -746,6 +746,7 @@ Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
 // Extensions:
 FirstMatch: 'firstMatch';
 EmptyMatch: 'emptyMatch';
+AllMatch: 'allMatch';
 MultiChain: 'multiChain';
 Alias: 'alias' -> pushMode(ModeSecRuleActionAlias);
 

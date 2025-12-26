@@ -155,6 +155,8 @@ public:
   void firstMatch(bool value) { flags_.set(static_cast<size_t>(Flags::FIRST_MATCH), value); }
   bool emptyMatch() const { return flags_.test(static_cast<size_t>(Flags::EMPTY_MATCH)); }
   void emptyMatch(bool value);
+  bool allMatch() const { return flags_.test(static_cast<size_t>(Flags::ALL_MATCH)); }
+  void allMatch(bool value) { flags_.set(static_cast<size_t>(Flags::ALL_MATCH), value); }
   bool matchedChain() const { return flags_.test(static_cast<size_t>(Flags::MATCHED_CHAIN)); }
   void matchedChain(bool value) { flags_.set(static_cast<size_t>(Flags::MATCHED_CHAIN), value); }
   bool unmatchedChain() const { return flags_.test(static_cast<size_t>(Flags::UNMATCHED_CHAIN)); }
@@ -333,6 +335,10 @@ private:
 
     // If enabled, and value of operator is a macro that evaluates to empty, the rule will match.
     EMPTY_MATCH,
+
+    // If enabled, the cartesian product of all variable values and all operator values must match
+    // for the rule to be considered a match.
+    ALL_MATCH,
 
     // Indicates that the matched branch actions have chain action.
     MATCHED_CHAIN,

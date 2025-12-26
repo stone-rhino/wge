@@ -2496,13 +2496,27 @@ Visitor::visitAction_flow_skip_after(Antlr4Gen::SecLangParser::Action_flow_skip_
 
 std::any Visitor::visitAction_extension_first_match(
     Antlr4Gen::SecLangParser::Action_extension_first_matchContext* ctx) {
-  current_rule_->get()->firstMatch(true);
+  if (current_rule_->get()->allMatch()) {
+    RETURN_ERROR("Cannot use firstMatch and allMatch together.");
+  } else {
+    current_rule_->get()->firstMatch(true);
+  }
   return EMPTY_STRING;
 }
 
 std::any Visitor::visitAction_extension_empty_match(
     Antlr4Gen::SecLangParser::Action_extension_empty_matchContext* ctx) {
   current_rule_->get()->emptyMatch(true);
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitAction_extension_all_match(
+    Antlr4Gen::SecLangParser::Action_extension_all_matchContext* ctx) {
+  if (current_rule_->get()->firstMatch()) {
+    RETURN_ERROR("Cannot use firstMatch and allMatch together.");
+  } else {
+    current_rule_->get()->allMatch(true);
+  }
   return EMPTY_STRING;
 }
 

@@ -1057,6 +1057,16 @@ TEST_F(RuleActionParseTest, ActionEmptyMatch) {
   EXPECT_TRUE(parser.rules()[0].back().emptyMatch());
 }
 
+TEST_F(RuleActionParseTest, ActionAllMatch) {
+  const std::string rule_directive =
+      R"(SecRule ARGS "@rx %{tx.foo}" "id:1,phase:1,allMatch,msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_TRUE(parser.rules()[0].back().allMatch());
+}
+
 TEST_F(RuleActionParseTest, ActionMultiChain) {
   {
     const std::string rule_directive = R"(

@@ -827,5 +827,37 @@ TEST_F(RuleActionTest, ActionEmptyMatch) {
   }
 }
 
+TEST_F(RuleActionTest, ActionAllMatch) {
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.foo=100,setvar:tx.bar=200"
+      SecRule TX "@gt 100" "allow:request,id:1,phase:1,setvar:tx.result=+1,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "result")), 1);
+  }
+
+  {
+    const std::string rule_directive =
+        R"(SecRuleEngine On
+      SecAction "phase:1,setvar:tx.foo=100,setvar:tx.bar=200"
+      SecRule TX "@gt 100" "allow:request,id:1,phase:1,allMatch,setvar:tx.result=+1,msg:'aaa bbb'")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(rule_directive);
+    ASSERT_TRUE(result.has_value());
+    engine.init();
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+    EXPECT_FALSE(t->hasVariable("", "result"));
+  }
+}
+
 } // namespace Integration
 } // namespace Wge

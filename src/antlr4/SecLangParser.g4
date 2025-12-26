@@ -1421,10 +1421,12 @@ action_flow_skip_after: SkipAfter COLON STRING;
 action_extension:
 	action_extension_first_match
 	| action_extension_empty_match
+	| action_extension_all_match
 	| action_extension_multi_chain
 	| action_extension_alias;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
+action_extension_all_match: AllMatch;
 action_extension_multi_chain: (ALWAYS | UNMATCHED)? MultiChain;
 action_extension_alias:
 	Alias COLON (
