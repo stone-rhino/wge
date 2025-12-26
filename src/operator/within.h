@@ -126,8 +126,10 @@ public:
 
               bool matched = result.first != result.second;
               if (matched) {
-                results.emplace_back(true, std::string_view{left_operand_str.data() + result.first,
-                                                            result.second - result.first});
+                results.emplace_back(true,
+                                     std::string_view{left_operand_str.data() + result.first,
+                                                      result.second - result.first},
+                                     right_operand.ptree_node_);
               } else {
                 results.emplace_back(false);
               }

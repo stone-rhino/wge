@@ -111,7 +111,8 @@ public:
 
               if (!result.empty()) {
                 for (const auto& [from, to] : result) {
-                  results.emplace_back(true, std::string_view{left_str.data() + from, to - from});
+                  results.emplace_back(true, std::string_view{left_str.data() + from, to - from},
+                                       right_operand.ptree_node_);
                 }
               } else {
                 results.emplace_back(false);

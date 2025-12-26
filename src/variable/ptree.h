@@ -53,6 +53,7 @@ public:
 
   static void evaluateNode(const Common::PropertyTree* node, const std::vector<Path>& paths,
                            size_t path_index, Common::EvaluateResults& result);
+  static void evaluateNode(const Common::PropertyTree* node, Common::EvaluateResults& result);
 
 private:
   std::vector<Path> paths_;
