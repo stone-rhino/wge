@@ -70,7 +70,11 @@ public:
       }
     }
 
-    Variable::PTree::evaluateNode(matched_optree, paths_, 0, result);
+    if (paths_.empty()) {
+      Variable::PTree::evaluateNode(matched_optree, result);
+    } else {
+      Variable::PTree::evaluateNode(matched_optree, paths_, 0, result);
+    }
   }
 };
 } // namespace Variable

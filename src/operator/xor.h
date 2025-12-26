@@ -70,7 +70,8 @@ public:
               }
 
             results.emplace_back(
-                (std::get<int64_t>(operand) ^ std::get<int64_t>(right_operand.variant_)) != 0);
+                (std::get<int64_t>(operand) ^ std::get<int64_t>(right_operand.variant_)) != 0, "",
+                right_operand.ptree_node_);
             WGE_LOG_TRACE([&]() {
               std::string sub_name;
               if (!right_operand.variable_sub_name_.empty()) {

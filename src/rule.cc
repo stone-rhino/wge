@@ -210,6 +210,10 @@ bool Rule::evaluate(Transaction& t) const {
             t.pushMatchedVPTree(chain_index_, variable_value.ptree_node_);
           }
 
+          if (op_result.ptree_node_) {
+            t.pushMatchedOPTree(chain_index_, op_result.ptree_node_);
+          }
+
           rule_matched = true;
 
           // Evaluate the matched branch actions
@@ -506,9 +510,9 @@ void Rule::evaluateActions(Transaction& t, Action::ActionBase::Branch branch) co
   }
 }
 
-// Normally, variables are inspected only once per rule, and only after all transformation functions
-// have been completed. With multiMatch, variables are checked against the operator before and after
-// every transformation function that changes the input.
+// Normally, variables are inspected only once per rule, and only after all transformation
+// functions have been completed. With multiMatch, variables are checked against the operator
+// before and after every transformation function that changes the input.
 bool Rule::evaluateWithMultiMatch(Transaction& t) const {
   // Get all of the transformations
   std::vector<Transformation::TransformBase*> transforms;
@@ -573,6 +577,10 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
           if (evaluated_value->ptree_node_) {
             t.pushMatchedVPTree(chain_index_, evaluated_value->ptree_node_);
+          }
+
+          if (op_result.ptree_node_) {
+            t.pushMatchedOPTree(chain_index_, op_result.ptree_node_);
           }
 
           variable_matched = true;

@@ -944,8 +944,7 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
     auto& matched_optree =
         engine.propertyTree().get_child("config.server_list").front().second.get_child("port");
     EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
-    t->stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&matched_optree));
-    t->commitMatchedOPTree(-1);
+    t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../host", false, false, "");
     result.clear();
     var.evaluate(*t, result);
@@ -962,8 +961,7 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
                                .front()
                                .second;
     EXPECT_EQ(std::get<std::string_view>(matched_optree.data()), "staging");
-    t->stageMatchedOPTree(static_cast<const Common::PropertyTree*>(&matched_optree));
-    t->commitMatchedOPTree(-1);
+    t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../../domain.name", false, false, "");
     result.clear();
     var.evaluate(*t, result);

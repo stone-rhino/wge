@@ -512,5 +512,114 @@ TEST(RuleEvaluateLogicTest, MatchedVarPush) {
   }
 }
 
+TEST(RuleEvaluateLogicTest, MachedVPTree) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecRule PTREE:config.server_list[].host "@unconditionalMatch"  "phase:1,id:1,chain"
+          SecRule MATCHED_VPTREE "@streq 192.168.1.2"  "phase:1,id:2,setvar:tx.matched_count=+1"
+    )";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(directive);
+  engine.init();
+  ASSERT_TRUE(result.has_value());
+
+  auto pt_result = engine.propertyTree(json);
+  ASSERT_TRUE(pt_result.has_value());
+
+  auto t = engine.makeTransaction();
+  t->processRequestHeaders(nullptr, nullptr, 0);
+
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "matched_count")), 1);
+}
+
+TEST(RuleEvaluateLogicTest, MachedOPTree) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.foo=192.168.1.2"
+        SecRule TX:foo "@streq %{PTREE.config.server_list[].host}"  "phase:1,id:1,chain"
+          SecRule MATCHED_OPTREE "@streq 192.168.1.2"  "phase:1,id:2,setvar:tx.matched_count=+1"
+    )";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(directive);
+  engine.init();
+  ASSERT_TRUE(result.has_value());
+
+  auto pt_result = engine.propertyTree(json);
+  ASSERT_TRUE(pt_result.has_value());
+
+  auto t = engine.makeTransaction();
+  t->processRequestHeaders(nullptr, nullptr, 0);
+
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "matched_count")), 1);
+}
+
 } // namespace Integration
 } // namespace Wge

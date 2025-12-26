@@ -24,6 +24,7 @@
 
 #include <absl/container/inlined_vector.h>
 
+#include "../common/property_tree.h"
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
 #include "../transaction.h"
@@ -43,8 +44,9 @@ namespace Operator {
 class OperatorBase {
 public:
   struct Result {
-    bool matched_;
+    bool matched_{false};
     std::string_view capture_;
+    const Common::PropertyTree* ptree_node_{nullptr};
   };
   using Results = absl::InlinedVector<Result, 1>;
 

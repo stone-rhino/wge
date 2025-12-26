@@ -65,7 +65,8 @@ public:
               }
 
             results.emplace_back(std::get<std::string_view>(operand).ends_with(
-                std::get<std::string_view>(right_operand.variant_)));
+                                     std::get<std::string_view>(right_operand.variant_)),
+                                 "", right_operand.ptree_node_);
             WGE_LOG_TRACE([&]() {
               std::string sub_name;
               if (!right_operand.variable_sub_name_.empty()) {

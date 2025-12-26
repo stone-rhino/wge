@@ -467,37 +467,16 @@ public:
   }
 
   /**
-   * Stage a matched operator property tree node. After staging, we should call
-   * commitMatchedOPTree() to commit the staged matched operator property tree nodes into the main
-   * matched operator, then we can use getMatchedOPTrees() to get the matched operator property tree
-   * nodes.
+   * Add a matched operator property tree node.
+   * Use for MATCHED_OPTREE.
+   * @param rule_chain_index the chain index of the rule that matched this node
    * @param optree the matched operator property tree node.
    */
-  void stageMatchedOPTree(const Common::PropertyTree* optree) {
-    temp_matched_optrees_.emplace_back(optree);
-  }
-
-  /**
-   * Rollback the staged matched operator property tree nodes.
-   */
-  void rollbackMatchedOPTree() { temp_matched_optrees_.clear(); }
-
-  /**
-   * Commit the staged matched operator property tree nodes into the main matched operator property
-   * tree nodes.
-   * After calling this method, we can use getMatchedOPTrees() to get the matched operator property
-   * tree nodes.
-   * @param rule_chain_index the chain index of the rule that matched these nodes
-   * @return the number of matched operator property tree nodes that are committed.
-   */
-  size_t commitMatchedOPTree(RuleChainIndexType rule_chain_index) {
+  void pushMatchedOPTree(RuleChainIndexType rule_chain_index, const Common::PropertyTree* optree) {
     auto& optrees =
         matched_optrees_.try_emplace(rule_chain_index, std::vector<const Common::PropertyTree*>())
             .first->second;
-    optrees.insert(optrees.end(), temp_matched_optrees_.begin(), temp_matched_optrees_.end());
-    size_t count = temp_matched_optrees_.size();
-    temp_matched_optrees_.clear();
-    return count;
+    optrees.emplace_back(optree);
   }
 
   /**
@@ -667,7 +646,6 @@ private:
   // - Value: vector of all PTree nodes that matched within that specific rule
   // Used by MATCHED_OPTREE and MATCHED_VPTREE variables.
   std::unordered_map<RuleChainIndexType, std::vector<const Common::PropertyTree*>> matched_optrees_;
-  std::vector<const Common::PropertyTree*> temp_matched_optrees_;
   std::unordered_map<RuleChainIndexType, std::vector<const Common::PropertyTree*>> matched_vptrees_;
 
   // All of the transaction instances share the same rule instances, and each transaction instance
