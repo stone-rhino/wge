@@ -85,17 +85,47 @@ TEST_F(RuleVariableParseTest, PTree) {
 }
 
 TEST_F(RuleVariableParseTest, PTreeMacro) {
-  const std::string directive =
-      R"(SecRule ARGS "@rx %{PTREE.config.server_list[].domain{}}" "id:1,phase:1")";
+  {
+    const std::string directive =
+        R"(SecRule ARGS "@rx %{PTREE.config.server_list[].domain{}}" "id:1,phase:1")";
 
-  Antlr4::Parser parser;
-  auto result = parser.load(directive);
-  ASSERT_TRUE(result.has_value());
+    Antlr4::Parser parser;
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
 
-  auto& op = parser.rules()[0].back().operators().front();
-  EXPECT_NE(op->macro(), nullptr);
-  EXPECT_EQ(op->macro()->literalValue(), "%{PTREE.config.server_list[].domain{}}");
-  EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macro().get()), nullptr);
+    auto& op = parser.rules()[0].back().operators().front();
+    EXPECT_NE(op->macro(), nullptr);
+    EXPECT_EQ(op->macro()->literalValue(), "%{PTREE.config.server_list[].domain{}}");
+    EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macro().get()), nullptr);
+  }
+
+  {
+    const std::string directive =
+        R"(SecRule ARGS "@rx %{PTREE.config.server_list[].domain[]}" "id:1,phase:1")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& op = parser.rules()[0].back().operators().front();
+    EXPECT_NE(op->macro(), nullptr);
+    EXPECT_EQ(op->macro()->literalValue(), "%{PTREE.config.server_list[].domain[]}");
+    EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macro().get()), nullptr);
+  }
+
+  {
+    const std::string directive =
+        R"(SecRule ARGS "@rx %{PTREE.config.server_list[].domain}" "id:1,phase:1")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& op = parser.rules()[0].back().operators().front();
+    EXPECT_NE(op->macro(), nullptr);
+    EXPECT_EQ(op->macro()->literalValue(), "%{PTREE.config.server_list[].domain}");
+    EXPECT_NE(dynamic_cast<Macro::VariableMacro*>(op->macro().get()), nullptr);
+  }
 }
 
 TEST_F(RuleVariableParseTest, Tx) {

@@ -1113,7 +1113,7 @@ TEST_F(RuleActionParseTest, ActionAlias) {
   // 4. Test the alias were cleared after parsing is done.
   const std::string rule_directive = R"(
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,alias:test0=MATCHED_OPTREE,alias:test1=MATCHED_VPTREE../../foo.bar,alias:test2=MATCHED_OPTREE../,msg:'aaa',chain"
-          SecRule test0|test1:world "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
+          SecRule test0|test1:world|test0:foo[].bar|test0:foo[].bar{} "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
         SecRule test0|test1:world "baz" "id:3,phase:1,msg:'bbb'")";
 
   auto result = parser.load(rule_directive);
@@ -1123,17 +1123,27 @@ TEST_F(RuleActionParseTest, ActionAlias) {
   EXPECT_EQ(parser.rules()[0].size(), 1);
 
   auto& rule_var_pool = parser.rules()[0].front().chainRule(0)->variables();
-  ASSERT_EQ(rule_var_pool.size(), 2);
+  ASSERT_EQ(rule_var_pool.size(), 4);
   Variable::MatchedOPTree* var0 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[0].get());
   Variable::MatchedVPTree* var1 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[1].get());
+  Variable::MatchedOPTree* var2 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[2].get());
+  Variable::MatchedOPTree* var3 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[3].get());
   ASSERT_NE(var0, nullptr);
   ASSERT_NE(var1, nullptr);
+  ASSERT_NE(var2, nullptr);
+  ASSERT_NE(var3, nullptr);
   EXPECT_EQ(var0->subName(), "");
   EXPECT_EQ(var1->subName(), "../../foo.bar.world");
+  EXPECT_EQ(var2->subName(), "foo[].bar");
+  EXPECT_EQ(var3->subName(), "foo[].bar{}");
   EXPECT_EQ(var0->parentCount(), 0);
   EXPECT_EQ(var1->parentCount(), 2);
+  EXPECT_EQ(var2->parentCount(), 0);
+  EXPECT_EQ(var3->parentCount(), 0);
   EXPECT_EQ(var0->paths().size(), 0);
   EXPECT_EQ(var1->paths().size(), 3);
+  EXPECT_EQ(var2->paths().size(), 2);
+  EXPECT_EQ(var3->paths().size(), 2);
 
   auto& op = parser.rules()[0].front().chainRule(0)->operators().front();
   EXPECT_EQ(op->literalValue(), "");

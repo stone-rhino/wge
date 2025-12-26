@@ -40,8 +40,7 @@ tokens{
 	OPTION,
 	STRING,
 	VAR_COUNT,
-	UNMATCHED,
-	PARENT
+	UNMATCHED
 }
 
 QUOTE: '"';
@@ -463,7 +462,8 @@ VAR_MATCHED_OPTREE:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
 		ModeSecRuleVariableNamePtree);
 VAR_GTX: [gG][tT][xX];
-VAR_ALIAS: [a-zA-Z_][0-9a-zA-Z_]*;
+VAR_ALIAS:
+	[a-zA-Z_][0-9a-zA-Z_]* -> pushMode(ModeSecRuleVariableNamePtree);
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
 ModeSecRuleVariableName_PIPE: PIPE -> type(PIPE);
@@ -489,45 +489,66 @@ ModeSecRuleVariableName_RIGHT_BRACKET:
 	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
 
 mode ModeSecRuleVariableNamePtree;
-ModeSecRuleVariableNamePtree_WS: WS -> skip, popMode, popMode;
-PARENT1:
-	'../' {[&](){
-	  std::string str = " |}.,\"";
-	  return str.find(_input->LA(1)) == std::string::npos;
-	}()}? -> type (PARENT), pushMode(ModeSecRuleVariableSubNamePtree);
-PARENT2: '../' -> type(PARENT);
+ModeSecRuleVariableNamePtree_WS:
+	// Exit: VariableName -> Variable
+	WS -> skip, popMode, popMode;
+PARENT: '../' -> pushMode(ModeSecRuleVariableNamePtreePath);
 ModeSecRuleVariableNamePtree_COLON:
-	COLON -> type(COLON), pushMode(ModeSecRuleVariableSubNamePtree);
+	COLON -> type(COLON), pushMode(ModeSecRuleVariableNamePtreePath);
 ModeSecRuleVariableNamePtree_DOT:
-	DOT -> type(DOT), pushMode(ModeSecRuleVariableSubNamePtree);
-ModeSecRuleVariableNamePtree_LEFT_BRACKET:
-	LEFT_BRACKET -> type(LEFT_BRACKET);
-ModeSecRuleVariableNamePtree_RIGHT_BRACKET:
-	RIGHT_BRACKET {[&](){
-	  // If the next char is not a dot, we are at the end of the ptree variable
-	  return _input->LA(1) != '.';
-	}()}? -> type(RIGHT_BRACKET), popMode;
-ModeSecRuleVariableNamePtree_RIGHT_BRACKET2:
-	RIGHT_BRACKET -> type(RIGHT_BRACKET);
-ModeSecRuleVariableNamePtree_LEFT_SQUARE:
-	LEFT_SQUARE -> type(LEFT_SQUARE);
-ModeSecRuleVariableNamePtree_RIGHT_SQUARE:
-	RIGHT_SQUARE -> type(RIGHT_SQUARE);
+	DOT -> type(DOT), pushMode(ModeSecRuleVariableNamePtreePath);
 ModeSecRuleVariableNamePtree_PIPE:
+	// Exit: VariableName
 	PIPE -> type(PIPE), popMode;
 ModeSecRuleVariableNamePtree_COMMA:
+	// Exit: VariableName -> ActionAlias -> ActionName
 	COMMA { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
 		}? -> type(COMMA), popMode, popMode, popMode;
 ModeSecRuleVariableNamePtree_SINGLE_QUOTE:
+	// Exit:  VariableName -> ActionAlias -> ActionName
 	SINGLE_QUOTE { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
 		}? -> type(SINGLE_QUOTE), popMode, popMode, popMode;
 ModeSecRuleVariableNamePtree_QUOTE:
+	// Exit: VariableName -> ActionAlias -> ActionName -> Action
 	QUOTE { modeStack.size() > 2 && modeStack[modeStack.size() - 2] == ModeSecRuleActionAlias
-		}? -> type(QUOTE), popMode, popMode, popMode;
+		}? -> type(QUOTE), popMode, popMode, popMode, popMode;
 
-mode ModeSecRuleVariableSubNamePtree;
-ModeSecRuleVariableSubNamePtree_VAR_SUB_NAME:
-	~[ :!&|"',.%{}\-\n[\]]+ -> type(STRING), popMode;
+mode ModeSecRuleVariableNamePtreePath;
+ModeSecRuleVariableNamePtreePath_WS:
+	// Exit: VariableNamePtree - > VariableName -> Variable
+	WS -> skip, popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_PARENT: '../' -> type(PARENT);
+ModeSecRuleVariableNamePtreePath_DOT: DOT -> type(DOT);
+ModeSecRuleVariableNamePtreePath_LEFT_SQUARE:
+	LEFT_SQUARE -> type(LEFT_SQUARE);
+ModeSecRuleVariableNamePtreePath_RIGHT_SQUARE:
+	RIGHT_SQUARE -> type(RIGHT_SQUARE);
+ModeSecRuleVariableNamePtreePath_LEFT_BRACKET:
+	LEFT_BRACKET -> type(LEFT_BRACKET), pushMode(ModeSecRuleVariableNamePtreeRightBracketClose);
+ModeSecRuleVariableNamePtreePath_RIGHT_BRACKET:
+	// Exit: VariableNamePtree -> VariableName -> Variable
+	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_PIPE:
+	// Exit: VariableNamePtree -> VariableName
+	PIPE -> type(PIPE), popMode, popMode;
+ModeSecRuleVariableNamePtreePath_STRING:
+	~[ :!&|"',.%{}\-\n[\]]+ -> type(STRING);
+ModeSecRuleVariableNamePtreePath_COMMA:
+	// Exit: VariableNamePtree -> VariableName -> ActionAlias -> ActionName
+	COMMA { modeStack.size() > 3 && modeStack[modeStack.size() - 3] == ModeSecRuleActionAlias
+		}? -> type(COMMA), popMode, popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_SINGLE_QUOTE:
+	// Exit: VariableNamePtree -> VariableName -> ActionAlias -> ActionName
+	SINGLE_QUOTE { modeStack.size() > 3 && modeStack[modeStack.size() - 3] == ModeSecRuleActionAlias
+		}? -> type(SINGLE_QUOTE), popMode, popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_QUOTE:
+	// Exit: VariableNamePtree -> VariableName -> ActionAlias -> ActionName -> Action
+	QUOTE { modeStack.size() > 3 && modeStack[modeStack.size() - 3] == ModeSecRuleActionAlias
+		}? -> type(QUOTE), popMode, popMode, popMode, popMode, popMode;
+
+mode ModeSecRuleVariableNamePtreeRightBracketClose;
+ModeSecRuleVariableNamePtreeRightBracketClose_RIGHT_BRACKET:
+	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
 
 mode ModeSecRuleVariableSubNameWithRegex;
 ModeSecRuleVariableSubNameWithRegex_VAR_SUB_NAME:
