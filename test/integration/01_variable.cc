@@ -834,7 +834,13 @@ TEST_F(VariableTest, PTREE) {
                     "v1.1"
                 ]
             }
-        ]
+        ],
+        "boolean_test1": true,
+        "boolean_test2": false,
+        "null_test": null,
+        "float_test": 3.14159,
+        "minus_test": -100,
+        "minus_float_test": -3.14159
     }
 })";
 
@@ -895,6 +901,54 @@ TEST_F(VariableTest, PTREE) {
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
     EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
     EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "v1.1");
+  }
+
+  {
+    Variable::PTree var("config.boolean_test1", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 1);
+  }
+
+  {
+    Variable::PTree var("config.boolean_test2", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 0);
+  }
+
+  {
+    Variable::PTree var("config.null_test", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_TRUE(IS_EMPTY_VARIANT(result[0].variant_));
+  }
+
+  {
+    Variable::PTree var("config.float_test", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 314);
+  }
+
+  {
+    Variable::PTree var("config.minus_test", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), -100);
+  }
+
+  {
+    Variable::PTree var("config.minus_float_test", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), -314);
   }
 }
 

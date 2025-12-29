@@ -77,6 +77,11 @@ public:
    * content are correct.
    * @param json_string JSON string representing engine properties
    * @result an error string is returned if fails, and returned true otherwise
+   * @note The json values are stored in Common::Variant as follows:
+   * - string: string_view
+   * - number: int64_t (multiplied by 100 if it is a floating point number)
+   * - boolean: int64_t (1 for true, 0 for false)
+   * - null: std::monostate
    */
   std::expected<bool, std::string> propertyTree(const std::string& json_string);
 
