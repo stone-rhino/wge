@@ -218,11 +218,46 @@ void Engine::convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
       return {std::monostate{}, parent};
     }
 
-    // Try to parse as integer
-    if (std::all_of(value.begin(), value.end(), [&value](char c) {
-          return std::isdigit(c) || (c == '-' && &c == &value[0]);
-        })) {
-      return {static_cast<int64_t>(std::stoll(value)), parent};
+    // Try to parse as boolean or null
+    if (value == "true") {
+      return {1, parent};
+    } else if (value == "false") {
+      return {0, parent};
+    } else if (value == "null") {
+      return {std::monostate{}, parent};
+    }
+
+    // Try to parse as number (integer or floating point)
+    bool has_dot = false;
+    bool is_valid_number = true;
+    for (size_t i = 0; i < value.size() && is_valid_number; ++i) {
+      const char& c = value[i];
+      if (c == '.') {
+        if (has_dot || i == 0 || i == value.size() - 1) {
+          is_valid_number = false;
+        } else {
+          has_dot = true;
+        }
+      } else if (c == '-') {
+        if (i != 0) {
+          is_valid_number = false;
+        }
+      } else if (!std::isdigit(c)) {
+        is_valid_number = false;
+      }
+    }
+    if (is_valid_number) {
+      if (has_dot) {
+        // Parse as floating point and convert to integer (multiply by 100)
+        double double_value = 0;
+        std::from_chars(value.data(), value.data() + value.size(), double_value);
+        return {static_cast<int64_t>(std::round(double_value * 100)), parent};
+      } else {
+        // Parse as integer
+        int64_t int_value = 0;
+        std::from_chars(value.data(), value.data() + value.size(), int_value);
+        return {int_value, parent};
+      }
     }
 
     property_tree_string_pool_.append(value);
