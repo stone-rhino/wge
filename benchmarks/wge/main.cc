@@ -1,6 +1,8 @@
 #include <array>
 #include <iostream>
+#include <map>
 #include <mutex>
+#include <set>
 #include <thread>
 #include <vector>
 
@@ -13,7 +15,38 @@
 uint32_t test_count = 0;
 std::mutex mutex;
 
+#ifndef NDEBUG
+#define DEBUG
+#endif
+
+#ifdef DEBUG
+std::map<size_t, std::set<size_t>> white_request_hit_rules;
+std::map<size_t, std::set<size_t>> black_request_hit_rules;
+
+void recordRuleHit(size_t request_id, int request_type, const std::vector<size_t>& rule_ids) {
+  if (!rule_ids.empty()) {
+    if (request_type == 0) {
+      for (auto& rule_id : rule_ids) {
+        assert(white_request_hit_rules[request_id].find(rule_id) ==
+               white_request_hit_rules[request_id].end());
+        white_request_hit_rules[request_id].insert(rule_id);
+      }
+    } else {
+      for (auto& rule_id : rule_ids) {
+        assert(black_request_hit_rules[request_id].find(rule_id) ==
+               black_request_hit_rules[request_id].end());
+        black_request_hit_rules[request_id].insert(rule_id);
+      }
+    }
+  }
+}
+#endif
+
+#ifdef DEBUG
+void process(Wge::Engine& engine, const HttpInfo& http_info, size_t request_id, int request_type) {
+#else
 void process(Wge::Engine& engine, const HttpInfo& http_info) {
+#endif
   Wge::HeaderFind request_header_find = [&](const std::string& key) {
     std::vector<std::string_view> result;
     auto range = http_info.request_headers_.equal_range(key);
@@ -53,23 +86,69 @@ void process(Wge::Engine& engine, const HttpInfo& http_info) {
   auto t = engine.makeTransaction();
   t->processConnection("192.168.1.100", 20000, "192.168.1.200", 80);
   t->processUri(http_info.request_uri_, http_info.request_method_, http_info.request_version_);
+#ifdef DEBUG
+  std::vector<size_t> rule_ids;
+  t->processRequestHeaders(
+      request_header_find, request_header_traversal, http_info.request_headers_.size(),
+      [](const Wge::Rule& rule, void* user_data) {
+        std::vector<size_t>& rule_ids = *static_cast<std::vector<size_t>*>(user_data);
+        rule_ids.emplace_back(rule.id());
+      },
+      &rule_ids);
+
+  recordRuleHit(request_id, request_type, rule_ids);
+#else
   t->processRequestHeaders(request_header_find, request_header_traversal,
-                           http_info.request_headers_.size(),
-                           [](const Wge::Rule& rule, void* user_data) {
-                             // std::cout << rule.id() << std::endl;
-                           });
-  t->processRequestBody(http_info.request_body_, [](const Wge::Rule& rule, void* user_data) {
-    // std::cout << rule.id() << std::endl;
-  });
+                           http_info.request_headers_.size());
+#endif
+
+#ifdef DEBUG
+  rule_ids.clear();
+  t->processRequestBody(
+      http_info.request_body_,
+      [](const Wge::Rule& rule, void* user_data) {
+        std::vector<size_t>& rule_ids = *static_cast<std::vector<size_t>*>(user_data);
+        rule_ids.emplace_back(rule.id());
+      },
+      &rule_ids);
+
+  recordRuleHit(request_id, request_type, rule_ids);
+#else
+  t->processRequestBody(http_info.request_body_);
+#endif
+
+#ifdef DEBUG
+  rule_ids.clear();
+  t->processResponseHeaders(
+      http_info.response_status_code_, http_info.response_protocol_, response_header_find,
+      response_header_traversal, http_info.response_headers_.size(),
+      [](const Wge::Rule& rule, void* user_data) {
+        std::vector<size_t>& rule_ids = *static_cast<std::vector<size_t>*>(user_data);
+        rule_ids.emplace_back(rule.id());
+      },
+      &rule_ids);
+
+  recordRuleHit(request_id, request_type, rule_ids);
+#else
   t->processResponseHeaders(http_info.response_status_code_, http_info.response_protocol_,
                             response_header_find, response_header_traversal,
-                            http_info.response_headers_.size(),
-                            [](const Wge::Rule& rule, void* user_data) {
-                              // std::cout << rule.id() << std::endl;
-                            });
-  t->processResponseBody(http_info.response_body_, [](const Wge::Rule& rule, void* user_data) {
-    // std::cout << rule.id() << std::endl;
-  });
+                            http_info.response_headers_.size());
+#endif
+
+#ifdef DEBUG
+  rule_ids.clear();
+  t->processResponseBody(
+      http_info.response_body_,
+      [](const Wge::Rule& rule, void* user_data) {
+        std::vector<size_t>& rule_ids = *static_cast<std::vector<size_t>*>(user_data);
+        rule_ids.emplace_back(rule.id());
+      },
+      &rule_ids);
+
+  recordRuleHit(request_id, request_type, rule_ids);
+#else
+  t->processResponseBody(http_info.response_body_);
+#endif
 }
 
 void thread_func(Wge::Engine& engine, uint32_t max_test_count, const TestData& test_data_white,
@@ -78,12 +157,21 @@ void thread_func(Wge::Engine& engine, uint32_t max_test_count, const TestData& t
     auto& white_data = test_data_white.getHttpInfos();
     auto& black_data = test_data_black.getHttpInfos();
 
+#ifdef DEBUG
+    for (size_t i = 0; i < white_data.size(); ++i) {
+      process(engine, white_data[i], i, 0);
+    }
+    for (size_t i = 0; i < black_data.size(); ++i) {
+      process(engine, black_data[i], i, 1);
+    }
+#else
     for (auto& http_info : white_data) {
       process(engine, http_info);
     }
     for (auto& http_info : black_data) {
       process(engine, http_info);
     }
+#endif
 
     std::lock_guard<std::mutex> lock(mutex);
     test_count += white_data.size() + black_data.size();
@@ -99,6 +187,11 @@ int main(int argc, char* argv[]) {
   uint32_t concurrency = std::thread::hardware_concurrency();
   // The maximum requests number of tests, default 100000
   uint32_t max_test_count = 100000;
+
+#ifdef DEBUG
+  concurrency = 1;
+  max_test_count = 1;
+#endif
 
   // Parse command line arguments
   int opt;
@@ -143,7 +236,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Load rules
-  Wge::Engine engine(spdlog::level::trace);
+  Wge::Engine engine(spdlog::level::off);
   std::expected<bool, std::string> result;
   std::vector<std::string> rule_files = {
       "test/test_data/engin-setup.conf",
@@ -194,6 +287,7 @@ int main(int argc, char* argv[]) {
 
   engine.init();
 
+#ifndef DEBUG
   // CPU warmup
   std::vector<std::thread> warmup_threads;
   for (int i = 0; i < concurrency; ++i) {
@@ -203,6 +297,7 @@ int main(int argc, char* argv[]) {
   for (auto& thread : warmup_threads) {
     thread.join();
   }
+#endif
 
   // Start benchmark
   std::vector<std::thread> threads;
@@ -217,12 +312,29 @@ int main(int argc, char* argv[]) {
     thread.join();
   }
 
-  // Print benchmark result
+// Print benchmark result
+#ifndef DEBUG
   duration.stop();
   std::cout << "Test count: " << test_count << std::endl;
   std::cout << "Total time: " << duration.milliseconds() << "ms" << std::endl;
   std::cout << std::fixed << std::setprecision(3)
             << "QPS:" << 1000.0 * test_count / duration.milliseconds() << std::endl;
+#else
+  // In debug mode, print the hit rules for each request
+  for (const auto& [request_id, hit_rules] : white_request_hit_rules) {
+    std::cout << "White: " << request_id << std::endl;
+    for (const auto& rule_id : hit_rules) {
+      std::cout << rule_id << std::endl;
+    }
+  }
+
+  for (const auto& [request_id, hit_rules] : black_request_hit_rules) {
+    std::cout << "Black: " << request_id << std::endl;
+    for (const auto& rule_id : hit_rules) {
+      std::cout << rule_id << std::endl;
+    }
+  }
+#endif
 
   return 0;
 }
