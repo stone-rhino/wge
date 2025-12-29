@@ -2568,6 +2568,25 @@ Visitor::visitAction_extension_alias(Antlr4Gen::SecLangParser::Action_extension_
   return EMPTY_STRING;
 }
 
+std::any
+Visitor::visitAction_extension_reply(Antlr4Gen::SecLangParser::Action_extension_replyContext* ctx) {
+  std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro =
+      getMacro(ctx->string_with_macro()->getText(), ctx->string_with_macro()->variable(),
+               ctx->string_with_macro()->STRING().empty());
+
+  if (!macro.has_value()) {
+    RETURN_ERROR(macro.error());
+  }
+
+  if (macro.value()) {
+    current_rule_->get()->reply(std::move(macro.value()));
+  } else {
+    current_rule_->get()->reply(ctx->string_with_macro()->getText());
+  }
+
+  return EMPTY_STRING;
+}
+
 std::any Visitor::visitSec_audit_engine(Antlr4Gen::SecLangParser::Sec_audit_engineContext* ctx) {
   using Option = Wge::AuditLogConfig::AuditEngine;
   Option option = Option::Off;

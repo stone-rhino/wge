@@ -583,6 +583,19 @@ std::string_view Transaction::getLogDataMacroExpanded() {
   return "";
 }
 
+std::string_view Transaction::getReplyMacroExpanded() {
+  if (current_rule_ && current_rule_->replyMacro()) {
+    Wge::Common::EvaluateResults result;
+    current_rule_->replyMacro()->evaluate(*this, result);
+    WGE_LOG_TRACE("evaluate reply macro: {}", VISTIT_VARIANT_AS_STRING(result.at(0).variant_));
+    if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
+      return std::get<std::string_view>(result.front().variant_);
+    }
+  }
+
+  return "";
+}
+
 std::string_view Transaction::getPersistentStorageKey(PersistentStorage::Storage::Type type) const {
   switch (persistent_storage_keys_[static_cast<size_t>(type)].index()) {
   case 1:
@@ -682,7 +695,7 @@ inline bool Transaction::process(RulePhaseType phase) {
       if (disruptive.has_value()) {
         if (!disruptive.value()) {
           // Modify the response status code
-          response_line_info_.status_code_ = "403";
+          response_line_info_.status_code_ = current_rule_->status();
         }
         return disruptive.value();
       }

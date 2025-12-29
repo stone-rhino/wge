@@ -749,6 +749,7 @@ EmptyMatch: 'emptyMatch';
 AllMatch: 'allMatch';
 MultiChain: 'multiChain';
 Alias: 'alias' -> pushMode(ModeSecRuleActionAlias);
+Reply: 'reply';
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;

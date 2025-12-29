@@ -1017,6 +1017,7 @@ TEST_F(RuleActionParseTest, ActionMsgWithMacro) {
   ASSERT_TRUE(result.has_value());
 
   EXPECT_TRUE(parser.rules()[0].back().msg().empty());
+  EXPECT_EQ(parser.rules()[0].back().msgMacro()->literalValue(), "foo: %{tx.foo} bar: %{tx.bar}");
 }
 
 TEST_F(RuleActionParseTest, ActionLogData) {
@@ -1025,7 +1026,7 @@ TEST_F(RuleActionParseTest, ActionLogData) {
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
-  EXPECT_EQ(parser.rules()[0].back().logdata(), "this is logdata");
+  EXPECT_EQ(parser.rules()[0].back().logData(), "this is logdata");
 }
 
 TEST_F(RuleActionParseTest, ActionLogDataWithMacro) {
@@ -1035,7 +1036,9 @@ TEST_F(RuleActionParseTest, ActionLogDataWithMacro) {
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
 
-  EXPECT_TRUE(parser.rules()[0].back().logdata().empty());
+  EXPECT_TRUE(parser.rules()[0].back().logData().empty());
+  EXPECT_EQ(parser.rules()[0].back().logDataMacro()->literalValue(),
+            "foo: %{tx.foo} bar: %{tx.bar}");
 }
 
 TEST_F(RuleActionParseTest, ActionFirstMatch) {
@@ -1161,6 +1164,26 @@ TEST_F(RuleActionParseTest, ActionAlias) {
   Macro::VariableMacro* op_var_macro = dynamic_cast<Macro::VariableMacro*>(op->macro().get());
   ASSERT_NE(op_var_macro, nullptr);
   EXPECT_EQ(op_var_macro->getVariable()->subName(), "for.bar");
+}
+
+TEST_F(RuleActionParseTest, ActionReply) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,reply:'hello world!',msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(parser.rules()[0].back().reply(), "hello world!");
+}
+
+TEST_F(RuleActionParseTest, ActionReplyWithMacro) {
+  const std::string rule_directive =
+      R"(SecRule ARGS:aaa|ARGS:bbb "foo" "id:1,phase:1,reply:'foo: %{tx.foo} bar: %{tx.bar}',msg:'aaa'")";
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_TRUE(parser.rules()[0].back().reply().empty());
+  EXPECT_EQ(parser.rules()[0].back().replyMacro()->literalValue(), "foo: %{tx.foo} bar: %{tx.bar}");
 }
 } // namespace Parser
 } // namespace Wge

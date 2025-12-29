@@ -255,12 +255,18 @@ public:
   void msg(std::string&& value) { detail_->msg_ = intern(std::move(value)); }
   void msg(std::unique_ptr<Macro::MacroBase>&& macro) { detail_->msg_macro_ = std::move(macro); }
   const std::unique_ptr<Macro::MacroBase>& msgMacro() const { return detail_->msg_macro_; }
-  std::string_view logdata() const { return detail_->log_data_; }
+  std::string_view logData() const { return detail_->log_data_; }
   void logData(std::string&& value) { detail_->log_data_ = intern(std::move(value)); }
   void logData(std::unique_ptr<Macro::MacroBase>&& macro) {
     detail_->log_data_macro_ = std::move(macro);
   }
   const std::unique_ptr<Macro::MacroBase>& logDataMacro() const { return detail_->log_data_macro_; }
+  std::string_view reply() const { return detail_->reply_; }
+  void reply(std::string&& value) { detail_->reply_ = intern(std::move(value)); }
+  void reply(std::unique_ptr<Macro::MacroBase>&& macro) {
+    detail_->reply_macro_ = std::move(macro);
+  }
+  const std::unique_ptr<Macro::MacroBase>& replyMacro() const { return detail_->reply_macro_; }
   std::string_view redirect() { return detail_->redirect_; }
   void redirect(std::string&& value) { detail_->redirect_ = intern(std::move(value)); }
   std::string_view status() const { return detail_->status_; }
@@ -459,7 +465,11 @@ private:
     std::string_view redirect_;
 
     // Specifies the response status code to use with actions deny and redirect.
-    std::string_view status_;
+    std::string_view status_{"403"};
+
+    // Specifies the response body to use with actions deny.
+    std::string_view reply_;
+    std::unique_ptr<Macro::MacroBase> reply_macro_;
 
     // Configures an XML namespace, which will be used in the execution of XPath expressions.
     std::string_view xml_ns_;

@@ -834,6 +834,7 @@ public:
       Antlr4Gen::SecLangParser::Action_extension_multi_chainContext* ctx) override;
   std::any visitAction_extension_alias(
       Antlr4Gen::SecLangParser::Action_extension_aliasContext* ctx) override;
+  std::any visitAction_extension_reply(Antlr4Gen::SecLangParser::Action_extension_replyContext* ctx) override;
 
   // Audit log configurations
 public:

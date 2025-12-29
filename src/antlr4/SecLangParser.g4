@@ -1423,7 +1423,8 @@ action_extension:
 	| action_extension_empty_match
 	| action_extension_all_match
 	| action_extension_multi_chain
-	| action_extension_alias;
+	| action_extension_alias
+	| action_extension_reply;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
 action_extension_all_match: AllMatch;
@@ -1443,6 +1444,9 @@ action_extension_alias:
 			)
 		)
 	);
+
+action_extension_reply:
+	Reply COLON SINGLE_QUOTE string_with_macro SINGLE_QUOTE;
 
 audit_log_config:
 	sec_audit_engine

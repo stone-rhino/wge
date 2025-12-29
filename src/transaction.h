@@ -549,18 +549,20 @@ public:
   /**
    * Get the message macro expanded of current matched rule.
    * @return the message macro expanded of current matched rule.
-   * @note We must copy the result to  another buffer if we want to store the result and use it
-   * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
   std::string_view getMsgMacroExpanded();
 
   /**
    * Get the log data macro expanded of current matched rule.
    * @return the log data macro expanded of current matched rule.
-   * @note We must copy the result to  another buffer if we want to store the result and use it
-   * later. Because the result is a shared buffer that will be updated by the next matched rule.
    */
   std::string_view getLogDataMacroExpanded();
+
+  /**
+   * Get the reply macro expanded of current matched rule.
+   * @return the reply macro expanded of current matched rule.
+   */
+  std::string_view getReplyMacroExpanded();
 
   TransformCache& getTransformCache() { return transform_cache_; }
 
