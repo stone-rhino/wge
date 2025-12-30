@@ -20,8 +20,6 @@
  */
 #include "engine.h"
 
-#include <boost/property_tree/json_parser.hpp>
-
 #include "action/ctl.h"
 #include "antlr4/parser.h"
 #include "common/assert.h"
@@ -60,24 +58,15 @@ std::expected<bool, std::string> Engine::load(const std::string& directive) {
   return parser_->load(directive);
 }
 
-std::expected<bool, std::string> Engine::propertyTree(const std::string& json_string) {
-  ASSERT_IS_MAIN_THREAD();
-
-  std::istringstream iss(json_string);
-  boost::property_tree::ptree temp_ptree;
-  try {
-    boost::property_tree::read_json(iss, temp_ptree);
-  } catch (const boost::property_tree::json_parser_error& e) {
-    WGE_LOG_ERROR("Failed to parse property tree JSON string: {}", e.what());
-    return std::unexpected<std::string>(e.what());
+std::expected<bool, std::string> Engine::updatePropertyStore(const std::string& json_string) {
+  std::shared_ptr<Common::PropertyStore> new_property_store =
+      std::make_shared<Common::PropertyStore>();
+  auto result = new_property_store->loadFromJsonString(json_string);
+  if (!result.has_value()) {
+    return std::unexpected<std::string>(result.error());
   }
 
-  // Convert ptree to PropertyTree
-  property_tree_.clear();
-  property_tree_string_pool_.clear();
-  property_tree_string_pool_.reserve(json_string.size());
-  convertPtreeToPropertyTree(temp_ptree, property_tree_);
-
+  property_store_ = std::move(new_property_store);
   return true;
 }
 
@@ -104,7 +93,10 @@ const std::vector<Rule>& Engine::rules(RulePhaseType phase) const {
 
 TransactionPtr Engine::makeTransaction() const {
   assert(is_init_);
-  return std::unique_ptr<Transaction>(new Transaction(*this));
+
+  // Create a new transaction
+  // Each transaction has its own property store snapshot
+  return std::unique_ptr<Transaction>(new Transaction(*this, property_store_.load()));
 }
 
 const EngineConfig& Engine::config() const { return parser_->engineConfig(); }
@@ -209,99 +201,4 @@ void Engine::initRules() {
     }
   }
 }
-
-void Engine::convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
-                                        Common::PropertyTree& dest) {
-  auto convertValue = [&](const std::string& value,
-                          Common::PropertyTree* parent) -> Common::PropertyTreeValue {
-    if (value.empty()) {
-      return {std::monostate{}, parent};
-    }
-
-    // Try to parse as boolean or null
-    if (value == "true") {
-      return {1, parent};
-    } else if (value == "false") {
-      return {0, parent};
-    } else if (value == "null") {
-      return {std::monostate{}, parent};
-    }
-
-    // Try to parse as number (integer or floating point)
-    bool has_dot = false;
-    bool is_valid_number = true;
-    for (size_t i = 0; i < value.size() && is_valid_number; ++i) {
-      const char& c = value[i];
-      if (c == '.') {
-        if (has_dot || i == 0 || i == value.size() - 1) {
-          is_valid_number = false;
-        } else {
-          has_dot = true;
-        }
-      } else if (c == '-') {
-        if (i != 0) {
-          is_valid_number = false;
-        }
-      } else if (!std::isdigit(c)) {
-        is_valid_number = false;
-      }
-    }
-    if (is_valid_number) {
-      if (has_dot) {
-        // Parse as floating point and convert to integer (multiply by 100)
-        double double_value = 0;
-        std::from_chars(value.data(), value.data() + value.size(), double_value);
-        return {static_cast<int64_t>(std::round(double_value * 100)), parent};
-      } else {
-        // Parse as integer
-        int64_t int_value = 0;
-        std::from_chars(value.data(), value.data() + value.size(), int_value);
-        return {int_value, parent};
-      }
-    }
-
-    property_tree_string_pool_.append(value);
-    return {std::string_view(property_tree_string_pool_.data() + property_tree_string_pool_.size() -
-                                 value.size(),
-                             value.size()),
-            parent};
-  };
-
-  // The array detection: all keys are empty strings
-  bool is_array = std::all_of(src.begin(), src.end(), [](const auto& pair) {
-    if (pair.first.empty()) {
-      return true;
-    }
-    return false;
-  });
-
-  if (is_array) {
-    for (const auto& [_, child_tree] : src) {
-      if (child_tree.empty()) {
-        // Leaf node - convert the value
-        dest.push_back(std::make_pair("", Common::PropertyTree(&dest)));
-        Common::PropertyTree* new_tree = static_cast<Common::PropertyTree*>(&dest.back().second);
-        new_tree->put("", convertValue(child_tree.data(), &dest));
-      } else {
-        // Branch node - recursively convert children
-        dest.push_back(std::make_pair("", Common::PropertyTree(&dest)));
-        Common::PropertyTree* new_tree = static_cast<Common::PropertyTree*>(&dest.back().second);
-        convertPtreeToPropertyTree(child_tree, *new_tree);
-      }
-    }
-  } else {
-    for (const auto& [key, child_tree] : src) {
-      if (child_tree.empty()) {
-        // Leaf node - convert the value
-        dest.put(key, convertValue(child_tree.data(), &dest));
-      } else {
-        // Branch node - recursively convert children
-        Common::PropertyTree* new_tree =
-            static_cast<Common::PropertyTree*>(&dest.put_child(key, Common::PropertyTree(&dest)));
-        convertPtreeToPropertyTree(child_tree, *new_tree);
-      }
-    }
-  }
-}
-
 } // namespace Wge

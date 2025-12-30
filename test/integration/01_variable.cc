@@ -845,7 +845,7 @@ TEST_F(VariableTest, PTREE) {
 })";
 
   Engine engine(spdlog::level::off);
-  auto pt_result = engine.propertyTree(json);
+  auto pt_result = engine.updatePropertyStore(json);
   ASSERT_TRUE(pt_result.has_value());
   engine.init();
   auto t = engine.makeTransaction();
@@ -987,7 +987,7 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
 })";
 
   Engine engine(spdlog::level::off);
-  auto pt_result = engine.propertyTree(json);
+  auto pt_result = engine.updatePropertyStore(json);
   ASSERT_TRUE(pt_result.has_value());
   engine.init();
   auto t = engine.makeTransaction();
@@ -996,7 +996,7 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
   // config.server_list[].port../host
   {
     auto& matched_optree =
-        engine.propertyTree().get_child("config.server_list").front().second.get_child("port");
+        t->propertyTree()->get_child("config.server_list").front().second.get_child("port");
     EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
     t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../host", false, false, "");
@@ -1008,8 +1008,8 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
 
   // config.server_list[].tags[]../../domain.name
   {
-    auto& matched_optree = engine.propertyTree()
-                               .get_child("config.server_list")
+    auto& matched_optree = t->propertyTree()
+                               ->get_child("config.server_list")
                                .back()
                                .second.get_child("tags")
                                .front()
@@ -1059,7 +1059,7 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
 })";
 
   Engine engine(spdlog::level::off);
-  auto pt_result = engine.propertyTree(json);
+  auto pt_result = engine.updatePropertyStore(json);
   ASSERT_TRUE(pt_result.has_value());
   engine.init();
   auto t = engine.makeTransaction();
@@ -1068,7 +1068,7 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
   // config.server_list[].port../host
   {
     auto& matched_vptree =
-        engine.propertyTree().get_child("config.server_list").front().second.get_child("port");
+        t->propertyTree()->get_child("config.server_list").front().second.get_child("port");
     EXPECT_EQ(std::get<int64_t>(matched_vptree.data()), 8080);
     t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
     Variable::MatchedVPTree var("../host", false, false, "");
@@ -1080,8 +1080,8 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
 
   // config.server_list[].tags[]../../domain.name
   {
-    auto& matched_vptree = engine.propertyTree()
-                               .get_child("config.server_list")
+    auto& matched_vptree = t->propertyTree()
+                               ->get_child("config.server_list")
                                .back()
                                .second.get_child("tags")
                                .front()

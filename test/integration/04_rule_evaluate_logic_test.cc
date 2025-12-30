@@ -557,7 +557,7 @@ TEST(RuleEvaluateLogicTest, MachedVPTree) {
   engine.init();
   ASSERT_TRUE(result.has_value());
 
-  auto pt_result = engine.propertyTree(json);
+  auto pt_result = engine.updatePropertyStore(json);
   ASSERT_TRUE(pt_result.has_value());
 
   auto t = engine.makeTransaction();
@@ -612,7 +612,7 @@ TEST(RuleEvaluateLogicTest, MachedOPTree) {
   engine.init();
   ASSERT_TRUE(result.has_value());
 
-  auto pt_result = engine.propertyTree(json);
+  auto pt_result = engine.updatePropertyStore(json);
   ASSERT_TRUE(pt_result.has_value());
 
   auto t = engine.makeTransaction();

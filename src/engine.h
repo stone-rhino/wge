@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <atomic>
 #include <expected>
 #include <memory>
 #include <optional>
@@ -27,7 +28,7 @@
 #include <vector>
 
 #include "common/log.h"
-#include "common/property_tree.h"
+#include "common/property_store.h"
 #include "persistent_storage/storage.h"
 #include "rule.h"
 #include "transaction.h"
@@ -71,25 +72,12 @@ public:
   std::expected<bool, std::string> load(const std::string& directive);
 
   /**
-   * Set engine properties from a JSON string
-   * The Engine won't care about the structure and content of the JSON string, and just store it.
-   * We can use the PTREE variable to access the properties, and we must ensure the structure and
-   * content are correct.
-   * @param json_string JSON string representing engine properties
-   * @result an error string is returned if fails, and returned true otherwise
-   * @note The json values are stored in Common::Variant as follows:
-   * - string: string_view
-   * - number: int64_t (multiplied by 100 if it is a floating point number)
-   * - boolean: int64_t (1 for true, 0 for false)
-   * - null: std::monostate
+   * Dynamically and safely update the property store from a JSON string.
+   * After updating, all new transactions will use the updated property store.
+   * @param json_string JSON string representing the property tree
+   * @return an expected object containing true if successful, or an error string if failed
    */
-  std::expected<bool, std::string> propertyTree(const std::string& json_string);
-
-  /**
-   * Get engine properties as a property tree
-   * @return reference of property tree
-   */
-  const Common::PropertyTree& propertyTree() const { return property_tree_; }
+  std::expected<bool, std::string> updatePropertyStore(const std::string& json_string);
 
   /**
    * Initialize the engine
@@ -187,8 +175,6 @@ public:
 
 private:
   void initRules();
-  void convertPtreeToPropertyTree(const boost::property_tree::ptree& src,
-                                  Common::PropertyTree& dest);
 
 private:
   // Is the engine initialized
@@ -199,7 +185,6 @@ private:
 
   mutable PersistentStorage::Storage storage_;
 
-  Common::PropertyTree property_tree_;
-  std::string property_tree_string_pool_;
+  std::atomic<std::shared_ptr<Common::PropertyStore>> property_store_;
 };
 } // namespace Wge

@@ -32,6 +32,12 @@ struct PropertyTreeValue : public Common::Variant {
   PropertyTree* parent_{nullptr};
 };
 
+/**
+ * PropertyTree is a subclass of boost::property_tree::basic_ptree with PropertyTreeValue as the
+ * data type. It adds a parent pointer to each node for accessing parent node information when
+ * needed. Its value type is PropertyTreeValue, which inherits from Common::Variant and can store
+ * multiple data types.
+ */
 class PropertyTree : public boost::property_tree::basic_ptree<std::string, PropertyTreeValue> {
 public:
   PropertyTree(PropertyTree* parent = nullptr)

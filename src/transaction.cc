@@ -39,7 +39,8 @@ namespace Wge {
 constexpr size_t variable_key_with_macro_size = 100;
 constexpr int max_capture_size = 100;
 
-Transaction::Transaction(const Engine& engin) : engine_(engin) {
+Transaction::Transaction(const Engine& engin, std::shared_ptr<Common::PropertyStore> property_store)
+    : engine_(engin), property_store_(std::move(property_store)) {
   for (auto& [ns, size] : engine_.getTxVariableIndexSize()) {
     auto& tx_var_info = tx_variables_[ns];
     tx_var_info.variables_.reserve(size + variable_key_with_macro_size);

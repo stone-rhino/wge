@@ -27,10 +27,14 @@
 namespace Wge {
 namespace Variable {
 void Variable::PTree::evaluate(Transaction& t, Common::EvaluateResults& result) const {
-  if (paths_.empty()) {
-    evaluateNode(&t.getEngine().propertyTree(), result);
-  } else {
-    evaluateNode(&t.getEngine().propertyTree(), paths_, 0, result);
+  const Common::PropertyTree* root = t.propertyTree();
+  assert(root != nullptr);
+  if (root) {
+    if (paths_.empty()) {
+      evaluateNode(root, result);
+    } else {
+      evaluateNode(root, paths_, 0, result);
+    }
   }
 }
 

@@ -34,6 +34,7 @@
 #include <boost/unordered/unordered_flat_set.hpp>
 
 #include "common/evaluate_result.h"
+#include "common/property_store.h"
 #include "common/property_tree.h"
 #include "common/ragel/json.h"
 #include "common/ragel/multi_part.h"
@@ -63,7 +64,7 @@ class Transaction final {
   friend class Engine;
 
 protected:
-  Transaction(const Engine& engin);
+  Transaction(const Engine& engin, std::shared_ptr<Common::PropertyStore> property_store);
 
 public:
   // The connection info
@@ -598,6 +599,13 @@ public:
     return string_pool_.front();
   }
 
+  const Common::PropertyTree* propertyTree() {
+    if (property_store_) {
+      return &property_store_->getPropertyTree();
+    }
+    return nullptr;
+  }
+
 private:
   void initUniqueId() const;
   inline bool process(RulePhaseType phase);
@@ -682,6 +690,7 @@ private:
   AdditionalCondCallback additional_cond_;
   void* additional_cond_user_data_;
   std::forward_list<std::string> string_pool_;
+  std::shared_ptr<Common::PropertyStore> property_store_;
 };
 
 using TransactionPtr = std::unique_ptr<Transaction>;
