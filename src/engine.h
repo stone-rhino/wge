@@ -164,9 +164,6 @@ public:
    */
   std::string_view getTxVariableIndexReverse(const std::string& ns, size_t index) const;
 
-  // std::optional<const std::vector<const Rule*>::iterator> marker(std::string_view name,
-  //                                                                int phase) const;
-
   /**
    * Get persistent storage
    * @return reference of persistent storage
