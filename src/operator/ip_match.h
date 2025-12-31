@@ -74,45 +74,46 @@ public:
 
 public:
   void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
-    if (IS_STRING_VIEW_VARIANT(operand))
-      [[likely]] {
-        // Copy the operand to a null-terminated string for inet_pton
-        std::string ip;
-        ip = std::get<std::string_view>(operand);
+    performComparison<std::string_view, std::string_view>(
+        t, operand, literal_value_, results,
+        [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+           Results& results, void* user_data) {
+          const IpMatch* obj = reinterpret_cast<const IpMatch*>(user_data);
 
-        // Match the IP address
-        // FIXME(zhouyu 2025-03-10): To avoid call inet_pton every time, may be we can add a
-        // std::array<uint32_t, 4> type that store the ip address into the Common::Variant and
-        // initialize it when Transaction::processConnection is called. But this will decrease the
-        // maintainability of the code. I don't think it is worth it.
-        if (!mask_.has_value()) {
-          results.emplace_back(literal_value_ == ip);
-        } else {
-          if (!ipv6_.has_value()) {
-            uint32_t ip_value;
-            ::inet_pton(AF_INET, ip.data(), &ip_value);
-            results.emplace_back(applyMask4(ip_value, mask_.value()) ==
-                                 applyMask4(ipv4_, mask_.value()));
+          // Match the IP address
+          // FIXME(zhouyu 2025-03-10): To avoid call inet_pton every time, may be we can add a
+          // std::array<uint32_t, 4> type that store the ip address into the Common::Variant and
+          // initialize it when Transaction::processConnection is called. But this will decrease the
+          // maintainability of the code. I don't think it is worth it.
+          if (!obj->mask_.has_value()) {
+            results.emplace_back(left_operand == right_operand);
           } else {
-            std::array<uint32_t, 4> ip_value;
-            const uint32_t* tt = ip_value.data();
-            ::inet_pton(AF_INET6, ip.data(), ip_value.data());
-            results.emplace_back(applyMask6(ip_value, mask_.value()) ==
-                                 applyMask6(ipv6_.value(), mask_.value()));
+            // Copy the operand to a null-terminated string for inet_pton
+            std::string ip(left_operand.data(), left_operand.size());
+
+            if (!obj->ipv6_.has_value()) {
+              uint32_t ip_value;
+              ::inet_pton(AF_INET, ip.data(), &ip_value);
+              results.emplace_back(applyMask4(ip_value, obj->mask_.value()) ==
+                                   applyMask4(obj->ipv4_, obj->mask_.value()));
+            } else {
+              std::array<uint32_t, 4> ip_value;
+              const uint32_t* tt = ip_value.data();
+              ::inet_pton(AF_INET6, ip.data(), ip_value.data());
+              results.emplace_back(applyMask6(ip_value, obj->mask_.value()) ==
+                                   applyMask6(obj->ipv6_.value(), obj->mask_.value()));
+            }
           }
-        }
-      }
-    else {
-      results.emplace_back(false);
-    }
+        },
+        const_cast<IpMatch*>(this));
   }
 
 private:
-  uint32_t applyMask4(uint32_t ip, uint32_t mask) const {
+  static uint32_t applyMask4(uint32_t ip, uint32_t mask) {
     return ip & htonl(0xFFFFFFFF << (32 - mask));
   }
 
-  std::array<uint32_t, 4> applyMask6(const std::array<uint32_t, 4>& ip, uint32_t mask) const {
+  static std::array<uint32_t, 4> applyMask6(const std::array<uint32_t, 4>& ip, uint32_t mask) {
     std::array<uint32_t, 4> masked_ip = ip;
     uint32_t full_blocks = (128 - mask) / 32;
     uint32_t remaining_bits = (128 - mask) % 32;

@@ -38,54 +38,11 @@ public:
 
 public:
   void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
-    if (!macro_)
-      [[likely]] {
-        if (IS_INT_VARIANT(operand))
-          [[likely]] {
-            int64_t left_value = std::get<int64_t>(operand);
-            results.emplace_back(left_value >= right_value_);
-          }
-        else {
-          results.emplace_back(false);
-        }
-      }
-    else {
-      Common::EvaluateResults macro_result;
-      macro_->evaluate(t, macro_result);
-      if (macro_result.empty()) {
-        results.emplace_back(empty_match_);
-        return;
-      }
-
-      for (const auto& right_operand : macro_result) {
-        if (IS_INT_VARIANT(right_operand.variant_))
-          [[likely]] {
-            if (!IS_INT_VARIANT(operand))
-              [[unlikely]] {
-                results.emplace_back(false);
-                continue;
-              }
-
-            results.emplace_back(std::get<int64_t>(operand) >=
-                                     std::get<int64_t>(right_operand.variant_),
-                                 "", right_operand.ptree_node_);
-            WGE_LOG_TRACE([&]() {
-              std::string sub_name;
-              if (!right_operand.variable_sub_name_.empty()) {
-                sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
-              }
-              return std::format("{} @{} {}{} => {}", std::get<int64_t>(operand), name_, sub_name,
-                                 std::get<int64_t>(right_operand.variant_),
-                                 results.back().matched_);
-            }());
-          }
-        else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
-          results.emplace_back(empty_match_);
-        } else {
-          results.emplace_back(false);
-        }
-      }
-    }
+    performComparison<int64_t, int64_t>(
+        t, operand, right_value_, results,
+        [](Transaction& t, int64_t left_operand, int64_t right_operand, Results& results, void*) {
+          results.emplace_back(left_operand >= right_operand);
+        });
   }
 
 private:

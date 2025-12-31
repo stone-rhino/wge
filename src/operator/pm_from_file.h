@@ -88,36 +88,42 @@ public:
 
 public:
   void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
-    if (!scanner_ || !IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] {
-        results.emplace_back(false);
-        return;
-      }
+    performComparison<std::string_view, std::string_view>(
+        t, operand, literal_value_, results,
+        [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+           Results& results, void* user_data) {
+          const PmFromFile* obj = reinterpret_cast<const PmFromFile*>(user_data);
+          if (!obj->scanner_) {
+            results.emplace_back(false);
+            return;
+          }
 
-    // The hyperscan scanner is thread-safe, so we can use the same scanner for all transactions.
-    // Actually, the scanner uses a thread-local scratch space to avoid the overhead of creating a
-    // scratch space for each transaction.
-    std::pair<unsigned long long, unsigned long long> result(0, 0);
-    scanner_->registMatchCallback(
-        [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-           void* user_data) -> int {
-          std::pair<unsigned long long, unsigned long long>* result =
-              static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
-          result->first = from;
-          result->second = to;
-          return 1;
+          // The hyperscan scanner is thread-safe, so we can use the same scanner for all
+          // transactions.
+          // Actually, the scanner uses a thread-local scratch space to avoid the overhead of
+          // creating a scratch space for each transaction.
+          std::pair<unsigned long long, unsigned long long> result(0, 0);
+          obj->scanner_->registMatchCallback(
+              [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
+                 void* user_data) -> int {
+                std::pair<unsigned long long, unsigned long long>* result =
+                    static_cast<std::pair<unsigned long long, unsigned long long>*>(user_data);
+                result->first = from;
+                result->second = to;
+                return 1;
+              },
+              &result);
+          obj->scanner_->blockScan(left_operand);
+
+          bool matched = result.first != result.second;
+          if (matched) {
+            results.emplace_back(true, std::string_view{left_operand.data() + result.first,
+                                                        result.second - result.first});
+          } else {
+            results.emplace_back(false);
+          }
         },
-        &result);
-    std::string_view operand_str = std::get<std::string_view>(operand);
-    scanner_->blockScan(operand_str);
-
-    bool matched = result.first != result.second;
-    if (matched) {
-      results.emplace_back(matched, std::string_view{operand_str.data() + result.first,
-                                                     result.second - result.first});
-    } else {
-      results.emplace_back(false);
-    }
+        const_cast<PmFromFile*>(this));
   }
 
 private:

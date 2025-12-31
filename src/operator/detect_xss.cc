@@ -25,19 +25,13 @@
 namespace Wge {
 namespace Operator {
 void DetectXSS::evaluate(Transaction& t, const Common::Variant& operand, Results& results) const {
-  if (!IS_STRING_VIEW_VARIANT(operand))
-    [[unlikely]] {
-      results.emplace_back(false);
-      return;
-    }
-
-  std::string_view data = std::get<std::string_view>(operand);
-  bool is_xss = libinjection_xss(data.data(), data.size()) != 0;
-  if (is_xss) {
-    results.emplace_back(true, t.internString({data.data(), data.size()}));
-  } else {
-    results.emplace_back(false);
-  }
+  performComparison<std::string_view, std::string_view>(
+      t, operand, "", results,
+      [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+         Results& results, void*) {
+        bool is_xss = libinjection_xss(left_operand.data(), left_operand.size()) != 0;
+        results.emplace_back(is_xss, left_operand);
+      });
 }
 } // namespace Operator
 } // namespace Wge
