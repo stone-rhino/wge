@@ -79,21 +79,21 @@ public:
 
 public:
   void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
-    if (!IS_STRING_VIEW_VARIANT(operand))
-      [[unlikely]] {
-        results.emplace_back(false);
-        return;
-      }
+    performComparison<std::string_view, std::string_view>(
+        t, operand, "", results,
+        [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+           Results& results, void* user_data) {
+          const ValidateByteRange* obj = reinterpret_cast<const ValidateByteRange*>(user_data);
+          for (auto& c : left_operand) {
+            if (!obj->byte_range_.test(static_cast<uint8_t>(c))) {
+              results.emplace_back(true);
+              return;
+            }
+          }
 
-    std::string_view operand_str = std::get<std::string_view>(operand);
-    for (auto& c : operand_str) {
-      if (!byte_range_.test(static_cast<uint8_t>(c))) {
-        results.emplace_back(true);
-        return;
-      }
-    }
-
-    results.emplace_back(false);
+          results.emplace_back(false);
+        },
+        const_cast<ValidateByteRange*>(this));
   }
 
 private:

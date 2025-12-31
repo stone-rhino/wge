@@ -27,20 +27,16 @@
 namespace Wge {
 namespace Operator {
 void DetectSqli::evaluate(Transaction& t, const Common::Variant& operand, Results& results) const {
-  if (!IS_STRING_VIEW_VARIANT(operand))
-    [[unlikely]] {
-      results.emplace_back(false);
-      return;
-    }
+  performComparison<std::string_view, std::string_view>(
+      t, operand, "", results,
+      [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+         Results& results, void*) {
+        char fingerprint[8];
+        bool is_sqli =
+            libinjection_sqli(left_operand.data(), left_operand.size(), fingerprint) != 0;
 
-  std::string_view data = std::get<std::string_view>(operand);
-  char fingerprint[8];
-  bool is_sqli = libinjection_sqli(data.data(), data.size(), fingerprint) != 0;
-  if (is_sqli) {
-    results.emplace_back(true, t.internString({fingerprint, sizeof(fingerprint)}));
-  } else {
-    results.emplace_back(false);
-  }
+        results.emplace_back(is_sqli, t.internString({fingerprint, sizeof(fingerprint)}));
+      });
 }
 } // namespace Operator
 } // namespace Wge

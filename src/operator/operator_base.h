@@ -24,6 +24,7 @@
 
 #include <absl/container/inlined_vector.h>
 
+#include "../common/log.h"
 #include "../common/property_tree.h"
 #include "../common/variant.h"
 #include "../macro/macro_base.h"
@@ -104,6 +105,67 @@ public:
    * @return the name of the operator.
    */
   virtual const char* name() const = 0;
+
+protected:
+  template <class LeftOperandT, class RightOperandT>
+  void performComparison(Transaction& t, const Common::Variant& left_operand,
+                         const RightOperandT& right_operand, Results& results,
+                         void (*comparison)(Transaction& t, LeftOperandT left_operand,
+                                            RightOperandT right_operand, Results& results,
+                                            void* user_data),
+                         void* user_data = nullptr) const {
+    if (!macro_)
+      [[likely]] {
+        if (std::holds_alternative<LeftOperandT>(left_operand))
+          [[likely]] {
+            comparison(t, std::get<LeftOperandT>(left_operand), right_operand, results, user_data);
+          }
+        else {
+          results.emplace_back(false);
+        }
+      }
+    else {
+      Common::EvaluateResults macro_result;
+      macro_->evaluate(t, macro_result);
+      if (macro_result.empty()) {
+        results.emplace_back(empty_match_);
+        return;
+      }
+
+      for (const auto& right_operand : macro_result) {
+        if (std::holds_alternative<RightOperandT>(right_operand.variant_))
+          [[likely]] {
+            if (!std::holds_alternative<LeftOperandT>(left_operand))
+              [[unlikely]] {
+                results.emplace_back(false);
+                continue;
+              }
+
+            size_t old_size = results.size();
+            comparison(t, std::get<LeftOperandT>(left_operand),
+                       std::get<RightOperandT>(right_operand.variant_), results, user_data);
+            for (size_t i = old_size; i < results.size(); ++i) {
+              results[i].ptree_node_ = right_operand.ptree_node_;
+            }
+
+            WGE_LOG_TRACE([&]() {
+              std::string sub_name;
+              if (!right_operand.variable_sub_name_.empty()) {
+                sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
+              }
+              return std::format("{} @{} {}{} => {}", std::get<LeftOperandT>(left_operand), name(),
+                                 sub_name, std::get<RightOperandT>(right_operand.variant_),
+                                 results.back().matched_);
+            }());
+          }
+        else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
+          results.emplace_back(empty_match_);
+        } else {
+          results.emplace_back(false);
+        }
+      }
+    }
+  }
 
 protected:
   std::string literal_value_;

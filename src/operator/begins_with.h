@@ -41,54 +41,11 @@ public:
 
 public:
   void evaluate(Transaction& t, const Common::Variant& operand, Results& results) const override {
-
-    if (!macro_)
-      [[likely]] {
-        if (IS_STRING_VIEW_VARIANT(operand))
-          [[likely]] {
-            results.emplace_back(std::get<std::string_view>(operand).starts_with(literal_value_));
-          }
-        else {
-          results.emplace_back(false);
-        }
-      }
-    else {
-      Common::EvaluateResults macro_result;
-      macro_->evaluate(t, macro_result);
-      if (macro_result.empty()) {
-        results.emplace_back(empty_match_);
-        return;
-      }
-
-      for (const auto& right_operand : macro_result) {
-        if (IS_STRING_VIEW_VARIANT(right_operand.variant_))
-          [[likely]] {
-            if (!IS_STRING_VIEW_VARIANT(operand))
-              [[unlikely]] {
-                results.emplace_back(false);
-                continue;
-              }
-
-            results.emplace_back(std::get<std::string_view>(operand).starts_with(
-                                     std::get<std::string_view>(right_operand.variant_)),
-                                 "", right_operand.ptree_node_);
-            WGE_LOG_TRACE([&]() {
-              std::string sub_name;
-              if (!right_operand.variable_sub_name_.empty()) {
-                sub_name = std::format("\"{}\":", right_operand.variable_sub_name_);
-              }
-              return std::format("{} @{} {}{} => {}", std::get<std::string_view>(operand), name_,
-                                 sub_name, std::get<std::string_view>(right_operand.variant_),
-                                 results.back().matched_);
-            }());
-          }
-        else if (IS_EMPTY_VARIANT(right_operand.variant_)) {
-          results.emplace_back(empty_match_);
-        } else {
-          results.emplace_back(false);
-        }
-      }
-    }
+    performComparison<std::string_view, std::string_view>(
+        t, operand, literal_value_, results,
+        [](Transaction& t, std::string_view left_operand, std::string_view right_operand,
+           Results& results,
+           void*) { results.emplace_back(left_operand.starts_with(right_operand)); });
   }
 };
 } // namespace Operator
