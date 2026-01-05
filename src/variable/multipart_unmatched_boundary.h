@@ -32,12 +32,24 @@ public:
                              std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     result.emplace_back(
         t.getBodyMultiPart().getError().get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary)
             ? 1
             : 0);
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 };
 } // namespace Variable

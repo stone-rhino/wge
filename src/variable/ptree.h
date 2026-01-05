@@ -42,10 +42,49 @@ public:
   PTree(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {
     initPaths(sub_name_, paths_);
+    if (!paths_.empty()) {
+      if (paths_.back().type_ == Path::Type::Array || paths_.back().type_ == Path::Type::Map) {
+        is_collection_ = true;
+      } else {
+        for (auto& path : paths_) {
+          if (path.type_ == Path::Type::Array) {
+            is_collection_ = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    Common::EvaluateResults temp_result;
+    evaluateCollection(t, temp_result);
+    result.emplace_back(static_cast<int64_t>(temp_result.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    const Common::PropertyTree* root = t.propertyTree();
+    assert(root != nullptr);
+    if (root) {
+      if (paths_.empty()) {
+        evaluateNode(root, result);
+      } else {
+        evaluateNode(root, paths_, 0, result);
+      }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 
 public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override;
+  bool isCollection() const override { return is_collection_; }
   const std::vector<Path>& paths() const { return paths_; }
 
 public:
@@ -57,6 +96,7 @@ public:
 
 private:
   std::vector<Path> paths_;
+  bool is_collection_{false};
 };
 } // namespace Variable
 } // namespace Wge

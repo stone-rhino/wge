@@ -26,18 +26,6 @@
 
 namespace Wge {
 namespace Variable {
-void Variable::PTree::evaluate(Transaction& t, Common::EvaluateResults& result) const {
-  const Common::PropertyTree* root = t.propertyTree();
-  assert(root != nullptr);
-  if (root) {
-    if (paths_.empty()) {
-      evaluateNode(root, result);
-    } else {
-      evaluateNode(root, paths_, 0, result);
-    }
-  }
-}
-
 void PTree::initPaths(const std::string& sub_name, std::vector<Path>& paths) {
   std::vector<std::string_view> tokens = Common::SplitTokens(sub_name, '.');
   for (size_t i = 0; i < tokens.size(); ++i) {

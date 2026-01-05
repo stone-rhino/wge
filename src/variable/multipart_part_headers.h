@@ -21,78 +21,66 @@
 #pragma once
 
 #include "collection_base.h"
-#include "evaluate_help.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class MultipartPartHeaders final : public VariableBase, public CollectionBase {
+class MultipartPartHeaders final : public CollectionBase {
   DECLARE_VIRABLE_NAME(MULTIPART_PART_HEADERS);
 
 public:
   MultipartPartHeaders(std::string&& sub_name, bool is_not, bool is_counter,
                        std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {
     if (sub_name_ == "_charset_") {
       is_charset_ = true;
     }
   }
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    // _charset_ is a special case, it is used to get the charset of the multipart/form-data
-    // content. It is not a header, we can get it from the name-value pair.
-    if (is_charset_) {
-      static constexpr std::string_view key = "_charset_";
-      if (is_counter_) {
-        int64_t count = t.getBodyMultiPart().getNameValue().count(key);
-        result.emplace_back(count);
-      } else {
-        auto range = t.getBodyMultiPart().getNameValue().equal_range(key);
-        for (auto iter = range.first; iter != range.second; ++iter) {
-          result.emplace_back(iter->second);
-        }
-      }
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size()));
+  }
 
-      return;
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    int64_t count = t.getBodyMultiPart().getHeaders().count(sub_name_);
+    result.emplace_back(count);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    for (auto& elem : t.getBodyMultiPart().getHeaders()) {
+      if (!hasExceptVariable(t, main_name_, elem.first))
+        [[likely]] { result.emplace_back(elem.second, elem.first); }
     }
+  }
 
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size())); },
-        // specify subname
-        {
-          int64_t count = t.getBodyMultiPart().getHeaders().count(sub_name_);
-          result.emplace_back(count);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : t.getBodyMultiPart().getHeaders()) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.emplace_back(elem.second, elem.first); }
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        if (is_charset_) {
+          // _charset_ is a special case, it is used to get the charset of the multipart/form-data
+          // content. It is not a header, we can get it from the name-value pair.
+          static constexpr std::string_view key = "_charset_";
+          auto range = t.getBodyMultiPart().getNameValue().equal_range(key);
+          for (auto iter = range.first; iter != range.second; ++iter) {
+            result.emplace_back(iter->second);
           }
-        },
-        // collection regex
-        {
-          for (auto& elem : t.getBodyMultiPart().getHeaders()) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] {
-                if (match(elem.first)) {
-                  result.emplace_back(elem.second, elem.first);
-                }
-              }
-          }
-        },
-        // specify subname
-        {
+        } else {
           auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name_);
           for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
             result.emplace_back(iter->second);
           }
-        });
+        }
+      }
+    else {
+      for (auto& elem : t.getBodyMultiPart().getHeaders()) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              result.emplace_back(elem.second, elem.first);
+            }
+          }
+      }
+    }
   }
 
 private:

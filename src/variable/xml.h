@@ -21,8 +21,6 @@
 #pragma once
 
 #include "collection_base.h"
-#include "evaluate_help.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
@@ -37,118 +35,133 @@ namespace Variable {
  * - `XML:/\*@file@` for multi-pattern matching of tag values based on the specified file. When
  * filling Common::EvaluateResults, each element corresponds to the value of a tag.
  */
-class Xml final : public VariableBase, public CollectionBase {
+class Xml final : public CollectionBase {
   DECLARE_VIRABLE_NAME(XML);
 
 public:
   Xml(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(
+      : CollectionBase(
             [&]() -> std::string {
               std::string collection_sub_name;
-              if (sub_name_ == "//@*") {
+              if (sub_name == "//@*") {
                 type_ = Type::AttrValue;
-              } else if (sub_name_ == "/*") {
+              } else if (sub_name == "/*") {
                 type_ = Type::TagValue;
-              } else if (sub_name_.ends_with("@")) {
-                if (sub_name_.starts_with("//@*@")) {
+              } else if (sub_name.ends_with("@")) {
+                if (sub_name.starts_with("//@*@")) {
                   type_ = Type::AttrValuePmf;
-                  collection_sub_name = sub_name_.substr(4);
-                } else if (sub_name_.starts_with("/*@")) {
+                  collection_sub_name = sub_name.substr(4);
+                } else if (sub_name.starts_with("/*@")) {
                   type_ = Type::TagValuePmf;
-                  collection_sub_name = sub_name_.substr(2);
+                  collection_sub_name = sub_name.substr(2);
                 }
               }
 
               return collection_sub_name;
             }(),
-            curr_rule_file_path) {}
+            is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    const std::vector<std::pair<std::string_view, std::string_view>>* kv_pairs = nullptr;
-    if (type_ == Type::TagValue || type_ == Type::TagValuePmf) {
-      kv_pairs = &(t.getBodyXml().getTags());
-    } else {
-      kv_pairs = &(t.getBodyXml().getAttributes());
-    }
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& kv_pairs = getKvPairs(t);
 
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(kv_pairs->size())); },
-        // specify subname
-        { result.emplace_back(static_cast<int64_t>(kv_pairs->size())); });
+    result.emplace_back(static_cast<int64_t>(kv_pairs.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& kv_pairs = getKvPairs(t);
 
     switch (type_) {
     case Type::AttrValue: {
-      RETURN_VALUE(
-          // collection
-          {
-            for (auto& elem : *kv_pairs) {
-              result.emplace_back(elem.second);
-            }
-          },
-          // collection regex
-          { UNREACHABLE(); },
-          // specify subname
-          {
-            for (auto& elem : *kv_pairs) {
-              result.emplace_back(elem.second);
-            }
-          });
+      for (auto& elem : kv_pairs) {
+        result.emplace_back(elem.second);
+      }
     } break;
     case Type::TagValue: {
-      RETURN_VALUE(
-          // collection
-          {
-            auto& tag_value_str = t.getBodyXml().getTagValuesStr();
-            if (!tag_value_str.empty()) {
-              result.emplace_back(tag_value_str);
-            }
-          },
-          // collection regex
-          { UNREACHABLE(); },
-          // specify subname
-          {
-            auto& tag_value_str = t.getBodyXml().getTagValuesStr();
-            if (!tag_value_str.empty()) {
-              result.emplace_back(tag_value_str);
-            }
-          });
+      auto& tag_value_str = t.getBodyXml().getTagValuesStr();
+      if (!tag_value_str.empty()) {
+        result.emplace_back(tag_value_str);
+      }
     } break;
     case Type::AttrValuePmf:
     case Type::TagValuePmf: {
-      RETURN_VALUE(
-          // collection
-          { UNREACHABLE(); },
-          // collection regex
-          {
-            for (auto& elem : *kv_pairs) {
-              if (elem.second.empty()) {
-                continue;
-              }
-
-              if (!hasExceptVariable(t, main_name_, elem.first))
-                [[likely]] {
-                  if (match(elem.first)) {
-                    result.emplace_back(elem.second, elem.first);
-                  }
-                }
-            }
-          },
-          // specify subname
-          { UNREACHABLE(); });
+      UNREACHABLE();
     } break;
     default:
       UNREACHABLE();
     }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& kv_pairs = getKvPairs(t);
+
+    if (!isRegex())
+      [[likely]] {
+        switch (type_) {
+        case Type::AttrValue: {
+          for (auto& elem : kv_pairs) {
+            result.emplace_back(elem.second);
+          }
+        } break;
+        case Type::TagValue: {
+          auto& tag_value_str = t.getBodyXml().getTagValuesStr();
+          if (!tag_value_str.empty()) {
+            result.emplace_back(tag_value_str);
+          }
+        } break;
+        case Type::AttrValuePmf:
+        case Type::TagValuePmf: {
+          UNREACHABLE();
+        } break;
+        default:
+          UNREACHABLE();
+        }
+      }
+    else {
+      switch (type_) {
+      case Type::AttrValue: {
+        UNREACHABLE();
+      } break;
+      case Type::TagValue: {
+        UNREACHABLE();
+      } break;
+      case Type::AttrValuePmf:
+      case Type::TagValuePmf: {
+        for (auto& elem : kv_pairs) {
+          if (elem.second.empty()) {
+            continue;
+          }
+
+          if (!hasExceptVariable(t, main_name_, elem.first))
+            [[likely]] {
+              if (match(elem.first)) {
+                result.emplace_back(elem.second, elem.first);
+              }
+            }
+        }
+      } break;
+      default:
+        UNREACHABLE();
+      }
+    }
+  }
+
+private:
+  const std::vector<std::pair<std::string_view, std::string_view>>&
+  getKvPairs(Transaction& t) const {
+    if (type_ == Type::TagValue || type_ == Type::TagValuePmf) {
+      return t.getBodyXml().getTags();
+    } else {
+      return t.getBodyXml().getAttributes();
+    }
+  }
 
 private:
   enum class Type { AttrValue, TagValue, AttrValuePmf, TagValuePmf };
-
   Type type_;
 };
 } // namespace Variable

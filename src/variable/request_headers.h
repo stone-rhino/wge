@@ -21,63 +21,64 @@
 #pragma once
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class RequestHeaders final : public VariableBase, public CollectionBase {
+class RequestHeadersBase : public CollectionBase {
+public:
+  RequestHeadersBase(std::string&& sub_name, bool is_not, bool is_counter,
+                     std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(t.httpExtractor().request_header_count_));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(
+        static_cast<int64_t>(t.httpExtractor().request_header_find_(sub_name_).size()));
+  }
+};
+
+class RequestHeaders final : public RequestHeadersBase {
   DECLARE_VIRABLE_NAME(REQUEST_HEADERS);
 
 public:
   RequestHeaders(std::string&& sub_name, bool is_not, bool is_counter,
                  std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+      : RequestHeadersBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(t.httpExtractor().request_header_count_)); },
-        // specify subname
-        {
-          result.emplace_back(
-              static_cast<int64_t>(t.httpExtractor().request_header_find_(sub_name_).size()));
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          t.httpExtractor().request_header_traversal_(
-              [&](std::string_view key, std::string_view value) {
-                if (!hasExceptVariable(t, main_name_, key))
-                  [[likely]] { result.emplace_back(value, key); }
-                return true;
-              });
-        },
-        // collection regex
-        {
-          t.httpExtractor().request_header_traversal_(
-              [&](std::string_view key, std::string_view value) {
-                if (!hasExceptVariable(t, main_name_, key))
-                  [[likely]] {
-                    if (match(key)) {
-                      result.emplace_back(value, key);
-                    }
-                  }
-                return true;
-              });
-        },
-        // specify subname
-        {
-          std::vector<std::string_view> values = t.httpExtractor().request_header_find_(sub_name_);
-          for (auto& value : values) {
-            result.emplace_back(value, sub_name_);
-          }
-        });
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    t.httpExtractor().request_header_traversal_([&](std::string_view key, std::string_view value) {
+      if (!hasExceptVariable(t, main_name_, key))
+        [[likely]] { result.emplace_back(value, key); }
+      return true;
+    });
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        std::vector<std::string_view> values = t.httpExtractor().request_header_find_(sub_name_);
+        for (auto& value : values) {
+          result.emplace_back(value, sub_name_);
+        }
+      }
+    else {
+      t.httpExtractor().request_header_traversal_(
+          [&](std::string_view key, std::string_view value) {
+            if (!hasExceptVariable(t, main_name_, key))
+              [[likely]] {
+                if (match(key)) {
+                  result.emplace_back(value, key);
+                }
+              }
+            return true;
+          });
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

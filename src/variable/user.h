@@ -21,60 +21,54 @@
 #pragma once
 
 #include "persistent_collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class User final : public VariableBase, public PersistentCollectionBase {
+class User final : public PersistentCollectionBase {
   DECLARE_VIRABLE_NAME(USER);
 
 public:
   User(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        PersistentCollectionBase(PersistentStorage::Storage::Type::USER, sub_name_,
-                                 curr_rule_file_path) {}
+      : PersistentCollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
+                                 PersistentStorage::Storage::Type::USER) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(size(t))); },
-        // specify subname
-        {
-          auto& value = get(t, sub_name_);
-          result.emplace_back(IS_EMPTY_VARIANT(value) ? 0 : 1);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(t, main_name_, key))
-              [[likely]] { result.emplace_back(value, key); }
-            return true;
-          });
-        },
-        // collection regex
-        {
-          travel(t, [&](const std::string& key, const Common::Variant& value) {
-            if (!hasExceptVariable(t, main_name_, key))
-              [[likely]] {
-                if (match(key)) {
-                  result.emplace_back(value, key);
-                }
-              }
-            return true;
-          });
-        },
-        // specify subname
-        {
-          auto& value = get(t, sub_name_);
-          if (!IS_EMPTY_VARIANT(value))
-            [[likely]] { result.emplace_back(value); }
-        });
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(size(t)));
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& value = get(t, sub_name_);
+    result.emplace_back(IS_EMPTY_VARIANT(value) ? 0 : 1);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    travel(t, [&](const std::string& key, const Common::Variant& value) {
+      if (!hasExceptVariable(t, main_name_, key))
+        [[likely]] { result.emplace_back(value, key); }
+      return true;
+    });
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        auto& value = get(t, sub_name_);
+        if (!IS_EMPTY_VARIANT(value))
+          [[likely]] { result.emplace_back(value); }
+      }
+    else {
+      travel(t, [&](const std::string& key, const Common::Variant& value) {
+        if (!hasExceptVariable(t, main_name_, key))
+          [[likely]] {
+            if (match(key)) {
+              result.emplace_back(value, key);
+            }
+          }
+        return true;
+      });
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

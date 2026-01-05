@@ -21,61 +21,70 @@
 #pragma once
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class Files final : public VariableBase, public CollectionBase {
+class FilesBase : public CollectionBase {
+public:
+  FilesBase(std::string&& sub_name, bool is_not, bool is_counter,
+            std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& filename = t.getBodyMultiPart().getNameFileNameLinked();
+
+    result.emplace_back(static_cast<int64_t>(filename.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& filename_map = t.getBodyMultiPart().getNameFileName();
+
+    int64_t count = filename_map.count(sub_name_);
+    result.emplace_back(count);
+  }
+};
+
+class Files final : public FilesBase {
   DECLARE_VIRABLE_NAME(FILES);
 
 public:
   Files(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+      : FilesBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     auto& filename = t.getBodyMultiPart().getNameFileNameLinked();
-    auto& filename_map = t.getBodyMultiPart().getNameFileName();
 
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(filename.size())); },
-        // specify subname
-        {
-          int64_t count = filename_map.count(sub_name_);
-          result.emplace_back(count);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : filename) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.emplace_back(elem.second, elem.first); }
-          }
-        },
-        // collection regex
-        {
-          for (auto& elem : filename) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] {
-                if (match(elem.first)) {
-                  result.emplace_back(elem.second, elem.first);
-                }
-              }
-          }
-        },
-        // specify subname regex
-        {
-          auto iter = filename_map.find(sub_name_);
-          if (iter != filename_map.end()) {
-            result.emplace_back(iter->second);
-          }
-        });
+    for (auto& elem : filename) {
+      if (!hasExceptVariable(t, main_name_, elem.first))
+        [[likely]] { result.emplace_back(elem.second, elem.first); }
+    }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        auto& filename_map = t.getBodyMultiPart().getNameFileName();
+
+        auto iter = filename_map.find(sub_name_);
+        if (iter != filename_map.end()) {
+          result.emplace_back(iter->second);
+        }
+      }
+    else {
+      auto& filename = t.getBodyMultiPart().getNameFileNameLinked();
+
+      for (auto& elem : filename) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              result.emplace_back(elem.second, elem.first);
+            }
+          }
+      }
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

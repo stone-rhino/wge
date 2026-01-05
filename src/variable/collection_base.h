@@ -24,6 +24,8 @@
 #include <unordered_set>
 #include <variant>
 
+#include "variable_base.h"
+
 #include "../common/file.h"
 #include "../common/hyperscan/scanner.h"
 #include "../common/literal_match/scanner.h"
@@ -38,22 +40,27 @@ namespace Variable {
 /**
  * Base class for collection variables.
  */
-class CollectionBase {
+class CollectionBase : public VariableBase {
 public:
-  CollectionBase(const std::string& sub_name, std::string_view curr_rule_file_path)
-      : curr_rule_file_path_(curr_rule_file_path) {
-    if (sub_name.size() >= 3) {
+  CollectionBase(std::string&& sub_name, bool is_not, bool is_counter,
+                 std::string_view curr_rule_file_path)
+      : VariableBase(std::move(sub_name), is_not, is_counter),
+        curr_rule_file_path_(curr_rule_file_path) {
+    if (sub_name_.size() >= 3) {
       bool hyperscan = false;
-      if (sub_name.front() == '/' && sub_name.back() == '/') {
+      if (sub_name_.front() == '/' && sub_name_.back() == '/') {
         regex_accept_scanner_ =
-            createScanner(std::string_view(sub_name.data() + 1, sub_name.size() - 2), false);
-      } else if (sub_name.front() == '@' && sub_name.back() == '@') {
+            createScanner(std::string_view(sub_name_.data() + 1, sub_name_.size() - 2), false);
+      } else if (sub_name_.front() == '@' && sub_name_.back() == '@') {
         regex_accept_scanner_ =
-            createScanner(std::string_view(sub_name.data() + 1, sub_name.size() - 2), true);
+            createScanner(std::string_view(sub_name_.data() + 1, sub_name_.size() - 2), true);
       }
     }
   }
   virtual ~CollectionBase() = default;
+
+public:
+  bool isCollection() const override { return sub_name_.empty() ? true : isRegex(); };
 
 public:
   /**

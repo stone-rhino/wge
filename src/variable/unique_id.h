@@ -37,13 +37,21 @@ public:
            std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!is_counter_)
-      [[likely]] { result.emplace_back(t.getUniqueId()); }
-    else {
-      result.emplace_back(t.getUniqueId().empty() ? 0 : 1);
-    }
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(t.getUniqueId().empty() ? 0 : 1);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(t.getUniqueId());
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 };
 } // namespace Variable

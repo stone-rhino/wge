@@ -21,25 +21,15 @@
 #pragma once
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class Geo final : public VariableBase, public CollectionBase {
+class Geo final : public CollectionBase {
   DECLARE_VIRABLE_NAME(GEO);
 
 public:
   Geo(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
-
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    assert(false);
-    throw "Not implemented!";
-  }
-
-  bool isCollection() const override { return sub_name_.empty(); };
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 };
 } // namespace Variable
 } // namespace Wge

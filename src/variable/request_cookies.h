@@ -22,61 +22,69 @@
 
 #include "collection_base.h"
 #include "request_headers.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class RequestCookies final : public VariableBase, public CollectionBase {
+class RequestCookiesBase : public CollectionBase {
+public:
+  RequestCookiesBase(std::string&& sub_name, bool is_not, bool is_counter,
+                     std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+
+    result.emplace_back(static_cast<int64_t>(cookies.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+
+    int64_t count = cookies.count(sub_name_);
+    result.emplace_back(count);
+  }
+};
+
+class RequestCookies final : public RequestCookiesBase {
   DECLARE_VIRABLE_NAME(REQUEST_COOKIES);
 
 public:
   RequestCookies(std::string&& sub_name, bool is_not, bool is_counter,
                  std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+      : RequestCookiesBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
 
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(cookies.size())); },
-        // specify subname
-        {
-          int64_t count = cookies.count(sub_name_);
-          result.emplace_back(count);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : cookies) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.emplace_back(elem.second, elem.first); }
-          }
-        },
-        // collection regex
-        {
-          for (auto& elem : cookies) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] {
-                if (match(elem.first)) {
-                  result.emplace_back(elem.second, elem.first);
-                }
-              }
-          }
-        },
-        // specify subname
-        {
-          auto range = cookies.equal_range(sub_name_);
-          for (auto it = range.first; it != range.second; ++it) {
-            result.emplace_back(it->second);
-          }
-        });
+    for (auto& elem : cookies) {
+      if (!hasExceptVariable(t, main_name_, elem.first))
+        [[likely]] { result.emplace_back(elem.second, elem.first); }
+    }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+
+    if (!isRegex())
+      [[likely]] {
+        auto range = cookies.equal_range(sub_name_);
+        for (auto it = range.first; it != range.second; ++it) {
+          result.emplace_back(it->second);
+        }
+      }
+    else {
+      for (auto& elem : cookies) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              result.emplace_back(elem.second, elem.first);
+            }
+          }
+      }
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

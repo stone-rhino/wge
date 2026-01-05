@@ -35,11 +35,21 @@ public:
     initEvaluateFunc();
   }
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    if (evaluate_func_) {
-      evaluate_func_(t, result, is_counter_);
-    }
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluate_func_(t, result, is_counter_);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluate_func_(t, result, is_counter_);
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 
 private:

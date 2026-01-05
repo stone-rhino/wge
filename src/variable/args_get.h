@@ -24,64 +24,69 @@
 #include <string_view>
 
 #include "collection_base.h"
-#include "evaluate_help.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class ArgsGet final : public VariableBase, public CollectionBase {
+class ArgsGetBase : public CollectionBase {
+public:
+  ArgsGetBase(std::string&& sub_name, bool is_not, bool is_counter,
+              std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+
+    result.emplace_back(static_cast<int64_t>(query_params.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+
+    int64_t count = query_params_map.count(sub_name_);
+    result.emplace_back(count);
+  }
+};
+
+class ArgsGet final : public ArgsGetBase {
   friend class Args;
   DECLARE_VIRABLE_NAME(ARGS_GET);
 
 public:
   ArgsGet(std::string&& sub_name, bool is_not, bool is_counter,
           std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+      : ArgsGetBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
-    auto& query_params_map = t.getRequestLineInfo().query_params_.get();
-
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(query_params.size())); },
-        // specify subname
-        {
-          int64_t count = query_params_map.count(sub_name_);
-          result.emplace_back(count);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : query_params) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.emplace_back(elem.second, elem.first); }
-          }
-        },
-        // collection regex
-        {
-          for (auto& elem : query_params) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] {
-                if (match(elem.first)) {
-                  result.emplace_back(elem.second, elem.first);
-                }
-              }
-          }
-        },
-        // specify subname
-        {
-          auto range = query_params_map.equal_range(sub_name_);
-          for (auto iter = range.first; iter != range.second; ++iter) {
-            result.emplace_back(iter->second);
-          }
-        });
+    for (auto& elem : query_params) {
+      if (!hasExceptVariable(t, main_name_, elem.first))
+        [[likely]] { result.emplace_back(elem.second, elem.first); }
+    }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+        auto range = query_params_map.equal_range(sub_name_);
+        for (auto iter = range.first; iter != range.second; ++iter) {
+          result.emplace_back(iter->second);
+        }
+      }
+    else {
+      auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+      for (auto& elem : query_params) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              result.emplace_back(elem.second, elem.first);
+            }
+          }
+      }
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

@@ -21,21 +21,27 @@
 #pragma once
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class MatchedVars final : public VariableBase, public CollectionBase {
-  DECLARE_VIRABLE_NAME(MATCHED_VARS);
-
+class MatchedVarsBase : public CollectionBase {
 public:
-  MatchedVars(std::string&& sub_name, bool is_not, bool is_counter,
-              std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+  MatchedVarsBase(std::string&& sub_name, bool is_not, bool is_counter,
+                  std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(getAllMatchedVariables(t).size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+protected:
+  const std::vector<Wge::Transaction::MatchedVariable>&
+  getAllMatchedVariables(Transaction& t) const {
     // If the current evaluate rule is a chained rule, we should get the matched variable from the
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
@@ -47,30 +53,30 @@ public:
       }
     }
 
-    RETURN_IF_COUNTER(
-        // collection
-        {
-          result.emplace_back(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size()));
-        },
-        // specify subname
-        { UNREACHABLE(); });
+    return t.getMatchedVariables(rule_chain_index);
+  }
+};
 
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& matched_variable : t.getMatchedVariables(rule_chain_index)) {
-            auto full_name = matched_variable.variable_->fullName();
-            if (!hasExceptVariable(t, main_name_, full_name.sub_name_))
-              [[likely]] { result.emplace_back(matched_variable.transformed_value_.variant_); }
-          }
-        },
-        // collection regex
-        { UNREACHABLE(); },
-        // specify subname
-        { UNREACHABLE(); });
+class MatchedVars final : public MatchedVarsBase {
+  DECLARE_VIRABLE_NAME(MATCHED_VARS);
+
+public:
+  MatchedVars(std::string&& sub_name, bool is_not, bool is_counter,
+              std::string_view curr_rule_file_path)
+      : MatchedVarsBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    for (auto& matched_variable : getAllMatchedVariables(t)) {
+      auto full_name = matched_variable.variable_->fullName();
+      if (!hasExceptVariable(t, main_name_, full_name.sub_name_))
+        [[likely]] { result.emplace_back(matched_variable.transformed_value_.variant_); }
+    }
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
 };
 } // namespace Variable
 } // namespace Wge

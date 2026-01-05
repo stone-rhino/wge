@@ -60,7 +60,23 @@ public:
    * @param t the transaction.
    * @param result the result of the evaluation.
    */
-  virtual void evaluate(Transaction& t, Common::EvaluateResults& result) const = 0;
+  void evaluate(Transaction& t, Common::EvaluateResults& result) const {
+    if (is_counter_)
+      [[unlikely]] {
+        if (sub_name_.empty()) {
+          evaluateCollectionCounter(t, result);
+        } else {
+          evaluateSpecifyCounter(t, result);
+        }
+      }
+    else {
+      if (sub_name_.empty())
+        [[likely]] { evaluateCollection(t, result); }
+      else {
+        evaluateSpecify(t, result);
+      }
+    }
+  }
 
   /**
    * Get the full name of the variable.
@@ -98,6 +114,24 @@ public:
    * @return true if the variable is a counter, false otherwise.
    */
   bool isCounter() const { return is_counter_; }
+
+protected:
+  virtual void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+  virtual void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+  virtual void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
+  virtual void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const {
+    UNREACHABLE();
+    throw "Not implemented!";
+  }
 
 protected:
   std::string sub_name_;

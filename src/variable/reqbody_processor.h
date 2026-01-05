@@ -36,25 +36,26 @@ public:
                    std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto body_processor_type = t.getRequestBodyProcessor();
+    result.emplace_back(static_cast<int64_t>(body_processor_type_map_.count(body_processor_type)));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     auto body_processor_type = t.getRequestBodyProcessor();
     auto iter = body_processor_type_map_.find(body_processor_type);
+    if (iter != body_processor_type_map_.end()) {
+      result.emplace_back(iter->second);
+    }
+  }
 
-    if (is_counter_)
-      [[unlikely]] {
-        if (iter != body_processor_type_map_.end()) {
-          result.emplace_back(1);
-        } else {
-          result.emplace_back(0);
-        }
-        return;
-      }
-
-    if (iter == body_processor_type_map_.end())
-      [[unlikely]] { return; }
-
-    result.emplace_back(iter->second);
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 
 private:

@@ -24,16 +24,23 @@
 
 namespace Wge {
 namespace Variable {
-class MatchedVar final : public VariableBase {
-  DECLARE_VIRABLE_NAME(MATCHED_VAR);
-
+class MatchedVarBase : public VariableBase {
 public:
-  MatchedVar(std::string&& sub_name, bool is_not, bool is_counter,
-             std::string_view curr_rule_file_path)
+  MatchedVarBase(std::string&& sub_name, bool is_not, bool is_counter)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(getAllMatchedVariables(t).empty() ? 0 : 1);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+protected:
+  const std::vector<Wge::Transaction::MatchedVariable>&
+  getAllMatchedVariables(Transaction& t) const {
     // If the current evaluate rule is a chained rule, we should get the matched variable from the
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
@@ -45,21 +52,37 @@ public:
       }
     }
 
-    if (is_counter_)
-      [[unlikely]] {
-        if (!t.getMatchedVariables(rule_chain_index).empty())
-          [[likely]] { result.emplace_back(1); }
-        else {
-          result.emplace_back(0);
-        }
-        return;
-      }
+    return t.getMatchedVariables(rule_chain_index);
+  }
 
-    if (t.getMatchedVariables(rule_chain_index).empty())
-      [[unlikely]] { return; }
+  const Wge::Transaction::MatchedVariable* getMatchedVariable(Transaction& t) const {
+    auto& all_matched_variables = getAllMatchedVariables(t);
+    if (!all_matched_variables.empty()) {
+      return &all_matched_variables.back();
+    }
 
-    auto& matched_var = t.getMatchedVariables(rule_chain_index).back();
-    result.emplace_back(matched_var.transformed_value_.variant_);
+    return nullptr;
+  }
+};
+
+class MatchedVar final : public MatchedVarBase {
+  DECLARE_VIRABLE_NAME(MATCHED_VAR);
+
+public:
+  MatchedVar(std::string&& sub_name, bool is_not, bool is_counter,
+             std::string_view curr_rule_file_path)
+      : MatchedVarBase(std::move(sub_name), is_not, is_counter) {}
+
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto matched_var = getMatchedVariable(t);
+    if (matched_var) {
+      result.emplace_back(matched_var->transformed_value_.variant_);
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 };
 } // namespace Variable

@@ -32,8 +32,32 @@ public:
                 std::string_view curr_rule_file_path)
       : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(getAllMatchedVPTrees(t).empty() ? 0 : 1);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    const Common::PropertyTree* matched_vptree = getMatchedVPTree(t);
+    if (matched_vptree) {
+      if (paths_.empty()) {
+        Variable::PTree::evaluateNode(matched_vptree, result);
+      } else {
+        Variable::PTree::evaluateNode(matched_vptree, paths_, 0, result);
+      }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+private:
+  const std::vector<const Common::PropertyTree*>& getAllMatchedVPTrees(Transaction& t) const {
     // If the current evaluate rule is a chained rule, we should get the matched vptree from the
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
@@ -45,36 +69,29 @@ public:
       }
     }
 
-    if (is_counter_)
-      [[unlikely]] {
-        if (!t.getMatchedVPTrees(rule_chain_index).empty())
-          [[likely]] { result.emplace_back(1); }
-        else {
-          result.emplace_back(0);
-        }
-        return;
-      }
+    return t.getMatchedVPTrees(rule_chain_index);
+  }
 
-    if (t.getMatchedVPTrees(rule_chain_index).empty())
-      [[unlikely]] { return; }
+  const Common::PropertyTree* getMatchedVPTree(Transaction& t) const {
+    auto& all_matched_vptrees = getAllMatchedVPTrees(t);
+    if (all_matched_vptrees.empty()) {
+      return nullptr;
+    }
 
-    const Common::PropertyTree* matched_vptree = t.getMatchedVPTrees(rule_chain_index).back();
+    auto matched_vptree = all_matched_vptrees.back();
     WGE_LOG_TRACE("MatchedVPTree: {}", matched_vptree->dump());
+
     for (int i = 0; i < parent_count_; ++i) {
       auto parent = matched_vptree->parent();
       if (parent) {
         matched_vptree = parent;
-        WGE_LOG_TRACE("MatchedVPTree parent: {}", matched_vptree->dump());
+        WGE_LOG_TRACE("MatchedOPTree parent: {}", matched_vptree->dump());
       } else {
         break;
       }
     }
 
-    if (paths_.empty()) {
-      Variable::PTree::evaluateNode(matched_vptree, result);
-    } else {
-      Variable::PTree::evaluateNode(matched_vptree, paths_, 0, result);
-    }
+    return matched_vptree;
   }
 };
 } // namespace Variable

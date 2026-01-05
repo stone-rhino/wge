@@ -23,87 +23,74 @@
 #include <optional>
 
 #include "collection_base.h"
-#include "evaluate_help.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class Tx final : public VariableBase, public CollectionBase {
+class Tx final : public CollectionBase {
   DECLARE_VIRABLE_NAME(TX);
 
 public:
   Tx(const std::string& ns, std::string&& sub_name, std::optional<size_t> index, bool is_not,
      bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path), namespace_(ns), index_(index) {
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path),
+        namespace_(ns), index_(index) {
     if (!sub_name_.empty() && std::all_of(sub_name_.begin(), sub_name_.end(), ::isdigit)) {
       capture_index_ = ::atoi(sub_name_.c_str());
     }
   }
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    // Process capture that definded by TX:[1-99]
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     if (capture_index_.has_value())
-      [[unlikely]] {
-        if (is_counter_)
-          [[unlikely]] {
-            result.emplace_back(t.getCapture(capture_index_.value()).empty() ? 0 : 1);
-          }
-        else {
-          result.emplace_back(t.getCapture(capture_index_.value()));
-        }
-        return;
+      [[unlikely]] { result.emplace_back(t.getCapture(capture_index_.value()).empty() ? 0 : 1); }
+    else {
+      result.emplace_back(t.getVariablesCount(namespace_));
+    }
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    if (index_.has_value())
+      [[likely]] {
+        t.hasVariable(namespace_, index_.value()) ? result.emplace_back(1) : result.emplace_back(0);
       }
+    else {
+      t.hasVariable(namespace_, sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
+    }
+  }
 
-    // Process single variable and collection
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(t.getVariablesCount(namespace_)); },
-        // specify subname
-        {
-          if (index_.has_value())
-            [[likely]] {
-              t.hasVariable(namespace_, index_.value()) ? result.emplace_back(1)
-                                                        : result.emplace_back(0);
-            }
-          else {
-            t.hasVariable(namespace_, sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
-          }
-        });
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto variables = t.getVariables(namespace_);
+    for (auto variable : variables) {
+      if (!hasExceptVariable(t, main_name_, variable.first))
+        [[likely]] { result.emplace_back(*variable.second, variable.first); }
+    }
+  }
 
-    RETURN_VALUE(
-        // collection
-        {
-          auto variables = t.getVariables(namespace_);
-          for (auto variable : variables) {
-            if (!hasExceptVariable(t, main_name_, variable.first))
-              [[likely]] { result.emplace_back(*variable.second, variable.first); }
-          }
-        },
-        // collection regex
-        {
-          auto variables = t.getVariables(namespace_);
-          for (auto variable : variables) {
-            if (!hasExceptVariable(t, main_name_, variable.first))
-              [[likely]] {
-                if (match(variable.first)) {
-                  result.emplace_back(*variable.second, variable.first);
-                }
-              }
-          }
-        },
-        // specify subname
-        {
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        if (capture_index_.has_value())
+          [[unlikely]] { result.emplace_back(t.getCapture(capture_index_.value())); }
+        else {
           if (index_.has_value())
             [[likely]] { result.emplace_back(t.getVariable(namespace_, index_.value())); }
           else {
             result.emplace_back(t.getVariable(namespace_, sub_name_));
           }
-        });
+        }
+      }
+    else {
+      auto variables = t.getVariables(namespace_);
+      for (auto variable : variables) {
+        if (!hasExceptVariable(t, main_name_, variable.first))
+          [[likely]] {
+            if (match(variable.first)) {
+              result.emplace_back(*variable.second, variable.first);
+            }
+          }
+      }
+    }
   }
-
-  bool isCollection() const override { return sub_name_.empty(); };
 
 public:
   const std::string& getNamespace() const { return namespace_; }

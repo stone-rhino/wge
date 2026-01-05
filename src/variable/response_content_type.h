@@ -34,9 +34,23 @@ public:
       : VariableBase(std::move(sub_name), is_not, is_counter),
         response_content_type_("content-type", is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    Common::EvaluateResults temp_result;
+    response_content_type_.evaluate(t, temp_result);
+    result.emplace_back(static_cast<int64_t>(temp_result.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
     response_content_type_.evaluate(t, result);
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 
 private:

@@ -32,8 +32,32 @@ public:
                 std::string_view curr_rule_file_path)
       : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(getAllMatchedOPTrees(t).empty() ? 0 : 1);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    const Common::PropertyTree* matched_optree = getMatchedOPTree(t);
+    if (matched_optree) {
+      if (paths_.empty()) {
+        Variable::PTree::evaluateNode(matched_optree, result);
+      } else {
+        Variable::PTree::evaluateNode(matched_optree, paths_, 0, result);
+      }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+private:
+  const std::vector<const Common::PropertyTree*>& getAllMatchedOPTrees(Transaction& t) const {
     // If the current evaluate rule is a chained rule, we should get the matched vptree from the
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
@@ -45,21 +69,18 @@ public:
       }
     }
 
-    if (is_counter_)
-      [[unlikely]] {
-        if (!t.getMatchedOPTrees(rule_chain_index).empty())
-          [[likely]] { result.emplace_back(1); }
-        else {
-          result.emplace_back(0);
-        }
-        return;
-      }
+    return t.getMatchedOPTrees(rule_chain_index);
+  }
 
-    if (t.getMatchedOPTrees(rule_chain_index).empty())
-      [[unlikely]] { return; }
+  const Common::PropertyTree* getMatchedOPTree(Transaction& t) const {
+    auto& all_matched_optrees = getAllMatchedOPTrees(t);
+    if (all_matched_optrees.empty()) {
+      return nullptr;
+    }
 
-    const Common::PropertyTree* matched_optree = t.getMatchedOPTrees(rule_chain_index).back();
+    auto matched_optree = all_matched_optrees.back();
     WGE_LOG_TRACE("MatchedOPTree: {}", matched_optree->dump());
+
     for (int i = 0; i < parent_count_; ++i) {
       auto parent = matched_optree->parent();
       if (parent) {
@@ -70,11 +91,7 @@ public:
       }
     }
 
-    if (paths_.empty()) {
-      Variable::PTree::evaluateNode(matched_optree, result);
-    } else {
-      Variable::PTree::evaluateNode(matched_optree, paths_, 0, result);
-    }
+    return matched_optree;
   }
 };
 } // namespace Variable

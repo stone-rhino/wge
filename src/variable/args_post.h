@@ -24,78 +24,97 @@
 #include <string_view>
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
-class ArgsPost final : public VariableBase, public CollectionBase {
+class ArgsPostBase : public CollectionBase {
+public:
+  ArgsPostBase(std::string&& sub_name, bool is_not, bool is_counter,
+               std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& body_query_params = getBodyQueryParams(t);
+
+    result.emplace_back(static_cast<int64_t>(body_query_params.size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& body_query_params_map = getBodyQueryParamsMap(t);
+
+    int64_t count = body_query_params_map.count(sub_name_);
+    result.emplace_back(count);
+  }
+
+protected:
+  const std::vector<std::pair<std::string_view, std::string_view>>&
+  getBodyQueryParams(Transaction& t) const {
+    switch (t.getRequestBodyProcessor()) {
+    case BodyProcessorType::UrlEncoded:
+      return t.getBodyQueryParam().getLinked();
+    case BodyProcessorType::MultiPart:
+      return t.getBodyMultiPart().getNameValueLinked();
+    default:
+      return t.getBodyQueryParam().getLinked();
+    }
+  }
+
+  const std::unordered_multimap<std::string_view, std::string_view>&
+  getBodyQueryParamsMap(Transaction& t) const {
+    switch (t.getRequestBodyProcessor()) {
+    case BodyProcessorType::UrlEncoded:
+      return t.getBodyQueryParam().get();
+    case BodyProcessorType::MultiPart:
+      return t.getBodyMultiPart().getNameValue();
+    default:
+      return t.getBodyQueryParam().get();
+    }
+  }
+};
+
+class ArgsPost final : public ArgsPostBase {
   friend class Args;
   DECLARE_VIRABLE_NAME(ARGS_POST);
 
 public:
   ArgsPost(std::string&& sub_name, bool is_not, bool is_counter,
            std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter),
-        CollectionBase(sub_name_, curr_rule_file_path) {}
+      : ArgsPostBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    // Get the query params by the request body processor type
-    const std::vector<std::pair<std::string_view, std::string_view>>* query_params = nullptr;
-    const std::unordered_multimap<std::string_view, std::string_view>* query_params_map = nullptr;
-    switch (t.getRequestBodyProcessor()) {
-    case BodyProcessorType::UrlEncoded:
-      query_params = &t.getBodyQueryParam().getLinked();
-      query_params_map = &t.getBodyQueryParam().get();
-      break;
-    case BodyProcessorType::MultiPart:
-      query_params = &t.getBodyMultiPart().getNameValueLinked();
-      query_params_map = &t.getBodyMultiPart().getNameValue();
-      break;
-    default:
-      query_params = &t.getBodyQueryParam().getLinked();
-      query_params_map = &t.getBodyQueryParam().get();
-      break;
+protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& body_query_params = getBodyQueryParams(t);
+
+    for (auto& elem : body_query_params) {
+      if (!hasExceptVariable(t, main_name_, elem.first))
+        [[likely]] { result.emplace_back(elem.second, elem.first); }
     }
-
-    RETURN_IF_COUNTER(
-        // collection
-        { result.emplace_back(static_cast<int64_t>(query_params->size())); },
-        // specify subname
-        {
-          int64_t count = query_params_map->count(sub_name_);
-          result.emplace_back(count);
-        });
-
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : *query_params) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] { result.emplace_back(elem.second, elem.first); }
-          }
-        },
-        // collection regex
-        {
-          for (auto& elem : *query_params) {
-            if (!hasExceptVariable(t, main_name_, elem.first))
-              [[likely]] {
-                if (match(elem.first)) {
-                  result.emplace_back(elem.second, elem.first);
-                }
-              }
-          }
-        },
-        // specify subname
-        {
-          auto range = query_params_map->equal_range(sub_name_);
-          for (auto iter = range.first; iter != range.second; ++iter) {
-            result.emplace_back(iter->second);
-          }
-        });
   }
 
-  bool isCollection() const override { return sub_name_.empty(); };
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    if (!isRegex())
+      [[likely]] {
+        auto& body_query_params_map = getBodyQueryParamsMap(t);
+
+        auto range = body_query_params_map.equal_range(sub_name_);
+        for (auto iter = range.first; iter != range.second; ++iter) {
+          result.emplace_back(iter->second);
+        }
+      }
+    else {
+      auto& body_query_params = getBodyQueryParams(t);
+
+      for (auto& elem : body_query_params) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              result.emplace_back(elem.second, elem.first);
+            }
+          }
+      }
+    }
+  }
 };
 } // namespace Variable
 } // namespace Wge

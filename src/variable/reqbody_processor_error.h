@@ -31,12 +31,6 @@ public:
   ReqbodyProcessorError(std::string&& sub_name, bool is_not, bool is_counter,
                         std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
-
-public:
-  void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
-    UNREACHABLE();
-    throw "Not implemented!";
-  }
 };
 } // namespace Variable
 } // namespace Wge
