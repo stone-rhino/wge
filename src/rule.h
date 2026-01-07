@@ -231,7 +231,7 @@ public:
   void appendChainRule(std::unique_ptr<Rule>&& rule);
 
   /**
-   * Get the rule of the chain by index.
+   * Get the rule of the chain rule by index.
    * @param index the relative index of the chain that starts from this rule. Note that the index is
    * not same as the index of the chain that starts form the top rule.
    * @return nullptr if the he index is out of range, otherwise the pointer to the rule of the
@@ -289,6 +289,7 @@ public:
   const Rule* topRule() const { return detail_->top_rule_; }
   Rule* topRule() { return detail_->top_rule_; }
   void topRule(Rule* top_rule) { detail_->top_rule_ = top_rule; }
+  size_t chainRuleCount() const { return detail_->chain_rule_count_; }
 
 public:
   // String interning
@@ -495,6 +496,9 @@ private:
     // If this rule is a chain rule, this is the top rule of the chain. nullptr means this rule is
     // not a chained rule.
     Rule* top_rule_{nullptr};
+
+    // The chain rule count
+    size_t chain_rule_count_{0};
 
     // Build the index to quick find
     std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;

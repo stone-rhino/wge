@@ -329,6 +329,7 @@ void Rule::appendChainRule(std::unique_ptr<Rule>&& rule) {
   ASSERT_IS_MAIN_THREAD();
   assert(!chain_);
   chain_ = std::move(rule);
+  detail_->chain_rule_count_ = 1;
 
   // The chained rule inherits the phase of the parent rule.
   chain_->phase_ = phase_;
@@ -339,6 +340,7 @@ void Rule::appendChainRule(std::unique_ptr<Rule>&& rule) {
   chain_->chain_index_ = 0;
   Rule* parent = detail_->parent_rule_;
   while (parent) {
+    parent->detail_->chain_rule_count_++;
     chain_->detail_->top_rule_ = parent;
     parent = parent->detail_->parent_rule_;
     // Update the chain index
@@ -484,6 +486,16 @@ bool Rule::evaluateChain(Transaction& t) const {
 
   // Restore the current rule to the transaction
   t.setCurrentEvaluateRule(this);
+
+  if (multiMatch())
+    [[unlikely]] {
+      t.clearMatchedVariables(chain_->chain_index_,
+                              chain_->chain_index_ + detail_->chain_rule_count_);
+      t.clearMatchedOPTrees(chain_->chain_index_,
+                            chain_->chain_index_ + detail_->chain_rule_count_);
+      t.clearMatchedVPTrees(chain_->chain_index_,
+                            chain_->chain_index_ + detail_->chain_rule_count_);
+    }
 
   return matched;
 }

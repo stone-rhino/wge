@@ -454,6 +454,32 @@ public:
                            std::list<const Transformation::TransformBase*>&& transform_list);
 
   /**
+   * Add a matched operator property tree node.
+   * Use for MATCHED_OPTREE.
+   * @param rule_chain_index the chain index of the rule that matched this node
+   * @param optree the matched operator property tree node.
+   */
+  void pushMatchedOPTree(RuleChainIndexType rule_chain_index, const Common::PropertyTree* optree) {
+    auto& optrees =
+        matched_optrees_.try_emplace(rule_chain_index, std::vector<const Common::PropertyTree*>())
+            .first->second;
+    optrees.emplace_back(optree);
+  }
+
+  /**
+   * Add a matched variable property tree node.
+   * Use for MATCHED_VPTREE.
+   * @param rule_chain_index the chain index of the rule that matched this node
+   * @param vptree the matched variable property tree node.
+   */
+  void pushMatchedVPTree(RuleChainIndexType rule_chain_index, const Common::PropertyTree* vptree) {
+    auto& vptrees =
+        matched_vptrees_.try_emplace(rule_chain_index, std::vector<const Common::PropertyTree*>())
+            .first->second;
+    vptrees.emplace_back(vptree);
+  }
+
+  /**
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
    * @return the matched variables.
    */
@@ -465,19 +491,6 @@ public:
 
     static const std::vector<MatchedVariable> empty_vector;
     return empty_vector;
-  }
-
-  /**
-   * Add a matched operator property tree node.
-   * Use for MATCHED_OPTREE.
-   * @param rule_chain_index the chain index of the rule that matched this node
-   * @param optree the matched operator property tree node.
-   */
-  void pushMatchedOPTree(RuleChainIndexType rule_chain_index, const Common::PropertyTree* optree) {
-    auto& optrees =
-        matched_optrees_.try_emplace(rule_chain_index, std::vector<const Common::PropertyTree*>())
-            .first->second;
-    optrees.emplace_back(optree);
   }
 
   /**
@@ -495,19 +508,6 @@ public:
   }
 
   /**
-   * Add a matched variable property tree node.
-   * Use for MATCHED_VPTREE.
-   * @param rule_chain_index the chain index of the rule that matched this node
-   * @param vptree the matched variable property tree node.
-   */
-  void pushMatchedVPTree(RuleChainIndexType rule_chain_index, const Common::PropertyTree* vptree) {
-    auto& vptrees =
-        matched_vptrees_.try_emplace(rule_chain_index, std::vector<const Common::PropertyTree*>())
-            .first->second;
-    vptrees.emplace_back(vptree);
-  }
-
-  /**
    * Get the matched variable property tree nodes(MATCHED_VPTREE).
    * @return the matched variable property tree nodes.
    */
@@ -519,6 +519,48 @@ public:
 
     static const std::vector<const Common::PropertyTree*> empty_vector;
     return empty_vector;
+  }
+
+  /**
+   * Clear the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
+   * @param start_rule_chain_index the start chain index of the rule.
+   * @param end_rule_chain_index the end chain index of the rule. (exclusive)
+   */
+  void clearMatchedVariables(int start_rule_chain_index, int end_rule_chain_index) {
+    for (int i = start_rule_chain_index; i < end_rule_chain_index; ++i) {
+      auto iter = matched_variables_.find(i);
+      if (iter != matched_variables_.end()) {
+        iter->second.clear();
+      }
+    }
+  }
+
+  /**
+   * Clear the matched operator property tree nodes(MATCHED_OPTREE).
+   * @param start_rule_chain_index the start chain index of the rule.
+   * @param end_rule_chain_index the end chain index of the rule. (exclusive)
+   */
+  void clearMatchedOPTrees(int start_rule_chain_index, int end_rule_chain_index) {
+    for (int i = start_rule_chain_index; i < end_rule_chain_index; ++i) {
+      auto iter = matched_optrees_.find(i);
+      if (iter != matched_optrees_.end()) {
+        iter->second.clear();
+      }
+    }
+  }
+
+  /**
+   * Clear the matched variable property tree nodes(MATCHED_VPTREE).
+   * @param start_rule_chain_index the start chain index of the rule.
+   * @param end_rule_chain_index the end chain index of the rule. (exclusive)
+   */
+  void clearMatchedVPTrees(int start_rule_chain_index, int end_rule_chain_index) {
+    for (int i = start_rule_chain_index; i < end_rule_chain_index; ++i) {
+      auto iter = matched_vptrees_.find(i);
+      if (iter != matched_vptrees_.end()) {
+        iter->second.clear();
+      }
+    }
   }
 
   /**
@@ -636,7 +678,6 @@ private:
   const Engine& engine_;
   RulePhaseType current_phase_{1};
   const Rule* current_rule_{nullptr};
-  std::vector<std::string_view> captured_;
 
   struct TxVariables {
     std::vector<Common::Variant> variables_;
@@ -644,6 +685,8 @@ private:
     std::unordered_map<size_t, std::string> local_index_reverse_;
   };
   std::unordered_map<std::string /*namespace*/, TxVariables> tx_variables_;
+
+  std::vector<std::string_view> captured_;
 
   // Stores all matched variables organized by rule chain index.
   // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)

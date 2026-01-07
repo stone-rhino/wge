@@ -52,6 +52,8 @@ Transaction::Transaction(const Engine& engin, std::shared_ptr<Common::PropertySt
 
   captured_.reserve(4);
   matched_variables_.reserve(4);
+  matched_optrees_.reserve(4);
+  matched_vptrees_.reserve(4);
   transform_cache_.reserve(100);
 }
 
@@ -669,9 +671,12 @@ inline bool Transaction::process(RulePhaseType phase) {
       }
 
     // Clean the current captured and matched, there are:
-    // TX.[0-99], MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
+    // TX.[0-99], MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS, MATCHED_OPTREE,
+    // MATCHED_VPTREE
     captured_.clear();
     matched_variables_.clear();
+    matched_optrees_.clear();
+    matched_vptrees_.clear();
 
     // Evaluate the rule
     auto is_matched = current_rule_->evaluate(*this);
