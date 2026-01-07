@@ -232,5 +232,43 @@ TEST_F(RuleVariableParseTest, MatchedVPTree) {
   EXPECT_EQ(variable3->paths().size(), 0);
 }
 
+TEST_F(RuleVariableParseTest, SubnameWithMacro) {
+  {
+    const std::string directive =
+        R"(SecRule ARGS:%{PTREE.foo.bar}|ARGS:%{PTREE.foo[].bar}|ARGS:%{PTREE.foo.bar{}} "@eq 100" "id:1,phase:1")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& variables = parser.rules()[0].back().variables();
+    EXPECT_EQ(variables.size(), 3);
+    const auto* variable0 = dynamic_cast<const Variable::Args*>(variables[0].get());
+    const auto* variable1 = dynamic_cast<const Variable::Args*>(variables[1].get());
+    const auto* variable2 = dynamic_cast<const Variable::Args*>(variables[2].get());
+    EXPECT_EQ(variable0->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+    EXPECT_EQ(variable1->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+    EXPECT_EQ(variable2->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+  }
+
+  {
+    const std::string directive =
+        R"(SecRule TX:%{PTREE.foo.bar}|TX:%{PTREE.foo[].bar}|TX:%{PTREE.foo.bar{}} "@eq 100" "id:1,phase:1")";
+
+    Antlr4::Parser parser;
+    auto result = parser.load(directive);
+    ASSERT_TRUE(result.has_value());
+
+    auto& variables = parser.rules()[0].back().variables();
+    EXPECT_EQ(variables.size(), 3);
+    const auto* variable0 = dynamic_cast<const Variable::Tx*>(variables[0].get());
+    const auto* variable1 = dynamic_cast<const Variable::Tx*>(variables[1].get());
+    const auto* variable2 = dynamic_cast<const Variable::Tx*>(variables[2].get());
+    EXPECT_EQ(variable0->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+    EXPECT_EQ(variable1->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+    EXPECT_EQ(variable2->subNameType(), Variable::CollectionBase::SubNameType::Macro);
+  }
+}
+
 } // namespace Parser
 } // namespace Wge

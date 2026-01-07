@@ -33,6 +33,14 @@ public:
               std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  ArgsGetBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+              std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  virtual void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                             std::string_view value) const = 0;
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
@@ -41,10 +49,96 @@ protected:
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+        count = query_params_map.count(sub_name_);
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+      int64_t count = 0;
+      auto main_name = mainName();
+      for (auto& elem : query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              ++count;
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          count += query_params_map.count(std::get<std::string_view>(r.variant_));
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
 
-    int64_t count = query_params_map.count(sub_name_);
     result.emplace_back(count);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+    auto main_name = mainName();
+    for (auto& elem : query_params) {
+      if (!hasExceptVariable(t, main_name, elem.first))
+        [[likely]] { addResultItem(result, elem.first, elem.second); }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+        auto range = query_params_map.equal_range(sub_name_);
+        for (auto iter = range.first; iter != range.second; ++iter) {
+          addResultItem(result, iter->first, iter->second);
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
+      auto main_name = mainName();
+      for (auto& elem : query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              addResultItem(result, elem.first, elem.second);
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      auto& query_params_map = t.getRequestLineInfo().query_params_.get();
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          auto range = query_params_map.equal_range(std::get<std::string_view>(r.variant_));
+          for (auto iter = range.first; iter != range.second; ++iter) {
+            addResultItem(result, iter->first, iter->second);
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
   }
 };
 
@@ -57,35 +151,14 @@ public:
           std::string_view curr_rule_file_path)
       : ArgsGetBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
-    for (auto& elem : query_params) {
-      if (!hasExceptVariable(t, main_name_, elem.first))
-        [[likely]] { result.emplace_back(elem.second, elem.first); }
-    }
-  }
+  ArgsGet(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+          std::string_view curr_rule_file_path)
+      : ArgsGetBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        auto& query_params_map = t.getRequestLineInfo().query_params_.get();
-        auto range = query_params_map.equal_range(sub_name_);
-        for (auto iter = range.first; iter != range.second; ++iter) {
-          result.emplace_back(iter->second);
-        }
-      }
-    else {
-      auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
-      for (auto& elem : query_params) {
-        if (!hasExceptVariable(t, main_name_, elem.first))
-          [[likely]] {
-            if (match(elem.first)) {
-              result.emplace_back(elem.second, elem.first);
-            }
-          }
-      }
-    }
+protected:
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(value, key);
   }
 };
 } // namespace Variable

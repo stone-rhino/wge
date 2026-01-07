@@ -387,6 +387,92 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
   }
 }
 
+TEST(RuleEvaluateLogicTest, variableSubNameMacro) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v2"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1"
+                ]
+            }
+        ]
+    }
+})";
+
+  // Test that the PTREE variable with subname macro is evaluated correctly.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "phase:1,setvar:tx.production=100,setvar:tx.v1=1,setvar:tx.staging=200,setvar:tx.v2=2,setvar:tx.foo=300,setvar:tx.bar=400"
+        SecRule TX:%{PTREE.config.server_list[].tags[]}|TX:foo  "@gt 50" \
+        "id:1, \
+        phase:1, \
+        t:none, \
+        setvar:tx.test=+1")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto pt_result = engine.updatePropertyStore(json);
+    ASSERT_TRUE(pt_result.has_value());
+
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0);
+
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 3);
+  }
+
+  // Test that the nested macro in variable subname is evaluated correctly.
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction
+        "phase:1,setvar:tx.l1=l2,setvar:tx.l2=l3,setvar:tx.l3=l4,setvar:tx.l4=foo,setvar:tx.foo=300,setvar:tx.bar=400"
+        SecRule TX:%{tx.%{tx.%{tx.%{tx.l1}}}}|TX:bar  "@eq 300" \
+        "id:1, \
+        phase:1, \
+        t:none, \
+        setvar:tx.test=+1")";
+
+    Engine engine(spdlog::level::trace);
+    auto result = engine.load(directive);
+    engine.init();
+    ASSERT_TRUE(result.has_value());
+
+    auto pt_result = engine.updatePropertyStore(json);
+    ASSERT_TRUE(pt_result.has_value());
+
+    auto t = engine.makeTransaction();
+    t->processRequestHeaders(nullptr, nullptr, 0);
+
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 1);
+  }
+}
+
 TEST(RuleEvaluateLogicTest, MatchedVarPush) {
   // Test the NEED_PUSH_MATCHED flag of the rule and chained rule is set correctly.
   {

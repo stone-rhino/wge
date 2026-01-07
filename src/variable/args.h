@@ -35,6 +35,14 @@ public:
            std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  ArgsBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+           std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  virtual void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                             std::string_view value) const = 0;
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
@@ -44,15 +52,142 @@ protected:
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
-    auto& body_query_params_map = getBodyQueryParamsMap(t);
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
+        auto& body_query_params_map = getBodyQueryParamsMap(t);
 
-    int64_t count = line_query_params_map.count(sub_name_);
-    count += body_query_params_map.count(sub_name_);
+        count += line_query_params_map.count(sub_name_);
+        count += body_query_params_map.count(sub_name_);
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
+      auto& body_query_params = getBodyQueryParams(t);
+      auto main_name = mainName();
+
+      for (auto& elem : line_query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              ++count;
+            }
+          }
+      }
+      for (auto& elem : body_query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              ++count;
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
+      auto& body_query_params_map = getBodyQueryParamsMap(t);
+
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          count += line_query_params_map.count(std::get<std::string_view>(r.variant_));
+          count += body_query_params_map.count(std::get<std::string_view>(r.variant_));
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+
     result.emplace_back(count);
   }
 
-protected:
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
+    auto& body_query_params = getBodyQueryParams(t);
+    auto main_name = mainName();
+
+    for (auto& elem : line_query_params) {
+      if (!hasExceptVariable(t, main_name, elem.first))
+        [[likely]] { addResultItem(result, elem.first, elem.second); }
+    }
+    for (auto& elem : body_query_params) {
+      if (!hasExceptVariable(t, main_name, elem.first))
+        [[likely]] { addResultItem(result, elem.first, elem.second); }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
+        auto& body_query_params_map = getBodyQueryParamsMap(t);
+
+        auto range = line_query_params_map.equal_range(sub_name_);
+        for (auto iter = range.first; iter != range.second; ++iter) {
+          addResultItem(result, iter->first, iter->second);
+        }
+        auto range2 = body_query_params_map.equal_range(sub_name_);
+        for (auto iter = range2.first; iter != range2.second; ++iter) {
+          addResultItem(result, iter->first, iter->second);
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
+      auto& body_query_params = getBodyQueryParams(t);
+      auto main_name = mainName();
+
+      for (auto& elem : line_query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              addResultItem(result, elem.first, elem.second);
+            }
+          }
+      }
+      for (auto& elem : body_query_params) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              addResultItem(result, elem.first, elem.second);
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
+      auto& body_query_params_map = getBodyQueryParamsMap(t);
+
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          auto range = line_query_params_map.equal_range(std::get<std::string_view>(r.variant_));
+          for (auto iter = range.first; iter != range.second; ++iter) {
+            addResultItem(result, iter->first, iter->second);
+          }
+          auto range2 = body_query_params_map.equal_range(std::get<std::string_view>(r.variant_));
+          for (auto iter = range2.first; iter != range2.second; ++iter) {
+            addResultItem(result, iter->first, iter->second);
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+  }
+
+private:
   const std::vector<std::pair<std::string_view, std::string_view>>&
   getBodyQueryParams(Transaction& t) const {
     switch (t.getRequestBodyProcessor()) {
@@ -89,57 +224,14 @@ public:
   Args(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
       : ArgsBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  Args(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+       std::string_view curr_rule_file_path)
+      : ArgsBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
 protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
-    auto& body_query_params = getBodyQueryParams(t);
-
-    for (auto& elem : line_query_params) {
-      if (!hasExceptVariable(t, main_name_, elem.first))
-        [[likely]] { result.emplace_back(elem.second, elem.first); }
-    }
-    for (auto& elem : body_query_params) {
-      if (!hasExceptVariable(t, main_name_, elem.first))
-        [[likely]] { result.emplace_back(elem.second, elem.first); }
-    }
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        auto& line_query_params_map = t.getRequestLineInfo().query_params_.get();
-        auto& body_query_params_map = getBodyQueryParamsMap(t);
-
-        auto range = line_query_params_map.equal_range(sub_name_);
-        for (auto iter = range.first; iter != range.second; ++iter) {
-          result.emplace_back(iter->second);
-        }
-        auto range2 = body_query_params_map.equal_range(sub_name_);
-        for (auto iter = range2.first; iter != range2.second; ++iter) {
-          result.emplace_back(iter->second);
-        }
-      }
-    else {
-      auto& line_query_params = t.getRequestLineInfo().query_params_.getLinked();
-      auto& body_query_params = getBodyQueryParams(t);
-
-      for (auto& elem : line_query_params) {
-        if (!hasExceptVariable(t, main_name_, elem.first))
-          [[likely]] {
-            if (match(elem.first)) {
-              result.emplace_back(elem.second, elem.first);
-            }
-          }
-      }
-      for (auto& elem : body_query_params) {
-        if (!hasExceptVariable(t, main_name_, elem.first))
-          [[likely]] {
-            if (match(elem.first)) {
-              result.emplace_back(elem.second, elem.first);
-            }
-          }
-      }
-    }
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(value, key);
   }
 };
 } // namespace Variable

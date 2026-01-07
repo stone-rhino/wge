@@ -32,6 +32,7 @@
 #include "../common/log.h"
 #include "../common/pcre/scanner.h"
 #include "../common/re2/scanner.h"
+#include "../macro/variable_macro.h"
 #include "../rule.h"
 #include "../transaction.h"
 
@@ -42,25 +43,44 @@ namespace Variable {
  */
 class CollectionBase : public VariableBase {
 public:
+  enum class SubNameType { Literal, Regex, RegexFile, Macro };
+
+public:
   CollectionBase(std::string&& sub_name, bool is_not, bool is_counter,
                  std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter),
         curr_rule_file_path_(curr_rule_file_path) {
     if (sub_name_.size() >= 3) {
-      bool hyperscan = false;
       if (sub_name_.front() == '/' && sub_name_.back() == '/') {
+        sub_name_type_ = SubNameType::Regex;
         regex_accept_scanner_ =
             createScanner(std::string_view(sub_name_.data() + 1, sub_name_.size() - 2), false);
       } else if (sub_name_.front() == '@' && sub_name_.back() == '@') {
+        sub_name_type_ = SubNameType::RegexFile;
         regex_accept_scanner_ =
             createScanner(std::string_view(sub_name_.data() + 1, sub_name_.size() - 2), true);
       }
     }
   }
+
+  CollectionBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                 bool is_counter, std::string_view curr_rule_file_path)
+      : VariableBase(std::string(sub_name_macro->literalValue()), is_not, is_counter),
+        curr_rule_file_path_(curr_rule_file_path), sub_name_macro_(std::move(sub_name_macro)) {
+    sub_name_type_ = SubNameType::Macro;
+  }
+
   virtual ~CollectionBase() = default;
 
 public:
-  bool isCollection() const override { return sub_name_.empty() ? true : isRegex(); };
+  bool isCollection() const override {
+    if (sub_name_macro_) {
+      return sub_name_macro_->getVariable()->isCollection();
+    } else {
+      return sub_name_.empty() ? true
+                               : !std::holds_alternative<std::monostate>(regex_accept_scanner_);
+    }
+  };
 
 public:
   /**
@@ -152,7 +172,7 @@ public:
     return false;
   }
 
-  bool isRegex() const { return !std::holds_alternative<std::monostate>(regex_accept_scanner_); }
+  SubNameType subNameType() const { return sub_name_type_; }
 
   bool match(std::string_view subject) const {
     bool match = false;
@@ -178,6 +198,10 @@ public:
         regex_accept_scanner_);
 
     return match;
+  }
+
+  void evaluateMacro(Transaction& t, Common::EvaluateResults& result) const {
+    sub_name_macro_->evaluate(t, result);
   }
 
 protected:
@@ -231,12 +255,15 @@ private:
   }
 
 private:
+  SubNameType sub_name_type_{SubNameType::Literal};
   Scanner regex_accept_scanner_;
   std::vector<Scanner> regex_except_scanners_;
   std::string_view curr_rule_file_path_;
+  std::unique_ptr<Macro::VariableMacro> sub_name_macro_;
+
   // Cache the hyperscan database
   static std::unordered_map<std::string, std::shared_ptr<Common::Hyperscan::HsDataBase>>
       database_cache_;
-}; // namespace Variable
+};
 } // namespace Variable
 } // namespace Wge

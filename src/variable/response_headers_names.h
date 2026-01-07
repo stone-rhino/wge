@@ -32,35 +32,14 @@ public:
                        std::string_view curr_rule_file_path)
       : ResponseHeadersBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    t.httpExtractor().response_header_traversal_([&](std::string_view key, std::string_view value) {
-      if (!hasExceptVariable(t, main_name_, key))
-        [[likely]] { result.emplace_back(key, key); }
-      return true;
-    });
-  }
+  ResponseHeadersNames(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                       bool is_counter, std::string_view curr_rule_file_path)
+      : ResponseHeadersBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        std::vector<std::string_view> values = t.httpExtractor().response_header_find_(sub_name_);
-        for (size_t i = 0; i < values.size(); ++i) {
-          result.emplace_back(sub_name_);
-        }
-      }
-    else {
-      t.httpExtractor().response_header_traversal_(
-          [&](std::string_view key, std::string_view value) {
-            if (!hasExceptVariable(t, main_name_, key))
-              [[likely]] {
-                if (match(key)) {
-                  result.emplace_back(key, key);
-                }
-              }
-            return true;
-          });
-    }
+protected:
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(key, key);
   }
 };
 } // namespace Variable

@@ -39,6 +39,12 @@ public:
     }
   }
 
+  Tx(const std::string& ns, std::unique_ptr<Macro::VariableMacro>&& sub_name_macro,
+     std::optional<size_t> index, bool is_not, bool is_counter,
+     std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path),
+        namespace_(ns), index_(index) {}
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     if (capture_index_.has_value())
@@ -49,13 +55,60 @@ protected:
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    if (index_.has_value())
-      [[likely]] {
-        t.hasVariable(namespace_, index_.value()) ? result.emplace_back(1) : result.emplace_back(0);
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        if (capture_index_.has_value())
+          [[unlikely]] { count = t.getCapture(capture_index_.value()).empty() ? 0 : 1; }
+        else {
+          if (index_.has_value())
+            [[likely]] { count = t.hasVariable(namespace_, index_.value()) ? 1 : 0; }
+          else {
+            count = t.hasVariable(namespace_, sub_name_) ? 1 : 0;
+          }
+        }
       }
-    else {
-      t.hasVariable(namespace_, sub_name_) ? result.emplace_back(1) : result.emplace_back(0);
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto variables = t.getVariables(namespace_);
+      for (auto variable : variables) {
+        if (!hasExceptVariable(t, main_name_, variable.first))
+          [[likely]] {
+            if (match(variable.first)) {
+              ++count;
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          std::optional<size_t> capture_index;
+          if (!sub_name.empty() && std::all_of(sub_name.begin(), sub_name.end(), ::isdigit)) {
+            size_t index;
+            std::from_chars(sub_name.data(), sub_name.data() + sub_name.size(), index);
+            capture_index = index;
+          }
+          if (capture_index.has_value())
+            [[unlikely]] { count += t.getCapture(capture_index.value()).empty() ? 0 : 1; }
+          else {
+            count +=
+                t.hasVariable(namespace_, std::string(sub_name.data(), sub_name.size())) ? 1 : 0;
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
     }
+
+    result.emplace_back(count);
   }
 
   void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
@@ -67,8 +120,8 @@ protected:
   }
 
   void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
         if (capture_index_.has_value())
           [[unlikely]] { result.emplace_back(t.getCapture(capture_index_.value())); }
         else {
@@ -79,7 +132,9 @@ protected:
           }
         }
       }
-    else {
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
       auto variables = t.getVariables(namespace_);
       for (auto variable : variables) {
         if (!hasExceptVariable(t, main_name_, variable.first))
@@ -89,6 +144,32 @@ protected:
             }
           }
       }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          std::optional<size_t> capture_index;
+          if (!sub_name.empty() && std::all_of(sub_name.begin(), sub_name.end(), ::isdigit)) {
+            size_t index;
+            std::from_chars(sub_name.data(), sub_name.data() + sub_name.size(), index);
+            capture_index = index;
+          }
+          if (capture_index.has_value())
+            [[unlikely]] { result.emplace_back(t.getCapture(capture_index.value())); }
+          else {
+            result.emplace_back(
+                t.getVariable(namespace_, std::string(sub_name.data(), sub_name.size())));
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
     }
   }
 

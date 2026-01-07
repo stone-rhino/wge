@@ -35,6 +35,110 @@ public:
                            PersistentStorage::Storage::Type type)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path), type_(type) {}
 
+  PersistentCollectionBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                           bool is_counter, std::string_view curr_rule_file_path,
+                           PersistentStorage::Storage::Type type)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path),
+        type_(type) {}
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(size(t)));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& value = get(t, sub_name_);
+        if (!IS_EMPTY_VARIANT(value)) {
+          ++count;
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      travel(t, [&](const std::string& key, const Common::Variant& value) {
+        if (!hasExceptVariable(t, main_name, key))
+          [[likely]] {
+            if (match(key)) {
+              ++count;
+            }
+          }
+        return true;
+      });
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          auto& value = get(t, std::string(sub_name.data(), sub_name.size()));
+          if (!IS_EMPTY_VARIANT(value))
+            [[likely]] { ++count; }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+
+    result.emplace_back(count);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto main_name = mainName();
+    travel(t, [&](const std::string& key, const Common::Variant& value) {
+      if (!hasExceptVariable(t, main_name, key))
+        [[likely]] { result.emplace_back(value, key); }
+      return true;
+    });
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto& value = get(t, sub_name_);
+        if (!IS_EMPTY_VARIANT(value))
+          [[likely]] { result.emplace_back(value); }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      travel(t, [&](const std::string& key, const Common::Variant& value) {
+        if (!hasExceptVariable(t, main_name, key))
+          [[likely]] {
+            if (match(key)) {
+              result.emplace_back(value, key);
+            }
+          }
+        return true;
+      });
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          auto& value = get(t, std::string(sub_name.data(), sub_name.size()));
+          if (!IS_EMPTY_VARIANT(value))
+            [[likely]] { result.emplace_back(value); }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+  }
+
 public:
   size_t size(Transaction& t) const {
     std::string_view collection_name = t.getPersistentStorageKey(type_);

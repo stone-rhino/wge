@@ -61,6 +61,13 @@ public:
             }(),
             is_not, is_counter, curr_rule_file_path) {}
 
+  Xml(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+      std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     auto& kv_pairs = getKvPairs(t);
@@ -99,8 +106,8 @@ protected:
   void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
     auto& kv_pairs = getKvPairs(t);
 
-    if (!isRegex())
-      [[likely]] {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
         switch (type_) {
         case Type::AttrValue: {
           for (auto& elem : kv_pairs) {
@@ -121,7 +128,9 @@ protected:
           UNREACHABLE();
         }
       }
-    else {
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
       switch (type_) {
       case Type::AttrValue: {
         UNREACHABLE();
@@ -147,6 +156,13 @@ protected:
       default:
         UNREACHABLE();
       }
+    } break;
+    case SubNameType::Macro: {
+      UNREACHABLE();
+    } break;
+    default:
+      UNREACHABLE();
+      break;
     }
   }
 

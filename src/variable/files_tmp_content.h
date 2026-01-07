@@ -21,7 +21,6 @@
 #pragma once
 
 #include "collection_base.h"
-#include "variable_base.h"
 
 namespace Wge {
 namespace Variable {
@@ -32,6 +31,10 @@ public:
   FilesTmpContent(std::string&& sub_name, bool is_not, bool is_counter,
                   std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+  FilesTmpContent(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                  bool is_counter, std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 };
 } // namespace Variable
 } // namespace Wge

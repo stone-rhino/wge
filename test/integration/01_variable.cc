@@ -1095,5 +1095,62 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
   }
 }
+
+TEST_F(VariableTest, SubnameWithMacro) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
+  Common::EvaluateResults result;
+
+  std::unique_ptr<Variable::PTree> var =
+      std::make_unique<Variable::PTree>("config.server_list[].host", false, false, "");
+  std::unique_ptr<Macro::VariableMacro> macro =
+      std::make_unique<Macro::VariableMacro>("%{PTREE.config.server_list[].host}", std::move(var));
+
+  t->setVariable("", "192.168.1.1", "value1");
+  t->setVariable("", "192.168.1.2", "value2");
+
+  Variable::Tx tx_var("", std::move(macro), std::nullopt, false, false, "");
+  tx_var.evaluate(*t, result);
+  EXPECT_EQ(result.size(), 2);
+  EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "value1");
+  EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "value2");
+}
+
 } // namespace Integration
 } // namespace Wge

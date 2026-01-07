@@ -31,6 +31,14 @@ public:
                      std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  RequestCookiesBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                     bool is_counter, std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  virtual void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                             std::string_view value) const = 0;
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
@@ -39,10 +47,90 @@ protected:
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    int64_t count = 0;
     const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : { count += cookies.count(sub_name_); }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      for (auto& elem : cookies) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              ++count;
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          count += cookies.count(std::get<std::string_view>(r.variant_));
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
 
-    int64_t count = cookies.count(sub_name_);
     result.emplace_back(count);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+    auto main_name = mainName();
+
+    for (auto& elem : cookies) {
+      if (!hasExceptVariable(t, main_name, elem.first))
+        [[likely]] { addResultItem(result, elem.first, elem.second); }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        auto range = cookies.equal_range(sub_name_);
+        for (auto it = range.first; it != range.second; ++it) {
+          addResultItem(result, it->first, it->second);
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      for (auto& elem : cookies) {
+        if (!hasExceptVariable(t, main_name, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              addResultItem(result, elem.first, elem.second);
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          auto range = cookies.equal_range(std::get<std::string_view>(r.variant_));
+          for (auto it = range.first; it != range.second; ++it) {
+            addResultItem(result, it->first, it->second);
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
   }
 };
 
@@ -54,36 +142,14 @@ public:
                  std::string_view curr_rule_file_path)
       : RequestCookiesBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  RequestCookies(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                 bool is_counter, std::string_view curr_rule_file_path)
+      : RequestCookiesBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
 protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
-
-    for (auto& elem : cookies) {
-      if (!hasExceptVariable(t, main_name_, elem.first))
-        [[likely]] { result.emplace_back(elem.second, elem.first); }
-    }
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    const std::unordered_multimap<std::string_view, std::string_view>& cookies = t.getCookies();
-
-    if (!isRegex())
-      [[likely]] {
-        auto range = cookies.equal_range(sub_name_);
-        for (auto it = range.first; it != range.second; ++it) {
-          result.emplace_back(it->second);
-        }
-      }
-    else {
-      for (auto& elem : cookies) {
-        if (!hasExceptVariable(t, main_name_, elem.first))
-          [[likely]] {
-            if (match(elem.first)) {
-              result.emplace_back(elem.second, elem.first);
-            }
-          }
-      }
-    }
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(value, key);
   }
 };
 } // namespace Variable

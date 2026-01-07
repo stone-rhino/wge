@@ -22,6 +22,8 @@
 
 #include "matched_vars.h"
 
+#include "../macro/variable_macro.h"
+
 namespace Wge {
 namespace Variable {
 class MatchedVarsNames final : public MatchedVarsBase {
@@ -31,6 +33,10 @@ public:
   MatchedVarsNames(std::string&& sub_name, bool is_not, bool is_counter,
                    std::string_view curr_rule_file_path)
       : MatchedVarsBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+  MatchedVarsNames(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                   bool is_counter, std::string_view curr_rule_file_path)
+      : MatchedVarsBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 
 protected:
   void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {

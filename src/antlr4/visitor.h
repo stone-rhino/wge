@@ -880,6 +880,7 @@ private:
 
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
+    std::unique_ptr<Macro::VariableMacro> sub_name_macro;
     if constexpr (std::is_same_v<VarT, Variable::PTree> ||
                   std::is_same_v<VarT, Variable::MatchedOPTree> ||
                   std::is_same_v<VarT, Variable::MatchedVPTree>) {
@@ -898,12 +899,28 @@ private:
     } else {
       if (ctx->STRING()) {
         sub_name = ctx->STRING()->getText();
+      } else if (ctx->variable()) {
+        std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro = getMacro(
+            std::format("%{{{}}}", ctx->variable()->getText()),
+            std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>{ctx->variable()},
+            true);
+        if (macro.has_value()) {
+          sub_name_macro = std::unique_ptr<Macro::VariableMacro>(
+              static_cast<Macro::VariableMacro*>(macro.value().release()));
+        } else {
+          RETURN_ERROR(macro.error());
+        }
       }
     }
     const bool is_not = ctx->NOT() != nullptr;
     const bool is_counter = ctx->VAR_COUNT() != nullptr;
 
     if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
+      if (sub_name_macro) {
+        assert(false);
+        RETURN_ERROR("PTree macro is not supported in ctl action");
+      }
+
       // std::any is copyable, so we can't return a unique_ptr
       std::shared_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
@@ -917,8 +934,15 @@ private:
 
       return variable;
     } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
-      std::unique_ptr<Variable::VariableBase> variable(
-          new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
+      std::unique_ptr<Variable::VariableBase> variable;
+      if (sub_name_macro) {
+        variable = std::unique_ptr<Variable::VariableBase>(
+            new VarT(std::move(sub_name_macro), false, false, parser_->currLoadFile()));
+      } else {
+        variable = std::unique_ptr<Variable::VariableBase>(
+            new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
+      }
+
       setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx.yyy format
@@ -940,8 +964,15 @@ private:
       // The raw pointer will be managed by std::unique_ptr in getMacro
       return macro_ptr;
     } else {
-      std::unique_ptr<Variable::VariableBase> variable(
-          new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      std::unique_ptr<Variable::VariableBase> variable;
+      if (sub_name_macro) {
+        variable = std::unique_ptr<Variable::VariableBase>(
+            new VarT(std::move(sub_name_macro), is_not, is_counter, parser_->currLoadFile()));
+      } else {
+        variable = std::unique_ptr<Variable::VariableBase>(
+            new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      }
+
       setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx:yyy format
@@ -959,8 +990,20 @@ private:
 
   template <class CtxT> std::any appendTxVariable(CtxT* ctx, const std::string& ns) {
     std::string sub_name;
+    std::unique_ptr<Macro::VariableMacro> sub_name_macro;
     if (ctx->STRING()) {
       sub_name = ctx->STRING()->getText();
+    } else if (ctx->variable()) {
+      std::expected<std::unique_ptr<Macro::MacroBase>, std::string> macro = getMacro(
+          std::format("%{{{}}}", ctx->variable()->getText()),
+          std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>{ctx->variable()},
+          true);
+      if (macro.has_value()) {
+        sub_name_macro = std::unique_ptr<Macro::VariableMacro>(
+            static_cast<Macro::VariableMacro*>(macro.value().release()));
+      } else {
+        RETURN_ERROR(macro.error());
+      }
     }
     bool is_not = ctx->NOT() != nullptr;
     bool is_counter = ctx->VAR_COUNT() != nullptr;
@@ -971,6 +1014,11 @@ private:
     }
 
     if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
+      if (sub_name_macro) {
+        assert(false);
+        RETURN_ERROR("PTree macro is not supported in ctl action");
+      }
+
       // std::any is copyable, so we can't return a unique_ptr
       std::shared_ptr<Variable::VariableBase> variable(new Variable::Tx(
           ns, std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
@@ -983,8 +1031,14 @@ private:
 
       return variable;
     } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
-      std::unique_ptr<Variable::VariableBase> variable(
-          new Variable::Tx(ns, std::move(sub_name), index, false, false, parser_->currLoadFile()));
+      std::unique_ptr<Variable::VariableBase> variable;
+      if (sub_name_macro) {
+        variable = std::unique_ptr<Variable::VariableBase>(new Variable::Tx(
+            ns, std::move(sub_name_macro), index, false, false, parser_->currLoadFile()));
+      } else {
+        variable = std::unique_ptr<Variable::VariableBase>(new Variable::Tx(
+            ns, std::move(sub_name), index, false, false, parser_->currLoadFile()));
+      }
 
       // Only accept xxx.yyy format
       if (ctx->COLON()) {
@@ -1005,8 +1059,14 @@ private:
       // The raw pointer will be managed by std::unique_ptr in getMacro
       return macro_ptr;
     } else {
-      std::unique_ptr<Variable::VariableBase> variable(new Variable::Tx(
-          ns, std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
+      std::unique_ptr<Variable::VariableBase> variable;
+      if (sub_name_macro) {
+        variable = std::unique_ptr<Variable::VariableBase>(new Variable::Tx(
+            ns, std::move(sub_name_macro), index, is_not, is_counter, parser_->currLoadFile()));
+      } else {
+        variable = std::unique_ptr<Variable::VariableBase>(new Variable::Tx(
+            ns, std::move(sub_name), index, is_not, is_counter, parser_->currLoadFile()));
+      }
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {

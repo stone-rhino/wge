@@ -32,43 +32,10 @@ public:
       : PersistentCollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
                                  PersistentStorage::Storage::Type::IP) {}
 
-protected:
-  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(static_cast<int64_t>(size(t)));
-  }
-
-  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& value = get(t, sub_name_);
-    result.emplace_back(IS_EMPTY_VARIANT(value) ? 0 : 1);
-  }
-
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    travel(t, [&](const std::string& key, const Common::Variant& value) {
-      if (!hasExceptVariable(t, main_name_, key))
-        [[likely]] { result.emplace_back(value, key); }
-      return true;
-    });
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        auto& value = get(t, sub_name_);
-        if (!IS_EMPTY_VARIANT(value))
-          [[likely]] { result.emplace_back(value); }
-      }
-    else {
-      travel(t, [&](const std::string& key, const Common::Variant& value) {
-        if (!hasExceptVariable(t, main_name_, key))
-          [[likely]] {
-            if (match(key)) {
-              result.emplace_back(value, key);
-            }
-          }
-        return true;
-      });
-    }
-  }
+  Ip(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+     std::string_view curr_rule_file_path)
+      : PersistentCollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path,
+                                 PersistentStorage::Storage::Type::IP) {}
 };
 } // namespace Variable
 } // namespace Wge

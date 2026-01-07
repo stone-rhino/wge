@@ -30,14 +30,114 @@ public:
                      std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
+  RequestHeadersBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                     bool is_counter, std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
+protected:
+  virtual void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                             std::string_view value) const = 0;
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     result.emplace_back(static_cast<int64_t>(t.httpExtractor().request_header_count_));
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(
-        static_cast<int64_t>(t.httpExtractor().request_header_find_(sub_name_).size()));
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        count += t.httpExtractor().request_header_find_(sub_name_).size();
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      t.httpExtractor().request_header_traversal_(
+          [&](std::string_view key, std::string_view value) {
+            if (!hasExceptVariable(t, main_name, key))
+              [[likely]] {
+                if (match(key)) {
+                  ++count;
+                }
+              }
+            return true;
+          });
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          std::vector<std::string_view> values =
+              t.httpExtractor().request_header_find_(std::string(sub_name.data(), sub_name.size()));
+          for (auto& value : values) {
+            ++count;
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+
+    result.emplace_back(count);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto main_name = mainName();
+    t.httpExtractor().request_header_traversal_([&](std::string_view key, std::string_view value) {
+      if (!hasExceptVariable(t, main_name, key))
+        [[likely]] { addResultItem(result, key, value); }
+      return true;
+    });
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        std::vector<std::string_view> values = t.httpExtractor().request_header_find_(sub_name_);
+        for (auto& value : values) {
+          addResultItem(result, sub_name_, value);
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      auto main_name = mainName();
+      t.httpExtractor().request_header_traversal_(
+          [&](std::string_view key, std::string_view value) {
+            if (!hasExceptVariable(t, main_name, key))
+              [[likely]] {
+                if (match(key)) {
+                  addResultItem(result, key, value);
+                }
+              }
+            return true;
+          });
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          std::vector<std::string_view> values =
+              t.httpExtractor().request_header_find_(std::string(sub_name.data(), sub_name.size()));
+          for (auto& value : values) {
+            addResultItem(result, sub_name_, value);
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
   }
 };
 
@@ -49,35 +149,14 @@ public:
                  std::string_view curr_rule_file_path)
       : RequestHeadersBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    t.httpExtractor().request_header_traversal_([&](std::string_view key, std::string_view value) {
-      if (!hasExceptVariable(t, main_name_, key))
-        [[likely]] { result.emplace_back(value, key); }
-      return true;
-    });
-  }
+  RequestHeaders(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                 bool is_counter, std::string_view curr_rule_file_path)
+      : RequestHeadersBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        std::vector<std::string_view> values = t.httpExtractor().request_header_find_(sub_name_);
-        for (auto& value : values) {
-          result.emplace_back(value, sub_name_);
-        }
-      }
-    else {
-      t.httpExtractor().request_header_traversal_(
-          [&](std::string_view key, std::string_view value) {
-            if (!hasExceptVariable(t, main_name_, key))
-              [[likely]] {
-                if (match(key)) {
-                  result.emplace_back(value, key);
-                }
-              }
-            return true;
-          });
-    }
+protected:
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(value, key);
   }
 };
 } // namespace Variable

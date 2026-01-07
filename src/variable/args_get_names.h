@@ -32,35 +32,14 @@ public:
                std::string_view curr_rule_file_path)
       : ArgsGetBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
-protected:
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
-    for (auto& elem : query_params) {
-      if (!hasExceptVariable(t, main_name_, elem.first))
-        [[likely]] { result.emplace_back(elem.first, elem.first); }
-    }
-  }
+  ArgsGetNames(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+               std::string_view curr_rule_file_path)
+      : ArgsGetBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        auto& query_params_map = t.getRequestLineInfo().query_params_.get();
-        auto range = query_params_map.equal_range(sub_name_);
-        for (auto iter = range.first; iter != range.second; ++iter) {
-          result.emplace_back(iter->first);
-        }
-      }
-    else {
-      auto& query_params = t.getRequestLineInfo().query_params_.getLinked();
-      for (auto& elem : query_params) {
-        if (!hasExceptVariable(t, main_name_, elem.first))
-          [[likely]] {
-            if (match(elem.first)) {
-              result.emplace_back(elem.first, elem.first);
-            }
-          }
-      }
-    }
+protected:
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(key, key);
   }
 };
 } // namespace Variable

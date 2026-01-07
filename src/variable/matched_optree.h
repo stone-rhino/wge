@@ -22,6 +22,8 @@
 
 #include "matched_ptree_base.h"
 
+#include "../macro/variable_macro.h"
+
 namespace Wge {
 namespace Variable {
 class MatchedOPTree final : public MatchedPTreeBase {
@@ -31,6 +33,13 @@ public:
   MatchedOPTree(std::string&& sub_name, bool is_not, bool is_counter,
                 std::string_view curr_rule_file_path)
       : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+  MatchedOPTree(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                bool is_counter, std::string_view curr_rule_file_path)
+      : MatchedPTreeBase("", is_not, is_counter, curr_rule_file_path) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
 
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {

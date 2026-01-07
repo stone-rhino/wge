@@ -485,8 +485,11 @@ ModeSecRuleVariableName_VAR_COUNT: AND -> type(VAR_COUNT);
 ModeSecRuleVariableName_VAR_NOT: NOT -> type(NOT);
 ModeSecRuleVariableName_LEFT_BRACKET:
 	LEFT_BRACKET -> type(LEFT_BRACKET);
-ModeSecRuleVariableName_RIGHT_BRACKET:
-	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode;
+ModeSecRuleVariableName_RIGHT_BRACKET_OTHERS:
+	RIGHT_BRACKET {modeStack.size() > 1 && modeStack[modeStack.size() - 1] != ModeSecRule}? -> type(
+		RIGHT_BRACKET), popMode;
+ModeSecRuleVariableName_RIGHT_BRACKET_SECRULE:
+	RIGHT_BRACKET -> type(RIGHT_BRACKET);
 
 mode ModeSecRuleVariableNamePtree;
 ModeSecRuleVariableNamePtree_WS:
@@ -525,9 +528,14 @@ ModeSecRuleVariableNamePtreePath_RIGHT_SQUARE:
 	RIGHT_SQUARE -> type(RIGHT_SQUARE);
 ModeSecRuleVariableNamePtreePath_LEFT_BRACKET:
 	LEFT_BRACKET -> type(LEFT_BRACKET), pushMode(ModeSecRuleVariableNamePtreeRightBracketClose);
-ModeSecRuleVariableNamePtreePath_RIGHT_BRACKET:
-	// Exit: VariableNamePtree -> VariableName -> Variable
-	RIGHT_BRACKET -> type(RIGHT_BRACKET), popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_RIGHT_BRACKET_OPERATOR_VALUE:
+	// Exit: VariableNamePtree -> VariableName -> OperatorValue
+	RIGHT_BRACKET {modeStack.size() > 3 && modeStack[modeStack.size() - 3] == ModeSecRuleOperatorValue
+		}? -> type(RIGHT_BRACKET), popMode, popMode, popMode;
+ModeSecRuleVariableNamePtreePath_RIGHT_BRACKET_VARIABLE:
+	// Exit: VariableNamePtree -> VariableName
+	RIGHT_BRACKET {modeStack.size() > 3 && modeStack[modeStack.size() - 3] == ModeSecRule
+		}? -> type(RIGHT_BRACKET), popMode, popMode;
 ModeSecRuleVariableNamePtreePath_PIPE:
 	// Exit: VariableNamePtree -> VariableName
 	PIPE -> type(PIPE), popMode, popMode;
@@ -567,6 +575,8 @@ ModeSecRuleVariableSubName_VAR_SUB_NAME:
 ModeSecRuleVariableSubName_SINGLE_QUOTE:
 	SINGLE_QUOTE -> type(SINGLE_QUOTE), popMode, pushMode(ModeSecRuleVariableSubNameWithSingleQuote)
 		;
+ModeSecRuleVariableSubName_PER_CENT:
+	PER_CENT -> type(PER_CENT), popMode;
 
 mode ModeSecRuleVariableSubNameWithSingleQuote;
 ModeSecRuleVariableSubNameWithSingleQuote_SINGLE_QUOTE:

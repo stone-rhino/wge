@@ -31,6 +31,13 @@ public:
   AuthType(std::string&& sub_name, bool is_not, bool is_counter,
            std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
+
+  AuthType(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+           std::string_view curr_rule_file_path)
+      : VariableBase("", is_not, is_counter) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
 };
 } // namespace Variable
 } // namespace Wge

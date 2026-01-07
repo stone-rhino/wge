@@ -30,6 +30,10 @@ class Geo final : public CollectionBase {
 public:
   Geo(std::string&& sub_name, bool is_not, bool is_counter, std::string_view curr_rule_file_path)
       : CollectionBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+
+  Geo(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+      std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
 };
 } // namespace Variable
 } // namespace Wge

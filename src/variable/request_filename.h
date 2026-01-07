@@ -32,6 +32,13 @@ public:
                   std::string_view curr_rule_file_path)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
 
+  RequestFileName(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                  bool is_counter, std::string_view curr_rule_file_path)
+      : VariableBase("", is_not, is_counter) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     result.emplace_back(t.getRequestLineInfo().relative_uri_.empty() ? 0 : 1);

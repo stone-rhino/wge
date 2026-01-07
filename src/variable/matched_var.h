@@ -22,12 +22,21 @@
 
 #include "variable_base.h"
 
+#include "../macro/variable_macro.h"
+
 namespace Wge {
 namespace Variable {
 class MatchedVarBase : public VariableBase {
 public:
   MatchedVarBase(std::string&& sub_name, bool is_not, bool is_counter)
       : VariableBase(std::move(sub_name), is_not, is_counter) {}
+
+  MatchedVarBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                 bool is_counter)
+      : VariableBase("", is_not, is_counter) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
 
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
@@ -72,6 +81,13 @@ public:
   MatchedVar(std::string&& sub_name, bool is_not, bool is_counter,
              std::string_view curr_rule_file_path)
       : MatchedVarBase(std::move(sub_name), is_not, is_counter) {}
+
+  MatchedVar(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+             std::string_view curr_rule_file_path)
+      : MatchedVarBase("", is_not, is_counter) {
+    // Does not support sub_name macro
+    UNREACHABLE();
+  }
 
 protected:
   void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {

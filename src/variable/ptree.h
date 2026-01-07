@@ -23,6 +23,7 @@
 #include "variable_base.h"
 
 #include "../common/property_tree.h"
+#include "../macro/variable_macro.h"
 
 namespace Wge {
 namespace Variable {
@@ -54,6 +55,13 @@ public:
         }
       }
     }
+  }
+
+  PTree(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+        std::string_view curr_rule_file_path)
+      : VariableBase("", is_not, is_counter) {
+    // Does not support sub_name macro
+    UNREACHABLE();
   }
 
 protected:

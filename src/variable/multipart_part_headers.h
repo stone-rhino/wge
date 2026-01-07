@@ -36,13 +36,63 @@ public:
     }
   }
 
+  MultipartPartHeaders(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                       bool is_counter, std::string_view curr_rule_file_path)
+      : CollectionBase(std::move(sub_name_macro), is_not, is_counter, curr_rule_file_path) {}
+
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
     result.emplace_back(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size()));
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    int64_t count = t.getBodyMultiPart().getHeaders().count(sub_name_);
+    int64_t count = 0;
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        if (is_charset_)
+          [[unlikely]] {
+            // _charset_ is a special case, it is used to get the charset of the multipart/form-data
+            // content. It is not a header, we can get it from the name-value pair.
+            count += t.getBodyMultiPart().getNameValue().count(charset_key_);
+          }
+        else {
+          count += t.getBodyMultiPart().getHeaders().count(sub_name_);
+        }
+      }
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
+      for (auto& elem : t.getBodyMultiPart().getHeaders()) {
+        if (!hasExceptVariable(t, main_name_, elem.first))
+          [[likely]] {
+            if (match(elem.first)) {
+              ++count;
+            }
+          }
+      }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          if (sub_name == charset_key_) {
+            // _charset_ is a special case, it is used to get the charset of the multipart/form-data
+            // content. It is not a header, we can get it from the name-value pair.
+            count += t.getBodyMultiPart().getNameValue().count(sub_name);
+          } else {
+            count += t.getBodyMultiPart().getHeaders().count(sub_name);
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
+    }
+
     result.emplace_back(count);
   }
 
@@ -54,24 +104,27 @@ protected:
   }
 
   void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    if (!isRegex())
-      [[likely]] {
-        if (is_charset_) {
-          // _charset_ is a special case, it is used to get the charset of the multipart/form-data
-          // content. It is not a header, we can get it from the name-value pair.
-          static constexpr std::string_view key = "_charset_";
-          auto range = t.getBodyMultiPart().getNameValue().equal_range(key);
-          for (auto iter = range.first; iter != range.second; ++iter) {
-            result.emplace_back(iter->second);
+    switch (subNameType()) {
+      [[likely]] case SubNameType::Literal : {
+        if (is_charset_)
+          [[unlikely]] {
+            // _charset_ is a special case, it is used to get the charset of the multipart/form-data
+            // content. It is not a header, we can get it from the name-value pair.
+            auto range = t.getBodyMultiPart().getNameValue().equal_range(charset_key_);
+            for (auto iter = range.first; iter != range.second; ++iter) {
+              result.emplace_back(iter->second);
+            }
           }
-        } else {
+        else {
           auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name_);
           for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
             result.emplace_back(iter->second);
           }
         }
       }
-    else {
+      break;
+    case SubNameType::Regex:
+    case SubNameType::RegexFile: {
       for (auto& elem : t.getBodyMultiPart().getHeaders()) {
         if (!hasExceptVariable(t, main_name_, elem.first))
           [[likely]] {
@@ -80,11 +133,42 @@ protected:
             }
           }
       }
+    } break;
+    case SubNameType::Macro: {
+      Common::EvaluateResults macro_result;
+      evaluateMacro(t, macro_result);
+      for (auto& r : macro_result) {
+        assert(IS_STRING_VIEW_VARIANT(r.variant_));
+        if (IS_STRING_VIEW_VARIANT(r.variant_)) {
+          std::string_view sub_name = std::get<std::string_view>(r.variant_);
+          if (sub_name == charset_key_)
+            [[unlikely]] {
+              // _charset_ is a special case, it is used to get the charset of the
+              // multipart/form-data
+              // content. It is not a header, we can get it from the name-value pair.
+              auto range = t.getBodyMultiPart().getNameValue().equal_range(sub_name);
+              for (auto iter = range.first; iter != range.second; ++iter) {
+                result.emplace_back(iter->second);
+              }
+            }
+          else {
+            auto iter_range = t.getBodyMultiPart().getHeaders().equal_range(sub_name);
+            for (auto iter = iter_range.first; iter != iter_range.second; ++iter) {
+              result.emplace_back(iter->second);
+            }
+          }
+        }
+      }
+    } break;
+    default:
+      UNREACHABLE();
+      break;
     }
   }
 
 private:
   bool is_charset_{false};
+  static constexpr std::string_view charset_key_{"_charset_"};
 };
 } // namespace Variable
 } // namespace Wge
