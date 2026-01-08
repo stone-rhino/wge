@@ -494,7 +494,7 @@ bool Rule::evaluateChain(Transaction& t) const {
   // Restore the current rule to the transaction
   t.setCurrentEvaluateRule(this);
 
-  if (multiMatch())
+  if (matchedMultiChain() || unmatchedMultiChain())
     [[unlikely]] {
       t.clearMatchedVariables(chain_->chain_index_,
                               chain_->chain_index_ + detail_->chain_rule_count_);
