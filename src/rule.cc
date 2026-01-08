@@ -190,6 +190,7 @@ bool Rule::evaluate(Transaction& t) const {
 
       for (auto& op_result : op_results) {
         // If the variable is matched, evaluate the actions
+        bool cartesian_matched = false;
         if (op_result.matched_) {
           WGE_LOG_TRACE([&]() {
             if (!var->isCollection()) {
@@ -214,14 +215,19 @@ bool Rule::evaluate(Transaction& t) const {
             t.pushMatchedOPTree(chain_index_, op_result.ptree_node_);
           }
 
+          cartesian_matched = true;
           rule_matched = true;
 
           // Evaluate the matched branch actions
           evaluateActions(t, Action::ActionBase::Branch::Matched);
 
-          // Evaluate the chained rules
+          // If enable multi match, evaluate the chained rules every time when the variable is
+          // matched
           if (chain_ && matchedMultiChain())
-            [[unlikely]] { rule_matched = evaluateChain(t); }
+            [[unlikely]] {
+              cartesian_matched = evaluateChain(t);
+              rule_matched = cartesian_matched;
+            }
 
           // If the first match is enabled, stop evaluating the rule
           if (firstMatch())
@@ -233,22 +239,23 @@ bool Rule::evaluate(Transaction& t) const {
           // Evaluate the unmatched branch actions
           evaluateActions(t, Action::ActionBase::Branch::Unmatched);
 
-          // Evaluate the chained rules
-          bool chain_matched = false;
+          // If enable unmatched multi chain, evaluate the chained rules every time when the
+          // variable is not matched
           if (chain_ && unmatchedMultiChain())
             [[unlikely]] {
-              chain_matched = evaluateChain(t);
-              rule_matched = chain_matched;
-            }
-
-          // If all match is enabled, and the variable is not matched, stop evaluating the rule
-          if (!chain_matched && allMatch())
-            [[unlikely]] {
-              WGE_LOG_TRACE(
-                  "all match is enabled, but variable is not matched, stop evaluating the rule");
-              return false;
+              cartesian_matched = evaluateChain(t);
+              rule_matched = cartesian_matched;
             }
         }
+
+        // If all match is enabled, and the cartesian product is not matched, stop evaluating the
+        // rule
+        if (allMatch() && !cartesian_matched)
+          [[unlikely]] {
+            WGE_LOG_TRACE(
+                "all match is enabled, but variable is not matched, stop evaluating the rule");
+            return false;
+          }
       }
 
       if (firstMatch() && rule_matched)
@@ -571,6 +578,7 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
       bool variable_matched = false;
       for (auto& op_result : op_results) {
         // If the variable is matched, evaluate the actions
+        bool cartesian_matched = false;
         if (op_result.matched_) {
           WGE_LOG_TRACE([&]() {
             if (!var->isCollection()) {
@@ -596,14 +604,19 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           }
 
           variable_matched = true;
+          cartesian_matched = true;
           rule_matched = true;
 
           // Evaluate the matched branch actions
           evaluateActions(t, Action::ActionBase::Branch::Matched);
 
-          // Evaluate the chained rules
+          // If enable multi match, evaluate the chained rules every time when the variable is
+          // matched
           if (chain_ && matchedMultiChain())
-            [[unlikely]] { rule_matched = evaluateChain(t); }
+            [[unlikely]] {
+              cartesian_matched = evaluateChain(t);
+              rule_matched = cartesian_matched;
+            }
 
           // If the first match is enabled, stop evaluating the rule
           if (firstMatch())
@@ -615,22 +628,23 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
           // Evaluate the unmatched branch actions
           evaluateActions(t, Action::ActionBase::Branch::Unmatched);
 
-          // Evaluate the chained rules
-          bool chain_matched = false;
+          // If enable unmatched multi chain, evaluate the chained rules every time when the
+          // variable is not matched
           if (chain_ && unmatchedMultiChain())
             [[unlikely]] {
-              chain_matched = evaluateChain(t);
-              rule_matched = chain_matched;
-            }
-
-          // If all match is enabled, and the variable is not matched, stop evaluating the rule
-          if (!chain_matched && allMatch())
-            [[unlikely]] {
-              WGE_LOG_TRACE(
-                  "all match is enabled, but variable is not matched, stop evaluating the rule");
-              return false;
+              cartesian_matched = evaluateChain(t);
+              rule_matched = cartesian_matched;
             }
         }
+
+        // If all match is enabled, and the cartesian product is not matched, stop evaluating the
+        // rule
+        if (allMatch() && !cartesian_matched)
+          [[unlikely]] {
+            WGE_LOG_TRACE(
+                "all match is enabled, but variable is not matched, stop evaluating the rule");
+            return false;
+          }
       }
 
       if (firstMatch() && rule_matched)
