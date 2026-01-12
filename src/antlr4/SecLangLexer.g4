@@ -664,11 +664,16 @@ ModeSecRuleOperatorValue_STRING: (
 		| (
 			'|' { [&](){
 			// Allow | if not followed by @<valid_operator>
-			if (_input->LA(1) != '@') return true;
-			
+			if ((_input->LA(1) != '@') && (_input->LA(1) != '!' || _input->LA(2) != '@')) return true;
 			// Look ahead to see what comes after @
 			std::string lookahead;
-			for (int i = 2; i <= 50; i++) {
+			int i;
+			if(_input->LA(1) == '!'){
+				i = 3;
+			} else {
+				i = 2;
+			}
+			for (; i <= 50; i++) {
 				char c = _input->LA(i);
 				if (c == EOF || c == ' ') break;
 				lookahead += std::tolower(c);

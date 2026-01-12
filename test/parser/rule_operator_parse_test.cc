@@ -353,30 +353,64 @@ TEST_F(RuleOperatorParseTest, xorWithMacro) {
 
 TEST_F(RuleOperatorParseTest, operatorCombination) {
   const std::string directive =
-      R"(SecRule TX:bar "@beginsWith bar|@endsWith ar|@contains %{tx.foo}|@rx %{tx.foo2}" "id:2,phase:1,setvar:'tx.false'")";
+      R"(
+      SecRule TX:bar "@beginsWith bar|@endsWith ar|@contains %{tx.foo}|@rx %{tx.foo2}" "id:2,phase:1,setvar:'tx.false'"
+      SecRule TX:bar "@beginsWith bar|!@endsWith ar|@contains %{tx.foo}|!@rx %{tx.foo2}" "id:3,phase:2,setvar:'tx.match'"
+      )";
 
   Antlr4::Parser parser;
   auto result = parser.load(directive);
   ASSERT_TRUE(result.has_value());
 
-  auto& rule = parser.rules()[0].back();
-  auto& operators = rule.operators();
-  ASSERT_EQ(operators.size(), 4);
-  EXPECT_EQ(operators[0]->name(), std::string_view("beginsWith"));
-  EXPECT_EQ(operators[0]->literalValue(), "bar");
-  EXPECT_EQ(operators[1]->name(), std::string_view("endsWith"));
-  EXPECT_EQ(operators[1]->literalValue(), "ar");
-  EXPECT_EQ(operators[2]->name(), std::string_view("contains"));
-  EXPECT_EQ(operators[2]->literalValue(), "");
-  auto& macro = operators[2]->macro();
-  ASSERT_NE(macro, nullptr);
-  EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
   {
-    EXPECT_EQ(operators[3]->name(), std::string_view("rx"));
-    EXPECT_EQ(operators[3]->literalValue(), "");
-    auto& macro = operators[3]->macro();
+    auto& rule = parser.rules()[0].back();
+    auto& operators = rule.operators();
+    ASSERT_EQ(operators.size(), 4);
+    EXPECT_EQ(operators[0]->name(), std::string_view("beginsWith"));
+    EXPECT_EQ(operators[0]->literalValue(), "bar");
+    EXPECT_EQ(operators[0]->isNot(), false);
+    EXPECT_EQ(operators[1]->name(), std::string_view("endsWith"));
+    EXPECT_EQ(operators[1]->literalValue(), "ar");
+    EXPECT_EQ(operators[1]->isNot(), false);
+    EXPECT_EQ(operators[2]->name(), std::string_view("contains"));
+    EXPECT_EQ(operators[2]->literalValue(), "");
+    EXPECT_EQ(operators[2]->isNot(), false);
+    auto& macro = operators[2]->macro();
     ASSERT_NE(macro, nullptr);
-    EXPECT_EQ(macro->literalValue(), "%{TX.foo2}");
+    EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
+    {
+      EXPECT_EQ(operators[3]->name(), std::string_view("rx"));
+      EXPECT_EQ(operators[3]->literalValue(), "");
+      EXPECT_EQ(operators[3]->isNot(), false);
+      auto& macro = operators[3]->macro();
+      ASSERT_NE(macro, nullptr);
+      EXPECT_EQ(macro->literalValue(), "%{TX.foo2}");
+    }
+  }
+  {
+    auto& rule = parser.rules()[1].back();
+    auto& operators = rule.operators();
+    ASSERT_EQ(operators.size(), 4);
+    EXPECT_EQ(operators[0]->name(), std::string_view("beginsWith"));
+    EXPECT_EQ(operators[0]->literalValue(), "bar");
+    EXPECT_EQ(operators[0]->isNot(), false);
+    EXPECT_EQ(operators[1]->name(), std::string_view("endsWith"));
+    EXPECT_EQ(operators[1]->literalValue(), "ar");
+    EXPECT_EQ(operators[1]->isNot(), true);
+    EXPECT_EQ(operators[2]->name(), std::string_view("contains"));
+    EXPECT_EQ(operators[2]->literalValue(), "");
+    EXPECT_EQ(operators[2]->isNot(), false);
+    auto& macro = operators[2]->macro();
+    ASSERT_NE(macro, nullptr);
+    EXPECT_EQ(macro->literalValue(), "%{TX.foo}");
+    {
+      EXPECT_EQ(operators[3]->name(), std::string_view("rx"));
+      EXPECT_EQ(operators[3]->literalValue(), "");
+      EXPECT_EQ(operators[3]->isNot(), true);
+      auto& macro = operators[3]->macro();
+      ASSERT_NE(macro, nullptr);
+      EXPECT_EQ(macro->literalValue(), "%{TX.foo2}");
+    }
   }
 }
 } // namespace Parser
