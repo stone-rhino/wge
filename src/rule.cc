@@ -433,13 +433,14 @@ void Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
                             const std::unique_ptr<Wge::Variable::VariableBase>& var,
                             Operator::OperatorBase::Results& results) const {
   std::optional<bool> additional_cond_matched;
+  size_t index = 0;
   for (auto& op : operators_) {
     op->evaluate(t, var_value, results);
-    for (auto& element : results) {
-      element.matched_ ^= op->isNot();
+    for (; index < results.size(); ++index) {
+      results[index].matched_ ^= op->isNot();
       // Call additional condition if defined and just call once
-      if (element.matched_ && t.getAdditionalCond() && !additional_cond_matched.has_value() &&
-          IS_STRING_VIEW_VARIANT(var_value)) {
+      if (results[index].matched_ && t.getAdditionalCond() &&
+          !additional_cond_matched.has_value() && IS_STRING_VIEW_VARIANT(var_value)) {
         additional_cond_matched =
             t.getAdditionalCond()(*this, *var.get(), std::get<std::string_view>(var_value),
                                   t.getAdditionalCondUserdata());

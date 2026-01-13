@@ -444,5 +444,74 @@ SecRule TX:bar "@xor 1" "id:4,phase:1,setvar:'tx.v4'"
   EXPECT_FALSE(t->hasVariable("", "v3"));
   EXPECT_TRUE(t->hasVariable("", "v4"));
 }
+
+TEST_F(RuleOperatorTest, operatorCombination) {
+  const std::string directive =
+      R"(
+      SecAction "phase:1,setvar:tx.bar=bar,setvar:tx.foo=ba,setvar:tx.foo2=ba"
+
+      # === Group 1: Match SUCCESS ===
+
+      # --- Subgroup A: No negation operators ---
+      # 1A-1) All operators match — expect overall match
+      SecRule TX:bar "@beginsWith bar|@endsWith ar|@contains %{tx.foo}|@rx %{tx.foo2}" "id:1,phase:1,setvar:'tx.match1'"
+
+      # --- Subgroup B: Contains negation operators ---
+      # 1B-1) Negation in the middle, overall matches — expect overall match
+      SecRule TX:bar "@beginsWith bar|@endsWith ar|!@contains %{tx.foo}|@rx %{tx.foo2}" "id:2,phase:1,setvar:'tx.match2'"
+      
+      # 1B-2) Negation at the beginning, overall matches — expect overall match
+      SecRule TX:bar "!@beginsWith bar|@endsWith ar|@contains %{tx.foo}|@rx %{tx.foo2}" "id:3,phase:1,setvar:'tx.match3'"
+
+      # 1B-3) Negation at the ending, overall matches — expect overall match
+      SecRule TX:bar "@beginsWith bar|@endsWith ar|@contains %{tx.foo}|!@rx %{tx.foo2}" "id:4,phase:1,setvar:'tx.match4'"
+
+      # 1B-4) Negation with empty variable, overall matches — expect overall match
+      SecRule TX:bar "@beginsWith aaa|@endsWith aaa|@contains aaa|!@rx %{tx.empty}" "id:5,phase:1,setvar:'tx.match5'"
+
+      # === Group 2: Match FAILURE ===
+
+      # --- Subgroup A: No negation operators ---
+      # 2A-1) All operators fail, no negation — expect no match
+      SecRule TX:bar "@beginsWith aaa|@endsWith aaa|@contains aaa|@rx aaa" "id:6,phase:1,setvar:'tx.match6'"
+
+      # --- Subgroup B: Contains negation operators ---
+      # 2B-1) Only one negation operator and all operator fails — expect no match
+      SecRule TX:bar "@beginsWith aaa|@endsWith aaa|@contains aaa|!@rx %{tx.foo2}" "id:7,phase:1,setvar:'tx.match7'"
+
+      # 2B-2) Multiple negation operators but overall fails — expect no match
+      SecRule TX:bar "@beginsWith aaa|!@endsWith ar|@contains aaa|!@rx %{tx.foo2}" "id:8,phase:1,setvar:'tx.match8'"
+
+      # 2B-3) All operators negated but overall fails — expect no match
+      SecRule TX:bar "!@beginsWith bar|!@endsWith ar|!@contains %{tx.foo}|!@rx %{tx.foo2}" "id:9,phase:1,setvar:'tx.match9'"
+      )";
+
+  auto result = engine_.load(directive);
+  engine_.init();
+  auto t = engine_.makeTransaction();
+  ASSERT_TRUE(result.has_value());
+
+  t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
+
+  // === Group 1: Match SUCCESS ===
+  // Subgroup A: No negation
+  EXPECT_TRUE(t->hasVariable("", "match1")); // 1A-1
+
+  // Subgroup B: Contains negation
+  EXPECT_TRUE(t->hasVariable("", "match2")); // 1B-1
+  EXPECT_TRUE(t->hasVariable("", "match3")); // 1B-2
+  EXPECT_TRUE(t->hasVariable("", "match4")); // 1B-3
+  EXPECT_TRUE(t->hasVariable("", "match5")); // 1B-4
+
+  // === Group 2: Match FAILURE ===
+  // Subgroup A: No negation
+  EXPECT_FALSE(t->hasVariable("", "match6")); // 2A-1
+
+  // Subgroup B: Contains negation
+  EXPECT_FALSE(t->hasVariable("", "match7")); // 2B-1
+  EXPECT_FALSE(t->hasVariable("", "match8")); // 2B-2
+  EXPECT_FALSE(t->hasVariable("", "match9")); // 2B-3
+}
+
 } // namespace Integration
 } // namespace Wge
