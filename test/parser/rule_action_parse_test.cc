@@ -1126,7 +1126,7 @@ TEST_F(RuleActionParseTest, ActionAlias) {
   // 4. Test the alias were cleared after parsing is done.
   const std::string rule_directive = R"(
         SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,alias:test0=MATCHED_OPTREE,alias:test1=MATCHED_VPTREE../../foo.bar,alias:test2=MATCHED_OPTREE../,msg:'aaa',chain"
-          SecRule test0|test1:world|test0:foo[].bar|test0:foo[].bar{} "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
+          SecRule test0|test1:world|test0:foo[].bar|test0:foo[].bar{}|test1:../|test1:../bar1|test1:../../../../../|test1:../../../../../foo "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
         SecRule test0|test1:world "baz" "id:3,phase:1,msg:'bbb'")";
 
   auto result = parser.load(rule_directive);
@@ -1136,31 +1136,104 @@ TEST_F(RuleActionParseTest, ActionAlias) {
   EXPECT_EQ(parser.rules()[0].size(), 1);
 
   auto& rule_var_pool = parser.rules()[0].front().chainRule(0)->variables();
-  ASSERT_EQ(rule_var_pool.size(), 4);
+  ASSERT_EQ(rule_var_pool.size(), 8);
   Variable::MatchedOPTree* var0 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[0].get());
   Variable::MatchedVPTree* var1 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[1].get());
   Variable::MatchedOPTree* var2 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[2].get());
   Variable::MatchedOPTree* var3 = dynamic_cast<Variable::MatchedOPTree*>(rule_var_pool[3].get());
+  Variable::MatchedVPTree* var4 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[4].get());
+  Variable::MatchedVPTree* var5 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[5].get());
+  Variable::MatchedVPTree* var6 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[6].get());
+  Variable::MatchedVPTree* var7 = dynamic_cast<Variable::MatchedVPTree*>(rule_var_pool[7].get());
   ASSERT_NE(var0, nullptr);
   ASSERT_NE(var1, nullptr);
   ASSERT_NE(var2, nullptr);
   ASSERT_NE(var3, nullptr);
+  ASSERT_NE(var4, nullptr);
+  ASSERT_NE(var5, nullptr);
+  ASSERT_NE(var6, nullptr);
+  ASSERT_NE(var7, nullptr);
   EXPECT_EQ(var0->subName(), "");
   EXPECT_EQ(var1->subName(), "../../foo.bar.world");
   EXPECT_EQ(var2->subName(), "foo[].bar");
   EXPECT_EQ(var3->subName(), "foo[].bar{}");
+  EXPECT_EQ(var4->subName(), "../../foo");
+  EXPECT_EQ(var5->subName(), "../../foo.bar1");
+  EXPECT_EQ(var6->subName(), "../../../../../");
+  EXPECT_EQ(var7->subName(), "../../../../../foo");
   EXPECT_EQ(var0->parentCount(), 0);
   EXPECT_EQ(var1->parentCount(), 2);
   EXPECT_EQ(var2->parentCount(), 0);
   EXPECT_EQ(var3->parentCount(), 0);
+  EXPECT_EQ(var4->parentCount(), 2);
+  EXPECT_EQ(var5->parentCount(), 2);
+  EXPECT_EQ(var6->parentCount(), 5);
+  EXPECT_EQ(var7->parentCount(), 5);
   EXPECT_EQ(var0->paths().size(), 0);
   EXPECT_EQ(var1->paths().size(), 3);
   EXPECT_EQ(var2->paths().size(), 2);
   EXPECT_EQ(var3->paths().size(), 2);
+  EXPECT_EQ(var4->paths().size(), 1);
+  EXPECT_EQ(var5->paths().size(), 2);
+  EXPECT_EQ(var6->paths().size(), 0);
+  EXPECT_EQ(var7->paths().size(), 1);
 
   auto& op = parser.rules()[0].front().chainRule(0)->operators().front();
   EXPECT_EQ(op->literalValue(), "");
-  EXPECT_EQ(op->macro()->literalValue(), "%{MATCHED_OPTREE.for.bar}");
+  EXPECT_EQ(op->macro()->literalValue(), "%{MATCHED_OPTREE../for.bar}");
+  Macro::VariableMacro* op_var_macro = dynamic_cast<Macro::VariableMacro*>(op->macro().get());
+  ASSERT_NE(op_var_macro, nullptr);
+  EXPECT_EQ(op_var_macro->getVariable()->subName(), "../for.bar");
+}
+
+TEST_F(RuleActionParseTest, ActionRef) {
+  Antlr4::Parser parser;
+
+  // 1. Test reference is defined correctly and stored in parser as lowercase.
+  // 2. Test reference in variable list is parsed correctly.
+  // 3. Test reference in macro is parsed correctly.
+  // 4. Test the reference were cleared after parsing is done.
+  const std::string rule_directive = R"(
+        SecRule ARGS:aaa|ARGS:bbb "bar" "id:1,phase:1,ref:test0=MATCHED_OPTREE,ref:test1=MATCHED_VPTREE../../foo.bar,ref:test2=MATCHED_OPTREE../,msg:'aaa',chain"
+          SecRule test0|test1:world|test0:foo[].bar|test0:foo[].bar{}|test1:../|test1:../bar1|test1:../../../../../|test1:../../../../../foo "@rx %{test2.for.bar}" "id:2,phase:1,msg:'bbb'"
+        SecRule test0|test1:world "baz" "id:3,phase:1,msg:'bbb'")";
+
+  auto result = parser.load(rule_directive);
+  ASSERT_FALSE(result.has_value());
+
+  // The last rule should be parsed error since the reference were cleared after parsing is done.
+  EXPECT_EQ(parser.rules()[0].size(), 1);
+
+  auto& rule_var_pool = parser.rules()[0].front().chainRule(0)->variables();
+  ASSERT_EQ(rule_var_pool.size(), 8);
+  Variable::Ref* var0 = dynamic_cast<Variable::Ref*>(rule_var_pool[0].get());
+  Variable::Ref* var1 = dynamic_cast<Variable::Ref*>(rule_var_pool[1].get());
+  Variable::Ref* var2 = dynamic_cast<Variable::Ref*>(rule_var_pool[2].get());
+  Variable::Ref* var3 = dynamic_cast<Variable::Ref*>(rule_var_pool[3].get());
+  Variable::Ref* var4 = dynamic_cast<Variable::Ref*>(rule_var_pool[4].get());
+  Variable::Ref* var5 = dynamic_cast<Variable::Ref*>(rule_var_pool[5].get());
+  Variable::Ref* var6 = dynamic_cast<Variable::Ref*>(rule_var_pool[6].get());
+  Variable::Ref* var7 = dynamic_cast<Variable::Ref*>(rule_var_pool[7].get());
+  ASSERT_NE(var0, nullptr);
+  ASSERT_NE(var1, nullptr);
+  ASSERT_NE(var2, nullptr);
+  ASSERT_NE(var3, nullptr);
+  ASSERT_NE(var4, nullptr);
+  ASSERT_NE(var5, nullptr);
+  ASSERT_NE(var6, nullptr);
+  ASSERT_NE(var7, nullptr);
+  EXPECT_EQ(var0->subName(), "");
+  EXPECT_EQ(var1->subName(), "world");
+  EXPECT_EQ(var2->subName(), "foo[].bar");
+  EXPECT_EQ(var3->subName(), "foo[].bar{}");
+  EXPECT_EQ(var4->subName(), "../");
+  EXPECT_EQ(var5->subName(), "../bar1");
+  EXPECT_EQ(var6->subName(), "../../../../../");
+  EXPECT_EQ(var7->subName(), "../../../../../foo");
+
+  auto& op = parser.rules()[0].front().chainRule(0)->operators().front();
+  EXPECT_EQ(op->literalValue(), "");
+  EXPECT_EQ(op->macro()->literalValue(), "%{Ref.for.bar}");
   Macro::VariableMacro* op_var_macro = dynamic_cast<Macro::VariableMacro*>(op->macro().get());
   ASSERT_NE(op_var_macro, nullptr);
   EXPECT_EQ(op_var_macro->getVariable()->subName(), "for.bar");

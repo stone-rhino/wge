@@ -23,6 +23,8 @@
 #include "ptree.h"
 #include "variable_base.h"
 
+#include "../common/property_tree.h"
+
 namespace Wge {
 namespace Variable {
 class MatchedPTreeBase : public VariableBase {
@@ -45,9 +47,40 @@ public:
     PTree::initPaths(no_parent_sub_name, paths_);
   }
 
+  virtual ~MatchedPTreeBase() = default;
+
 public:
   size_t parentCount() const { return parent_count_; }
   const std::vector<PTree::Path>& paths() const { return paths_; }
+
+public:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(getAllMatchedPtrees(t).empty() ? 0 : 1);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    const Common::PropertyTree* matched_ptree = getMatchedPTree(t);
+    if (matched_ptree) {
+      if (paths_.empty()) {
+        Variable::PTree::evaluateNode(matched_ptree, result);
+      } else {
+        Variable::PTree::evaluateNode(matched_ptree, paths_, 0, result);
+      }
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+public:
+  virtual const std::vector<const Common::PropertyTree*>&
+  getAllMatchedPtrees(Transaction& t) const = 0;
+  virtual const Common::PropertyTree* getMatchedPTree(Transaction& t) const = 0;
 
 protected:
   size_t parent_count_;

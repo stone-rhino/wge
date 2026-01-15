@@ -23,6 +23,7 @@
 #include "matched_ptree_base.h"
 
 #include "../macro/variable_macro.h"
+#include "../rule.h"
 
 namespace Wge {
 namespace Variable {
@@ -41,32 +42,9 @@ public:
     UNREACHABLE();
   }
 
-protected:
-  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(getAllMatchedVPTrees(t).empty() ? 0 : 1);
-  }
-
-  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollectionCounter(t, result);
-  }
-
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    const Common::PropertyTree* matched_vptree = getMatchedVPTree(t);
-    if (matched_vptree) {
-      if (paths_.empty()) {
-        Variable::PTree::evaluateNode(matched_vptree, result);
-      } else {
-        Variable::PTree::evaluateNode(matched_vptree, paths_, 0, result);
-      }
-    }
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollection(t, result);
-  }
-
-private:
-  const std::vector<const Common::PropertyTree*>& getAllMatchedVPTrees(Transaction& t) const {
+public:
+  const std::vector<const Common::PropertyTree*>&
+  getAllMatchedPtrees(Transaction& t) const override {
     // If the current evaluate rule is a chained rule, we should get the matched vptree from the
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
@@ -81,21 +59,18 @@ private:
     return t.getMatchedVPTrees(rule_chain_index);
   }
 
-  const Common::PropertyTree* getMatchedVPTree(Transaction& t) const {
-    auto& all_matched_vptrees = getAllMatchedVPTrees(t);
+  const Common::PropertyTree* getMatchedPTree(Transaction& t) const override {
+    auto& all_matched_vptrees = getAllMatchedPtrees(t);
     if (all_matched_vptrees.empty()) {
       return nullptr;
     }
 
     auto matched_vptree = all_matched_vptrees.back();
-    WGE_LOG_TRACE("MatchedVPTree: {}", matched_vptree->dump());
 
     for (int i = 0; i < parent_count_; ++i) {
-      auto parent = matched_vptree->parent();
-      if (parent) {
-        matched_vptree = parent;
-        WGE_LOG_TRACE("MatchedOPTree parent: {}", matched_vptree->dump());
-      } else {
+      matched_vptree = matched_vptree->parent();
+      if (!matched_vptree) {
+        WGE_LOG_WARN("MatchedVPTree parent is nullptr!");
         break;
       }
     }

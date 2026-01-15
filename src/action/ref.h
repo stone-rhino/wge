@@ -20,11 +20,36 @@
  */
 #pragma once
 
-#include "ctl.h"
-#include "initcol.h"
-#include "ref.h"
-#include "set_env.h"
-#include "set_rsc.h"
-#include "set_sid.h"
-#include "set_uid.h"
-#include "set_var.h"
+#include <variant>
+
+#include "action_base.h"
+
+#include "../variable/matched_optree.h"
+#include "../variable/matched_vptree.h"
+
+namespace Wge {
+namespace Action {
+
+class Ref final : public ActionBase {
+  DECLARE_ACTION_NAME(ref);
+
+public:
+  Ref(ActionBase::Branch branch, std::string&& key,
+      std::unique_ptr<Variable::MatchedPTreeBase>&& matched_ptree)
+      : ActionBase(branch), key_(std::move(key)), matched_tree_(std::move(matched_ptree)) {}
+
+public:
+  void evaluate(Transaction& t) const override {
+    const Common::PropertyTree* ptree = matched_tree_->getMatchedPTree(t);
+    if (ptree) {
+      t.setReference(key_, ptree);
+      WGE_LOG_TRACE("ref: {} = {} -> {}", key_, static_cast<const void*>(ptree), ptree->dump());
+    }
+  }
+
+private:
+  const std::string key_;
+  const std::unique_ptr<Variable::MatchedPTreeBase> matched_tree_;
+};
+} // namespace Action
+} // namespace Wge

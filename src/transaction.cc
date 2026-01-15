@@ -57,6 +57,8 @@ Transaction::Transaction(const Engine& engin, std::shared_ptr<Common::PropertySt
   transform_cache_.reserve(100);
 }
 
+Transaction::~Transaction() = default;
+
 void Transaction::processConnection(std::string_view downstream_ip, short downstream_port,
                                     std::string_view upstream_ip, short upstream_port) {
   WGE_LOG_TRACE("====process connection====");
@@ -677,6 +679,10 @@ inline bool Transaction::process(RulePhaseType phase) {
     matched_variables_.clear();
     matched_optrees_.clear();
     matched_vptrees_.clear();
+
+    // Clear the references(matched property trees). Each rule evaluation starts with an empty set
+    // of references.
+    tx_references_.clear();
 
     // Evaluate the rule
     auto is_matched = current_rule_->evaluate(*this);

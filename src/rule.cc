@@ -28,6 +28,7 @@
 #include "engine.h"
 #include "operator/operator_include.h"
 #include "variable/collection_base.h"
+#include "variable/ref.h"
 
 namespace Wge {
 std::unordered_set<std::string> Rule::string_pool_;
@@ -193,12 +194,20 @@ bool Rule::evaluate(Transaction& t) const {
         bool cartesian_matched = false;
         if (op_result.matched_) {
           WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
+            Wge::Variable::Ref* ref_var = dynamic_cast<Wge::Variable::Ref*>(var.get());
+            if (ref_var) {
+              return std::format("variable is matched. {}[{}]{}", ref_var->mainName(),
+                                 ref_var->key(),
+                                 ref_var->subName().empty() ? "" : "." + ref_var->subName());
             } else {
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 variable_value.variable_sub_name_);
+              if (!var->isCollection()) {
+                return std::format("variable is matched. {}{}", var->mainName(),
+                                   var->subName().empty() ? "" : "." + var->subName());
+              } else {
+                return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                                   var->subName().empty() ? variable_value.variable_sub_name_
+                                                          : var->subName());
+              }
             }
           }());
 
@@ -373,18 +382,28 @@ void Rule::evaluateVariable(Transaction& t, const std::unique_ptr<Wge::Variable:
                             Common::EvaluateResults& result) const {
   var->evaluate(t, result);
   WGE_LOG_TRACE([&]() {
-    if (!var->isCollection()) {
-      return std::format(
-          "evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "", var->isCounter() ? "&" : "",
-          var->mainName(), var->subName().empty() ? "" : ":" + var->subName(),
-          result.empty() ? "nil" : VISTIT_VARIANT_AS_STRING(result.front().variant_));
+    Wge::Variable::Ref* ref_var = dynamic_cast<Wge::Variable::Ref*>(var.get());
+    if (ref_var) {
+      return std::format("evaluate variable: {}{}{}[{}]{} = {}", ref_var->isNot() ? "!" : "",
+                         ref_var->isCounter() ? "&" : "", ref_var->mainName(), ref_var->key(),
+                         ref_var->subName().empty() ? "" : ":" + ref_var->subName(),
+                         result.empty() ? "nil"
+                                        : VISTIT_VARIANT_AS_STRING(result.front().variant_));
     } else {
-      if (var->isCounter()) {
-        return std::format(
-            "evaluate collection: {}&{} = {}", var->isNot() ? "!" : "", var->mainName(),
-            result.empty() ? "nil" : VISTIT_VARIANT_AS_STRING(result.front().variant_));
+      if (!var->isCollection()) {
+        return std::format("evaluate variable: {}{}{}{} = {}", var->isNot() ? "!" : "",
+                           var->isCounter() ? "&" : "", var->mainName(),
+                           var->subName().empty() ? "" : ":" + var->subName(),
+                           result.empty() ? "nil"
+                                          : VISTIT_VARIANT_AS_STRING(result.front().variant_));
       } else {
-        return std::format("evaluate collection: {}{}", var->isNot() ? "!" : "", var->mainName());
+        if (var->isCounter()) {
+          return std::format(
+              "evaluate collection: {}&{} = {}", var->isNot() ? "!" : "", var->mainName(),
+              result.empty() ? "nil" : VISTIT_VARIANT_AS_STRING(result.front().variant_));
+        } else {
+          return std::format("evaluate collection: {}{}", var->isNot() ? "!" : "", var->mainName());
+        }
       }
     }
   }());
@@ -581,12 +600,20 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         bool cartesian_matched = false;
         if (op_result.matched_) {
           WGE_LOG_TRACE([&]() {
-            if (!var->isCollection()) {
-              return std::format("variable is matched. {}{}", var->mainName(),
-                                 var->subName().empty() ? "" : "." + var->subName());
+            Wge::Variable::Ref* ref_var = dynamic_cast<Wge::Variable::Ref*>(var.get());
+            if (ref_var) {
+              return std::format("variable is matched. {}[{}]{}", ref_var->mainName(),
+                                 ref_var->key(),
+                                 ref_var->subName().empty() ? "" : "." + ref_var->subName());
             } else {
-              return std::format("variable of collection is matched. {}:{}", var->mainName(),
-                                 evaluated_value->variable_sub_name_);
+              if (!var->isCollection()) {
+                return std::format("variable is matched. {}{}", var->mainName(),
+                                   var->subName().empty() ? "" : "." + var->subName());
+              } else {
+                return std::format("variable of collection is matched. {}:{}", var->mainName(),
+                                   var->subName().empty() ? evaluated_value->variable_sub_name_
+                                                          : var->subName());
+              }
             }
           }());
 

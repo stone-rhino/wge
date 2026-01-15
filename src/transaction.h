@@ -67,6 +67,9 @@ protected:
   Transaction(const Engine& engin, std::shared_ptr<Common::PropertyStore> property_store);
 
 public:
+  ~Transaction();
+
+public:
   // The connection info
   // At the ProcessConnection method, we store the downstream ip, downstream port, upstream ip, and
   // upstream port.
@@ -564,6 +567,34 @@ public:
   }
 
   /**
+   * Set a reference(matched property tree) variable
+   * @param name the name of the reference variable.
+   * @param reference the const pointer to the property tree.
+   */
+  void setReference(const std::string& name, const Common::PropertyTree* reference) {
+    tx_references_[name] = reference;
+  }
+
+  /**
+   * Get a reference variable
+   * @param name the name of the reference variable.
+   * @return the const pointer to the property tree. nullptr if the reference variable does not
+   * exist.
+   */
+  const Common::PropertyTree* getReference(const std::string& name) const {
+    auto iter = tx_references_.find(name);
+    if (iter != tx_references_.end()) {
+      return iter->second;
+    }
+    return nullptr;
+  }
+
+  /**
+   * Clear all reference variables
+   */
+  void clearReferences() { tx_references_.clear(); }
+
+  /**
    * Remove the rule.
    * The rule will be removed from the transaction instance, and the rule will not be evaluated. The
    * other transaction instances running in parallel will be unaffected.
@@ -700,6 +731,9 @@ private:
   // Used by MATCHED_OPTREE and MATCHED_VPTREE variables.
   std::unordered_map<RuleChainIndexType, std::vector<const Common::PropertyTree*>> matched_optrees_;
   std::unordered_map<RuleChainIndexType, std::vector<const Common::PropertyTree*>> matched_vptrees_;
+
+  // Stores all references to property tree nodes.
+  std::unordered_map<std::string, const Common::PropertyTree*> tx_references_;
 
   // All of the transaction instances share the same rule instances, and each transaction instance
   // may be removed or updated some different rules by the ctl action. So, we need to mark the rules

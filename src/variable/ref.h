@@ -23,60 +23,57 @@
 #include "matched_ptree_base.h"
 
 #include "../macro/variable_macro.h"
-#include "../rule.h"
 
 namespace Wge {
 namespace Variable {
-class MatchedOPTree final : public MatchedPTreeBase {
-  DECLARE_VIRABLE_NAME(MATCHED_OPTREE);
+class Ref final : public MatchedPTreeBase {
+  DECLARE_VIRABLE_NAME(Ref);
 
 public:
-  MatchedOPTree(std::string&& sub_name, bool is_not, bool is_counter,
-                std::string_view curr_rule_file_path)
-      : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
+  Ref(std::string&& key, std::string&& sub_name, bool is_not, bool is_counter,
+      std::string_view curr_rule_file_path)
+      : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path),
+        key_(std::move(key)) {}
 
-  MatchedOPTree(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
-                bool is_counter, std::string_view curr_rule_file_path)
+  Ref(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
+      std::string_view curr_rule_file_path)
       : MatchedPTreeBase("", is_not, is_counter, curr_rule_file_path) {
     // Does not support sub_name macro
     UNREACHABLE();
   }
 
 public:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    auto ref = t.getReference(key_);
+    result.emplace_back(ref ? 1 : 0);
+  }
+
   const std::vector<const Common::PropertyTree*>&
   getAllMatchedPtrees(Transaction& t) const override {
-    // If the current evaluate rule is a chained rule, we should get the matched vptree from the
-    // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
-    // variable from the current rule.
-    int rule_chain_index = -1;
-    if (t.getCurrentEvaluateRule()) {
-      rule_chain_index = t.getCurrentEvaluateRule()->chainIndex();
-      if (rule_chain_index >= 0) {
-        rule_chain_index--;
-      }
-    }
-
-    return t.getMatchedOPTrees(rule_chain_index);
+    UNREACHABLE();
+    static const std::vector<const Common::PropertyTree*> empty_result;
+    return empty_result;
   }
 
   const Common::PropertyTree* getMatchedPTree(Transaction& t) const override {
-    auto& all_matched_optrees = getAllMatchedPtrees(t);
-    if (all_matched_optrees.empty()) {
-      return nullptr;
-    }
-
-    auto matched_optree = all_matched_optrees.back();
+    auto ref = t.getReference(key_);
 
     for (int i = 0; i < parent_count_; ++i) {
-      matched_optree = matched_optree->parent();
-      if (!matched_optree) {
-        WGE_LOG_WARN("MatchedOPTree parent is nullptr!");
+      ref = ref->parent();
+      if (!ref) {
+        WGE_LOG_WARN("Ref parent is nullptr!");
         break;
       }
     }
 
-    return matched_optree;
+    return ref;
   }
+
+public:
+  const std::string& key() const { return key_; }
+
+private:
+  std::string key_;
 };
 } // namespace Variable
 } // namespace Wge

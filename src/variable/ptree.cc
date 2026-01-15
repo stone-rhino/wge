@@ -103,6 +103,7 @@ void PTree::evaluateNode(const Common::PropertyTree* node, const std::vector<Pat
         for (const auto& [key, child_tree] : *current_node) {
           evaluateNode(static_cast<const Common::PropertyTree*>(&child_tree), paths, i, result);
         }
+        return;
       }
     } break;
     case Path::Type::Value: {

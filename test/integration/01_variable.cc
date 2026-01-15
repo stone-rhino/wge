@@ -855,7 +855,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.max_connection", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 100);
   }
 
@@ -863,7 +863,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].host", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 2);
+    ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "192.168.1.2");
   }
@@ -872,7 +872,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].port", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 2);
+    ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 8080);
     EXPECT_EQ(std::get<int64_t>(result[1].variant_), 8081);
   }
@@ -881,7 +881,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].domain{}", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 4);
+    ASSERT_EQ(result.size(), 4);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server1.example.com");
     EXPECT_EQ(result[0].variable_sub_name_, "name");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "2025-12-31");
@@ -893,10 +893,21 @@ TEST_F(VariableTest, PTREE) {
   }
 
   {
+    Variable::PTree var("config.server_list[].domain.name", false, false, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server1.example.com");
+    EXPECT_EQ(result[0].variable_sub_name_, "name");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "server2.example.com");
+    EXPECT_EQ(result[1].variable_sub_name_, "name");
+  }
+
+  {
     Variable::PTree var("config.server_list[].tags[]", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 4);
+    ASSERT_EQ(result.size(), 4);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "production");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
     EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
@@ -907,7 +918,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.boolean_test1", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 1);
   }
 
@@ -915,7 +926,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.boolean_test2", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 0);
   }
 
@@ -923,7 +934,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.null_test", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_TRUE(IS_EMPTY_VARIANT(result[0].variant_));
   }
 
@@ -931,7 +942,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.float_test", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 314);
   }
 
@@ -939,7 +950,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.minus_test", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), -100);
   }
 
@@ -947,7 +958,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.minus_float_test", false, false, "");
     result.clear();
     var.evaluate(*t, result);
-    EXPECT_EQ(result.size(), 1);
+    ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), -314);
   }
 }

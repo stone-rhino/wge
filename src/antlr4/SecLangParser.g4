@@ -241,9 +241,7 @@ variable_args:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_combined_size:
@@ -251,9 +249,7 @@ variable_args_combined_size:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_get:
@@ -261,9 +257,7 @@ variable_args_get:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_get_names:
@@ -271,9 +265,7 @@ variable_args_get_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_names:
@@ -281,9 +273,7 @@ variable_args_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_post:
@@ -291,9 +281,7 @@ variable_args_post:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_args_post_names:
@@ -301,9 +289,7 @@ variable_args_post_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_auth_type:
@@ -311,9 +297,7 @@ variable_auth_type:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_duration:
@@ -321,9 +305,7 @@ variable_duration:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_env:
@@ -331,9 +313,7 @@ variable_env:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files:
@@ -341,9 +321,7 @@ variable_files:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files_combined_size:
@@ -351,9 +329,7 @@ variable_files_combined_size:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files_names:
@@ -361,9 +337,7 @@ variable_files_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_full_request:
@@ -371,9 +345,7 @@ variable_full_request:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_full_request_length:
@@ -381,9 +353,7 @@ variable_full_request_length:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files_sizes:
@@ -391,9 +361,7 @@ variable_files_sizes:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files_tmpnames:
@@ -401,9 +369,7 @@ variable_files_tmpnames:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_files_tmp_content:
@@ -411,9 +377,7 @@ variable_files_tmp_content:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_geo:
@@ -421,9 +385,7 @@ variable_geo:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_highest_severity:
@@ -431,9 +393,7 @@ variable_highest_severity:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_inbound_data_error:
@@ -441,9 +401,7 @@ variable_inbound_data_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_matched_var:
@@ -451,9 +409,7 @@ variable_matched_var:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_matched_vars:
@@ -461,9 +417,7 @@ variable_matched_vars:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_matched_var_name:
@@ -471,9 +425,7 @@ variable_matched_var_name:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_matched_vars_names:
@@ -481,9 +433,7 @@ variable_matched_vars_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_modsec_build:
@@ -491,9 +441,7 @@ variable_modsec_build:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_msc_pcre_limits_exceeded:
@@ -501,9 +449,7 @@ variable_msc_pcre_limits_exceeded:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_crlf_lf_lines:
@@ -511,9 +457,7 @@ variable_multipart_crlf_lf_lines:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_filename:
@@ -521,9 +465,7 @@ variable_multipart_filename:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_name:
@@ -531,9 +473,7 @@ variable_multipart_name:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_part_headers:
@@ -541,9 +481,7 @@ variable_multipart_part_headers:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_strict_error:
@@ -551,9 +489,7 @@ variable_multipart_strict_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_unmatched_boundary:
@@ -561,9 +497,7 @@ variable_multipart_unmatched_boundary:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_outbound_data_error:
@@ -571,9 +505,7 @@ variable_outbound_data_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_path_info:
@@ -581,9 +513,7 @@ variable_path_info:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_query_string:
@@ -591,9 +521,7 @@ variable_query_string:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_remote_addr:
@@ -601,9 +529,7 @@ variable_remote_addr:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_remote_host:
@@ -611,9 +537,7 @@ variable_remote_host:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_remote_port:
@@ -621,9 +545,7 @@ variable_remote_port:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_remote_user:
@@ -631,9 +553,7 @@ variable_remote_user:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_reqbody_error:
@@ -641,9 +561,7 @@ variable_reqbody_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_reqbody_error_msg:
@@ -651,9 +569,7 @@ variable_reqbody_error_msg:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_reqbody_processor:
@@ -661,9 +577,7 @@ variable_reqbody_processor:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_basename:
@@ -671,9 +585,7 @@ variable_request_basename:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_body:
@@ -681,9 +593,7 @@ variable_request_body:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_body_length:
@@ -691,9 +601,7 @@ variable_request_body_length:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_cookies:
@@ -701,9 +609,7 @@ variable_request_cookies:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_cookies_names:
@@ -711,9 +617,7 @@ variable_request_cookies_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_filename:
@@ -721,9 +625,7 @@ variable_request_filename:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_headers:
@@ -731,9 +633,7 @@ variable_request_headers:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_headers_names:
@@ -741,9 +641,7 @@ variable_request_headers_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_line:
@@ -751,9 +649,7 @@ variable_request_line:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_method:
@@ -761,9 +657,7 @@ variable_request_method:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_protocol:
@@ -771,9 +665,7 @@ variable_request_protocol:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_uri:
@@ -781,9 +673,7 @@ variable_request_uri:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_request_uri_raw:
@@ -791,9 +681,7 @@ variable_request_uri_raw:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_body:
@@ -801,9 +689,7 @@ variable_response_body:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_content_length:
@@ -811,9 +697,7 @@ variable_response_content_length:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_content_type:
@@ -821,9 +705,7 @@ variable_response_content_type:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_headers:
@@ -831,9 +713,7 @@ variable_response_headers:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_headers_names:
@@ -841,9 +721,7 @@ variable_response_headers_names:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_protocol:
@@ -851,9 +729,7 @@ variable_response_protocol:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_response_status:
@@ -861,9 +737,7 @@ variable_response_status:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_rule:
@@ -871,9 +745,7 @@ variable_rule:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_server_addr:
@@ -881,9 +753,7 @@ variable_server_addr:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_server_name:
@@ -891,9 +761,7 @@ variable_server_name:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_server_port:
@@ -901,9 +769,7 @@ variable_server_port:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_session:
@@ -911,9 +777,7 @@ variable_session:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_sessionid:
@@ -921,9 +785,7 @@ variable_sessionid:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_status_line:
@@ -931,9 +793,7 @@ variable_status_line:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time:
@@ -941,9 +801,7 @@ variable_time:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_day:
@@ -951,9 +809,7 @@ variable_time_day:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_epoch:
@@ -961,9 +817,7 @@ variable_time_epoch:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_hour:
@@ -971,9 +825,7 @@ variable_time_hour:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_min:
@@ -981,9 +833,7 @@ variable_time_min:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_mon:
@@ -991,9 +841,7 @@ variable_time_mon:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_sec:
@@ -1001,9 +849,7 @@ variable_time_sec:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_wday:
@@ -1011,9 +857,7 @@ variable_time_wday:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_time_year:
@@ -1021,9 +865,7 @@ variable_time_year:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_tx:
@@ -1031,9 +873,7 @@ variable_tx:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_unique_id:
@@ -1041,9 +881,7 @@ variable_unique_id:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_urlencoded_error:
@@ -1051,9 +889,7 @@ variable_urlencoded_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_userid:
@@ -1061,9 +897,7 @@ variable_userid:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_webappid:
@@ -1071,9 +905,7 @@ variable_webappid:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_xml:
@@ -1081,9 +913,7 @@ variable_xml:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_reqbody_processor_error:
@@ -1091,9 +921,7 @@ variable_reqbody_processor_error:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_boundary_quoted:
@@ -1101,9 +929,7 @@ variable_multipart_boundary_quoted:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_boundary_whitespace:
@@ -1111,9 +937,7 @@ variable_multipart_boundary_whitespace:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_data_before:
@@ -1121,9 +945,7 @@ variable_multipart_data_before:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_data_after:
@@ -1131,9 +953,7 @@ variable_multipart_data_after:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_header_folding:
@@ -1141,9 +961,7 @@ variable_multipart_header_folding:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_lf_line:
@@ -1151,9 +969,7 @@ variable_multipart_lf_line:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_missing_semicolon:
@@ -1161,9 +977,7 @@ variable_multipart_missing_semicolon:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_invalid_quoting:
@@ -1171,9 +985,7 @@ variable_multipart_invalid_quoting:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_invalid_part:
@@ -1181,9 +993,7 @@ variable_multipart_invalid_part:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_invalid_header_folding:
@@ -1191,9 +1001,7 @@ variable_multipart_invalid_header_folding:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_multipart_file_limit_exceeded:
@@ -1201,9 +1009,7 @@ variable_multipart_file_limit_exceeded:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_global:
@@ -1211,9 +1017,7 @@ variable_global:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_resource:
@@ -1221,9 +1025,7 @@ variable_resource:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_ip:
@@ -1231,9 +1033,7 @@ variable_ip:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_user:
@@ -1241,9 +1041,7 @@ variable_user:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 extension_variable:
@@ -1251,7 +1049,7 @@ extension_variable:
 	| variable_gtx
 	| variable_matched_vptree
 	| variable_matched_optree
-	| variable_alias;
+	| variable_alias_or_ref;
 variable_ptree:
 	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
 variable_ptree_expression:
@@ -1269,9 +1067,7 @@ variable_gtx:
 		(COLON | DOT) (
 			STRING
 			| (SINGLE_QUOTE STRING SINGLE_QUOTE)
-			| (
-				PER_CENT LEFT_BRACKET variable RIGHT_BRACKET
-			)
+			| ( PER_CENT LEFT_BRACKET variable RIGHT_BRACKET)
 		)
 	)?;
 variable_matched_vptree:
@@ -1284,9 +1080,12 @@ variable_matched_optree:
 		((COLON | DOT) variable_ptree_expression)
 		| (PARENT+ variable_ptree_expression?)
 	)?;
-variable_alias:
-	NOT? VAR_COUNT? VAR_ALIAS (
-		(COLON | DOT) variable_ptree_expression
+variable_alias_or_ref:
+	NOT? VAR_COUNT? VAR_ALIAS_OR_REF (
+		(COLON | DOT) (
+			variable_ptree_expression
+			| (PARENT+ variable_ptree_expression?)
+		)
 	)?;
 
 operator:
@@ -1730,6 +1529,7 @@ action_extension:
 	| action_extension_all_match
 	| action_extension_multi_chain
 	| action_extension_alias
+	| action_extension_ref
 	| action_extension_reply;
 action_extension_first_match: FirstMatch;
 action_extension_empty_match: EmptyMatch;
@@ -1750,7 +1550,21 @@ action_extension_alias:
 			)
 		)
 	);
-
+action_extension_ref:
+	Ref COLON (
+		(
+			SINGLE_QUOTE ALIAS_NAME ASSIGN (
+				variable_matched_optree
+				| variable_matched_vptree
+			) SINGLE_QUOTE
+		)
+		| (
+			ALIAS_NAME ASSIGN (
+				variable_matched_optree
+				| variable_matched_vptree
+			)
+		)
+	);
 action_extension_reply:
 	Reply COLON SINGLE_QUOTE string_with_macro SINGLE_QUOTE;
 

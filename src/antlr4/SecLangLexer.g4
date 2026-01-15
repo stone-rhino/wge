@@ -462,7 +462,7 @@ VAR_MATCHED_OPTREE:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
 		ModeSecRuleVariableNamePtree);
 VAR_GTX: [gG][tT][xX];
-VAR_ALIAS:
+VAR_ALIAS_OR_REF:
 	[a-zA-Z_][0-9a-zA-Z_]* -> pushMode(ModeSecRuleVariableNamePtree);
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
 ModeSecRuleVariableName_COMMA: COMMA -> skip, popMode;
@@ -760,6 +760,7 @@ AllMatch: 'allMatch';
 MultiChain: 'multiChain';
 Alias: 'alias' -> pushMode(ModeSecRuleActionAlias);
 Reply: 'reply';
+Ref: 'ref' -> pushMode(ModeSecRuleActionAlias);
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;

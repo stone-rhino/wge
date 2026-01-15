@@ -50,6 +50,12 @@ public:
   std::string dump() const {
     std::string output;
     dumpInner(this, output, "", 0);
+
+    // Remove the last newline character
+    if (!output.empty() && output.back() == '\n') {
+      output.pop_back();
+    }
+
     return output;
   }
 

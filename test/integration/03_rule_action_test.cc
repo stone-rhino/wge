@@ -859,5 +859,68 @@ TEST_F(RuleActionTest, ActionAllMatch) {
   }
 }
 
+TEST_F(RuleActionTest, ActionRef) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecRule PTREE:config.server_list[].domain.name "@beginsWith server" \
+        "id:1,phase:1,ref:matched_domain_name=MATCHED_VPTREE,ref:matched_server=MATCHED_VPTREE../../,msg:'aaa',multiChain"
+          SecRule matched_domain_name "@streq server1.example.com|@streq server2.example.com" \
+          "id:2,phase:1,msg:'bbb',setvar:tx.matched_domain_name=+1,chain"
+            SecRule matched_server:port "@eq 8080|@eq 8081" "id:2,phase:1,msg:'bbb',setvar:tx.matched_port=+1,chain"
+              SecRule matched_server:../../max_connection "@eq 100" "id:2,phase:1,msg:'bbb',setvar:tx.matched_connection=+1"
+)";
+
+  Engine engine(spdlog::level::trace);
+  auto result = engine.load(directive);
+  engine.init();
+  ASSERT_TRUE(result.has_value());
+
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+
+  auto t = engine.makeTransaction();
+  t->processRequestHeaders(nullptr, nullptr, 0);
+
+  ASSERT_TRUE(t->hasVariable("", "matched_domain_name"));
+  ASSERT_TRUE(t->hasVariable("", "matched_port"));
+  ASSERT_TRUE(t->hasVariable("", "matched_connection"));
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "matched_domain_name")), 2);
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "matched_port")), 2);
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "matched_connection")), 2);
+}
+
 } // namespace Integration
 } // namespace Wge

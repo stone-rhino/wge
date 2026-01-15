@@ -72,6 +72,7 @@
 #include "path_info.h"
 #include "ptree.h"
 #include "query_string.h"
+#include "ref.h"
 #include "remote_addr.h"
 #include "remote_host.h"
 #include "remote_port.h"

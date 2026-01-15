@@ -287,8 +287,9 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
   } else {
     current_rule_ = std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), nullptr);
 
-    // Clear alias for new rule
+    // Clear alias and reference for new rule
     alias_.clear();
+    reference_.clear();
   }
 
   chain_ = false;
@@ -942,30 +943,104 @@ std::any Visitor::visitVariable_matched_optree(
   return appendVariable<Variable::MatchedOPTree>(ctx);
 }
 
-std::any Visitor::visitVariable_alias(Antlr4Gen::SecLangParser::Variable_aliasContext* ctx) {
-  std::string alias_name = ctx->VAR_ALIAS()->getText();
-  auto iter = alias_.find(alias_name);
+std::any
+Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_refContext* ctx) {
+  // Check if alias or reference is defined
+  std::string alias_or_ref_name = ctx->VAR_ALIAS_OR_REF()->getText();
+  auto iter = alias_.find(alias_or_ref_name);
+  bool is_reference = false;
   if (iter == alias_.end()) {
-    RETURN_ERROR("Alias '" + alias_name + "' is not defined.");
-  }
-
-  // Extract sub_name from alias value (remove "matched_optree" and "matched_vptree" prefix)
-  std::string sub_name = iter->second.substr(14);
-  if (ctx->variable_ptree_expression()) {
-    if (!sub_name.empty() && sub_name.back() != '/') {
-      sub_name += "." + ctx->variable_ptree_expression()->getText();
+    iter = reference_.find(alias_or_ref_name);
+    if (iter == reference_.end()) {
+      RETURN_ERROR("Alias or reference '" + alias_or_ref_name + "' is not defined.");
     } else {
-      sub_name = ctx->variable_ptree_expression()->getText();
+      is_reference = true;
     }
   }
 
-  if (iter->second.starts_with("matched_optree")) {
-    return appendAliasVariable<Variable::MatchedOPTree>(ctx, std::move(sub_name));
-  } else if (iter->second.starts_with("matched_vptree")) {
-    return appendAliasVariable<Variable::MatchedVPTree>(ctx, std::move(sub_name));
+  // Function to normalize sub_name(ptree path) according to parent count
+  auto normalize_path_func = [](const std::string& path, size_t parent_count) -> std::string {
+    std::string new_path = path;
+
+    // Remove last segments from sub_name according to parent_count
+    size_t remove_count = 0;
+    if (!new_path.empty()) {
+      for (size_t i = 0; i < parent_count; ++i) {
+        size_t pos = new_path.rfind('.');
+        bool lookahead_is_slash = pos + 1 != std::string::npos && new_path[pos + 1] == '/';
+        if (pos != std::string::npos && !lookahead_is_slash) {
+          new_path = new_path.substr(0, pos);
+          ++remove_count;
+        } else {
+          pos = new_path.rfind('/');
+          if (pos != std::string::npos) {
+            new_path = new_path.substr(0, pos + 1);
+          } else {
+            new_path.clear();
+          }
+          ++remove_count;
+          break;
+        }
+      }
+    }
+
+    // If there are remaining parents then add ../ for each
+    for (size_t i = remove_count; i < parent_count; ++i) {
+      new_path += "../";
+    }
+
+    return new_path;
+  };
+
+  std::string sub_name;
+  if (is_reference) {
+    // Append parent info to sub_name
+    size_t parent_count = ctx->PARENT().size();
+    for (size_t i = 0; i < parent_count; ++i) {
+      sub_name += "../";
+    }
+
+    // Append ptree expression if any
+    if (ctx->variable_ptree_expression()) {
+      sub_name += ctx->variable_ptree_expression()->getText();
+    }
   } else {
-    RETURN_ERROR("Alias '" + alias_name +
-                 "' is not a valid variable alias for matched optree or vptree.");
+    // Extract sub_name from alias value (remove "matched_optree" and "matched_vptree" prefix)
+    sub_name = iter->second.substr(14);
+
+    // Normalize sub_name according to parent count
+    size_t parent_count = ctx->PARENT().size();
+    if (parent_count) {
+      sub_name = normalize_path_func(sub_name, parent_count);
+    }
+
+    // Append ptree expression if any
+    if (ctx->variable_ptree_expression()) {
+      if (!sub_name.empty()) {
+        if (sub_name.back() != '/') {
+          sub_name += ".";
+        }
+      }
+      sub_name += ctx->variable_ptree_expression()->getText();
+    }
+  }
+
+  // Append variable according to alias or reference type
+  if (iter->second.starts_with("matched_optree")) {
+    if (is_reference) {
+      return appendRefVariable(ctx, std::move(alias_or_ref_name), std::move(sub_name));
+    } else {
+      return appendAliasVariable<Variable::MatchedOPTree>(ctx, std::move(sub_name));
+    }
+  } else if (iter->second.starts_with("matched_vptree")) {
+    if (is_reference) {
+      return appendRefVariable(ctx, std::move(alias_or_ref_name), std::move(sub_name));
+    } else {
+      return appendAliasVariable<Variable::MatchedVPTree>(ctx, std::move(sub_name));
+    }
+  } else {
+    RETURN_ERROR("Alias or reference '" + alias_or_ref_name +
+                 "' is not a valid variable alias/reference for matched optree or vptree.");
   }
 
   return EMPTY_STRING;
@@ -2553,6 +2628,11 @@ std::any Visitor::visitAction_extension_multi_chain(
 
 std::any
 Visitor::visitAction_extension_alias(Antlr4Gen::SecLangParser::Action_extension_aliasContext* ctx) {
+  std::string name = ctx->ALIAS_NAME()->getText();
+  if (alias_.count(name) || reference_.count(name)) {
+    RETURN_ERROR("The alias '" + name + "' is already defined.");
+  }
+
   std::string matched_tree;
   std::string low_case_matched_tree;
   if (ctx->variable_matched_optree()) {
@@ -2563,7 +2643,51 @@ Visitor::visitAction_extension_alias(Antlr4Gen::SecLangParser::Action_extension_
     low_case_matched_tree = "matched_vptree" + matched_tree.substr(14);
   }
 
-  alias_[ctx->ALIAS_NAME()->getText()] = low_case_matched_tree;
+  alias_[name] = low_case_matched_tree;
+
+  return EMPTY_STRING;
+}
+
+std::any
+Visitor::visitAction_extension_ref(Antlr4Gen::SecLangParser::Action_extension_refContext* ctx) {
+  std::string name = ctx->ALIAS_NAME()->getText();
+  if (alias_.count(name) || reference_.count(name)) {
+    RETURN_ERROR("The reference '" + name + "' is already defined.");
+  }
+
+  bool is_not = false;
+  bool is_counter = false;
+  std::string matched_tree;
+  std::string low_case_matched_tree;
+  std::string sub_name;
+  if (ctx->variable_matched_optree()) {
+    matched_tree = ctx->variable_matched_optree()->getText();
+    sub_name = matched_tree.substr(14);
+    low_case_matched_tree = "matched_optree" + sub_name;
+    is_not = ctx->variable_matched_optree()->NOT() != nullptr;
+    is_counter = ctx->variable_matched_optree()->VAR_COUNT() != nullptr;
+  } else if (ctx->variable_matched_vptree()) {
+    matched_tree = ctx->variable_matched_vptree()->getText();
+    sub_name = matched_tree.substr(14);
+    low_case_matched_tree = "matched_vptree" + sub_name;
+    is_not = ctx->variable_matched_vptree()->NOT() != nullptr;
+    is_counter = ctx->variable_matched_vptree()->VAR_COUNT() != nullptr;
+  }
+
+  reference_[name] = low_case_matched_tree;
+
+  // Append action
+  if (ctx->variable_matched_optree()) {
+    current_rule_->get()->appendAction(std::make_unique<Action::Ref>(
+        Action::ActionBase::Branch::Matched, std::move(name),
+        std::unique_ptr<Variable::MatchedPTreeBase>(
+            new Variable::MatchedOPTree(std::move(sub_name), is_not, is_counter, ""))));
+  } else if (ctx->variable_matched_vptree()) {
+    current_rule_->get()->appendAction(std::make_unique<Action::Ref>(
+        Action::ActionBase::Branch::Matched, std::move(name),
+        std::unique_ptr<Variable::MatchedPTreeBase>(
+            new Variable::MatchedVPTree(std::move(sub_name), is_not, is_counter, ""))));
+  }
 
   return EMPTY_STRING;
 }
