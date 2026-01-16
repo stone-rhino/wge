@@ -1,0 +1,19 @@
+#!/bin/bash
+
+CURRENT_YEAR=$(date +%Y)
+YEAR_PATTERN="2024-[0-9]\{4\}"
+NEW_PATTERN="2024-${CURRENT_YEAR}"
+
+# Update copyright years in staged .cc, .h, .hpp and .rl files
+git diff --cached --name-only | grep -E '\.(cc|h|hpp|rl)$' | while read file; do
+  if grep -q "Copyright.*2024" "$file"; then
+    sed -i "s/Copyright (c) ${YEAR_PATTERN}/Copyright (c) ${NEW_PATTERN}/g" "$file"
+    git add "$file"
+  fi
+done
+
+# Format staged .cc, .h, .hpp and .rl files using clang-format
+git diff --cached --name-only | grep -E '\.(cc|h|hpp|rl)$' | while read file; do
+  clang-format -i --style=file "$file"
+  git add "$file"
+done

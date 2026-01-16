@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Check the commit message format and length
+COMMIT_MSG_FILE="$1"
+
+if [ ! -f "$COMMIT_MSG_FILE" ]; then
+  exit 0
+fi
+
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip merge commits and other special commits
+if echo "$COMMIT_MSG" | grep -qE "^Merge|^Revert|^Cherry-pick"; then
+  exit 0
+fi
+
+# Extract the first line (subject)
+SUBJECT=$(echo "$COMMIT_MSG" | head -n 1)
+
+# Check if the subject line is empty
+if [ -z "$SUBJECT" ]; then
+  echo "Error: Commit message subject cannot be empty"
+  exit 1
+fi
+
+# Check the subject line format: type(scope): subject
+# type should be one of: feat, fix, docs, style, refactor, test
+# scope is optional
+if ! echo "$SUBJECT" | grep -qE "^(feat|fix|docs|style|refactor|test)(\([a-z0-9_-]+\))?: .+"; then
+  echo "Error: Invalid commit message format"
+  echo "Expected format: type: subject or type(scope): subject"
+  echo "Type must be one of: feat, fix, docs, style, refactor, test"
+  echo "Scope is optional and should be in parentheses"
+  echo "Got: $SUBJECT"
+  exit 1
+fi
+
+# Check the subject line length (should be <= 50 characters)
+SUBJECT_LENGTH=${#SUBJECT}
+if [ "$SUBJECT_LENGTH" -gt 50 ]; then
+  echo "Error: Subject line is too long ($SUBJECT_LENGTH characters, max 50)"
+  exit 1
+fi
+
+# Check the body line length (should be <= 72 characters)
+LINE_NUM=0
+while IFS= read -r line; do
+  LINE_NUM=$((LINE_NUM + 1))
+  
+  # Skip the first line (subject) and empty lines
+  if [ "$LINE_NUM" -eq 1 ] || [ -z "$line" ]; then
+    continue
+  fi
+  
+  # Check if it's a footer line (starts with keywords like "Fixes", "Related to", etc.)
+  if echo "$line" | grep -qE "^(Fixes|Related to|Co-authored-by)"; then
+    continue
+  fi
+  
+  LINE_LENGTH=${#line}
+  if [ "$LINE_LENGTH" -gt 72 ]; then
+    echo "Error: Line $LINE_NUM in commit message is too long ($LINE_LENGTH characters, max 72)"
+    exit 1
+  fi
+done <<< "$COMMIT_MSG"

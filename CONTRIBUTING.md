@@ -9,6 +9,13 @@ We welcome contributions to WGE! Please follow these guidelines to maximize the 
   ./clang-format.sh 
   ```
 - Ensure that your code passes the existing tests and add new tests for any new functionality you introduce.
+## Git hooks
+- We use Git hooks to enforce code quality and consistency. Please run the following script to set up the Git hooks in your local repository:
+  ```bash
+  ./tools/setup_git_hooks.sh
+  ```
+- The `pre-commit` hook will automatically format your code using `clang-format` before each commit. This helps maintain a consistent code style across the project.
+- The `commit-msg` hook will validate your commit messages to ensure they follow the project's commit message guidelines. Please refer to the commit message format section below for more details.
 ## Submitting Pull Requests
 - Fork the repository and create a new branch for your changes. Use a descriptive name for your branch that reflects the changes you are making. The branch name should be in the format `feat/your-feature-name` or `fix/your-bugfix-name`.
 - The commit messages should be clear and descriptive. Use the following format for commit messages:
