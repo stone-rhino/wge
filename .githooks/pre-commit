@@ -4,8 +4,8 @@ CURRENT_YEAR=$(date +%Y)
 YEAR_PATTERN="2024-[0-9]\{4\}"
 NEW_PATTERN="2024-${CURRENT_YEAR}"
 
-# Update copyright years in staged .cc, .h, .hpp and .rl files
-git diff --cached --name-only | grep -E '\.(cc|h|hpp|rl)$' | while read file; do
+# Update copyright years in staged .cc, .h, .hpp, .rl and .g4 files
+git diff --cached --name-only | grep -E '\.(cc|h|hpp|rl|g4)$' | while read file; do
   if grep -q "Copyright.*2024" "$file"; then
     sed -i "s/Copyright (c) ${YEAR_PATTERN}/Copyright (c) ${NEW_PATTERN}/g" "$file"
     git add "$file"
