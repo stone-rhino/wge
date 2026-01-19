@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -152,6 +152,13 @@ TEST_F(TransformationTest, cmdLine) {
        "this is a test/( dat a_hello"},
       // Deleting all double quotes ["] and deleting spaces before a slash /
       {true, R"(BX4;HyzokkcX "/fQq;AY      V b)", "bx4 hyzokkcx/fqq ay v b"},
+      // Quote between whitespace should collapse to a single space
+      {true, "this\t  ' \r\n  is", "this is"},
+      // Trailing whitespace should normalize to a single space
+      {true, "this is a test\t\r\n;,", "this is a test "},
+      // Test that prescan does not incorrectly push spaces into the result, causing two consecutive
+      // spaces
+      {true, "this is a \t\n  test", "this is a test"},
   };
 
   evaluate<Wge::Transformation::CmdLine>(test_cases);

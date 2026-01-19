@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -45,34 +45,42 @@
       memcpy(r, input.data(), ts - input.data());
       r += ts - input.data();
     }
-    p = ts;
-    fhold;
+    fexec ts;
     fgoto transformation;
   }
 
   action skip {}
-  action append_slash { *r++ = '/'; }
-  action append_open_parenthesis { *r++ = '('; }
-  action append_space { *r++ = ' '; }
-  action tolower { *r++ = tolower(fc); }
+  action append_space {
+    if (!has_space) {
+      *r++ = ' ';
+      has_space = true;
+    }
+  }
+  action emit_lowered_char {
+    if (fc == '/' || fc == '(') {
+      if (has_space) {
+        r--; /* remove previous space */
+      }
+      *r++ = fc;
+    } else {
+      *r++ = std::tolower(fc);
+    }
+    has_space = false;
+  }
 
   # prescan
   main := |*
     [\\"'^] => exec_transformation;
-    [ \t\r\n,;]+'/' => exec_transformation;
-    [ \t\r\n,;]+'(' => exec_transformation;
-    [\t\r\n,;] => exec_transformation;
-    ' '{2,} => exec_transformation;
+    ' '? [\t\r\n,;] => exec_transformation;
+    ' ' [ \\"'^(/] => exec_transformation;
     [A-Z] => exec_transformation;
     any => skip;
   *|;
 
   transformation := |*
-    [ \t\r\n,;\\"'^]+'/' => append_slash;
-    [ \t\r\n,;\\"'^]+'(' => append_open_parenthesis;
     [ \t\r\n,;]+ => append_space;
     [\\"'^] => skip;
-    any => tolower;
+    any => emit_lowered_char;
   *|;
 }%%
 %% write data;
@@ -87,7 +95,7 @@ static bool cmdLine(std::string_view input, std::string& result) {
   const char* eof = pe;
   const char *ts, *te;
   int cs, act;
-
+  bool has_space = false;
   // clang-format off
   %% write init;
   %% write exec;
@@ -110,7 +118,11 @@ static bool cmdLine(std::string_view input, std::string& result) {
 
   main := |*
     [\\"'^] => skip;
-    [ \t\r\n,;] => { result += ' '; fgoto skip_spaces; };
+    [ \t\r\n,;] => {
+      if(result.empty() || result.back() != ' ') {
+        result += ' ';
+      }
+    };
     [/(] => {
       if(!result.empty() && result.back() == ' ') {
         result.pop_back();
@@ -118,11 +130,6 @@ static bool cmdLine(std::string_view input, std::string& result) {
       result += fc;
     };
     any => tolower;
-  *|;
-
-  skip_spaces := |*
-    [ \t\r\n,;] => skip;
-    any => { p = ts; fhold; fgoto main; };
   *|;
 }%%
 %% write data;
