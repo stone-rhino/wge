@@ -210,6 +210,8 @@ std::any Visitor::visitSec_action(Antlr4Gen::SecLangParser::Sec_actionContext* c
     // Drop the failed created rule
     current_rule_->finalize(false);
     return error;
+  } else {
+    current_rule_->finalize(true);
   }
 
   return EMPTY_STRING;
@@ -228,6 +230,8 @@ Visitor::visitSec_default_action(Antlr4Gen::SecLangParser::Sec_default_actionCon
     // Drop the failed created rule
     current_rule_->finalize(false);
     return error;
+  } else {
+    current_rule_->finalize(true);
   }
 
   return EMPTY_STRING;
@@ -279,21 +283,17 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
   if (!ctx->FRAGMENT()) {
     // Create an empty rule, and sets variable and operators and actions by visitChildren
     if (chain_) {
-      assert(current_rule_);
-      RulePhaseType parent_rule_phase = current_rule_->get()->phase();
-      Rule* appended_rule = current_rule_->finalize(true);
-      assert(appended_rule);
+      assert(last_rule_);
       current_rule_ =
-          std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), appended_rule);
+          std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), last_rule_);
+      chain_ = false;
     } else {
       current_rule_ = std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), nullptr);
 
-      // Clear alias and reference for new rule
+      // Clear alias and reference for new top-level rule
       alias_.clear();
       reference_.clear();
     }
-
-    chain_ = false;
 
     // Visit variables and operators and actions
     std::string error;
@@ -304,6 +304,8 @@ std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) 
       // Drop the failed created rule
       current_rule_->finalize(false);
       return error;
+    } else {
+      last_rule_ = current_rule_->finalize(true);
     }
   } else {
     // Parse fragment rule text
@@ -451,10 +453,6 @@ std::any Visitor::visitSec_rule_update_target_by_tag(
 }
 
 std::any Visitor::visitSec_marker(Antlr4Gen::SecLangParser::Sec_markerContext* ctx) {
-  if (current_rule_) {
-    current_rule_->finalize(true);
-  }
-
   parser_->secMarker(ctx->STRING()->getText());
   return EMPTY_STRING;
 }

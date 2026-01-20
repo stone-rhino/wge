@@ -49,15 +49,6 @@ public:
   }
 
 public:
-  std::any visit(antlr4::tree::ParseTree* tree) override {
-    auto result = Antlr4Gen::SecLangParserBaseVisitor::visit(tree);
-    if (current_rule_) {
-      current_rule_->finalize(true);
-    }
-    return result;
-  }
-
-public:
   std::any visitInclude(Antlr4Gen::SecLangParser::IncludeContext* ctx) override;
 
   // Engine configurations
@@ -1380,6 +1371,7 @@ private:
 private:
   Parser* parser_;
   std::unique_ptr<CurrentRule> current_rule_;
+  Rule* last_rule_{nullptr};
   bool chain_{false};
   bool should_visit_next_child_{true};
   std::unordered_map<std::string, std::string> alias_;
