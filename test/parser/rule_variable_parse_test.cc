@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -210,6 +210,78 @@ TEST_F(RuleVariableParseTest, MatchedVPTree) {
   const auto* variable1 = dynamic_cast<const Variable::MatchedVPTree*>(variables[1].get());
   const auto* variable2 = dynamic_cast<const Variable::MatchedVPTree*>(variables[2].get());
   const auto* variable3 = dynamic_cast<const Variable::MatchedVPTree*>(variables[3].get());
+  ASSERT_NE(variable0, nullptr);
+  ASSERT_NE(variable1, nullptr);
+  ASSERT_NE(variable2, nullptr);
+  ASSERT_NE(variable3, nullptr);
+
+  EXPECT_EQ(variable0->parentCount(), 2);
+  EXPECT_EQ(variable0->subName(), "../../");
+  EXPECT_EQ(variable0->paths().size(), 0);
+
+  EXPECT_EQ(variable1->parentCount(), 0);
+  EXPECT_EQ(variable1->subName(), "foo.bar");
+  EXPECT_EQ(variable1->paths().size(), 2);
+
+  EXPECT_EQ(variable2->parentCount(), 1);
+  EXPECT_EQ(variable2->subName(), "../hello.world");
+  EXPECT_EQ(variable2->paths().size(), 2);
+
+  EXPECT_EQ(variable3->parentCount(), 0);
+  EXPECT_EQ(variable3->subName(), "");
+  EXPECT_EQ(variable3->paths().size(), 0);
+}
+
+TEST_F(RuleVariableParseTest, CurrentOPTree) {
+  const std::string directive =
+      R"(SecRule CURRENT_OPTREE../../|CURRENT_OPTREE:foo.bar|CURRENT_OPTREE../hello.world|CURRENT_OPTREE "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 4);
+  const auto* variable0 = dynamic_cast<const Variable::CurrentOPTree*>(variables[0].get());
+  const auto* variable1 = dynamic_cast<const Variable::CurrentOPTree*>(variables[1].get());
+  const auto* variable2 = dynamic_cast<const Variable::CurrentOPTree*>(variables[2].get());
+  const auto* variable3 = dynamic_cast<const Variable::CurrentOPTree*>(variables[3].get());
+  ASSERT_NE(variable0, nullptr);
+  ASSERT_NE(variable1, nullptr);
+  ASSERT_NE(variable2, nullptr);
+  ASSERT_NE(variable3, nullptr);
+
+  EXPECT_EQ(variable0->parentCount(), 2);
+  EXPECT_EQ(variable0->subName(), "../../");
+  EXPECT_EQ(variable0->paths().size(), 0);
+
+  EXPECT_EQ(variable1->parentCount(), 0);
+  EXPECT_EQ(variable1->subName(), "foo.bar");
+  EXPECT_EQ(variable1->paths().size(), 2);
+
+  EXPECT_EQ(variable2->parentCount(), 1);
+  EXPECT_EQ(variable2->subName(), "../hello.world");
+  EXPECT_EQ(variable2->paths().size(), 2);
+
+  EXPECT_EQ(variable3->parentCount(), 0);
+  EXPECT_EQ(variable3->subName(), "");
+  EXPECT_EQ(variable3->paths().size(), 0);
+}
+
+TEST_F(RuleVariableParseTest, CurrentVPTree) {
+  const std::string directive =
+      R"(SecRule CURRENT_VPTREE../../|CURRENT_VPTREE:foo.bar|CURRENT_VPTREE../hello.world|CURRENT_VPTREE "foo" "id:1,phase:1")";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(directive);
+  ASSERT_TRUE(result.has_value());
+
+  auto& variables = parser.rules()[0].back().variables();
+  EXPECT_EQ(variables.size(), 4);
+  const auto* variable0 = dynamic_cast<const Variable::CurrentVPTree*>(variables[0].get());
+  const auto* variable1 = dynamic_cast<const Variable::CurrentVPTree*>(variables[1].get());
+  const auto* variable2 = dynamic_cast<const Variable::CurrentVPTree*>(variables[2].get());
+  const auto* variable3 = dynamic_cast<const Variable::CurrentVPTree*>(variables[3].get());
   ASSERT_NE(variable0, nullptr);
   ASSERT_NE(variable1, nullptr);
   ASSERT_NE(variable2, nullptr);

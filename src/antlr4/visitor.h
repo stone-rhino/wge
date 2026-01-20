@@ -26,6 +26,8 @@
 #include "../common/empty_string.h"
 #include "../macro/macro_include.h"
 #include "../operator/pm_from_file.h"
+#include "../variable/current_optree.h"
+#include "../variable/current_vptree.h"
 #include "../variable/matched_optree.h"
 #include "../variable/matched_vptree.h"
 #include "../variable/ptree.h"
@@ -454,6 +456,10 @@ public:
       Antlr4Gen::SecLangParser::Variable_matched_vptreeContext* ctx) override;
   std::any visitVariable_matched_optree(
       Antlr4Gen::SecLangParser::Variable_matched_optreeContext* ctx) override;
+  std::any visitVariable_current_vptree(
+      Antlr4Gen::SecLangParser::Variable_current_vptreeContext* ctx) override;
+  std::any visitVariable_current_optree(
+      Antlr4Gen::SecLangParser::Variable_current_optreeContext* ctx) override;
   std::any
   visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_refContext* ctx) override;
 
@@ -888,9 +894,13 @@ private:
     std::unique_ptr<Macro::VariableMacro> sub_name_macro;
     if constexpr (std::is_same_v<VarT, Variable::PTree> ||
                   std::is_same_v<VarT, Variable::MatchedOPTree> ||
-                  std::is_same_v<VarT, Variable::MatchedVPTree>) {
+                  std::is_same_v<VarT, Variable::MatchedVPTree> ||
+                  std::is_same_v<VarT, Variable::CurrentOPTree> ||
+                  std::is_same_v<VarT, Variable::CurrentVPTree>) {
       if constexpr (std::is_same_v<VarT, Variable::MatchedOPTree> ||
-                    std::is_same_v<VarT, Variable::MatchedVPTree>) {
+                    std::is_same_v<VarT, Variable::MatchedVPTree> ||
+                    std::is_same_v<VarT, Variable::CurrentOPTree> ||
+                    std::is_same_v<VarT, Variable::CurrentVPTree>) {
         // The subname still needs the parent node information to prevent their full name from
         // conflicting. Otherwise, there will be fail append to list of variables caused by same
         // full name.

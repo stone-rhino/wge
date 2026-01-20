@@ -959,6 +959,16 @@ std::any Visitor::visitVariable_matched_optree(
   return appendVariable<Variable::MatchedOPTree>(ctx);
 }
 
+std::any Visitor::visitVariable_current_vptree(
+    Antlr4Gen::SecLangParser::Variable_current_vptreeContext* ctx) {
+  return appendVariable<Variable::CurrentVPTree>(ctx);
+}
+
+std::any Visitor::visitVariable_current_optree(
+    Antlr4Gen::SecLangParser::Variable_current_optreeContext* ctx) {
+  return appendVariable<Variable::CurrentOPTree>(ctx);
+}
+
 std::any
 Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_refContext* ctx) {
   // Check if alias or reference is defined

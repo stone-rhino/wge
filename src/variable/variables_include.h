@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -28,6 +28,8 @@
 #include "args_post.h"
 #include "args_post_names.h"
 #include "auth_type.h"
+#include "current_optree.h"
+#include "current_vptree.h"
 #include "duration.h"
 #include "env.h"
 #include "files.h"

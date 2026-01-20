@@ -477,13 +477,19 @@ VAR_IP: [iI][pP];
 VAR_USER: [uU][sS][eE][rR];
 VAR_PTREE:
 	[pP][tT][rR][eE][eE] -> pushMode(ModeSecRuleVariableNamePtree);
+VAR_GTX: [gG][tT][xX];
 VAR_MATCHED_VPTREE:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [vV][pP][tT][rR][eE][eE] -> pushMode(
 		ModeSecRuleVariableNamePtree);
 VAR_MATCHED_OPTREE:
 	[mM][aA][tT][cC][hH][eE][dD]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
 		ModeSecRuleVariableNamePtree);
-VAR_GTX: [gG][tT][xX];
+VAR_CURRENT_VPTREE:
+	[cC][uU][rR][rR][eE][nN][tT]'_' [vV][pP][tT][rR][eE][eE] -> pushMode(
+		ModeSecRuleVariableNamePtree);
+VAR_CURRENT_OPTREE:
+	[cC][uU][rR][rR][eE][nN][tT]'_' [oO][pP][tT][rR][eE][eE] -> pushMode(
+		ModeSecRuleVariableNamePtree);
 VAR_ALIAS_OR_REF:
 	[a-zA-Z_][0-9a-zA-Z_]* -> pushMode(ModeSecRuleVariableNamePtree);
 ModeSecRuleVariableName_WS: WS -> skip, popMode;
