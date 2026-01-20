@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -46,6 +46,15 @@ public:
   bool shouldVisitNextChild(antlr4::tree::ParseTree* /*node*/,
                             const std::any& /*currentResult*/) override {
     return should_visit_next_child_;
+  }
+
+public:
+  std::any visit(antlr4::tree::ParseTree* tree) override {
+    auto result = Antlr4Gen::SecLangParserBaseVisitor::visit(tree);
+    if (current_rule_) {
+      current_rule_->finalize(true);
+    }
+    return result;
   }
 
 public:
@@ -870,6 +879,7 @@ public:
   std::any visitSec_rule_update_operator_by_tag(
       Antlr4Gen::SecLangParser::Sec_rule_update_operator_by_tagContext* ctx) override;
   std::any visitSec_tx_namespace(Antlr4Gen::SecLangParser::Sec_tx_namespaceContext* ctx) override;
+  std::any visitSec_fragment_rule(Antlr4Gen::SecLangParser::Sec_fragment_ruleContext* ctx) override;
 
 private:
   static bool optionStr2Bool(const std::string& option_str);
@@ -1094,7 +1104,6 @@ private:
       // std::any is copyable, so we can't return a unique_ptr
       std::shared_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -1106,7 +1115,6 @@ private:
     } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx.yyy format
       if (ctx->COLON()) {
@@ -1133,7 +1141,6 @@ private:
     } else {
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -1149,15 +1156,16 @@ private:
   }
 
   template <class CtxT>
-  std::any appendRefVariable(CtxT* ctx, std::string&& name, std::string&& sub_name) {
+  std::any appendRefVariable(CtxT* ctx, Variable::Ref::RefType ref_type, std::string&& name,
+                             std::string&& sub_name) {
     const bool is_not = ctx->NOT() != nullptr;
     const bool is_counter = ctx->VAR_COUNT() != nullptr;
 
     if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Ctl) {
       // std::any is copyable, so we can't return a unique_ptr
-      std::shared_ptr<Variable::VariableBase> variable(new Variable::Ref(
-          std::move(name), std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
+      std::shared_ptr<Variable::VariableBase> variable(
+          new Variable::Ref(ref_type, std::move(name), std::move(sub_name), is_not, is_counter,
+                            parser_->currLoadFile()));
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -1168,8 +1176,7 @@ private:
       return variable;
     } else if (current_rule_->visitVariableMode() == CurrentRule::VisitVariableMode::Macro) {
       std::unique_ptr<Variable::VariableBase> variable(new Variable::Ref(
-          std::move(name), std::move(sub_name), false, false, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
+          ref_type, std::move(name), std::move(sub_name), false, false, parser_->currLoadFile()));
 
       // Only accept xxx.yyy format
       if (ctx->COLON()) {
@@ -1194,9 +1201,9 @@ private:
       // The raw pointer will be managed by std::unique_ptr in getMacro
       return macro_ptr;
     } else {
-      std::unique_ptr<Variable::VariableBase> variable(new Variable::Ref(
-          std::move(name), std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
-      setRuleNeedPushMatched(variable.get());
+      std::unique_ptr<Variable::VariableBase> variable(
+          new Variable::Ref(ref_type, std::move(name), std::move(sub_name), is_not, is_counter,
+                            parser_->currLoadFile()));
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -1273,16 +1280,33 @@ private:
     enum class VisitOperatorMode { SecRule, SecRuleUpdateOperator };
 
   public:
+    /**
+     * Use to create a new rule
+     * @param parser The parser instance
+     * @param line The line number of the rule
+     * @param parent_rule The parent rule if this is a chained rule. If nullptr, this is a top-level
+     * rule.
+     */
     CurrentRule(Parser* parser, int line, Rule* parent_rule)
         : parser_(parser), parent_rule_(parent_rule) {
       created_rule_ = std::make_unique<Rule>(parser->currLoadFile(), line);
     }
 
+    /**
+     * Use to update an existed rule
+     * @param parser The parser instance
+     * @param existed_rule_id The ID of the existed rule
+     */
     CurrentRule(Parser* parser, uint64_t existed_rule_id) : parser_(parser) {
       existed_rule_ = parser->findRuleById(existed_rule_id);
       assert(existed_rule_);
     }
 
+    /**
+     * Use to update an existed rule
+     * @param parser The parser instance
+     * @param rule The existed rule
+     */
     CurrentRule(Parser* parser, Rule* rule) : parser_(parser) {
       existed_rule_ = rule;
       assert(existed_rule_);
@@ -1339,12 +1363,15 @@ private:
 
   private:
     Parser* parser_;
+
     // The rule will be appended to parser's rule list when finalized or when a chained rule is
     // created.
     std::unique_ptr<Rule> created_rule_;
+
     // The rule use to update existed rule in SecRuleUpdateXXX directives.
     Rule* existed_rule_{nullptr};
     Rule* parent_rule_{nullptr};
+
     VisitVariableMode visit_variable_mode_{VisitVariableMode::SecRule};
     VisitActionMode visit_action_mode_{VisitActionMode::SecRule};
     VisitOperatorMode visit_operator_mode_{VisitOperatorMode::SecRule};
@@ -1357,5 +1384,6 @@ private:
   bool should_visit_next_child_{true};
   std::unordered_map<std::string, std::string> alias_;
   std::unordered_map<std::string, std::string> reference_;
+  std::unordered_map<std::string, std::string> fragment_rule_text_;
 };
 } // namespace Wge::Antlr4

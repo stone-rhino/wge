@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -75,12 +75,14 @@ public:
   std::string error_msg;
 };
 
-Parser::Parser() {
+Parser::Parser() : visitor_(std::make_unique<Visitor>(this)) {
   constexpr size_t tx_variable_index_size = 1000;
   auto inserted_iter = tx_variable_index_.emplace("", TxVariableIndex{}).first;
   inserted_iter->second.index_.reserve(tx_variable_index_size);
   inserted_iter->second.index_reverse_.reserve(tx_variable_index_size);
 }
+
+Parser::~Parser() = default;
 
 std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_path) {
   // Init
@@ -124,8 +126,7 @@ std::expected<bool, std::string> Parser::loadFromFile(const std::string& file_pa
 
   // Visit
   std::string error;
-  Visitor vistor(this);
-  TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
+  TRY_NOCATCH(error = std::any_cast<std::string>(visitor_->visit(tree)));
 
   curr_load_file_.pop();
 
@@ -163,8 +164,7 @@ std::expected<bool, std::string> Parser::load(const std::string& directive) {
 
   // visit
   std::string error;
-  Visitor vistor(this);
-  TRY_NOCATCH(error = std::any_cast<std::string>(vistor.visit(tree)));
+  TRY_NOCATCH(error = std::any_cast<std::string>(visitor_->visit(tree)));
 
   if (!error.empty()) {
     return std::unexpected(error);
