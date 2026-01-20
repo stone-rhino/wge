@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -132,6 +132,76 @@ void PTree::evaluateNode(const Common::PropertyTree* node, Common::EvaluateResul
                             static_cast<const Common::PropertyTree*>(&child_tree));
       } else {
         evaluateNode(static_cast<const Common::PropertyTree*>(&child_tree), result);
+      }
+    }
+  }
+}
+
+void PTree::evaluateNodeCount(const Common::PropertyTree* node, const std::vector<Path>& paths,
+                              size_t path_index, int64_t& count) {
+  const Common::PropertyTree* current_node = node;
+  for (size_t i = path_index; i < paths.size(); ++i) {
+    auto& path = paths[i];
+    switch (path.type_) {
+    case Path::Type::Map: {
+      auto child = current_node->get_child_optional(path.name_);
+      if (!child) {
+        WGE_LOG_WARN("The map node '{}' is not found in the property tree.", path.name_);
+        count = 0;
+        return;
+      }
+      current_node = static_cast<const Common::PropertyTree*>(&child.get());
+
+      // If it's the last node and it's a map, we return the values of the map
+      if (i == paths.size() - 1) {
+        count += static_cast<int64_t>(current_node->size());
+      }
+    } break;
+    case Path::Type::Array: {
+      auto child = current_node->get_child_optional(path.name_);
+      if (!child) {
+        WGE_LOG_WARN("The array node '{}' is not found in the property tree.", path.name_);
+        count = 0;
+        return;
+      }
+      current_node = static_cast<const Common::PropertyTree*>(&child.get());
+
+      if (i == paths.size() - 1) {
+        // If it's the last node and it's an array, we return the values of the array
+        count += static_cast<int64_t>(current_node->size());
+      } else {
+        // Otherwise, we walk through each element in the array
+        ++i;
+        for (const auto& [key, child_tree] : *current_node) {
+          evaluateNodeCount(static_cast<const Common::PropertyTree*>(&child_tree), paths, i, count);
+        }
+        return;
+      }
+    } break;
+    case Path::Type::Value: {
+      auto child = current_node->get_child_optional(path.name_);
+      if (!child) {
+        WGE_LOG_WARN("The value node '{}' is not found in the property tree.", path.name_);
+        count = 0;
+        return;
+      }
+      ++count;
+    } break;
+    default:
+      break;
+    }
+  }
+}
+
+void PTree::evaluateNodeCount(const Common::PropertyTree* node, int64_t& count) {
+  if (node->empty()) {
+    ++count;
+  } else {
+    for (const auto& [_, child_tree] : *node) {
+      if (child_tree.empty()) {
+        ++count;
+      } else {
+        evaluateNodeCount(static_cast<const Common::PropertyTree*>(&child_tree), count);
       }
     }
   }

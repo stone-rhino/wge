@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -853,32 +853,51 @@ TEST_F(VariableTest, PTREE) {
 
   {
     Variable::PTree var("config.max_connection", false, false, "");
+    Variable::PTree var1("config.max_connection", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 100);
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
   }
 
   {
     Variable::PTree var("config.server_list[].host", false, false, "");
+    Variable::PTree var1("config.server_list[].host", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "192.168.1.2");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 2);
   }
 
   {
     Variable::PTree var("config.server_list[].port", false, false, "");
+    Variable::PTree var1("config.server_list[].port", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 8080);
     EXPECT_EQ(std::get<int64_t>(result[1].variant_), 8081);
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 2);
   }
 
   {
     Variable::PTree var("config.server_list[].domain{}", false, false, "");
+    Variable::PTree var1("config.server_list[].domain{}", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 4);
@@ -890,10 +909,16 @@ TEST_F(VariableTest, PTREE) {
     EXPECT_EQ(result[2].variable_sub_name_, "name");
     EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "2025-12-31");
     EXPECT_EQ(result[3].variable_sub_name_, "expire_time");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 4);
   }
 
   {
     Variable::PTree var("config.server_list[].domain.name", false, false, "");
+    Variable::PTree var1("config.server_list[].domain.name", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
@@ -901,10 +926,16 @@ TEST_F(VariableTest, PTREE) {
     EXPECT_EQ(result[0].variable_sub_name_, "name");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "server2.example.com");
     EXPECT_EQ(result[1].variable_sub_name_, "name");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 2);
   }
 
   {
     Variable::PTree var("config.server_list[].tags[]", false, false, "");
+    Variable::PTree var1("config.server_list[].tags[]", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 4);
@@ -912,6 +943,11 @@ TEST_F(VariableTest, PTREE) {
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
     EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
     EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "v1.1");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 4);
   }
 
   {
@@ -1011,10 +1047,36 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
     EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
     t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../host", false, false, "");
+    Variable::MatchedOPTree var1("../host", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
+  }
+
+  // config.server_list[].tags[]
+  {
+    auto& matched_optree = t->propertyTree()->get_child("config");
+    t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
+    Variable::MatchedOPTree var("server_list[].tags[]", false, false, "");
+    Variable::MatchedOPTree var1("server_list[].tags[]", false, true, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 4);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "production");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
+    EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
+    EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "v1.1");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 4);
   }
 
   // config.server_list[].tags[]../../domain.name
@@ -1028,10 +1090,16 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
     EXPECT_EQ(std::get<std::string_view>(matched_optree.data()), "staging");
     t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../../domain.name", false, false, "");
+    Variable::MatchedOPTree var1("../../domain.name", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
   }
 }
 
@@ -1083,10 +1151,36 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
     EXPECT_EQ(std::get<int64_t>(matched_vptree.data()), 8080);
     t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
     Variable::MatchedVPTree var("../host", false, false, "");
+    Variable::MatchedVPTree var1("../host", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
+  }
+
+  // config.server_list[].tags[]
+  {
+    auto& matched_vptree = t->propertyTree()->get_child("config");
+    t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
+    Variable::MatchedVPTree var("server_list[].tags[]", false, false, "");
+    Variable::MatchedVPTree var1("server_list[].tags[]", false, true, "");
+    result.clear();
+    var.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 4);
+    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "production");
+    EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
+    EXPECT_EQ(std::get<std::string_view>(result[2].variant_), "staging");
+    EXPECT_EQ(std::get<std::string_view>(result[3].variant_), "v1.1");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 4);
   }
 
   // config.server_list[].tags[]../../domain.name
@@ -1100,10 +1194,16 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
     EXPECT_EQ(std::get<std::string_view>(matched_vptree.data()), "staging");
     t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
     Variable::MatchedVPTree var("../../domain.name", false, false, "");
+    Variable::MatchedVPTree var1("../../domain.name", false, true, "");
     result.clear();
     var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
+
+    result.clear();
+    var1.evaluate(*t, result);
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(std::get<int64_t>(result[0].variant_), 1);
   }
 }
 

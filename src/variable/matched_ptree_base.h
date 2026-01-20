@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -55,7 +55,17 @@ public:
 
 public:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(getAllMatchedPtrees(t).empty() ? 0 : 1);
+    const Common::PropertyTree* matched_ptree = getMatchedPTree(t);
+    int64_t count = 0;
+    if (matched_ptree) {
+      Common::EvaluateResults temp_result;
+      if (paths_.empty()) {
+        Variable::PTree::evaluateNodeCount(matched_ptree, count);
+      } else {
+        Variable::PTree::evaluateNodeCount(matched_ptree, paths_, 0, count);
+      }
+    }
+    result.emplace_back(count);
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
