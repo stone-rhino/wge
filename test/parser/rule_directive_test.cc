@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -480,6 +480,37 @@ TEST_F(RuleTest, NoAction) {
   EXPECT_EQ(parser.rules()[0].size(), 2);
   EXPECT_EQ(parser.rules()[0].front().actions().size(), 0);
   EXPECT_EQ(parser.rules()[0].back().actions().size(), 0);
+}
+
+TEST_F(RuleTest, FragmentRule) {
+  const std::string rule_directive =
+      R"(
+      SecFragmentRule hello foo:../test3.test4 "@rx foo" "id:2,phase:1"
+      SecRule PTREE:test[].test1.test2 "bar" "id:1,phase:1,alias:foo=MATCHED_VPTREE../,chain"
+        SecRule fragment:hello
+      )";
+
+  Antlr4::Parser parser;
+  auto result = parser.load(rule_directive);
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_EQ(parser.rules()[0].size(), 1);
+
+  auto rule = parser.rules()[0].back().chainRule(0);
+
+  auto& variables = rule->variables();
+  ASSERT_EQ(variables.size(), 1);
+  Variable::MatchedVPTree* vptree_var = dynamic_cast<Variable::MatchedVPTree*>(variables[0].get());
+  ASSERT_NE(vptree_var, nullptr);
+  EXPECT_EQ(vptree_var->subName(), "../../test3.test4");
+
+  ASSERT_EQ(rule->operators().size(), 1);
+  auto& rule_operator = rule->operators().front();
+  EXPECT_EQ(rule_operator->name(), std::string("rx"));
+  EXPECT_EQ(rule_operator->literalValue(), "foo");
+
+  EXPECT_EQ(rule->id(), 2);
+  EXPECT_EQ(rule->phase(), 1);
 }
 } // namespace Parser
 } // namespace Wge

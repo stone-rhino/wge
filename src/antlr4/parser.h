@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -37,12 +37,15 @@
 
 namespace Wge::Antlr4 {
 
+class Visitor;
+
 /**
  * SecLang parser
  */
 class Parser {
 public:
   Parser();
+  ~Parser();
 
 public:
   /**
@@ -172,5 +175,6 @@ private:
   std::unordered_map<std::string /*namespace*/, TxVariableIndex> tx_variable_index_;
   std::unordered_map<std::string /*namespace*/, size_t> tx_variable_index_size_;
   std::string curr_namespace_;
+  std::unique_ptr<Visitor> visitor_;
 };
 } // namespace Wge::Antlr4

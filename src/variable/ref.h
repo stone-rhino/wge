@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -27,13 +27,14 @@
 namespace Wge {
 namespace Variable {
 class Ref final : public MatchedPTreeBase {
-  DECLARE_VIRABLE_NAME(Ref);
+public:
+  enum class RefType { MatchedOPtree, MatchedVPTree };
 
 public:
-  Ref(std::string&& key, std::string&& sub_name, bool is_not, bool is_counter,
+  Ref(RefType ref_type, std::string&& key, std::string&& sub_name, bool is_not, bool is_counter,
       std::string_view curr_rule_file_path)
       : MatchedPTreeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path),
-        key_(std::move(key)) {}
+        ref_type_(ref_type), key_(std::move(key)) {}
 
   Ref(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
       std::string_view curr_rule_file_path)
@@ -70,10 +71,34 @@ public:
   }
 
 public:
+  FullName fullName() const override {
+    if (ref_type_ == RefType::MatchedOPtree) {
+      return {optree_main_name_, sub_name_};
+    } else {
+      return {vptree_main_name_, sub_name_};
+    }
+  }
+
+  std::string_view mainName() const override {
+    if (ref_type_ == RefType::MatchedOPtree) {
+      return optree_main_name_;
+    } else {
+      return vptree_main_name_;
+    }
+  }
+
+public:
   const std::string& key() const { return key_; }
 
 private:
+  RefType ref_type_;
   std::string key_;
-};
+
+  // The different main names for different ref types are necessary
+  // They avoid conflicts when both MATCHED_OPTREE_REF and MATCHED_VPTREE_REF that have the same sub
+  // name are used in the same rule
+  static constexpr std::string_view optree_main_name_{"MATCHED_OPTREE_REF"};
+  static constexpr std::string_view vptree_main_name_{"MATCHED_VPTREE_REF"};
+}; // namespace Variable
 } // namespace Variable
 } // namespace Wge

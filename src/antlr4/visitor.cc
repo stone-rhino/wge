@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -276,33 +276,51 @@ Visitor::visitSec_pmf_serialize_dir(Antlr4Gen::SecLangParser::Sec_pmf_serialize_
 }
 
 std::any Visitor::visitSec_rule(Antlr4Gen::SecLangParser::Sec_ruleContext* ctx) {
-  // Create an empty rule, and sets variable and operators and actions by visitChildren
-  if (chain_) {
-    assert(current_rule_);
-    RulePhaseType parent_rule_phase = current_rule_->get()->phase();
-    Rule* appended_rule = current_rule_->finalize(true);
-    assert(appended_rule);
-    current_rule_ =
-        std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), appended_rule);
+  if (!ctx->FRAGMENT()) {
+    // Create an empty rule, and sets variable and operators and actions by visitChildren
+    if (chain_) {
+      assert(current_rule_);
+      RulePhaseType parent_rule_phase = current_rule_->get()->phase();
+      Rule* appended_rule = current_rule_->finalize(true);
+      assert(appended_rule);
+      current_rule_ =
+          std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), appended_rule);
+    } else {
+      current_rule_ = std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), nullptr);
+
+      // Clear alias and reference for new rule
+      alias_.clear();
+      reference_.clear();
+    }
+
+    chain_ = false;
+
+    // Visit variables and operators and actions
+    std::string error;
+    current_rule_->visitVariableMode(CurrentRule::VisitVariableMode::SecRule);
+    current_rule_->visitActionMode(CurrentRule::VisitActionMode::SecRule);
+    TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
+    if (!error.empty()) {
+      // Drop the failed created rule
+      current_rule_->finalize(false);
+      return error;
+    }
   } else {
-    current_rule_ = std::make_unique<CurrentRule>(parser_, ctx->getStart()->getLine(), nullptr);
+    // Parse fragment rule text
+    std::string error;
+    std::string fragment_rule_name = ctx->STRING()->getText();
+    auto iter = fragment_rule_text_.find(fragment_rule_name);
+    if (iter == fragment_rule_text_.end()) {
+      RETURN_ERROR("Fragment rule '" + fragment_rule_name + "' is not defined.");
+    }
 
-    // Clear alias and reference for new rule
-    alias_.clear();
-    reference_.clear();
-  }
-
-  chain_ = false;
-
-  // Visit variables and operators and actions
-  std::string error;
-  current_rule_->visitVariableMode(CurrentRule::VisitVariableMode::SecRule);
-  current_rule_->visitActionMode(CurrentRule::VisitActionMode::SecRule);
-  TRY_NOCATCH(error = std::any_cast<std::string>(visitChildren(ctx)));
-  if (!error.empty()) {
-    // Drop the failed created rule
-    current_rule_->finalize(false);
-    return error;
+    // Parse the fragment rule text
+    const std::string& fragment_rule_text = iter->second;
+    std::expected<bool, std::string> result = parser_->load(fragment_rule_text);
+    if (!result.has_value()) {
+      RETURN_ERROR(std::format("Failed to parse fragment rule '{}': {}", fragment_rule_name,
+                               result.error()));
+    }
   }
 
   return EMPTY_STRING;
@@ -967,17 +985,22 @@ Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_
     if (!new_path.empty()) {
       for (size_t i = 0; i < parent_count; ++i) {
         size_t pos = new_path.rfind('.');
-        bool lookahead_is_slash = pos + 1 != std::string::npos && new_path[pos + 1] == '/';
-        if (pos != std::string::npos && !lookahead_is_slash) {
-          new_path = new_path.substr(0, pos);
-          ++remove_count;
-        } else {
-          pos = new_path.rfind('/');
-          if (pos != std::string::npos) {
-            new_path = new_path.substr(0, pos + 1);
+        if (pos != std::string::npos) {
+          bool lookahead_is_slash = pos + 1 != std::string::npos && new_path[pos + 1] == '/';
+          if (!lookahead_is_slash) {
+            // E.g., "a.b.c" -> "a.b"
+            new_path = new_path.substr(0, pos);
+            ++remove_count;
           } else {
-            new_path.clear();
+            // E.g., "../a" -> "../"
+            if (pos != new_path.size() - 2) {
+              new_path = new_path.substr(0, pos + 2);
+              ++remove_count;
+            }
           }
+        } else {
+          // E.g., "a" -> ""
+          new_path.clear();
           ++remove_count;
           break;
         }
@@ -1028,13 +1051,15 @@ Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_
   // Append variable according to alias or reference type
   if (iter->second.starts_with("matched_optree")) {
     if (is_reference) {
-      return appendRefVariable(ctx, std::move(alias_or_ref_name), std::move(sub_name));
+      return appendRefVariable(ctx, Variable::Ref::RefType::MatchedOPtree,
+                               std::move(alias_or_ref_name), std::move(sub_name));
     } else {
       return appendAliasVariable<Variable::MatchedOPTree>(ctx, std::move(sub_name));
     }
   } else if (iter->second.starts_with("matched_vptree")) {
     if (is_reference) {
-      return appendRefVariable(ctx, std::move(alias_or_ref_name), std::move(sub_name));
+      return appendRefVariable(ctx, Variable::Ref::RefType::MatchedVPTree,
+                               std::move(alias_or_ref_name), std::move(sub_name));
     } else {
       return appendAliasVariable<Variable::MatchedVPTree>(ctx, std::move(sub_name));
     }
@@ -2909,6 +2934,35 @@ std::any Visitor::visitSec_rule_update_operator_by_tag(
 std::any Visitor::visitSec_tx_namespace(Antlr4Gen::SecLangParser::Sec_tx_namespaceContext* ctx) {
   std::string ns = ctx->STRING()->getText();
   parser_->setCurrentNamespace(ns);
+  return EMPTY_STRING;
+}
+
+std::any Visitor::visitSec_fragment_rule(Antlr4Gen::SecLangParser::Sec_fragment_ruleContext* ctx) {
+  std::string name = ctx->STRING()->getText();
+  if (fragment_rule_text_.count(name)) {
+    RETURN_ERROR("The fragment rule '" + name + "' is already defined.");
+  }
+
+  // Get the original input text of the fragment rule
+  antlr4::CharStream* input = ctx->getStart()->getInputStream();
+  std::string sec_rule_text = input->getText(
+      antlr4::misc::Interval(ctx->getStart()->getStartIndex(), ctx->getStop()->getStopIndex()));
+
+  // Replace the SecFragmentRule header with SecRule
+  auto pos = sec_rule_text.find("SecFragmentRule");
+  if (pos != std::string::npos) {
+    sec_rule_text.replace(pos, strlen("SecFragmentRule"), "SecRule");
+  }
+
+  // Remove the fragment rule name from the rule text
+  // The fragment rule name is followed by the first space after SecRule
+  pos = sec_rule_text.find(' ', pos + strlen("SecRule"));
+  if (pos != std::string::npos) {
+    sec_rule_text.erase(pos, name.length() + 1);
+  }
+
+  fragment_rule_text_[name] = std::move(sec_rule_text);
+
   return EMPTY_STRING;
 }
 

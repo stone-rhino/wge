@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  * 
  * MIT License (http://opensource.org/licenses/MIT)
  * 
@@ -127,9 +127,14 @@ sec_rule_update_target_by_tag:
 sec_marker: SecMarker ((QUOTE STRING QUOTE) | STRING);
 
 sec_rule:
-	SecRule variables QUOTE operator (PIPE operator)* QUOTE (
-		QUOTE action (COMMA? action)* QUOTE
-	)?;
+	SecRule (
+		(
+			variables QUOTE operator (PIPE operator)* QUOTE (
+				QUOTE action (COMMA? action)* QUOTE
+			)?
+		)
+		| (FRAGMENT COLON STRING)
+	);
 
 variables: variable (PIPE variable)*;
 
@@ -1598,7 +1603,8 @@ sec_component_signature:
 extension_directive:
 	sec_rule_update_operator_by_id
 	| sec_rule_update_operator_by_tag
-	| sec_tx_namespace;
+	| sec_tx_namespace
+	| sec_fragment_rule;
 sec_rule_update_operator_by_id:
 	SecRuleUpdateOperatorById (
 		INT
@@ -1612,3 +1618,7 @@ sec_rule_update_operator_by_tag:
 		PIPE operator
 	)* QUOTE;
 sec_tx_namespace: SecTxNamespace STRING;
+sec_fragment_rule:
+	SecFragmentRule STRING variables QUOTE operator (
+		PIPE operator
+	)* QUOTE (QUOTE action (COMMA? action)* QUOTE)?;

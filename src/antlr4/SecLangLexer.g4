@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  * 
  * MIT License (http://opensource.org/licenses/MIT)
  * 
@@ -156,6 +156,8 @@ SecRuleUpdateOperatorByTag:
 	'SecRuleUpdateOperatorByTag' -> pushMode(ModeRuleUpdateOperatorByTag);
 SecTxNamespace:
 	'SecTxNamespace' -> pushMode(ModeAuditLogString);
+SecFragmentRule:
+	'SecFragmentRule' -> pushMode(ModeSecFragmentRule);
 
 mode ModeInclude;
 ModeInclude_WS: WS -> skip;
@@ -262,9 +264,29 @@ ModeRuleUpdateOperator_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
 
 mode ModeSecRule;
+ModeSecRule_WS_FRAGMENT:
+	WS {[&](){
+		std::string lookahead;
+		for (int i = 1; i <= 9; i++) {
+		  char c = _input->LA(i);
+		  if (c == EOF || c == ' ') break;
+		  lookahead += std::tolower(c);
+		}
+
+		return lookahead == "fragment:";
+	}()}? -> skip, popMode, pushMode(ModeSecRuleFragment);
 ModeSecRule_WS: WS -> skip, pushMode(ModeSecRuleVariableName);
 ModeSecRule_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
+
+mode ModeSecRuleFragment;
+FRAGMENT: [fF][rR][aA][gG][mM][eE][nN][tT];
+ModeSecRuleFragment_COLON:
+	COLON -> type(COLON), popMode, pushMode(ModeSecRuleFragmentName);
+
+mode ModeSecRuleFragmentName;
+ModeSecRuleFragmentName_STRING:
+	[a-zA-Z_][0-9a-zA-Z_]* -> type(STRING), popMode;
 
 mode ModeSecRuleVariable;
 ModeSecRuleVariable_WS:
@@ -1062,3 +1084,8 @@ WARNING: 'WARNING';
 NOTICE: 'NOTICE';
 INFO: 'INFO';
 DEBUG: 'DEBUG';
+
+mode ModeSecFragmentRule;
+ModeSecFragmentRule_WS: WS -> skip;
+ModeSecFragmentRule_STRING:
+	[a-zA-Z_][0-9a-zA-Z_]* -> type(STRING), popMode, pushMode(ModeSecRule);
