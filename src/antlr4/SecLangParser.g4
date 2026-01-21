@@ -1054,8 +1054,6 @@ extension_variable:
 	| variable_gtx
 	| variable_matched_vptree
 	| variable_matched_optree
-	| variable_current_vptree
-	| variable_current_optree
 	| variable_alias_or_ref;
 variable_ptree:
 	NOT? VAR_COUNT? VAR_PTREE (COLON | DOT) variable_ptree_expression;
@@ -1084,16 +1082,6 @@ variable_matched_vptree:
 	)?;
 variable_matched_optree:
 	NOT? VAR_COUNT? VAR_MATCHED_OPTREE (
-		((COLON | DOT) variable_ptree_expression)
-		| (PARENT+ variable_ptree_expression?)
-	)?;
-variable_current_vptree:
-	NOT? VAR_COUNT? VAR_CURRENT_VPTREE (
-		((COLON | DOT) variable_ptree_expression)
-		| (PARENT+ variable_ptree_expression?)
-	)?;
-variable_current_optree:
-	NOT? VAR_COUNT? VAR_CURRENT_OPTREE (
 		((COLON | DOT) variable_ptree_expression)
 		| (PARENT+ variable_ptree_expression?)
 	)?;
