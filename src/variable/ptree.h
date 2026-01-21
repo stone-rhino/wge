@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -66,9 +66,17 @@ public:
 
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    Common::EvaluateResults temp_result;
-    evaluateCollection(t, temp_result);
-    result.emplace_back(static_cast<int64_t>(temp_result.size()));
+    const Common::PropertyTree* root = t.propertyTree();
+    assert(root != nullptr);
+    int64_t count = 0;
+    if (root) {
+      if (paths_.empty()) {
+        evaluateNodeCount(root, count);
+      } else {
+        evaluateNodeCount(root, paths_, 0, count);
+      }
+    }
+    result.emplace_back(count);
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
@@ -101,6 +109,9 @@ public:
   static void evaluateNode(const Common::PropertyTree* node, const std::vector<Path>& paths,
                            size_t path_index, Common::EvaluateResults& result);
   static void evaluateNode(const Common::PropertyTree* node, Common::EvaluateResults& result);
+  static void evaluateNodeCount(const Common::PropertyTree* node, const std::vector<Path>& paths,
+                                size_t path_index, int64_t& count);
+  static void evaluateNodeCount(const Common::PropertyTree* node, int64_t& count);
 
 private:
   std::vector<Path> paths_;

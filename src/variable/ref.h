@@ -44,11 +44,6 @@ public:
   }
 
 public:
-  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    auto ref = t.getReference(key_);
-    result.emplace_back(ref ? 1 : 0);
-  }
-
   const std::vector<const Common::PropertyTree*>&
   getAllMatchedPtrees(Transaction& t) const override {
     UNREACHABLE();
