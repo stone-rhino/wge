@@ -26,7 +26,7 @@ fi
 # Check the subject line format: type(scope): subject
 # type should be one of: feat, fix, docs, style, refactor, test
 # scope is optional
-if ! echo "$SUBJECT" | grep -qE "^(feat|fix|docs|style|refactor|test)(\([a-z0-9_-]+\))?: .+"; then
+if ! echo "$SUBJECT" | grep -qE "^(feat|fix|docs|style|refactor|test)(\([a-z0-9,_-]+\))?: .+"; then
   echo "Error: Invalid commit message format"
   echo "Expected format: type: subject or type(scope): subject"
   echo "Type must be one of: feat, fix, docs, style, refactor, test"
