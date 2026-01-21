@@ -28,7 +28,7 @@ namespace Wge {
 namespace Variable {
 class Ref final : public MatchedPTreeBase {
 public:
-  enum class RefType { MatchedOPtree, MatchedVPTree };
+  enum class RefType { MatchedOPTree, MatchedVPTree, CurrentOPTree, CurrentVPTree };
 
 public:
   Ref(RefType ref_type, std::string&& key, std::string&& sub_name, bool is_not, bool is_counter,
@@ -67,18 +67,32 @@ public:
 
 public:
   FullName fullName() const override {
-    if (ref_type_ == RefType::MatchedOPtree) {
-      return {optree_main_name_, sub_name_};
-    } else {
-      return {vptree_main_name_, sub_name_};
+    switch (ref_type_) {
+    case RefType::MatchedOPTree:
+      return {matched_optree_main_name_, sub_name_};
+    case RefType::MatchedVPTree:
+      return {matched_vptree_main_name_, sub_name_};
+    case RefType::CurrentOPTree:
+      return {current_optree_main_name_, sub_name_};
+    case RefType::CurrentVPTree:
+      return {current_vptree_main_name_, sub_name_};
+    default:
+      UNREACHABLE();
     }
   }
 
   std::string_view mainName() const override {
-    if (ref_type_ == RefType::MatchedOPtree) {
-      return optree_main_name_;
-    } else {
-      return vptree_main_name_;
+    switch (ref_type_) {
+    case RefType::MatchedOPTree:
+      return matched_optree_main_name_;
+    case RefType::MatchedVPTree:
+      return matched_vptree_main_name_;
+    case RefType::CurrentOPTree:
+      return current_optree_main_name_;
+    case RefType::CurrentVPTree:
+      return current_vptree_main_name_;
+    default:
+      UNREACHABLE();
     }
   }
 
@@ -92,8 +106,10 @@ private:
   // The different main names for different ref types are necessary
   // They avoid conflicts when both MATCHED_OPTREE_REF and MATCHED_VPTREE_REF that have the same sub
   // name are used in the same rule
-  static constexpr std::string_view optree_main_name_{"MATCHED_OPTREE_REF"};
-  static constexpr std::string_view vptree_main_name_{"MATCHED_VPTREE_REF"};
+  static constexpr std::string_view matched_optree_main_name_{"MATCHED_OPTREE_REF"};
+  static constexpr std::string_view matched_vptree_main_name_{"MATCHED_VPTREE_REF"};
+  static constexpr std::string_view current_optree_main_name_{"CURRENT_OPTREE_REF"};
+  static constexpr std::string_view current_vptree_main_name_{"CURRENT_VPTREE_REF"};
 }; // namespace Variable
 } // namespace Variable
 } // namespace Wge

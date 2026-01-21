@@ -1059,7 +1059,7 @@ Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_
   // Append variable according to alias or reference type
   if (iter->second.starts_with("matched_optree")) {
     if (is_reference) {
-      return appendRefVariable(ctx, Variable::Ref::RefType::MatchedOPtree,
+      return appendRefVariable(ctx, Variable::Ref::RefType::MatchedOPTree,
                                std::move(alias_or_ref_name), std::move(sub_name));
     } else {
       return appendAliasVariable<Variable::MatchedOPTree>(ctx, std::move(sub_name));
@@ -1071,7 +1071,22 @@ Visitor::visitVariable_alias_or_ref(Antlr4Gen::SecLangParser::Variable_alias_or_
     } else {
       return appendAliasVariable<Variable::MatchedVPTree>(ctx, std::move(sub_name));
     }
+  } else if (iter->second.starts_with("current_optree")) {
+    if (is_reference) {
+      return appendRefVariable(ctx, Variable::Ref::RefType::CurrentOPTree,
+                               std::move(alias_or_ref_name), std::move(sub_name));
+    } else {
+      return appendAliasVariable<Variable::CurrentOPTree>(ctx, std::move(sub_name));
+    }
+  } else if (iter->second.starts_with("current_vptree")) {
+    if (is_reference) {
+      return appendRefVariable(ctx, Variable::Ref::RefType::CurrentVPTree,
+                               std::move(alias_or_ref_name), std::move(sub_name));
+    } else {
+      return appendAliasVariable<Variable::CurrentVPTree>(ctx, std::move(sub_name));
+    }
   } else {
+    assert(false);
     RETURN_ERROR("Alias or reference '" + alias_or_ref_name +
                  "' is not a valid variable alias/reference for matched optree or vptree.");
   }
@@ -2674,6 +2689,14 @@ Visitor::visitAction_extension_alias(Antlr4Gen::SecLangParser::Action_extension_
   } else if (ctx->variable_matched_vptree()) {
     matched_tree = ctx->variable_matched_vptree()->getText();
     low_case_matched_tree = "matched_vptree" + matched_tree.substr(14);
+  } else if (ctx->variable_current_optree()) {
+    matched_tree = ctx->variable_current_optree()->getText();
+    low_case_matched_tree = "current_optree" + matched_tree.substr(14);
+  } else if (ctx->variable_current_vptree()) {
+    matched_tree = ctx->variable_current_vptree()->getText();
+    low_case_matched_tree = "current_vptree" + matched_tree.substr(14);
+  } else {
+    assert(false);
   }
 
   alias_[name] = low_case_matched_tree;
@@ -2705,6 +2728,20 @@ Visitor::visitAction_extension_ref(Antlr4Gen::SecLangParser::Action_extension_re
     low_case_matched_tree = "matched_vptree" + sub_name;
     is_not = ctx->variable_matched_vptree()->NOT() != nullptr;
     is_counter = ctx->variable_matched_vptree()->VAR_COUNT() != nullptr;
+  } else if (ctx->variable_current_optree()) {
+    matched_tree = ctx->variable_current_optree()->getText();
+    sub_name = matched_tree.substr(14);
+    low_case_matched_tree = "current_optree" + sub_name;
+    is_not = ctx->variable_current_optree()->NOT() != nullptr;
+    is_counter = ctx->variable_current_optree()->VAR_COUNT() != nullptr;
+  } else if (ctx->variable_current_vptree()) {
+    matched_tree = ctx->variable_current_vptree()->getText();
+    sub_name = matched_tree.substr(14);
+    low_case_matched_tree = "current_vptree" + sub_name;
+    is_not = ctx->variable_current_vptree()->NOT() != nullptr;
+    is_counter = ctx->variable_current_vptree()->VAR_COUNT() != nullptr;
+  } else {
+    assert(false);
   }
 
   reference_[name] = low_case_matched_tree;
@@ -2720,6 +2757,18 @@ Visitor::visitAction_extension_ref(Antlr4Gen::SecLangParser::Action_extension_re
         Action::ActionBase::Branch::Matched, std::move(name),
         std::unique_ptr<Variable::MatchedPTreeBase>(
             new Variable::MatchedVPTree(std::move(sub_name), is_not, is_counter, ""))));
+  } else if (ctx->variable_current_optree()) {
+    current_rule_->get()->appendAction(std::make_unique<Action::Ref>(
+        Action::ActionBase::Branch::Matched, std::move(name),
+        std::unique_ptr<Variable::MatchedPTreeBase>(
+            new Variable::CurrentOPTree(std::move(sub_name), is_not, is_counter, ""))));
+  } else if (ctx->variable_current_vptree()) {
+    current_rule_->get()->appendAction(std::make_unique<Action::Ref>(
+        Action::ActionBase::Branch::Matched, std::move(name),
+        std::unique_ptr<Variable::MatchedPTreeBase>(
+            new Variable::CurrentVPTree(std::move(sub_name), is_not, is_counter, ""))));
+  } else {
+    assert(false);
   }
 
   return EMPTY_STRING;

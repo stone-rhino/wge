@@ -1558,12 +1558,16 @@ action_extension_alias:
 			SINGLE_QUOTE ALIAS_NAME ASSIGN (
 				variable_matched_optree
 				| variable_matched_vptree
+				| variable_current_optree
+				| variable_current_vptree
 			) SINGLE_QUOTE
 		)
 		| (
 			ALIAS_NAME ASSIGN (
 				variable_matched_optree
 				| variable_matched_vptree
+				| variable_current_optree
+				| variable_current_vptree
 			)
 		)
 	);
@@ -1573,12 +1577,16 @@ action_extension_ref:
 			SINGLE_QUOTE ALIAS_NAME ASSIGN (
 				variable_matched_optree
 				| variable_matched_vptree
+				| variable_current_optree
+				| variable_current_vptree
 			) SINGLE_QUOTE
 		)
 		| (
 			ALIAS_NAME ASSIGN (
 				variable_matched_optree
 				| variable_matched_vptree
+				| variable_current_optree
+				| variable_current_vptree
 			)
 		)
 	);
