@@ -51,7 +51,6 @@ public:
     };
 
     engine_.init();
-    engine_.updatePropertyStore(ptree_json_);
     t_ = engine_.makeTransaction();
     t_->processConnection(downstream_ip_, downstream_port_, upstream_ip_, upstream_port_);
     t_->processUri(uri_, method_, version_);
@@ -86,45 +85,6 @@ protected:
       {"x-forwarded-proto", "http"},
       {"cookie", "aa=bb"},
       {"cookie", "cc=dd"}};
-
-  std::string ptree_json_{R"(
-{
-    "config": {
-        "max_connection": 100,
-        "server_list": [
-            {
-                "host": "192.168.1.1",
-                "port": 8080,
-                "domain": {
-                    "name": "server1.example.com",
-                    "expire_time": "2025-12-31"
-                },
-                "tags": [
-                    "production",
-                    "v1.0"
-                ]
-            },
-            {
-                "host": "192.168.1.2",
-                "port": 8081,
-                "domain": {
-                    "name": "server2.example.com",
-                    "expire_time": "2025-12-31"
-                },
-                "tags": [
-                    "staging",
-                    "v1.1"
-                ]
-            }
-        ],
-        "boolean_test1": true,
-        "boolean_test2": false,
-        "null_test": null,
-        "float_test": 3.14159,
-        "minus_test": -100,
-        "minus_float_test": -3.14159
-    }
-})"};
 };
 
 TEST_F(VariableTest, ARGS_COMBINED_SIZE) {
@@ -845,13 +805,57 @@ TEST_F(VariableTest, XML) {
 }
 
 TEST_F(VariableTest, PTREE) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ],
+        "boolean_test1": true,
+        "boolean_test2": false,
+        "null_test": null,
+        "float_test": 3.14159,
+        "minus_test": -100,
+        "minus_float_test": -3.14159
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
   Common::EvaluateResults result;
 
   {
     Variable::PTree var("config.max_connection", false, false, "");
     Variable::PTree var1("config.max_connection", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 100);
 
@@ -865,7 +869,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].host", false, false, "");
     Variable::PTree var1("config.server_list[].host", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "192.168.1.2");
@@ -880,7 +884,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].port", false, false, "");
     Variable::PTree var1("config.server_list[].port", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 8080);
     EXPECT_EQ(std::get<int64_t>(result[1].variant_), 8081);
@@ -895,7 +899,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].domain{}", false, false, "");
     Variable::PTree var1("config.server_list[].domain{}", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 4);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server1.example.com");
     EXPECT_EQ(result[0].variable_sub_name_, "name");
@@ -916,7 +920,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].domain.name", false, false, "");
     Variable::PTree var1("config.server_list[].domain.name", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server1.example.com");
     EXPECT_EQ(result[0].variable_sub_name_, "name");
@@ -933,7 +937,7 @@ TEST_F(VariableTest, PTREE) {
     Variable::PTree var("config.server_list[].tags[]", false, false, "");
     Variable::PTree var1("config.server_list[].tags[]", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 4);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "production");
     EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "v1.0");
@@ -949,7 +953,7 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.boolean_test1", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 1);
   }
@@ -957,7 +961,7 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.boolean_test2", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::int64_t>(result[0].variant_), 0);
   }
@@ -965,7 +969,7 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.null_test", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_TRUE(IS_EMPTY_VARIANT(result[0].variant_));
   }
@@ -973,7 +977,7 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.float_test", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), 314);
   }
@@ -981,7 +985,7 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.minus_test", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), -100);
   }
@@ -989,25 +993,63 @@ TEST_F(VariableTest, PTREE) {
   {
     Variable::PTree var("config.minus_float_test", false, false, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<int64_t>(result[0].variant_), -314);
   }
 }
 
 TEST_F(VariableTest, MATCHED_OPTREE) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
   Common::EvaluateResults result;
 
   // config.server_list[].port../host
   {
     auto& matched_optree =
-        t_->propertyTree()->get_child("config.server_list").front().second.get_child("port");
+        t->propertyTree()->get_child("config.server_list").front().second.get_child("port");
     EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
-    t_->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
+    t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../host", false, false, "");
     Variable::MatchedOPTree var1("../host", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
 
@@ -1039,18 +1081,18 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
 
   // config.server_list[].tags[]../../domain.name
   {
-    auto& matched_optree = t_->propertyTree()
+    auto& matched_optree = t->propertyTree()
                                ->get_child("config.server_list")
                                .back()
                                .second.get_child("tags")
                                .front()
                                .second;
     EXPECT_EQ(std::get<std::string_view>(matched_optree.data()), "staging");
-    t_->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
+    t->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
     Variable::MatchedOPTree var("../../domain.name", false, false, "");
     Variable::MatchedOPTree var1("../../domain.name", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
 
@@ -1062,18 +1104,56 @@ TEST_F(VariableTest, MATCHED_OPTREE) {
 }
 
 TEST_F(VariableTest, MATCHED_VPTREE) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
   Common::EvaluateResults result;
 
   // config.server_list[].port../host
   {
     auto& matched_vptree =
-        t_->propertyTree()->get_child("config.server_list").front().second.get_child("port");
+        t->propertyTree()->get_child("config.server_list").front().second.get_child("port");
     EXPECT_EQ(std::get<int64_t>(matched_vptree.data()), 8080);
-    t_->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
+    t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
     Variable::MatchedVPTree var("../host", false, false, "");
     Variable::MatchedVPTree var1("../host", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
 
@@ -1105,86 +1185,18 @@ TEST_F(VariableTest, MATCHED_VPTREE) {
 
   // config.server_list[].tags[]../../domain.name
   {
-    auto& matched_vptree = t_->propertyTree()
+    auto& matched_vptree = t->propertyTree()
                                ->get_child("config.server_list")
                                .back()
                                .second.get_child("tags")
                                .front()
                                .second;
     EXPECT_EQ(std::get<std::string_view>(matched_vptree.data()), "staging");
-    t_->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
+    t->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
     Variable::MatchedVPTree var("../../domain.name", false, false, "");
     Variable::MatchedVPTree var1("../../domain.name", false, true, "");
     result.clear();
-    var.evaluate(*t_, result);
-    ASSERT_EQ(result.size(), 1);
-    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
-  }
-}
-
-TEST_F(VariableTest, CURRENT_OPTREE) {
-  Common::EvaluateResults result;
-
-  // config.server_list[].port../host
-  {
-    auto& matched_optree =
-        t_->propertyTree()->get_child("config.server_list").front().second.get_child("port");
-    EXPECT_EQ(std::get<int64_t>(matched_optree.data()), 8080);
-    t_->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
-    Variable::CurrentOPTree var("../host", false, false, "");
-    result.clear();
-    var.evaluate(*t_, result);
-    ASSERT_EQ(result.size(), 1);
-    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
-  }
-
-  // config.server_list[].tags[]../../domain.name
-  {
-    auto& matched_optree = t_->propertyTree()
-                               ->get_child("config.server_list")
-                               .back()
-                               .second.get_child("tags")
-                               .front()
-                               .second;
-    EXPECT_EQ(std::get<std::string_view>(matched_optree.data()), "staging");
-    t_->pushMatchedOPTree(-1, static_cast<const Common::PropertyTree*>(&matched_optree));
-    Variable::CurrentOPTree var("../../domain.name", false, false, "");
-    result.clear();
-    var.evaluate(*t_, result);
-    ASSERT_EQ(result.size(), 1);
-    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
-  }
-}
-
-TEST_F(VariableTest, CURRENT_VPTREE) {
-  Common::EvaluateResults result;
-
-  // config.server_list[].port../host
-  {
-    auto& matched_vptree =
-        t_->propertyTree()->get_child("config.server_list").front().second.get_child("port");
-    EXPECT_EQ(std::get<int64_t>(matched_vptree.data()), 8080);
-    t_->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
-    Variable::CurrentVPTree var("../host", false, false, "");
-    result.clear();
-    var.evaluate(*t_, result);
-    ASSERT_EQ(result.size(), 1);
-    EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "192.168.1.1");
-  }
-
-  // config.server_list[].tags[]../../domain.name
-  {
-    auto& matched_vptree = t_->propertyTree()
-                               ->get_child("config.server_list")
-                               .back()
-                               .second.get_child("tags")
-                               .front()
-                               .second;
-    EXPECT_EQ(std::get<std::string_view>(matched_vptree.data()), "staging");
-    t_->pushMatchedVPTree(-1, static_cast<const Common::PropertyTree*>(&matched_vptree));
-    Variable::CurrentVPTree var("../../domain.name", false, false, "");
-    result.clear();
-    var.evaluate(*t_, result);
+    var.evaluate(*t, result);
     ASSERT_EQ(result.size(), 1);
     EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "server2.example.com");
 
@@ -1196,6 +1208,44 @@ TEST_F(VariableTest, CURRENT_VPTREE) {
 }
 
 TEST_F(VariableTest, SubnameWithMacro) {
+  std::string json = R"(
+{
+    "config": {
+        "max_connection": 100,
+        "server_list": [
+            {
+                "host": "192.168.1.1",
+                "port": 8080,
+                "domain": {
+                    "name": "server1.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "production",
+                    "v1.0"
+                ]
+            },
+            {
+                "host": "192.168.1.2",
+                "port": 8081,
+                "domain": {
+                    "name": "server2.example.com",
+                    "expire_time": "2025-12-31"
+                },
+                "tags": [
+                    "staging",
+                    "v1.1"
+                ]
+            }
+        ]
+    }
+})";
+
+  Engine engine(spdlog::level::off);
+  auto pt_result = engine.updatePropertyStore(json);
+  ASSERT_TRUE(pt_result.has_value());
+  engine.init();
+  auto t = engine.makeTransaction();
   Common::EvaluateResults result;
 
   std::unique_ptr<Variable::PTree> var =
@@ -1203,11 +1253,11 @@ TEST_F(VariableTest, SubnameWithMacro) {
   std::unique_ptr<Macro::VariableMacro> macro =
       std::make_unique<Macro::VariableMacro>("%{PTREE.config.server_list[].host}", std::move(var));
 
-  t_->setVariable("", "192.168.1.1", "value1");
-  t_->setVariable("", "192.168.1.2", "value2");
+  t->setVariable("", "192.168.1.1", "value1");
+  t->setVariable("", "192.168.1.2", "value2");
 
   Variable::Tx tx_var("", std::move(macro), std::nullopt, false, false, "");
-  tx_var.evaluate(*t_, result);
+  tx_var.evaluate(*t, result);
   EXPECT_EQ(result.size(), 2);
   EXPECT_EQ(std::get<std::string_view>(result[0].variant_), "value1");
   EXPECT_EQ(std::get<std::string_view>(result[1].variant_), "value2");
