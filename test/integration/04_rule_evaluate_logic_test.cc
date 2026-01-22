@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -596,6 +596,51 @@ TEST(RuleEvaluateLogicTest, MatchedVarPush) {
         },
         t.get());
   }
+}
+
+TEST(RuleEvaluateLogicTest, MatchedVarPushInMultiMatch) {
+  // Test the accuracy of the matched_var data during multimatch matching.
+  const std::string directive = R"(
+        SecRuleEngine On
+        SecRule ARGS "@streq test2" \
+        "id:1, \
+        phase:1, \
+        pass, \
+        log, \
+        t:none, \
+        multiMatch, \
+        t:lowercase, \
+        chain"
+          SecRule &MATCHED_VARS "@eq 1" \
+          "t:none,setvar:tx.test=1")";
+
+  Engine engine(spdlog::level::off);
+  auto result = engine.load(directive);
+  engine.init();
+  auto t = engine.makeTransaction();
+  t->processUri("/index.php?id=TEST1&username=test2", "GET", "HTTP/1.1");
+  ASSERT_TRUE(result.has_value());
+
+  bool matched = false;
+  t->processRequestHeaders(
+      nullptr, nullptr, 0,
+      [](const Rule& rule, void* user_data) {
+        bool* matched = static_cast<bool*>(user_data);
+        *matched = true;
+      },
+      &matched);
+  // The rule is matched, and the action is executed.
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("", "test")), 1);
+  EXPECT_TRUE(matched);
+
+  const auto& matched_vars = t->getMatchedVariables(-1);
+  EXPECT_EQ(matched_vars.size(), 1);
+  EXPECT_TRUE(matched_vars[0].transform_list_.empty());
+  EXPECT_EQ(matched_vars[0].transformed_value_.variable_sub_name_, "username");
+  EXPECT_EQ(matched_vars[0].transformed_value_.variable_sub_name_,
+            matched_vars[0].original_value_.variable_sub_name_);
+  EXPECT_EQ(std::get<std::string_view>(matched_vars[0].transformed_value_.variant_),
+            std::get<std::string_view>(matched_vars[0].original_value_.variant_));
 }
 
 TEST(RuleEvaluateLogicTest, MachedVPTree) {

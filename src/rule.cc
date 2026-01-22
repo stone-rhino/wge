@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -582,12 +582,12 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     size_t curr_transform_index = 0;
 
     // Evaluate each variable result
-    transformed_value.clear();
-    transform_list.clear();
     const Common::EvaluateElement* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
       if (evaluated_value == nullptr) {
         evaluated_value = &result[i];
+        transformed_value.clear();
+        transform_list.clear();
       }
 
       // Evaluate the operator
