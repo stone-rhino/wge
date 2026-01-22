@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -52,100 +52,133 @@
       fbreak;
     }
 
-    action open_tag {
-      tags_name_index.push(tags.size());
-      tags.emplace_back(std::string_view(ts + 1, te - ts -1),"");
-      XML_LOG(std::format("fgoto open_tag: {} current open tags count: {}",std::string_view(ts + 1, te - ts -1), tags_name_index.size()));
-      p = ts + 1;
-      fhold;
-      fgoto open_tag;
-    }
-
-    WS = [ \t\r\n]*;
+    WS = [ \t\r\n];
+    NAME = [a-zA-Z_:][a-zA-Z0-9\-_:.]*;
     
     main := |*
-      WS => { tag_values_str.append(ts, te - ts); };
-      '<?' ([^?] | ('?' [^>]))* '?>' WS => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
-      '<!--' ([^\-] | ('-' [^\-]))*  '-->' WS => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
-      # skip doctype without internal subset
-      '<!DOCTYPE' [^>]+ '>' WS => { XML_LOG(std::format("skip doctype: {}",std::string_view(ts, te - ts))); };
-      # skip doctype with internal subset
-      '<!DOCTYPE' [^>]+ '[' [^\]]+ ']'  '>' WS => { XML_LOG(std::format("skip doctype with internal subset: {}",std::string_view(ts, te - ts))); };
-      '<' [^ !/\t>]+ => open_tag;
-      '</' [^>]+ '>' => skip; 
+      WS+ => {
+        // Ingnore whitespace before root tag
+        if(!tags_name_index.empty()) {
+          tag_values_str.append(ts, te - ts);
+        }
+      };
+      '<' => { XML_LOG("main fgoto open_tag"); fgoto open_tag; };
       any => error;
     *|;
 
     open_tag := |*
+      '?' => { XML_LOG("open_tag fgoto instruction"); fgoto instruction; };
+      '!' => { XML_LOG("open_tag fgoto comment_or_doctype"); fgoto comment_or_doctype; };
+      '/' NAME* '>' => {
+        tags_name_index.pop();
+        if(tags_name_index.empty()){
+          XML_LOG("open_tag fgoto main");
+          fgoto main;
+        } else {
+          XML_LOG("open_tag fgoto tag_value");
+          fgoto tag_value;
+        }
+      };
+      NAME => {
+        tags_name_index.push(tags.size());
+        tags.emplace_back(std::string_view(ts, te),"");
+        XML_LOG(std::format("tag_name: {}, current tags count: {}",std::string_view(ts, te), tags_name_index.size()));
+        XML_LOG("open_tag fgoto attr");
+        fgoto attr;
+      };
+      any => error;
+    *|;
+
+    instruction := |*
+      '?>' => { XML_LOG("instruction fgoto main"); fgoto main; };
+      any => skip;
+    *|;
+
+    comment_or_doctype := |*
+      'DOCTYPE' => { XML_LOG("comment_or_doctype fgoto doctype"); fgoto doctype; };
+      '--' => { XML_LOG("comment_or_doctype fgoto comment"); fgoto comment; };
+      '[CDATA[' => { XML_LOG("comment_or_doctype fgoto cdata"); fgoto cdata; };
+      any => error;
+    *|;
+
+    doctype := |*
+      '>' => { XML_LOG("doctype fgoto main"); fgoto main; };
+      '[' => { XML_LOG("doctype fgoto doctype_internal_subset"); fgoto doctype_internal_subset; };
+      any => skip;
+    *|;
+
+    doctype_internal_subset := |*
+      ']' => { XML_LOG("doctype_internal_subset fgoto doctype"); fgoto doctype; };
+      any => skip;
+    *|;
+
+    comment := |*
+      '-->' => { XML_LOG("comment fgoto main"); fgoto main; };
+      any => skip;
+    *|;
+
+    cdata := |*
+      ']]>' => { XML_LOG("cdata fgoto tag_value"); fgoto tag_value; };
+      [^\]]+ => {
+        size_t index = tags_name_index.top();
+        if(!tags.empty() && tags.size() > index) {
+          auto& [tag_name, tag_value] = tags[index];
+          if(tag_value.empty()) {
+            tag_value = std::string_view(ts, te - ts);
+            XML_LOG(std::format("set tag cdata value[{}] {}: {}", index, tag_name, std::string_view(ts, te - ts)));
+          } else {
+            // If there is multiple text nodes, concatenate them
+            std::string concatenated_value;
+            concatenated_value = tag_value;
+            concatenated_value += std::string_view(ts, te - ts);
+            html_decode_buffer.emplace_front(std::move(concatenated_value));
+            tag_value = html_decode_buffer.front();
+            XML_LOG(std::format("concat tag cdata value[{}] {}: {}", index, tag_name, std::string_view(ts, te - ts)));
+            XML_LOG(std::format("final {}: {}", tag_name, tag_value));
+          }
+        }
+
+        tag_values_str.append(ts, te - ts);
+      };
+    *|;
+
+    attr := |*
       WS => skip;
-      [^ =]+ '=' ['"] => {
+      NAME '=' ['"] => {
         last_attr_name = std::string_view(ts, te - ts - 2);
-        XML_LOG("fgoto attr_value");
+        XML_LOG("attr fgoto attr_value");
         fgoto attr_value;
       };
       '/>' => {
         tags_name_index.pop();
 
-        XML_LOG("fgoto main");
+        XML_LOG("attr fgoto main");
         fgoto main;
       };
-      '>' => { XML_LOG("fgoto tag_value"); fgoto tag_value; };
-      '<' => error;
-      any => skip;
+      '>' => { XML_LOG("attr fgoto tag_value"); fgoto tag_value; };
+      any => error;
     *|;
 
     attr_value := |*
-      WS => skip;
-      ['"] => { XML_LOG("fgoto open_tag"); fgoto open_tag; };
-      [^'" \t\r\n]+ => { 
-        if(te == pe) {
-          error = true;
-          fbreak;
-        }
+      ['"] => { XML_LOG("attr_value fgoto attr"); fgoto attr; };
+      [^'"]+ => { 
         XML_LOG(std::format("add attr value: {}={}", last_attr_name, std::string_view(ts, te - ts)));
         attributes.emplace_back(last_attr_name, std::string_view(ts, te - ts));
       };
     *|;
 
     tag_value := |*
-      WS => { tag_values_str.append(ts, te - ts); };
-      '</' [^>]+ '>' => {
-        tags_name_index.pop();
-
-        if(tags_name_index.empty()) {
-          XML_LOG("fgoto main");
-          fgoto main;
-        }
-      };
-      '<![CDATA[' => { XML_LOG("fgoto tag_cdata_value"); fgoto tag_cdata_value; };
-      '<?' ([^?] | ('?' [^>]))* '?>' => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
-      '<!--' ([^\-] | ('-' [^\-]))*  '-->' => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
-      # skip doctype without internal subset
-      '<!DOCTYPE' [^>]+ '>' => { XML_LOG(std::format("skip doctype: {}",std::string_view(ts, te - ts))); };
-      # skip doctype with internal subset
-      '<!DOCTYPE' [^>]+ '[' [^\]]+ ']'  '>' => { XML_LOG(std::format("skip doctype with internal subset: {}",std::string_view(ts, te - ts))); };
-      '<' [^ !/\t>]+ => open_tag;
+      WS+ => { tag_values_str.append(ts, te - ts); };
       [^<] => {
-        XML_LOG("fgoto tag_string_value");
+        XML_LOG("tag_value fgoto tag_string_value");
         p = ts;
         fhold;
         fgoto tag_string_value;
       };
-      any => error;
+      '<' => { XML_LOG("tag_value fgoto open_tag"); fgoto open_tag; };
     *|;
 
     tag_string_value := |*
-      WS => { tag_values_str.append(ts, te - ts); };
-      '</' [^>]+ '>' => {
-        tags_name_index.pop();
-        if(tags_name_index.empty()) {
-          XML_LOG("fgoto main");
-          fgoto main;
-        } else {
-          XML_LOG("fgoto tag_value");
-          fgoto tag_value;
-        }
-      };
       [^<]+ => {
         std::string_view tag_value_view(ts, te);
         std::string buffer;
@@ -174,80 +207,44 @@
 
           tag_values_str.append(tag_value_view);
         }
-      };
-      '<?' ([^?] | ('?' [^>]))* '?>' => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
-      '<!--' ([^\-] | ('-' [^\-]))*  '-->' => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
-      # skip doctype without internal subset
-      '<!DOCTYPE' [^>]+ '>' => { XML_LOG(std::format("skip doctype: {}",std::string_view(ts, te - ts))); };
-      # skip doctype with internal subset
-      '<!DOCTYPE' [^>]+ '[' [^\]]+ ']'  '>' => { XML_LOG(std::format("skip doctype with internal subset: {}",std::string_view(ts, te - ts))); };
-      '<' [^ !/\t>]+ => open_tag;
-      any => error;
-    *|;
 
-    tag_cdata_value := |*
-      WS => { tag_values_str.append(ts, te - ts); };
-      ']]>' WS '</' [^>]+ '>' => {
-        tags_name_index.pop();
-        if(tags_name_index.empty()) {
-          XML_LOG("fgoto main");
-          fgoto main;
-        } else {
-          XML_LOG("fgoto tag_value");
-          fgoto tag_value;
-        }
+        XML_LOG("tag_string_value fgoto tag_value");
+        fgoto tag_value;
       };
-      [^\]]+ => {
-        size_t index = tags_name_index.top();
-        if(!tags.empty() && tags.size() > index) {
-          auto& [tag_name, tag_value] = tags[index];
-          if(tag_value.empty()) {
-            tag_value = std::string_view(ts, te - ts);
-            XML_LOG(std::format("set tag cdata value[{}] {}: {}", index, tag_name, std::string_view(ts, te - ts)));
-          } else {
-            // If there is multiple text nodes, concatenate them
-            std::string concatenated_value;
-            concatenated_value = tag_value;
-            concatenated_value += std::string_view(ts, te - ts);
-            html_decode_buffer.emplace_front(std::move(concatenated_value));
-            tag_value = html_decode_buffer.front();
-            XML_LOG(std::format("concat tag cdata value[{}] {}: {}", index, tag_name, std::string_view(ts, te - ts)));
-            XML_LOG(std::format("final {}: {}", tag_name, tag_value));
-          }
-        }
-
-        tag_values_str.append(ts, te - ts);
-      };
-      any => error; 
     *|;
 }%%
 
 %% write data;
-      // clang-format on
+    // clang-format on
 
-      static bool parseXml(std::string_view input,
-                           std::vector<std::pair<std::string_view, std::string_view>>& attributes,
-                           std::vector<std::pair<std::string_view, std::string_view>>& tags,
-                           std::string& tag_values_str,
-                           std::forward_list<std::string>& html_decode_buffer) {
+    static bool parseXml(std::string_view input,
+                         std::vector<std::pair<std::string_view, std::string_view>>& attributes,
+                         std::vector<std::pair<std::string_view, std::string_view>>& tags,
+                         std::string& tag_values_str,
+                         std::forward_list<std::string>& html_decode_buffer) {
 
-        const char* p = input.data();
-        const char* pe = p + input.size();
-        const char* eof = pe;
-        const char *ts, *te;
-        int cs, act;
-        int top = 0;
+      const char* p = input.data();
+      const char* pe = p + input.size();
+      const char* eof = pe;
+      const char *ts, *te;
+      int cs, act;
+      int top = 0;
 
-        bool error = false;
-        std::stack<size_t> tags_name_index;
-        std::string_view last_attr_name;
+      bool error = false;
+      std::stack<size_t> tags_name_index;
+      std::string_view last_attr_name;
 
-        // clang-format off
+      // Ensure all tags are closed
+      if (!tags_name_index.empty()) {
+        error = true;
+      }
+
+      // clang-format off
 	%% write init;
   %% write exec;
-        // clang-format on
+      // clang-format on
 
-        return error;
-      }
+      return error;
+    }
 
 #undef XML_LOG
