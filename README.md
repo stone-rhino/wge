@@ -22,6 +22,22 @@ Input: [White requests](benchmarks/test_data/white.data) and [Black requests](be
 
 The benchmark results show that WGE is significantly faster than ModSecurity, with a performance improvement of over 4 times. This is due to the use of modern C++ features and excellent architecture design and implementation. The library is designed to be easy to use and integrate into existing applications, making it a great choice for developers looking to add WAF functionality to their projects.
 
+## Features
+* Fully compatible with the OWASP Core Rule Set (CRS). Supports all variables, operators, and actions to ensure compatibility with existing rule sets. Effectively detects and defends against all attack types supported by CRS, including SQL injection (SQLI), cross-site scripting (XSS), local file inclusion (LFI), and remote command execution (RCE).
+* High performance. Uses Antlr4 to implement a high-performance front-end parser, a carefully designed efficient C++ object graph as the back-end interpreter, and integrates the TCMalloc memory pool to significantly improve throughput and reduce memory fragmentation.
+* Rich decoding support. Uses Ragel to implement a high-performance DFA codec engine, supporting 22 common decoding formats, including URL decoding, HTML entity decoding, JavaScript decoding, CSS decoding, etc., ensuring that attack payloads cannot bypass detection through encoding transformations.
+* Multi-threading support. Lock-free design supports efficient operation in multi-threaded environments, suitable for high-concurrency scenarios.
+* SecLang++. Derived from SecLang, SecLang++ introduces various practical language features such as rule fragments, configuration-driven rules, conditional actions, aliases, and reference variables, enhancing the flexibility and maintainability of rule writing.
+
+## Future Plans
+* Continuously evolve SecLang++, introducing more modern programming language features while maintaining the simplicity and ease of use of domain-specific languages, improving the expressiveness and maintainability of rule writing.
+* Add support for streaming processing, allowing large request/response bodies to be processed without loading the entire content into memory, reducing memory usage and preventing large request body attacks.
+* Add a syntax and semantic engine to reduce false positives and improve detection of complex attacks.
+* Introduce machine learning-assisted detection to enhance the identification of unknown attacks.
+* Add a multi-pattern matching detection engine to further improve rule execution efficiency.
+* Use bytecode + JIT technology to maximize rule execution efficiency.
+* Expand more connectors to demonstrate seamless integration with more web servers and frameworks.
+
 ## Quick Start
 ### Prerequisites
 * CMake 3.28 or higher https://cmake.org/download/
