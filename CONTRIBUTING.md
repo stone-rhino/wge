@@ -1,3 +1,5 @@
+English | [简体中文](CONTRIBUTING_CN.md)
+
 We welcome contributions to WGE! Please follow these guidelines to maximize the chances of your contribution being accepted:
 ## Communication
 - Before starting work on a new feature, please open an issue to discuss your idea. This helps us avoid duplicated efforts and ensures that your contribution aligns with the project's goals.

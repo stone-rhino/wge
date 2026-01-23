@@ -184,7 +184,7 @@ WGE 采用 MIT 许可证发布。有关完整详情，请参阅随附的 [开源
 * [WGE-Connectors](https://github.com/stone-rhino/wge-connectors): 用于将 WGE 集成到各种 Web 服务器和框架中的连接器集合。
 
 ## 贡献
-我们欢迎对 WGE 的贡献！如果您有任何想法、建议或错误报告，请在 GitHub 上打开问题或提交拉取请求。在贡献之前，请阅读我们的 [贡献指南](CONTRIBUTING.md)。
+我们欢迎对 WGE 的贡献！如果您有任何想法、建议或错误报告，请在 GitHub 上打开问题或提交拉取请求。在贡献之前，请阅读我们的 [贡献指南](CONTRIBUTING_CN.md)。
 
 ## 联系方式
 [石犀](https://www.srhino.com/)
