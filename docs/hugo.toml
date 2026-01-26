@@ -1,0 +1,27 @@
+baseURL = 'https://zhouyujt.github.io/wge/'
+languageCode = 'en-us'
+title = 'WGE'
+theme = 'hugo-theme-relearn'
+
+[languages]
+   [languages.cn]
+    contentDir = 'content/cn'
+    languageCode = 'cn'
+    languageDirection = 'cn'
+    languageName = '简体中文'
+    title = 'WGE'
+    weight = 1
+
+  [languages.en]
+    contentDir = 'content/en'
+    languageCode = 'en'
+    languageName = 'English'
+    title = 'WGE'
+    weight = 2
+
+[params]
+  disableLandingPageButton = true
+  themeVariant = 'blue'
+  disableRootBreadcrumb = true
+
+  
