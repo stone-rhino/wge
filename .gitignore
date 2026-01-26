@@ -1,5 +1,6 @@
 build
 src/antlr4/.antlr
 perf
-doc
 CMakeUserPresets.json
+docs/public
+docs/.hugo_build.lock
