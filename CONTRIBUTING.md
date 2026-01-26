@@ -1,4 +1,4 @@
-English | [简体中文](CONTRIBUTING_CN.md)
+English | [简体中文](CONTRIBUTING_ZH.md)
 
 We welcome contributions to WGE! Please follow these guidelines to maximize the chances of your contribution being accepted:
 ## Communication

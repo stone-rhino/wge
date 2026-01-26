@@ -3,7 +3,7 @@
     <img src="https://avatars.githubusercontent.com/u/215498892?s=400&u=8e3433ea2368169c950ca497194776511c8a1837&v=4" width=200 height=200/>
 </p>
 
-English | [简体中文](README_CN.md)
+English | [简体中文](README_ZH.md)
 
 ## What is WGE?
 WGE is a high-performance web application firewall (WAF) library based on C++. It has been successfully applied in the commercial product Stone Rhino - Web Governance Engine (SR-WGE). It is designed to be compatible with the OWASP Core Rule Set (CRS) and can be used as a drop-in replacement for ModSecurity. The library is built using C++23 and is designed to be fast, efficient, and easy to use.
