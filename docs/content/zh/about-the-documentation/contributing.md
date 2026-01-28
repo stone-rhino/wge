@@ -12,7 +12,7 @@ weight = 1
    ```
 3. **创建分支**：在本地仓库中，为您的更改创建一个新分支：
    ```bash
-   git checkout -b improve-documentation
+   git checkout -b docs-your-branch-name
    ```
 4. **编辑文档**：使用您喜欢的文本编辑器修改或添加文档内容。WGE 文档使用 Markdown 格式编写，位于 `docs` 目录下。
 5. **多语言支持**：请确保您的更改适用于所有支持的语言版本。如果您只修改了某个语言版本，请考虑为其他语言版本提供相应的翻译。目前支持的语言包括英语（位于`docs/content/en`）和中文（位于`docs/content/cn`）。
