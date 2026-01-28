@@ -100,8 +100,11 @@ TEST_F(RuleTest, Rule) {
 }
 
 TEST_F(RuleTest, RuleRemoveById) {
-  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,phase:1,tag:'tag1',msg:'msg1'"
-  SecRule ARGS "bar" "id:2,phase:1,tag:'tag2',tag:'tag3',msg:'msg2'"
+  const std::string rule_directive = R"(
+  SecRule ARGS "bar" "id:1,phase:1,tag:'tag1',msg:'msg1',chain"
+    SecRule ARGS "baz" "phase:1,tag:'tag1',msg:'msg1'"
+  SecRule ARGS "bar" "id:2,phase:1,tag:'tag2',tag:'tag3',msg:'msg2',chain"
+    SecRule ARGS "baz" "phase:1,tag:'tag2',msg:'msg2'"
   SecRule ARGS "bar" "id:3,phase:1,tag:'tag2',tag:'tag3',msg:'msg3'"
   SecRule ARGS "bar" "id:4,phase:1,tag:'tag4',msg:'msg4'"
   SecRule ARGS "bar" "id:5,phase:1,tag:'tag5',msg:'msg5'"
@@ -110,7 +113,8 @@ TEST_F(RuleTest, RuleRemoveById) {
   SecRule ARGS "bar" "id:8,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:9,phase:1,tag:'tag6',msg:'msg6'"
   SecRule ARGS "bar" "id:10,phase:1,tag:'tag6',msg:'msg6',chain"
-    SecRule ARGS "baz" "phase:1,tag:'tag7',msg:'msg7'"
+    SecRule ARGS "baz" "phase:1,tag:'tag7',msg:'msg7',chain"
+      SecRule ARGS "bax" "phase:1,tag:'tag7',msg:'msg7'"
   )";
 
   Antlr4::Parser parser;
@@ -120,9 +124,17 @@ TEST_F(RuleTest, RuleRemoveById) {
   auto& rules = parser.rules()[0];
   EXPECT_EQ(rules.size(), 10);
 
+  Rule* first_rule = &rules[0];
+  EXPECT_EQ(first_rule->chainRule(0)->parentRule(), first_rule);
+  EXPECT_EQ(first_rule->chainRule(0)->topRule(), first_rule);
+
   Rule* chain_rule = rules.back().chainRule(0);
   EXPECT_EQ(chain_rule->parentRule(), &rules.back());
   EXPECT_EQ(chain_rule->topRule(), &rules.back());
+
+  Rule* chain_chain_rule = chain_rule->chainRule(0);
+  EXPECT_EQ(chain_chain_rule->parentRule(), chain_rule);
+  EXPECT_EQ(chain_chain_rule->topRule(), &rules.back());
 
   {
     const std::string rule_remove = R"(SecRuleRemoveById 1)";
@@ -132,8 +144,15 @@ TEST_F(RuleTest, RuleRemoveById) {
     auto iter =
         std::find_if(rules.begin(), rules.end(), [](const Rule& rule) { return rule.id() == 1; });
     EXPECT_EQ(iter, rules.end());
+
+    EXPECT_EQ(first_rule->chainRule(0)->parentRule(), first_rule);
+    EXPECT_EQ(first_rule->chainRule(0)->topRule(), first_rule);
+
     EXPECT_EQ(chain_rule->parentRule(), &rules.back());
     EXPECT_EQ(chain_rule->topRule(), &rules.back());
+
+    EXPECT_EQ(chain_chain_rule->parentRule(), chain_rule);
+    EXPECT_EQ(chain_chain_rule->topRule(), &rules.back());
   }
 
   {

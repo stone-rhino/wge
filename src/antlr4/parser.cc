@@ -272,10 +272,14 @@ void Parser::secAction(std::unique_ptr<Rule>&& rule) {
 
   if (need_update_chain_rule) {
     for (auto& rule : phase_rules) {
-      Rule* chain_rule = rule.chainRule(0);
-      if (chain_rule) {
-        chain_rule->parentRule(&rule);
-        chain_rule->topRule(&rule);
+      Rule* top_rule = &rule;
+      Rule* parent_rule = &rule;
+      Rule* chain_rule = parent_rule->chainRule(0);
+      while (chain_rule != nullptr) {
+        chain_rule->parentRule(parent_rule);
+        chain_rule->topRule(top_rule);
+        parent_rule = chain_rule;
+        chain_rule = parent_rule->chainRule(0);
       }
     }
   }
@@ -310,10 +314,14 @@ Rule* Parser::secRule(std::unique_ptr<Rule>&& rule) {
 
   if (need_update_chain_rule) {
     for (auto& rule : phase_rules) {
-      Rule* chain_rule = rule.chainRule(0);
-      if (chain_rule) {
-        chain_rule->parentRule(&rule);
-        chain_rule->topRule(&rule);
+      Rule* top_rule = &rule;
+      Rule* parent_rule = &rule;
+      Rule* chain_rule = parent_rule->chainRule(0);
+      while (chain_rule != nullptr) {
+        chain_rule->parentRule(parent_rule);
+        chain_rule->topRule(top_rule);
+        parent_rule = chain_rule;
+        chain_rule = parent_rule->chainRule(0);
       }
     }
   }
@@ -330,8 +338,8 @@ void Parser::secRuleRemoveById(uint64_t id) {
     clearRuleMsgIndex(rule_index);
     updateMarker(rule_index);
     updateRuleIndex(rule_index);
-    auto& rules = rules_[iter->second.phase_ - 1];
-    rules.erase(rules.begin() + iter->second.index_);
+    auto& rules = rules_[rule_index.phase_ - 1];
+    rules.erase(rules.begin() + rule_index.index_);
     updateChainRule(rule_index);
   }
 }
@@ -568,12 +576,15 @@ void Parser::updateRuleIndex(RuleIndex rule_index) {
 
 void Parser::updateChainRule(RuleIndex rule_index) {
   auto& rules = rules_[rule_index.phase_ - 1];
-  for (auto i = rule_index.index_ + 1; i < rules.size(); ++i) {
-    Rule& parent_rule = rules[i];
-    Rule* chain_rule = parent_rule.chainRule(0);
-    if (chain_rule != nullptr) {
-      chain_rule->parentRule(&parent_rule);
-      chain_rule->topRule(&parent_rule);
+  for (auto i = rule_index.index_; i < rules.size(); ++i) {
+    Rule* top_rule = &rules[i];
+    Rule* parent_rule = &rules[i];
+    Rule* chain_rule = parent_rule->chainRule(0);
+    while (chain_rule != nullptr) {
+      chain_rule->parentRule(parent_rule);
+      chain_rule->topRule(top_rule);
+      parent_rule = chain_rule;
+      chain_rule = parent_rule->chainRule(0);
     }
   }
 }
