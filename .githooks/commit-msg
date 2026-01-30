@@ -51,6 +51,11 @@ while IFS= read -r line; do
   if [ "$LINE_NUM" -eq 1 ] || [ -z "$line" ]; then
     continue
   fi
+
+  # Skip comment lines (start with #)
+  if echo "$line" | grep -qE "^#"; then
+    continue
+  fi
   
   # Check if it's a footer line (starts with keywords like "Fixes", "Related to", etc.)
   if echo "$line" | grep -qE "^(Fixes|Related to|Co-authored-by)"; then
