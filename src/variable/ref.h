@@ -79,6 +79,8 @@ public:
     default:
       UNREACHABLE();
     }
+
+    return {};
   }
 
   std::string_view mainName() const override {
@@ -94,6 +96,8 @@ public:
     default:
       UNREACHABLE();
     }
+
+    return {};
   }
 
 public:
