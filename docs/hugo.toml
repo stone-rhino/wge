@@ -22,5 +22,14 @@ defaultContentLanguage = 'en'
   disableLandingPageButton = true
   themeVariant = 'blue'
   disableRootBreadcrumb = true
+  disableTableOfContents = false
+  alwaysopen = true
 
-  
+[markup]
+  [markup.tableOfContents]
+    startLevel = 3
+    endLevel = 4
+    ordered = false
+  [markup.goldmark.renderer]
+    unsafe = true
+
