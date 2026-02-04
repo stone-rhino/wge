@@ -7,8 +7,8 @@ weight = 4
 SecLang++ 在 SecLang 的基础上进行了扩展，增加了许多新功能和改进，以满足现代Web应用防护的需求。
 
 在本章中，我们除了介绍SecLang的基本语法和使用方法外，还将重点介绍SecLang++新增的功能和特性。
-- [指令](./directives.md)
-- [变量](./variables.md)
-- [操作符](./operators.md)
-- [动作](./actions.md)
-- [转码函数](./transformation.md)
+- [配置命令](./directives/)
+- [变量](./variables/)
+- [操作符](./operators/)
+- [动作](./actions/)
+- [转码函数](./transformation/)
