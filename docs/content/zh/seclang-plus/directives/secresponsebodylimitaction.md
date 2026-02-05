@@ -9,7 +9,7 @@ weight = 24
 **语法:** `SecResponseBodyLimitAction Reject|ProcessPartial`
 
 
-**默认值:** Reject
+**默认值:** ProcessPartial
 
 
 **可选值:**
@@ -20,14 +20,14 @@ weight = 24
 
 **区分大小写:** 是
 
+**是否实现:** 否
 
-
-某些站点会生成超长响应，难以设定合理限制。通过设置为 ProcessPartial，可在不大幅提高内存限制的情况下处理超长响应，但存在部分内容未经检查的风险。
+此指令WGE可以正常解析，但是暂未实现该功能。
 
 
 **示例:**
 
 
-```
+```apache
 SecResponseBodyLimitAction ProcessPartial
 ```
