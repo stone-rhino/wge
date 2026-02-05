@@ -9,19 +9,18 @@ weight = 12
 **语法:** `SecPcreMatchLimit LIMIT`
 
 
-**默认值:** 3000
+**默认值:** 0
 
 
 **区分大小写:** 是
 
 
-
-若配置的限制被超过，将设置变量 MSC_PCRE_LIMITS_EXCEEDED。
+由于目前WGE默认使用的正则匹配库为re2，只有在re2编译正则失败的情况下才会退回使用pcre，所以此配置的影响不大。
 
 
 **示例:**
 
 
-```
+```apache
 SecPcreMatchLimit 3000
 ```

@@ -9,10 +9,6 @@ weight = 38
 **语法:** `SecAction "ACTIONS"`
 
 
-**版本:** 1.0
-
-
-
 SecAction 用于无条件执行一组动作,常用于设置变量、初始化集合等。
 
 

@@ -21,10 +21,12 @@ weight = 20
 **区分大小写:** 是
 
 
+**是否实现:** 否
+
 
 **示例:**
 
 
-```
+```apache
 SecCookieFormat 0
 ```

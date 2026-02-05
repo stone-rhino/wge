@@ -19,7 +19,7 @@ weight = 23
 **示例:**
 
 
-```
+```apache
 SecResponseBodyMimeTypesClear
 SecResponseBodyMimeType text/html text/plain
 ```

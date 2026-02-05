@@ -9,7 +9,7 @@ weight = 5
 **语法:** `SecRequestBodyLimitAction Reject|ProcessPartial`
 
 
-**默认值:** Reject
+**默认值:** ProcessPartial
 
 
 **可选值:**
@@ -20,14 +20,15 @@ weight = 5
 
 **区分大小写:** 是
 
+**是否实现:** 否
 
+此指令WGE可以正常解析，但是暂未实现该功能。
 
-当 WAF 处于 DetectionOnly 模式且需完全被动运行时，使用 ProcessPartial 可避免干扰事务。可通过创建规则检查 INBOUND_DATA_ERROR 变量来检测请求体是否超限。
-
+也即是说即使请求体的大小超过SecRequestBodyLimit的设置大小也不会对规则执行和WGE内部状态有任何影响。
 
 **示例:**
 
 
-```
+```apache
 SecRequestBodyLimitAction Reject
 ```

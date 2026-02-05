@@ -11,14 +11,19 @@ weight = 8
 
 **区分大小写:** 是
 
+**是否实现:** 否
 
+此指令WGE可以正常解析，但是暂未实现该功能。
 
-可使用多个 SecResponseBodyMimeType 指令添加 MIME 类型。使用 SecResponseBodyMimeTypesClear 清除先前配置的 MIME 类型并重新开始。
+如果需要此功能，可以通过content-type和skip/skipafter控制对于特定MIME是否执行规则。
 
+或者在服务器中读取WGE中解析的配置，通过此判断是否传入Body。
+
+当此指令多次出现时，最后解析的结果是所有指令的合并。
 
 **示例:**
 
 
-```
+```apache
 SecResponseBodyMimeType text/plain text/html text/xml
 ```
