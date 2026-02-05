@@ -5,16 +5,22 @@ weight = 12
 
 **Description:** Configure the maximum number of PCRE regular expression matches to prevent ReDoS attacks.
 
+
 **Syntax:** `SecPcreMatchLimit LIMIT`
 
-**Default:** 3000
 
-If the configured limit is exceeded, the MSC_PCRE_LIMITS_EXCEEDED variable will be set.
+**Default:** 0
+
+
+**Case Sensitive:** Yes
+
+
+Since WGE currently uses re2 as the default regex matching library, PCRE is only used as a fallback when re2 fails to compile the regex, so this configuration has minimal impact.
+
 
 **Example:**
 
-```
+
+```apache
 SecPcreMatchLimit 3000
 ```
-
-**Case Sensitive:** Yes

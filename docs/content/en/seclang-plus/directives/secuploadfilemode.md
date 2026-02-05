@@ -7,14 +7,14 @@ weight = 35
 
 **Syntax:** `SecUploadFileMode MODE`
 
-**Default:** 0600
+**Case Sensitive:** Yes
 
-This feature is not available on operating systems that do not support octal file modes. The default mode (0600) grants read and write permissions only to the account that wrote the file. If other accounts need access, this directive may be required. However, use it carefully to avoid exposing potentially sensitive data to unauthorized users.
+**Implemented:** No
+
+This directive is not implemented in WGE and cannot be used.
 
 **Example:**
 
-```
+```apache
 SecUploadFileMode 0640
 ```
-
-**Case Sensitive:** Yes

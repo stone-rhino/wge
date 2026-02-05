@@ -5,21 +5,24 @@ weight = 7
 
 **Description:** Configure whether the WAF is allowed to access response body content.
 
+
 **Syntax:** `SecResponseBodyAccess On|Off`
+
 
 **Default:** Off
 
-This directive must be enabled to inspect HTML responses and implement response blocking.
 
-**Options:**
+**Case Sensitive:** Yes
 
-- **On:** Buffer and inspect the response body
-- **Off:** Do not buffer the response body
+**Implemented:** No
+
+
+WGE can parse this directive correctly, but the functionality is not yet implemented.
+
 
 **Example:**
 
-```
+
+```apache
 SecResponseBodyAccess On
 ```
-
-**Case Sensitive:** Yes

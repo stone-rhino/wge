@@ -3,22 +3,50 @@ title = "SecRuleUpdateTargetById"
 weight = 44
 +++
 
-**Description:** Update a rule's inspection targets by ID.
+**Description:** Update a rule's variable list by ID.
+
 
 **Syntax:** `SecRuleUpdateTargetById ID VARIABLES`
 
-This directive will use the targets provided in the second parameter to append (or replace) variables in the specified rule's current target list.
 
-This functionality is useful for implementing exceptions where targets need to be externally updated to exclude inspection of specific variables.
+**Case Sensitive:** Yes
 
-Note that regular expressions can also be used in target specifications. If you need to use grouping in the regular expression, you must enclose it in single quotes.
+Updates the variables (VARIABLES) of the rule with the specified ID, allowing operations such as adding or removing variables.
 
-You can also replace targets with options more suitable for your environment. For example, if you need to check REQUEST_URI instead of REQUEST_FILENAME, you can do so as follows.
+**Note:** This directive is a configuration directive, not runtime - meaning skipAfter and similar directives do not affect it. It must be loaded after the rule it updates.
 
 **Example:**
 
+If the rule with ID 1001 is:
+
+```apache
+SecRule ARGS|REQUEST_HEADERS "@rx admin" "id:1001,phase:1,deny,tag:'template_rule',t:none"
+```
+
+**Add variable:**
+
+The following example will add REQUEST_LINE detection to rule 1001:
+```apache
+SecRuleUpdateTargetById 1001 REQUEST_LINE
+```
+
+**Remove variable:**
+
+The following example will remove ARGS detection from rule 1001:
+```apache
+SecRuleUpdateTargetById 1001 !ARGS
+```
+
+**Remove specific sub-variable:**
+
+The following example will make rule 1001 not inspect the parameter named username:
 ```apache
 SecRuleUpdateTargetById 1001 !ARGS:username
 ```
 
-**Case Sensitive:** Yes
+**Using regex:**
+
+The following example will make rule 1001 not inspect parameters matching the specified regex:
+```apache
+SecRuleUpdateTargetById 1001 !ARGS:/[a-zA-Z]{100,}/
+```

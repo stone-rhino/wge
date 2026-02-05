@@ -4,6 +4,12 @@ weight = 1
 ordersectionsby = "title"
 +++
 
+This section contains the rule directives supported by WGE. Among these, only `SecRule` and `SecAction` are runtime directives; all others are configuration-phase directives that take effect immediately upon parsing. For directives like `SecRuleRemoveById` that modify the state of specific rules, they must be loaded after the corresponding rules.
+
+Some directives are not implemented in WGE. Most of these can be parsed normally by WGE (such as `SecArgumentSeparator`), but their functionality is not implemented - this will not cause crashes or errors. All subpages will indicate whether a directive is implemented; please check before use.
+
+Additionally, WGE has added some directives not present in ModSecurity (such as `SecRuleUpdateOperatorById`) for more convenient usage.
+
 | Keyword | Description |
 |---------|-------------|
 | [`SecRuleEngine`](./secruleengine/) | Configure rule engine operating mode |
