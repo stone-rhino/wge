@@ -3,18 +3,15 @@ title = "@within"
 weight = 5
 +++
 
-**描述:** 值在指定字符串中
+**描述:** 检测输入字符串中是否存在子串与传入参数中任一字符串相同
 
+**语法:** `@within string`
 
-**语法:** `"@within string"`
+**输入数据类型:** `string`
 
-
-@within 是 @contains 的反向操作：检查变量值是否作为子字符串存在于指定的参数字符串中。换句话说，它检查参数字符串是否包含变量值。匹配区分大小写。这在创建白名单检查时特别有用，可以验证值是否在允许的列表中。
-
+within的实际实现与 pm 相同，所以详细信息可以见 pm 的说明。
 
 **示例:**
-
-
 ```apache
 # 验证 HTTP 方法是否在允许列表中
 SecRule REQUEST_METHOD "!@within GET POST HEAD OPTIONS" \
@@ -30,9 +27,3 @@ SecRule FILES_COMBINED_SIZE "@gt 0" \
 SecRule REQUEST_HEADERS:Content-Type "!@within application/json application/xml text/plain" \
     "id:1080,phase:1,deny,msg:'不支持的 Content-Type'"
 ```
-
-
-**参数类型:** `string`
-
-
-**区分大小写:** 是

@@ -3,18 +3,18 @@ title = "@rx"
 weight = 1
 +++
 
-**描述:** 使用 Perl 兼容正则表达式 (PCRE) 对变量值进行匹配
+**描述:** 使用 re2 库进行正则匹配。
 
+**语法:** `@rx pattern`
 
-**语法:** `"@rx pattern"`
+**输入数据类型:** `string`
 
+@rx 是 SecLang 中最强大和最常用的操作符。在默认情况其使用 re2 进行正则匹配，但是当 re2 编译失败的情况下其会尝试使用 pcre2。
 
-@rx 是 SecLang 中最强大和最常用的操作符。它使用 PCRE 语法，支持所有标准正则表达式特性。如果未指定操作符，@rx 将作为默认操作符使用。
+当不存在operator关键字的时候会默认使用正则操作符。
 
 
 **示例:**
-
-
 ```apache
 # 检测 SQL 注入关键字
 SecRule ARGS "@rx (?i:select|union|insert|update|delete|drop)" \
@@ -23,7 +23,7 @@ SecRule ARGS "@rx (?i:select|union|insert|update|delete|drop)" \
 # 检测 XSS 攻击模式
 SecRule ARGS "@rx ]*>.*?" \
     "id:1002,phase:2,deny,msg:'XSS Attack detected'"
+
+# 没有 operator 关键字的情况下使用正则
+SecRule ARGS "admin" "id:1003,phase:2,deny,msg:'test'"
 ```
-
-
-**参数类型:** `string (正则表达式)`

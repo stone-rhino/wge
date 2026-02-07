@@ -1,23 +1,17 @@
 +++
-title = "@verifySsn"
+title = "@verifySSN"
 weight = 28
 +++
 
 **描述:** 验证美国社会安全号
 
 
-**语法:** `"@verifySsn parameter"`
+**语法:** `@verifySSN parameter`
 
+**输入数据类型:** `string`
 
-**示例:**
+**是否实现:** 否
 
+在输入数据中检测美国社会安全号码（SSN）。
 
-```apache
-SecRule ARGS "@verifySsn parameter" "id:1001,deny,msg:'Test'"
-```
-
-
-**参数类型:** `string (正则)`
-
-
-**是否实现:** 暂无
+此指令WGE可以正常解析，但是暂未实现该功能。

@@ -3,21 +3,12 @@ title = "@rsub"
 weight = 37
 +++
 
-**描述:** 正则表达式替换
+**描述:** 对输入数据执行正则表达式替换
 
+**语法:** `@rsub string`
 
-**语法:** `"@rsub parameter"`
+**输入数据类型:** `string`
 
+**是否实现:** 否
 
-**示例:**
-
-
-```apache
-SecRule ARGS "@rsub parameter" "id:1001,deny,msg:'Test'"
-```
-
-
-**参数类型:** `string`
-
-
-**是否实现:** 暂无
+此指令WGE可以正常解析，但是暂未实现该功能。

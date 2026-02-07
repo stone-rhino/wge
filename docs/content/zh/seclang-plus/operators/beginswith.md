@@ -6,14 +6,13 @@ weight = 3
 **描述:** 以指定字符串开头
 
 
-**语法:** `"@beginsWith string"`
+**语法:** `@beginsWith string`
 
+**输入数据类型:** `string`
 
 @beginsWith 检查变量值是否以指定的字符串开头。匹配区分大小写。相比使用 @rx "^prefix" 的正则表达式，@beginsWith 在进行简单前缀检查时性能更优，因为避免了正则引擎的开销。常用于 URL 路径检查、协议验证等场景。
 
-
 **示例:**
-
 
 ```apache
 # 检测管理后台访问
@@ -32,9 +31,3 @@ SecRule ARGS "@beginsWith javascript:" \
 SecRule REQUEST_BODY "@beginsWith data:image" \
     "id:1073,phase:2,pass,nolog,setvar:tx.has_base64_image=1"
 ```
-
-
-**参数类型:** `string`
-
-
-**区分大小写:** 是
