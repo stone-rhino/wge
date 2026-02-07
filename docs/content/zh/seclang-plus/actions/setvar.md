@@ -5,23 +5,20 @@ weight = 25
 
 **描述:** 设置变量
 
-
-**语法:** `setvar:collection.key=value`
-
+**区分大小写:** 是
 
 setvar 动作用于创建、修改或删除集合变量。这是实现异常评分、状态跟踪和规则间数据传递的核心动作。支持多种操作：
 
-
-- **setvar:tx.key=value** - 设置变量为指定值
-- **setvar:tx.key=+value** - 将变量增加指定值（数值累加）
-- **setvar:tx.key=-value** - 将变量减少指定值
-- **setvar:!tx.key** - 删除变量
+- **setvar: [']? [Tt][Xx].key=value [']?** - 设置变量为指定值
+- **setvar: [']? [Tt][Xx].key=+value [']?** - 将变量增加指定值（数值累加）
+- **setvar: [']? [Tt][Xx].key=-value [']?** - 将变量减少指定值
+- **setvar: [']? ![Tt][Xx].key [']?** - 删除变量
 
 可在单条规则中使用多个 setvar 动作。支持宏扩展，可使用 %{VARIABLE} 引用其他变量的值。
 
+此动作支持不匹配时执行和无论是否匹配都执行。
 
 **示例:**
-
 
 ```apache
 # 初始化异常评分
@@ -43,9 +40,3 @@ SecRule REQUEST_HEADERS:User-Agent "@rx (bot|spider)" \
 SecRule TX:temporary "@eq 1" \
     "id:5,phase:5,pass,nolog,setvar:!tx.temporary"
 ```
-
-
-**参数类型:** `string`
-
-
-**区分大小写:** 是

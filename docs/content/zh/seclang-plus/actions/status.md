@@ -5,7 +5,9 @@ weight = 44
 
 **描述:** 设置 HTTP 响应状态码
 
-**语法:** `status:CODE`
+**语法:** `status:INT`
+
+**区分大小写:** 是
 
 status 动作设置当破坏性动作（deny、block、drop）被触发时返回的 HTTP 响应状态码。这允许对错误响应进行精细控制。
 
@@ -18,6 +20,8 @@ status 动作设置当破坏性动作（deny、block、drop）被触发时返回
 - **429** - Too Many Requests（请求频率限制）
 - **500** - Internal Server Error（内部服务器错误）
 - **503** - Service Unavailable（服务不可用）
+
+**注意：** WGE本身无法控制服务器响应的状态码，其只能设置内部的状态，如果想要实现拦截且返回指定状态码需要服务器或者连接器实现该功能。
 
 **示例:**
 
@@ -38,7 +42,3 @@ SecRule IP:request_count "@gt 100" \
 SecRule REQUEST_URI "^/admin" "chain,id:103,phase:1,deny,status:404"
     SecRule REMOTE_ADDR "!@ipMatch 10.0.0.0/8" ""
 ```
-
-**参数类型:** `integer`
-
-**区分大小写:** 是

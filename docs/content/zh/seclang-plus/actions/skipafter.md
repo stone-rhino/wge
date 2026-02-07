@@ -7,6 +7,8 @@ weight = 43
 
 **语法:** `skipAfter:MARKER_NAME`
 
+**区分大小写:** 是
+
 skipAfter 动作在当前规则匹配时跳转到指定的命名标记（使用 `SecMarker` 创建）。这为条件性规则执行提供了灵活的流程控制，特别适用于复杂的规则集。
 
 相比 `skip` 的优势：
@@ -33,7 +35,3 @@ SecRule REQUEST_HEADERS:X-API-Key "!@streq secret123" \
     "id:201,phase:1,deny,status:403,msg:'无效的 API 密钥'"
 SecMarker AFTER_AUTH
 ```
-
-**参数类型:** `string`
-
-**区分大小写:** 是

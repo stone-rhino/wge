@@ -3,20 +3,18 @@ title = "expirevar"
 weight = 26
 +++
 
-**描述:** 设置变量过期时间
+**描述:** 设置变量在指定时间（秒为单位）后过期。
 
-**信息:** Original Example: `expirevar:ip.blocked=600`
+**语法:** `expirevar:variable=INT`
 
-**语法:** `expirevar | expirevar:value`
+**区分大小写:** 是
+
+**是否实现:** 否
+
+此指令并未在WGE中实现，无法使用。
 
 **示例:**
 
 ```apache
-SecRule ARGS "@rx test" "id:1001,expirevar,status:403"
+SecRule ARGS "@rx test" "id:1001,expirevar:session.suspicious=3600,status:403"
 ```
-
-
-**参数类型:** `string`
-
-
-**区分大小写:** 是

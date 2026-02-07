@@ -5,18 +5,18 @@ weight = 12
 
 **描述:** 允许请求通过
 
-**信息:** Original Example: `allow`
+**语法:** `allow | allow:phase | allow:request`
 
-**语法:** `allow | allow:value`
+**区分大小写:** 是
+
+`allow`：跳过后续所有规则的执行。
+
+`allow:phase`：跳过当前阶段后续所有规则的执行。
+
+`allow:request`：跳过请求阶段所有规则的执行。
 
 **示例:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,allow,status:403"
 ```
-
-
-**参数类型:** `无 或 string`
-
-
-**区分大小写:** 是
