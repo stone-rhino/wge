@@ -7,10 +7,10 @@ weight = 101
 
 **Syntax:** `TIME_WDAY`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule TIME_WDAY "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

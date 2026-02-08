@@ -7,10 +7,10 @@ weight = 65
 
 **Syntax:** `HIGHEST_SEVERITY`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule HIGHEST_SEVERITY "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

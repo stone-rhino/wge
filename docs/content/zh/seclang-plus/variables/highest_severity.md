@@ -9,12 +9,11 @@ weight = 65
 **语法:** `HIGHEST_SEVERITY`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule HIGHEST_SEVERITY "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

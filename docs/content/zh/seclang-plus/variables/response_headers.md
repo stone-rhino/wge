@@ -9,12 +9,11 @@ weight = 25
 **语法:** `RESPONSE_HEADERS | RESPONSE_HEADERS:Key`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule RESPONSE_HEADERS:User-Agent "@rx box" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

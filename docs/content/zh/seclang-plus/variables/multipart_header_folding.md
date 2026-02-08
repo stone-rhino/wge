@@ -9,12 +9,11 @@ weight = 50
 **语法:** `MULTIPART_HEADER_FOLDING`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_HEADER_FOLDING "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

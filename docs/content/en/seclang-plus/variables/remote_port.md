@@ -7,10 +7,10 @@ weight = 33
 
 **Syntax:** `REMOTE_PORT`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule REMOTE_PORT "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

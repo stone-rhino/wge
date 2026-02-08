@@ -7,10 +7,10 @@ weight = 36
 
 **Syntax:** `SERVER_NAME`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule SERVER_NAME "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

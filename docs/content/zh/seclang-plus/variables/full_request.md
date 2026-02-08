@@ -9,12 +9,11 @@ weight = 22
 **语法:** `FULL_REQUEST`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule FULL_REQUEST "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

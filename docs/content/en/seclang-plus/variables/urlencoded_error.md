@@ -7,10 +7,10 @@ weight = 63
 
 **Syntax:** `URLENCODED_ERROR`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule URLENCODED_ERROR "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

@@ -7,10 +7,10 @@ weight = 38
 
 **Syntax:** `AUTH_TYPE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule AUTH_TYPE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

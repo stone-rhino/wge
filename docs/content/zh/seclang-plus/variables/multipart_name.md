@@ -9,12 +9,11 @@ weight = 41
 **语法:** `MULTIPART_NAME`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_NAME "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

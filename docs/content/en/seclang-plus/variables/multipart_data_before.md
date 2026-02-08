@@ -7,10 +7,10 @@ weight = 48
 
 **Syntax:** `MULTIPART_DATA_BEFORE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_DATA_BEFORE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

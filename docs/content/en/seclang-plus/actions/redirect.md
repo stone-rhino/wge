@@ -7,6 +7,10 @@ weight = 15
 
 **Syntax:** `redirect:url`
 
+**Case Sensitive:** Yes
+
+**Implemented:** No
+
 The redirect action sends an HTTP redirect response to the client, directing them to a specified URL. This is useful for sending detected attackers to honeypots, warning pages, or blocked pages while providing a better user experience than a simple deny.
 
 **Example:**

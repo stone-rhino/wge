@@ -9,12 +9,11 @@ weight = 51
 **语法:** `MULTIPART_LF_LINE`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_LF_LINE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

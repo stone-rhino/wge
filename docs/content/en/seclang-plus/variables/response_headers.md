@@ -7,10 +7,10 @@ weight = 25
 
 **Syntax:** `RESPONSE_HEADERS | RESPONSE_HEADERS:Key`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule RESPONSE_HEADERS:User-Agent "@rx box" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

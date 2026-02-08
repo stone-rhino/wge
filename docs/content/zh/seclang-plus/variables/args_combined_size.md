@@ -9,12 +9,11 @@ weight = 7
 **语法:** `ARGS_COMBINED_SIZE | ARGS_COMBINED_SIZE:Key`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule ARGS_COMBINED_SIZE:User-Agent "@rx box" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

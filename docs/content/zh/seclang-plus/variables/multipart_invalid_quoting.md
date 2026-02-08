@@ -9,12 +9,11 @@ weight = 53
 **语法:** `MULTIPART_INVALID_QUOTING`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_INVALID_QUOTING "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

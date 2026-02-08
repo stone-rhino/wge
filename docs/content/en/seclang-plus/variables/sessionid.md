@@ -7,10 +7,10 @@ weight = 70
 
 **Syntax:** `SESSIONID`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule SESSIONID "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

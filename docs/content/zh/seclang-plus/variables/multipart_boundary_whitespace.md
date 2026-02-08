@@ -9,12 +9,11 @@ weight = 47
 **语法:** `MULTIPART_BOUNDARY_WHITESPACE`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_BOUNDARY_WHITESPACE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

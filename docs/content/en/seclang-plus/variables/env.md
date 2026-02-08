@@ -7,10 +7,10 @@ weight = 67
 
 **Syntax:** `ENV`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule ENV "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

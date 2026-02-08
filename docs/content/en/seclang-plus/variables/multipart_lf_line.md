@@ -7,10 +7,10 @@ weight = 51
 
 **Syntax:** `MULTIPART_LF_LINE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_LF_LINE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

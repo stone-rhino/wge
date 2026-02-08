@@ -7,6 +7,10 @@ weight = 32
 
 **Syntax:** `exec:/path/to/script`
 
+**Case Sensitive:** Yes
+
+**Implemented:** No
+
 The exec action executes an external script or command when the rule matches. This can be used for custom logging, alerting, or integration with external systems. The script is executed asynchronously to avoid blocking request processing.
 
 **Example:**

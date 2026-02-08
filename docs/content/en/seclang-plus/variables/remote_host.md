@@ -7,10 +7,10 @@ weight = 32
 
 **Syntax:** `REMOTE_HOST`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule REMOTE_HOST "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

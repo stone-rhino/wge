@@ -9,12 +9,11 @@ weight = 32
 **语法:** `REMOTE_HOST`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule REMOTE_HOST "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

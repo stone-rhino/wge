@@ -7,10 +7,10 @@ weight = 99
 
 **Syntax:** `TIME_MIN`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule TIME_MIN "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

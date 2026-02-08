@@ -7,10 +7,10 @@ weight = 74
 
 **Syntax:** `MODSEC_BUILD`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MODSEC_BUILD "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

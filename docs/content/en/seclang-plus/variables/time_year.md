@@ -7,10 +7,10 @@ weight = 95
 
 **Syntax:** `TIME_YEAR`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule TIME_YEAR "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

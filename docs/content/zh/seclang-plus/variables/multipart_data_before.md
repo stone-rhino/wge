@@ -9,12 +9,11 @@ weight = 48
 **语法:** `MULTIPART_DATA_BEFORE`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_DATA_BEFORE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

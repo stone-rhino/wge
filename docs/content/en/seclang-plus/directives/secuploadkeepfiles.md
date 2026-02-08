@@ -20,8 +20,6 @@ weight = 36
 
 This directive requires that the storage directory has been defined via SecUploadDir.
 
-WGE can parse this directive correctly, but the functionality is not yet implemented.
-
 **Example:**
 
 ```apache

@@ -9,12 +9,11 @@ weight = 74
 **语法:** `MODSEC_BUILD`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MODSEC_BUILD "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

@@ -7,10 +7,10 @@ weight = 50
 
 **Syntax:** `MULTIPART_HEADER_FOLDING`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_HEADER_FOLDING "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

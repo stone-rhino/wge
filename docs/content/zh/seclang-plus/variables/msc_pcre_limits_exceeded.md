@@ -9,12 +9,11 @@ weight = 66
 **语法:** `MSC_PCRE_LIMITS_EXCEEDED`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MSC_PCRE_LIMITS_EXCEEDED "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

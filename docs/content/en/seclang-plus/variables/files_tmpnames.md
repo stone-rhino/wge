@@ -7,10 +7,10 @@ weight = 78
 
 **Syntax:** `FILES_TMPNAMES`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule FILES_TMPNAMES "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

@@ -7,10 +7,10 @@ weight = 72
 
 **Syntax:** `WEBAPPID`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule WEBAPPID "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

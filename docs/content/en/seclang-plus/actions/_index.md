@@ -4,6 +4,12 @@ weight = 4
 ordersectionsby = "title"
 +++
 
+Actions can be categorized into three types based on their execution timing:
+
+- **Configuration Actions**: Such as `id`, `phase`, etc., used to define rule metadata.
+- **Match-Triggered Actions**: Such as `setvar`, `ctl`, etc., executed when a single rule matches. A "single rule" here refers to one `SecRule`, not a parent-child rule chain as a whole.
+- **Disruptive Actions**: Such as `deny`, `allow`, etc., executed after the entire rule (including chained sub-rules) completes matching, typically affecting subsequent rule processing.
+
 | Keyword | Description |
 |---------|-------------|
 | [`id`](./id/) | Unique rule identifier (required) |
@@ -37,4 +43,10 @@ ordersectionsby = "title"
 | [`setsid`](./setsid/) | Set session ID |
 | [`setrsc`](./setrsc/) | Set resource ID |
 | [`initcol`](./initcol/) | Initialize persistent collection |
+| [`chain`](./chain/) | Chain rules together |
+| [`skip`](./skip/) | Skip specified number of subsequent rules |
+| [`skipAfter`](./skipafter/) | Skip to a rule with specified marker |
+| [`ctl`](./ctl/) | Modify engine configuration at runtime |
 | [`exec`](./exec/) | Execute external script or command |
+| [`status`](./status/) | Set HTTP response status code |
+| [`xmlns`](./xmlns/) | Define XML namespace |

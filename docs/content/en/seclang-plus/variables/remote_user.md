@@ -7,10 +7,10 @@ weight = 34
 
 **Syntax:** `REMOTE_USER`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule REMOTE_USER "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

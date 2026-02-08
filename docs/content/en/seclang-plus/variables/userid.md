@@ -7,10 +7,10 @@ weight = 71
 
 **Syntax:** `USERID`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule USERID "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

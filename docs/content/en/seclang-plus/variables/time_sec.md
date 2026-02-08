@@ -7,10 +7,10 @@ weight = 100
 
 **Syntax:** `TIME_SEC`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule TIME_SEC "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

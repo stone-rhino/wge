@@ -7,10 +7,10 @@ weight = 64
 
 **Syntax:** `STATUS_LINE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule STATUS_LINE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

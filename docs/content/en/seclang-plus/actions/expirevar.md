@@ -7,6 +7,10 @@ weight = 26
 
 **Syntax:** `expirevar:collection.variable=seconds`
 
+**Case Sensitive:** Yes
+
+**Implemented:** No
+
 The expirevar action sets a time-to-live (TTL) for a collection variable. After the specified number of seconds, the variable is automatically removed. This is commonly used for implementing temporary bans, rate limiting windows, and session-based tracking.
 
 **Example:**

@@ -7,10 +7,10 @@ weight = 43
 
 **Syntax:** `MULTIPART_CRLF_LF_LINES`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_CRLF_LF_LINES "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

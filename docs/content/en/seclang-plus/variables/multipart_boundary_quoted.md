@@ -7,10 +7,10 @@ weight = 46
 
 **Syntax:** `MULTIPART_BOUNDARY_QUOTED`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_BOUNDARY_QUOTED "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

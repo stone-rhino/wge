@@ -7,10 +7,10 @@ weight = 41
 
 **Syntax:** `MULTIPART_NAME`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_NAME "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

@@ -9,12 +9,11 @@ weight = 96
 **语法:** `TIME_MON`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule TIME_MON "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

@@ -7,10 +7,10 @@ weight = 47
 
 **Syntax:** `MULTIPART_BOUNDARY_WHITESPACE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule MULTIPART_BOUNDARY_WHITESPACE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

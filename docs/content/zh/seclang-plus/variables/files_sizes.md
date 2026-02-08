@@ -9,12 +9,11 @@ weight = 77
 **语法:** `FILES_SIZES`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule FILES_SIZES "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

@@ -7,10 +7,10 @@ weight = 80
 
 **Syntax:** `FILES_COMBINED_SIZE`
 
+**Implementation Status:** No
+
 **Example:**
 
 ```apache
 SecRule FILES_COMBINED_SIZE "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-**Implementation Status:** Not yet implemented

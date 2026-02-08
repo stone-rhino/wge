@@ -9,12 +9,11 @@ weight = 54
 **语法:** `MULTIPART_INVALID_PART`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_INVALID_PART "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无

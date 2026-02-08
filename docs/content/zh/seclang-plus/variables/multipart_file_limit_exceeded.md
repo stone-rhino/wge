@@ -9,12 +9,11 @@ weight = 56
 **语法:** `MULTIPART_FILE_LIMIT_EXCEEDED`
 
 
+**是否实现:** 否
+
 **示例:**
 
 
 ```apache
 SecRule MULTIPART_FILE_LIMIT_EXCEEDED "@rx value" "id:1001,deny,msg:'Test'"
 ```
-
-
-**是否实现:** 暂无
