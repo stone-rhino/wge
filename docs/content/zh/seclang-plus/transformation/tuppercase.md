@@ -3,18 +3,10 @@ title = "t:uppercase"
 weight = 3
 +++
 
-**描述:** 转换为大写
+**描述:** 对字符串进行小写转大写。
 
 **语法:** `t:uppercase`
 
-**示例:**
+**是否实现:** 否
 
-```apache
-SecRule ARGS "@rx test" "id:1001,t:uppercase"
-```
-
-
-**参数类型:** `string`
-
-
-**是否实现:** 暂无
+此转换函数 WGE 支持解析，但暂未支持功能实现。

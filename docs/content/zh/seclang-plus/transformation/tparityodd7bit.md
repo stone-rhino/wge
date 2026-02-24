@@ -3,18 +3,11 @@ title = "t:parityOdd7bit"
 weight = 30
 +++
 
-**描述:** 7位奇校验解码
+**描述:** 基于 ``7`` 位有效数据计算奇校验位，并用计算出的校验位覆盖每个目标字节的第 ``8`` 位。
 
 **语法:** `t:parityOdd7bit`
 
-**示例:**
+**是否实现:** 否
 
-```apache
-SecRule ARGS "@rx test" "id:1001,t:parityOdd7bit"
-```
+此转换函数 WGE 支持解析，但暂未支持功能实现。
 
-
-**参数类型:** `string`
-
-
-**是否实现:** 暂无

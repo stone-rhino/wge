@@ -3,18 +3,16 @@ title = "t:urlDecodeUni"
 weight = 5
 +++
 
-**描述:** Unicode URL 解码
+**描述:** 对字符串进行 ``URL`` 解码。
+
+此转换函数与 ``t:urlDecode`` 类似，但支持 ``Microsoft`` 特定的 ``%u`` 编码。如果码点在 ``FF01-FF5E`` 范围内（全角 ``ASCII`` 码），则使用高字节来检测和调整低字节。否则，仅使用低字节，并将高字节置零。
 
 **语法:** `t:urlDecodeUni`
+
+**是否实现:** 是
 
 **示例:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:urlDecodeUni"
 ```
-
-
-**参数类型:** `string`
-
-
-与 urlDecode 功能相同，但支持微软专有 %u 编码。若代码值在 FF01-FF5E 范围内（全宽 ASCII 码），则使用高位字节检测并调整低位字节；否则仅使用低位字节，高位字节清零。

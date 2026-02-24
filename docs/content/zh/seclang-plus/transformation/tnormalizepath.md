@@ -3,9 +3,13 @@ title = "t:normalizePath"
 weight = 25
 +++
 
-**描述:** 规范化路径
+**描述:** 对字符串进行 ``Linux`` 路径规范化。
+
+同 `t:normalisePath`。
 
 **语法:** `t:normalizePath`
+
+**是否实现:** 是
 
 **示例:**
 
@@ -13,8 +17,3 @@ weight = 25
 SecRule ARGS "@rx test" "id:1001,t:normalizePath"
 ```
 
-
-**参数类型:** `string`
-
-
-移除输入字符串中的多重斜杠、目录自引用及目录后向引用（位于输入开头的情况除外）。
