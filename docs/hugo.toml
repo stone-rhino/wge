@@ -23,7 +23,8 @@ defaultContentLanguage = 'en'
   themeVariant = 'blue'
   disableRootBreadcrumb = true
   disableTableOfContents = false
-  alwaysopen = true
+  alwaysopen = false
+  collapsibleMenu = true
 
 [markup]
   [markup.tableOfContents]

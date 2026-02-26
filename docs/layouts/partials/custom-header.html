@@ -4,4 +4,31 @@
 h1 {
   text-transform: none !important;
 }
+
+/* Sidebar: hide top-level chevron arrows */
+#R-sidebar ul.collapsible-menu.enlarge > li > label > i.fa-chevron-right {
+  display: none !important;
+}
+
+/* Sidebar collapse icon: + / − (only for nested menus, not top-level) */
+#R-sidebar ul.collapsible-menu:not(.enlarge) > li > label > i.fa-chevron-right {
+  visibility: hidden;
+  width: 0 !important;
+  font-size: 0 !important;
+}
+#R-sidebar ul.collapsible-menu:not(.enlarge) > li > label::before {
+  content: '\002B';
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-block;
+  width: 0.8rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+  color: inherit;
+}
+#R-sidebar ul.collapsible-menu:not(.enlarge) > li > input:checked + label::before {
+  content: '\2212';
+}
 </style>
