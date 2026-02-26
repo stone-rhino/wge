@@ -3,19 +3,23 @@ title = "t:cmdline"
 weight = 10
 +++
 
-**Description:** Command line argument normalization
+**Description:** Normalizes a string as command line arguments.
+
+This transformation function processes the input string in the following ways:
+
+- Remove all backslashes ``\``
+- Remove all double quotes ``"``
+- Remove all single quotes ``'``
+- Remove all carets ``^``
+- Remove spaces before slashes ``/``
+- Remove spaces before left parentheses ``(``
+- Replace commas ``,`` and semicolons ``;`` with spaces
+- Compress consecutive whitespace (including tabs, newlines) into a single space
+- Convert characters to lowercase
 
 **Syntax:** `t:cmdline`
 
-The t:cmdline transformation normalizes command line arguments for detecting command injection attacks. On Windows and Unix systems, commands can be escaped in various ways (using quotes, backslashes, carets, etc.). This transformation processes input by:
-
-- Removing all backslashes (\)
-- Removing all double quotes (")
-- Removing all single quotes (')
-- Removing all carets (^)
-- Removing spaces before /
-- Removing spaces before -
-- Compressing redundant whitespace
+**Implemented:** Yes
 
 **Example:**
 
@@ -27,7 +31,3 @@ SecRule ARGS "@rx (cat|ls|wget|curl|nc|bash)" \
 # Original input: c^a"t /e't'c/p\asswd
 # After processing: cat /etc/passwd
 ```
-
-**Parameter Type:** `none`
-
-**Case Sensitive:** Yes

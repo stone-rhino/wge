@@ -3,11 +3,13 @@ title = "t:trimRight"
 weight = 38
 +++
 
-**Description:** Trim trailing whitespace
+**Description:** Removes trailing whitespace from a string.
+
+This transformation function removes ``\x20\t\n\r\f\v`` characters from the end of the input string.
 
 **Syntax:** `t:trimRight`
 
-The t:trimRight transformation removes all whitespace characters from the right side (end) of the input string, including spaces, tabs, newlines, etc.
+**Implemented:** Yes
 
 **Example:**
 
@@ -19,7 +21,3 @@ SecRule ARGS:cmd "@rx ;$" \
 # Original input: "ls -la;   "
 # After processing: "ls -la;"
 ```
-
-**Parameter Type:** `none`
-
-**Case Sensitive:** Yes

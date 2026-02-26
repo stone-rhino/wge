@@ -3,16 +3,18 @@ title = "t:compressWhitespace"
 weight = 20
 +++
 
-**Description:** Compress whitespace
+**Description:** Compresses whitespace in a string, reducing consecutive spaces to a single space.
+
+This transformation function processes the input string in the following ways:
+ - Converts all whitespace characters (including ``0x20, \f, \t, \n, \r, \v, 0xa0``) to spaces
+ - Compresses consecutive spaces into a single space
 
 **Syntax:** `t:compressWhitespace`
 
-Converts any whitespace characters (0x20, \f, \t, \n, \r, \v, 0xa0) to spaces (ASCII 0x20) and compresses multiple consecutive spaces into a single space. This is useful for normalizing input that may contain various whitespace patterns to evade detection.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:compressWhitespace"
 ```
-
-**Parameter Type:** `string`

@@ -3,11 +3,13 @@ title = "t:none"
 weight = 1
 +++
 
-**Description:** Clear transformation chain
+**Description:** Clears the transformation chain.
+
+``t:none`` clears all transformation functions that appear before ``t:none`` in the transformation chain. After using ``t:none``, only transformation functions explicitly specified after it will be applied.
 
 **Syntax:** `t:none`
 
-The t:none transformation clears all previous transformation functions, resetting the transformation chain. This is useful when you need to override transformations inherited from SecDefaultAction or SecRule. After using t:none, only transformation functions explicitly specified after it will be applied.
+**Implemented:** Yes
 
 **Example:**
 
@@ -26,7 +28,3 @@ SecRule ARGS:encoded "@rx admin" \
 SecRule REQUEST_BODY "@rx ^\{" \
     "id:3,t:none,pass,setvar:tx.is_json=1"
 ```
-
-**Parameter Type:** `none`
-
-**Case Sensitive:** Yes

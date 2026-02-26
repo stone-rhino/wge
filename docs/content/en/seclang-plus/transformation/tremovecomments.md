@@ -3,16 +3,20 @@ title = "t:removeComments"
 weight = 21
 +++
 
-**Description:** Remove comments
+**Description:** Removes comment blocks from a string.
+
+This transformation function removes the following comment blocks from the input string:
+- ``/**/``
+- ``<!---->``
+- ``--``
+- ``#``
 
 **Syntax:** `t:removeComments`
 
-Removes all comment sequences (/* ... */, --, #) from the input. Multiple consecutive comment markers are not compressed. This is useful for detecting SQL injection and other attacks that use comments to bypass filters.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:removeComments"
 ```
-
-**Parameter Type:** `string`

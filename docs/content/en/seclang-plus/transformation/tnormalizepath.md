@@ -3,16 +3,16 @@ title = "t:normalizePath"
 weight = 25
 +++
 
-**Description:** Normalize path
+**Description:** Normalizes ``Linux`` path in a string.
+
+Same as `t:normalisePath`.
 
 **Syntax:** `t:normalizePath`
 
-Removes multiple slashes, directory self-references (./), and directory back-references (../) from the input string, except when located at the beginning of the input. This is essential for detecting path traversal attacks that use various encoding techniques.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:normalizePath"
 ```
-
-**Parameter Type:** `string`

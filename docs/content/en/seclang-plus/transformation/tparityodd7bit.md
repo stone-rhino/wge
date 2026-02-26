@@ -3,18 +3,10 @@ title = "t:parityOdd7bit"
 weight = 30
 +++
 
-**Description:** 7-bit odd parity decode
+**Description:** Calculates odd parity bit based on ``7``-bit data and overwrites the ``8th`` bit of each target byte with the calculated parity bit.
 
 **Syntax:** `t:parityOdd7bit`
 
-Decodes data that was encoded with 7-bit odd parity. Removes the parity bit from each byte to recover the original 7-bit data.
+**Implemented:** No
 
-**Example:**
-
-```apache
-SecRule ARGS "@rx test" "id:1001,t:parityOdd7bit"
-```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
+WGE can parse this transformation function, but the functionality is not yet implemented.

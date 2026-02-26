@@ -3,18 +3,10 @@ title = "t:parityZero7bit"
 weight = 31
 +++
 
-**Description:** 7-bit zero parity decode
+**Description:** Forces the ``8th`` bit of each target byte to zero (zero parity bit) based on ``7``-bit data, allowing ``7``-bit data containing odd/even parity bits to be inspected as ``ASCII7`` data.
 
 **Syntax:** `t:parityZero7bit`
 
-Decodes data that was encoded with 7-bit zero parity. Removes the parity bit (which is always zero) from each byte to recover the original 7-bit data.
+**Implemented:** No
 
-**Example:**
-
-```apache
-SecRule ARGS "@rx test" "id:1001,t:parityZero7bit"
-```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
+WGE can parse this transformation function, but the functionality is not yet implemented.

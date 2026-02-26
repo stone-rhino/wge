@@ -3,18 +3,10 @@ title = "t:urlEncode"
 weight = 6
 +++
 
-**Description:** URL encode
+**Description:** Performs ``URL`` encoding on a string.
 
 **Syntax:** `t:urlEncode`
 
-Encodes the input string using URL encoding (percent-encoding). Special characters are converted to their %XX hexadecimal representation.
+**Implemented:** No
 
-**Example:**
-
-```apache
-SecRule ARGS "@rx test" "id:1001,t:urlEncode"
-```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
+WGE can parse this transformation function, but the functionality is not yet implemented.

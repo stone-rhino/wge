@@ -3,16 +3,14 @@ title = "t:length"
 weight = 33
 +++
 
-**Description:** Get string length
+**Description:** Calculates the length of a string.
 
 **Syntax:** `t:length`
 
-Calculates the length of the input string (in bytes) and outputs the result as a string. For example, given the input `ABCDE`, this transformation will return `5`.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
-SecRule ARGS "@gt 100" "id:1001,t:length,deny,msg:'Parameter too long'"
+SecRule ARGS "@rx 128" "id:1001,t:length"
 ```
-
-**Parameter Type:** `string`

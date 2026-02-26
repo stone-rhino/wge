@@ -3,16 +3,15 @@ title = "t:hexEncode"
 weight = 12
 +++
 
-**Description:** Hexadecimal encode
+**Description:** Encodes a string using hexadecimal encoding.
 
 **Syntax:** `t:hexEncode`
 
-Encodes a string (which may contain binary characters) into hexadecimal representation, with two hex characters per input byte. For example, `xyz` would be encoded as `78797a`.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
-SecRule ARGS "@rx test" "id:1001,t:hexEncode"
+SecRule ARGS "@rx 74657374" "id:1001,t:hexEncode"
+# test encoded with hexEncode becomes 74657374
 ```
-
-**Parameter Type:** `string`

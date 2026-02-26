@@ -3,16 +3,16 @@ title = "t:normalisePathWin"
 weight = 28
 +++
 
-**Description:** Normalize Windows path (British spelling)
+**Description:** Normalizes ``Windows`` path in a string.
+
+This transformation function is similar to `t:normalisePath`, but first converts all backslashes ``\`` to forward slashes ``/``.
 
 **Syntax:** `t:normalisePathWin`
 
-Alias for normalizePathWin. See normalizePathWin for details.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:normalisePathWin"
 ```
-
-**Parameter Type:** `string`

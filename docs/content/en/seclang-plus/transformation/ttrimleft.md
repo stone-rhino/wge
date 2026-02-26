@@ -3,11 +3,13 @@ title = "t:trimLeft"
 weight = 37
 +++
 
-**Description:** Trim leading whitespace
+**Description:** Removes leading whitespace from a string.
+
+This transformation function removes ``\x20\t\n\r\f\v`` characters from the beginning of the input string.
 
 **Syntax:** `t:trimLeft`
 
-The t:trimLeft transformation removes all whitespace characters from the left side (beginning) of the input string, including spaces, tabs, newlines, etc.
+**Implemented:** Yes
 
 **Example:**
 
@@ -19,7 +21,3 @@ SecRule ARGS:username "@rx ^admin" \
 # Original input: "   admin"
 # After processing: "admin"
 ```
-
-**Parameter Type:** `none`
-
-**Case Sensitive:** Yes

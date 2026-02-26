@@ -3,18 +3,10 @@ title = "t:parityEven7bit"
 weight = 29
 +++
 
-**Description:** 7-bit even parity decode
+**Description:** Calculates even parity bit based on ``7``-bit data and overwrites the ``8th`` bit of each target byte with the calculated parity bit.
 
 **Syntax:** `t:parityEven7bit`
 
-Decodes data that was encoded with 7-bit even parity. Removes the parity bit from each byte to recover the original 7-bit data.
+**Implemented:** No
 
-**Example:**
-
-```apache
-SecRule ARGS "@rx test" "id:1001,t:parityEven7bit"
-```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
+WGE can parse this transformation function, but the functionality is not yet implemented.

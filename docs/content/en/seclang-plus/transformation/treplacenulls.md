@@ -3,16 +3,16 @@ title = "t:replaceNulls"
 weight = 24
 +++
 
-**Description:** Replace null characters
+**Description:** Replaces ``NULL (0x00)`` characters in a string with spaces.
+
+This transformation function replaces all ``NULL`` characters in the input string with space characters (``ASCII 0x20``).
 
 **Syntax:** `t:replaceNulls`
 
-Replaces NUL bytes in the input with space characters (ASCII 0x20). This is useful for detecting attacks that use null bytes to evade string-based detection.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:replaceNulls"
 ```
-
-**Parameter Type:** `string`

@@ -3,16 +3,16 @@ title = "t:utf8ToUnicode"
 weight = 32
 +++
 
-**Description:** UTF-8 to Unicode
+**Description:** Performs ``Unicode`` encoding on ``UTF-8`` character sequences in a string.
+
+This transformation function converts all ``UTF-8`` character sequences in the input string to ``Unicode`` (using ``%uHHHH`` format).
 
 **Syntax:** `t:utf8ToUnicode`
 
-Converts all UTF-8 character sequences to Unicode format ('%uHHHH'). This helps with input normalization, particularly for non-English languages, minimizing false positives and false negatives.
+**Implemented:** Yes
 
 **Example:**
 
 ```apache
 SecRule ARGS "@rx test" "id:1001,t:utf8ToUnicode"
 ```
-
-**Parameter Type:** `string`
