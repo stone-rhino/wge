@@ -9,6 +9,8 @@ weight = 57
 
 REQBODY_ERROR is set to 1 when errors occur during request body parsing. For example, when JSON format is invalid, XML format is incorrect, or multipart data is abnormal, this variable will be set. Used to detect and block requests with invalid request bodies in phase:2.
 
+**Note:** This variable is not currently assigned and remains at the default value `0`.
+
 **Example:**
 
 ```apache

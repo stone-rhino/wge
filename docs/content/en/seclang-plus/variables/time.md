@@ -3,11 +3,13 @@ title = "TIME"
 weight = 93
 +++
 
-**Description:** Current time (formatted string)
+**Description:** Current time (HH:MM:SS formatted string)
 
 **Syntax:** `TIME`
 
 **Implementation Status:** No
+
+WGE can parse this directive, but the functionality is not implemented yet.
 
 **Example:**
 

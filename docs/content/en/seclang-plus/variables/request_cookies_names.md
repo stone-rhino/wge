@@ -3,7 +3,7 @@ title = "REQUEST_COOKIES_NAMES"
 weight = 11
 +++
 
-**Description:** Cookie names
+**Description:** Request Cookie names
 
 **Syntax:** `REQUEST_COOKIES_NAMES`
 

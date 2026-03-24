@@ -7,7 +7,7 @@ weight = 25
 
 **Syntax:** `RESPONSE_HEADERS | RESPONSE_HEADERS:Key`
 
-**Implementation Status:** No
+This variable references response header values and behaves the same way as request headers in `REQUEST_HEADERS`.
 
 **Example:**
 

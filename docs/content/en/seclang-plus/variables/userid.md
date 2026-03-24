@@ -7,7 +7,11 @@ weight = 71
 
 **Syntax:** `USERID`
 
+This variable contains the value set with `setuid`.
+
 **Implementation Status:** No
+
+WGE can parse this directive, but the functionality is not implemented yet.
 
 **Example:**
 

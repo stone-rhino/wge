@@ -3,7 +3,7 @@ title = "RESPONSE_STATUS"
 weight = 27
 +++
 
-**Description:** Response status code
+**Description:** HTTP response status code
 
 **Syntax:** `RESPONSE_STATUS`
 

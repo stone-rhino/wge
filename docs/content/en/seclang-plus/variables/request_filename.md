@@ -9,6 +9,8 @@ weight = 17
 
 REQUEST_FILENAME contains the file path portion of the request URI, excluding the query string. This is a normalized path extracted from the URI, used to detect access to specific files or directories.
 
+**Note:** This variable is automatically URL-decoded once.
+
 **Example:**
 
 ```apache

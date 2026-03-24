@@ -7,7 +7,7 @@ weight = 30
 
 **Syntax:** `RESPONSE_CONTENT_TYPE`
 
-**Implementation Status:** No
+This variable returns the `content-type` response header and is equivalent to `RESPONSE_HEADERS:content-type`.
 
 **Example:**
 

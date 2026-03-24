@@ -3,7 +3,7 @@ title = "MULTIPART_PART_HEADERS"
 weight = 42
 +++
 
-**Description:** Multipart part headers
+**Description:** Headers of multipart parts
 
 **Syntax:** `MULTIPART_PART_HEADERS | MULTIPART_PART_HEADERS:HeaderName`
 

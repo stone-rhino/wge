@@ -3,7 +3,7 @@ title = "REMOTE_ADDR"
 weight = 31
 +++
 
-**Description:** Client IP address
+**Description:** Remote client IP address
 
 **Syntax:** `REMOTE_ADDR`
 

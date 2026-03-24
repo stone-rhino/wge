@@ -9,6 +9,8 @@ weight = 18
 
 REQUEST_BASENAME contains only the filename portion of the request path, excluding the directory path. For example, for /path/to/file.php, this variable's value is file.php. Used to detect specific filenames or file extensions.
 
+**Note:** This variable is automatically URL-decoded once.
+
 **Example:**
 
 ```apache

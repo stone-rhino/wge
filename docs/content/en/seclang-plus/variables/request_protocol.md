@@ -3,7 +3,7 @@ title = "REQUEST_PROTOCOL"
 weight = 19
 +++
 
-**Description:** Request protocol (HTTP/1.1, etc.)
+**Description:** HTTP request protocol
 
 **Syntax:** `REQUEST_PROTOCOL`
 

@@ -12,7 +12,7 @@ REQUEST_BODY contains the raw request body data. Unlike ARGS_POST, REQUEST_BODY 
 **Example:**
 
 ```apache
-# Check raw request body for malicious patterns
+# Check for malicious patterns in the raw request body
 SecRule REQUEST_BODY "@rx <script" \
     "id:1016,phase:2,deny,msg:'Script tag detected in request body'"
 ```

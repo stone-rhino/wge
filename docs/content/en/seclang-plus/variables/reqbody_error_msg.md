@@ -9,6 +9,8 @@ weight = 58
 
 REQBODY_ERROR_MSG contains the error description when request body parsing fails. Typically used together with REQBODY_ERROR to log the specific error reason for debugging and analysis. Can be referenced in the msg action via %{REQBODY_ERROR_MSG}.
 
+**Note:** This variable is not currently assigned, so its default value remains empty.
+
 **Example:**
 
 ```apache

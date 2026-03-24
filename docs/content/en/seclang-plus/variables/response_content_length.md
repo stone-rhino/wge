@@ -7,7 +7,7 @@ weight = 29
 
 **Syntax:** `RESPONSE_CONTENT_LENGTH`
 
-**Implementation Status:** No
+This variable returns the `content-length` response header and is equivalent to `RESPONSE_HEADERS:content-length`.
 
 **Example:**
 

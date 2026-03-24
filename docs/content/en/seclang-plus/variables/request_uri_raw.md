@@ -3,7 +3,7 @@ title = "REQUEST_URI_RAW"
 weight = 16
 +++
 
-**Description:** Raw request URI (not decoded)
+**Description:** Raw request URI
 
 **Syntax:** `REQUEST_URI_RAW`
 

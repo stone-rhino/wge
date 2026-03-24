@@ -3,7 +3,7 @@ title = "REQUEST_HEADERS_NAMES"
 weight = 9
 +++
 
-**Description:** Request header names
+**Description:** HTTP request header names
 
 **Syntax:** `REQUEST_HEADERS_NAMES`
 

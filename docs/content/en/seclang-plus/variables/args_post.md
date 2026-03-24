@@ -7,7 +7,12 @@ weight = 3
 
 **Syntax:** `ARGS_POST | ARGS_POST:Key`
 
-ARGS_POST contains only parameters passed in the request body (i.e., POST data). WGE supports parsing request bodies in application/x-www-form-urlencoded, multipart/form-data, application/json, and application/xml formats. Use this variable to inspect only form-submitted data without checking URL parameters. SecRequestBodyAccess must be enabled to access this variable.
+ARGS_POST contains only parameters passed in the request body, that is, POST data. WGE supports parsing request bodies in `application/x-www-form-urlencoded`, `multipart/form-data`, and `application/json` formats. Use this variable to inspect only data submitted in the request body without checking URL parameters. `SecRequestBodyAccess` must be enabled to access this variable.
+
+**Note:**
+
+- This variable must be used in phase 2 or later. Otherwise, its value is empty.
+- When `SecParseXmlIntoArgs` is `On` or `OnlyArgs`, it also includes data parsed from `application/xml` request bodies.
 
 **Example:**
 

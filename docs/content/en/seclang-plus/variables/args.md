@@ -3,19 +3,27 @@ title = "ARGS"
 weight = 1
 +++
 
-**Description:** All request parameters (GET and POST)
+**Description:** All request parameters
 
 **Syntax:** `ARGS | ARGS:Key`
+
+ARGS contains parameters from multiple sources, including request-line parameters, request bodies of type `application/x-www-form-urlencoded`, `multipart/form-data`, and `application/json`, and, when `SecParseXmlIntoArgs` is set to `On` or `OnlyArgs`, content parsed from `application/xml` request bodies.
+
+**Note:** When this variable is used in phase 1, it behaves the same as `ARGS_GET`.
 
 **Example:**
 
 ```apache
-SecRule ARGS:User-Agent "@rx box" "id:1001,deny,msg:'Test'"
+SecRule ARGS:user "@rx admin" "id:1001,deny,msg:'Test'"
 ```
 
-RESTful API parsing examples:
+**ARGS Parsing Examples**
 
-1. JSON request body parsing (application/json)
+## 1. JSON Request Body Parsing (`application/json`)
+
+For JSON values of type number, boolean, or null, WGE stores only the key because those values usually do not carry attack payloads.
+
+During parsing, one JS decode pass is applied by default, including escapes and `\u` encodings. For example, `\\"` is automatically decoded to `"`. Its behavior is equivalent to the `jsDecode` transformation.
 
 **Request:**
 
@@ -25,39 +33,37 @@ Content-Type: application/json
 
 {
   "username": "admin",
-  "password": "secret123",
+  "password": "secret\"123",
   "profile": {
     "email": "admin@example.com",
     "role": "administrator"
   },
-  "tags": ["vip", "test"]
+  "tags": ["vip", "test"],
+  "enable":false,
+  "num":10,
+  "body":null
 }
 ```
 
 **ARGS parsing result:**
 
-```
-ARGS:username = "admin"
-ARGS:password = "secret123"
-ARGS:profile.email = "admin@example.com"
-ARGS:profile.role = "administrator"
-ARGS:tags.0 = "vip"
-ARGS:tags.1 = "test"
-```
+`-` indicates that the parameter name or parameter value is empty:
 
-**Rule examples:**
+| Parameter Name | Parameter Value |
+|----------------|-----------------|
+| username | admin |
+| password | secret"123 |
+| profile | - |
+| email | admin@example.com |
+| role | administrator |
+| tags | - |
+| - | vip |
+| - | test |
+| enable | - |
+| num | - |
+| body | - |
 
-```apache
-# Detect sensitive fields in JSON
-SecRule ARGS:password "@rx (?i)(password|secret)" \
-    "id:1001,phase:2,deny,status:403,msg:'Sensitive data in password field'"
-
-# Detect nested JSON fields
-SecRule ARGS:profile.role "@streq administrator" \
-    "id:1002,phase:2,log,msg:'Admin role detected'"
-```
-
-2. XML request body parsing (application/xml)
+## 2. XML Request Body Parsing (`application/xml`)
 
 **Request:**
 
@@ -65,39 +71,17 @@ SecRule ARGS:profile.role "@streq administrator" \
 POST /api/order HTTP/1.1
 Content-Type: application/xml
 
-<order>
-  <customer>
-    <name>John Doe</name>
-    <email>john@example.com</email>
-  </customer>
-  <items>
-    <item>
-      <name>Product A</name>
-      <quantity>2</quantity>
-    </item>
-  </items>
-</order>
 ```
 
-**XML variable access (requires XPath):**
+**ARGS parsing result:**
 
-```apache
-# Declare namespace if needed
-SecRule REQUEST_HEADERS:Content-Type "@contains xml" \
-    "id:2000,phase:1,pass,nolog,ctl:requestBodyProcessor=XML"
+`-` indicates that the parameter name or parameter value is empty:
 
-# Use XPath to access XML nodes
-SecRule XML:/order/customer/name/text() "@rx admin" \
-    "id:2001,phase:2,deny,msg:'Blocked admin in customer name'"
+| Parameter Name | Parameter Value |
+|----------------|-----------------|
+| username | admin |
 
-SecRule XML:/order/customer/@id "@eq 0" \
-    "id:2002,phase:2,deny,msg:'Invalid customer ID'"
-
-SecRule XML://item/@sku "@rx ^[A-Z]{3}[0-9]{3}$" \
-    "id:2003,phase:2,pass,msg:'Valid SKU format'"
-```
-
-3. URL-encoded form (application/x-www-form-urlencoded)
+## 3. URL-Encoded Form (`application/x-www-form-urlencoded`)
 
 **Request:**
 
@@ -110,23 +94,13 @@ username=admin&password=secret%26123&remember=true
 
 **ARGS parsing result:**
 
-```
-ARGS:username = "admin"
-ARGS:password = "secret&123"  # URL decoded
-ARGS:remember = "true"
-```
+`-` indicates that the parameter name or parameter value is empty:
 
-**Rule examples:**
+| Parameter Name | Parameter Value |
+|----------------|-----------------|
+| username | admin |
 
-```apache
-SecRule ARGS:username "@rx ^[a-zA-Z0-9_]{3,20}$" \
-    "id:3001,phase:2,pass,nolog"
-
-SecRule ARGS:username "!@rx ^[a-zA-Z0-9_]{3,20}$" \
-    "id:3002,phase:2,deny,status:400,msg:'Invalid username format'"
-```
-
-4. Multipart form (multipart/form-data)
+## 4. Multipart Form (`multipart/form-data`)
 
 **Request:**
 
@@ -146,24 +120,10 @@ Content-Type: application/pdf
 ------WebKitFormBoundary--
 ```
 
-**ARGS and FILES parsing result:**
+**ARGS parsing result:**
 
-```
-ARGS:title = "My Document"
-FILES:file = "report.pdf"
-FILES_NAMES:file = "report.pdf"
-FILES_SIZES:file = 102400
-FILES_TMPNAMES:file = "/tmp/upload_abc123"
-```
+`-` indicates that the parameter name or parameter value is empty:
 
-**Rule examples:**
-
-```apache
-# Check file extension
-SecRule FILES_NAMES "@rx \.(php|exe|sh)$" \
-    "id:4001,phase:2,deny,status:403,msg:'Dangerous file extension'"
-
-# Limit file size (5MB)
-SecRule FILES_SIZES "@gt 5242880" \
-    "id:4002,phase:2,deny,status:413,msg:'File too large'"
-```
+| Parameter Name | Parameter Value |
+|----------------|-----------------|
+| username | admin |

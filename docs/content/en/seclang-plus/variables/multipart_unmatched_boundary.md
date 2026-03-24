@@ -3,7 +3,7 @@ title = "MULTIPART_UNMATCHED_BOUNDARY"
 weight = 45
 +++
 
-**Description:** Multipart unmatched boundary
+**Description:** Multipart unmatched boundary flag
 
 **Syntax:** `MULTIPART_UNMATCHED_BOUNDARY`
 

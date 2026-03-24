@@ -7,7 +7,7 @@ weight = 21
 
 **Syntax:** `QUERY_STRING`
 
-QUERY_STRING contains the query string portion of the URL after the question mark (?), excluding the question mark itself. This is the raw query string, not parsed into individual parameters. Used to detect abnormal patterns in the overall query string.
+QUERY_STRING contains the query string portion of the URL after the question mark (?), excluding the question mark itself. This is the original query string, not parsed into individual parameters. Used to detect abnormal patterns in the overall query string.
 
 **Example:**
 

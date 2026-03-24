@@ -3,7 +3,7 @@ title = "MULTIPART_STRICT_ERROR"
 weight = 44
 +++
 
-**Description:** Multipart strict error flag
+**Description:** Multipart strict parsing error flag
 
 **Syntax:** `MULTIPART_STRICT_ERROR`
 

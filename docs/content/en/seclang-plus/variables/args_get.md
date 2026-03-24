@@ -3,7 +3,7 @@ title = "ARGS_GET"
 weight = 2
 +++
 
-**Description:** GET request parameters
+**Description:** GET parameters
 
 **Syntax:** `ARGS_GET | ARGS_GET:Key`
 

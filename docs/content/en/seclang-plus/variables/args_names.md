@@ -5,7 +5,7 @@ weight = 4
 
 **Description:** All parameter names
 
-**Syntax:** `ARGS_NAMES`
+**Syntax:** `ARGS_NAMES | ARGS_NAMES:Key`
 
 ARGS_NAMES contains the names (keys) of all request parameters, including both GET and POST parameters. This variable is used to detect whether parameter names themselves contain attack payloads, which is a common bypass technique where attackers may inject malicious code in parameter names.
 

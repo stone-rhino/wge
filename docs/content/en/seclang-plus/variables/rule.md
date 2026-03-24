@@ -7,7 +7,7 @@ weight = 69
 
 **Syntax:** `RULE`
 
-The RULE variable provides access to the metadata of the currently executing rule. Specific properties can be accessed via subkeys, such as RULE.id (rule ID), RULE.msg (rule message), RULE.severity (severity level), etc. Primarily used in logging and dynamic messages to reference information about the rule itself.
+The RULE variable provides access to the metadata of the currently executing rule. Specific properties can be accessed via subkeys, such as `RULE.id` (rule ID), `RULE.phase` (the phase where the rule runs), and `RULE.operator_value` (the rule operator's argument). It is mainly used to reference the current rule's own information in logs and dynamic messages.
 
 **Example:**
 

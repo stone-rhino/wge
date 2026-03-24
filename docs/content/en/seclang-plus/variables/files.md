@@ -3,7 +3,7 @@ title = "FILES"
 weight = 75
 +++
 
-**Description:** Uploaded file content
+**Description:** Uploaded file names
 
 **Syntax:** `FILES | FILES:fieldname`
 

@@ -3,7 +3,7 @@ title = "XML"
 weight = 73
 +++
 
-**Description:** XML data
+**Description:** XML request body data
 
 **Syntax:** `XML:/xpath/expression`
 

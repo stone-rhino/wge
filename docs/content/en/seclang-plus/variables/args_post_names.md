@@ -5,7 +5,7 @@ weight = 6
 
 **Description:** POST parameter names
 
-**Syntax:** `ARGS_POST_NAMES`
+**Syntax:** `ARGS_POST_NAMES | ARGS_POST_NAMES:Key`
 
 ARGS_POST_NAMES contains only the names of parameters in the request body. Used to detect whether POST parameter names contain suspicious content. SecRequestBodyAccess must be enabled to access this variable.
 

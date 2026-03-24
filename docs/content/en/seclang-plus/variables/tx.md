@@ -3,7 +3,7 @@ title = "TX"
 weight = 81
 +++
 
-**Description:** Transaction variable collection (temporary variables)
+**Description:** Transaction variable collection
 
 **Syntax:** `TX:key`
 

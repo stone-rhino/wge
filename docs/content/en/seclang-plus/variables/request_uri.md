@@ -7,7 +7,7 @@ weight = 15
 
 **Syntax:** `REQUEST_URI`
 
-REQUEST_URI contains the complete request URI, including the query string portion, and is URL-decoded. This is the primary variable for detecting attack payloads in URLs. Unlike REQUEST_URI_RAW, the content of this variable is decoded, making it easier to match attack patterns directly.
+REQUEST_URI contains the complete request URI, including the query string portion, and is URL-decoded. This is the primary variable for detecting attack payloads in URLs. Unlike REQUEST_URI_RAW, the content of this variable is already **decoded**, making it easier to match attack patterns directly.
 
 **Example:**
 

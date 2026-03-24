@@ -7,12 +7,16 @@ weight = 59
 
 **Syntax:** `REQBODY_PROCESSOR`
 
-REQBODY_PROCESSOR contains the name of the request body processor used for the current request, such as URLENCODED, MULTIPART, JSON, or XML. This variable is automatically set by WGE based on Content-Type, and can also be manually specified via the ctl:requestBodyProcessor action.
+REQBODY_PROCESSOR contains the name of the request body processor used for the current request, such as URLENCODED, MULTIPART, JSON, or XML.
+When the `Content-Type` request header is `application/x-www-form-urlencoded` or `multipart/form-data`, WGE automatically sets this variable to `URLENCODED` or `MULTIPART` respectively. Users can also manually specify processors such as `JSON` via the `ctl:requestBodyProcessor` action.
 
 **Example:**
 
 ```apache
-# Execute different checks based on processor type
-SecRule REQBODY_PROCESSOR "@streq JSON" \
-    "id:1046,phase:2,pass,nolog,setvar:tx.json_request=1"
+# Configure different request body processors based on Content-Type
+SecRule REQUEST_HEADERS:Content-Type "^(?:application(?:/soap\\+|/)|text/)xml" \
+     "id:'200000',phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=XML"
+
+SecRule REQUEST_HEADERS:Content-Type "^application/json" \
+     "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,ctl:requestBodyProcessor=JSON"
 ```

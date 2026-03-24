@@ -3,11 +3,13 @@ title = "TIME_SEC"
 weight = 100
 +++
 
-**Description:** Second
+**Description:** Current second value
 
 **Syntax:** `TIME_SEC`
 
 **Implementation Status:** No
+
+WGE can parse this directive, but the functionality is not implemented yet.
 
 **Example:**
 

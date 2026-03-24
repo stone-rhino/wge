@@ -9,6 +9,8 @@ weight = 85
 
 The USER collection is used to store persistent data associated with authenticated users. You need to first set the user identifier via the setuid action and initialize it. Can be used to track specific user behavior patterns and implement user-level access control.
 
+This variable is not recommended at the moment because its parsing and assignment behavior still has some issues.
+
 **Example:**
 
 ```apache

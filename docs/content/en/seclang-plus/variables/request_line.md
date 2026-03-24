@@ -3,7 +3,7 @@ title = "REQUEST_LINE"
 weight = 20
 +++
 
-**Description:** Complete request line
+**Description:** Full request line
 
 **Syntax:** `REQUEST_LINE`
 

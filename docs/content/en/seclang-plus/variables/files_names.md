@@ -5,7 +5,7 @@ weight = 76
 
 **Description:** Uploaded file names
 
-**Syntax:** `FILES_NAMES`
+**Syntax:** `FILES_NAMES | FILES_NAMES:Key`
 
 FILES_NAMES contains the form field names corresponding to all uploaded files. Can be used to detect anomalous content in form field names, or to verify that uploaded files are submitted through expected form fields.
 

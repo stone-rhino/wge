@@ -3,7 +3,7 @@ title = "REQUEST_METHOD"
 weight = 14
 +++
 
-**Description:** Request method (GET, POST, etc.)
+**Description:** HTTP request method
 
 **Syntax:** `REQUEST_METHOD`
 

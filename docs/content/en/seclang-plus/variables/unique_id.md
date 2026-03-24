@@ -3,7 +3,7 @@ title = "UNIQUE_ID"
 weight = 91
 +++
 
-**Description:** Unique request identifier
+**Description:** Unique request ID
 
 **Syntax:** `UNIQUE_ID`
 

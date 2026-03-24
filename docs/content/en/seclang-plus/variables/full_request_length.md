@@ -9,8 +9,10 @@ weight = 23
 
 **Implementation Status:** No
 
+WGE can parse this directive, but the functionality is not implemented yet.
+
 **Example:**
 
 ```apache
-SecRule FULL_REQUEST_LENGTH "@rx value" "id:1001,deny,msg:'Test'"
+SecRule FULL_REQUEST_LENGTH "@gt 10485760" "id:1001,deny,msg:'Test'"
 ```

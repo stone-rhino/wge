@@ -9,6 +9,8 @@ weight = 83
 
 The IP collection is used to store persistent data associated with client IP addresses. Commonly used to implement IP-level request rate limiting, IP reputation scoring, etc. Needs to be initialized via initcol:IP=%{REMOTE_ADDR}. Data in the IP collection persists across multiple requests from the same client IP.
 
+This variable is not recommended at the moment because its parsing and assignment behavior still has some issues.
+
 **Example:**
 
 ```apache

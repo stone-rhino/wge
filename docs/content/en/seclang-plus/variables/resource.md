@@ -9,6 +9,8 @@ weight = 86
 
 The RESOURCE collection is used to store persistent data associated with specific resources (such as URL paths). Can be used to track access patterns for specific resources, such as the call frequency of a particular API endpoint.
 
+This variable is not recommended at the moment because its parsing and assignment behavior still has some issues.
+
 **Example:**
 
 ```apache

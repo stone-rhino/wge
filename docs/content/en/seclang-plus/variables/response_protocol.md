@@ -7,7 +7,7 @@ weight = 28
 
 **Syntax:** `RESPONSE_PROTOCOL`
 
-**Implementation Status:** No
+This variable contains HTTP response protocol information.
 
 **Example:**
 

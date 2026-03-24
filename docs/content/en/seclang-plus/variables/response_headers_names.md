@@ -7,7 +7,7 @@ weight = 26
 
 **Syntax:** `RESPONSE_HEADERS_NAMES | RESPONSE_HEADERS_NAMES:Key`
 
-**Implementation Status:** No
+This variable references response header names and behaves the same way as request header names in `REQUEST_HEADERS_NAMES`.
 
 **Example:**
 

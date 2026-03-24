@@ -3,11 +3,13 @@ title = "TIME_HOUR"
 weight = 98
 +++
 
-**Description:** Hour
+**Description:** Current hour value
 
 **Syntax:** `TIME_HOUR`
 
 **Implementation Status:** No
+
+WGE can parse this directive, but the functionality is not implemented yet.
 
 **Example:**
 

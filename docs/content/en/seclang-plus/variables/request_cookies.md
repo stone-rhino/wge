@@ -3,11 +3,11 @@ title = "REQUEST_COOKIES"
 weight = 10
 +++
 
-**Description:** Request cookies
+**Description:** Request Cookie values
 
 **Syntax:** `REQUEST_COOKIES | REQUEST_COOKIES:CookieName`
 
-REQUEST_COOKIES contains the values of all cookies in the request. Specific cookies can be accessed using REQUEST_COOKIES:name. Cookies are common attack vectors where attackers may inject malicious code or attempt session hijacking.
+REQUEST_COOKIES contains the values of all cookies in the request. Specific cookies can be accessed with `REQUEST_COOKIES:name`. Cookies are common attack vectors where attackers may inject malicious code or attempt session hijacking.
 
 **Example:**
 

@@ -3,7 +3,7 @@ title = "RESPONSE_BODY"
 weight = 24
 +++
 
-**Description:** Response body content
+**Description:** HTTP response body
 
 **Syntax:** `RESPONSE_BODY`
 
