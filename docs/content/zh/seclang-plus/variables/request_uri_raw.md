@@ -5,15 +5,11 @@ weight = 16
 
 **描述:** 原始请求 URI (未解码)
 
-
 **语法:** `REQUEST_URI_RAW`
-
 
 REQUEST_URI_RAW 包含原始的、未经 URL 解码的请求 URI。用于检测编码绕过攻击，攻击者可能使用多重编码或异常编码来绕过 WAF 检测。建议同时检查 REQUEST_URI 和 REQUEST_URI_RAW 以获得更全面的保护。
 
-
 **示例:**
-
 
 ```apache
 # 检测 URL 中的双重编码攻击

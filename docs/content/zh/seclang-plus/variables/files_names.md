@@ -6,14 +6,11 @@ weight = 76
 **描述:** 上传文件名称
 
 
-**语法:** `FILES_NAMES`
-
+**语法:** `FILES_NAMES | FILES_NAMES:Key`
 
 FILES_NAMES 包含所有上传文件对应的表单字段名称。可用于检测表单字段名中的异常内容，或验证上传文件是否通过预期的表单字段提交。
 
-
 **示例:**
-
 
 ```apache
 # 确保文件仅通过 'avatar' 字段上传

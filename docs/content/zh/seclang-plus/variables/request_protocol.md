@@ -5,15 +5,12 @@ weight = 19
 
 **描述:** 请求协议 (HTTP/1.1 等)
 
-
 **语法:** `REQUEST_PROTOCOL`
-
 
 REQUEST_PROTOCOL 包含请求使用的 HTTP 协议版本，如 HTTP/1.0、HTTP/1.1 或 HTTP/2.0。可用于检测协议违规或强制使用特定协议版本。
 
 
 **示例:**
-
 
 ```apache
 # 拒绝 HTTP/1.0 请求

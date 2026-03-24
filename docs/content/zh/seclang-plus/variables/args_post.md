@@ -5,15 +5,15 @@ weight = 3
 
 **描述:** POST 请求参数
 
-
 **语法:** `ARGS_POST | ARGS_POST:Key`
 
+ARGS_POST 仅包含请求体中传递的参数（即 POST 数据）。WGE 支持解析 application/x-www-form-urlencoded、multipart/form-data、application/json 格式的请求体。使用此变量可以仅检查表单提交的数据，而不检查 URL 参数。需要启用 SecRequestBodyAccess 才能访问此变量。
 
-ARGS_POST 仅包含请求体中传递的参数（即 POST 数据）。WGE 支持解析 application/x-www-form-urlencoded、multipart/form-data、application/json 和 application/xml 格式的请求体。使用此变量可以仅检查表单提交的数据，而不检查 URL 参数。需要启用 SecRequestBodyAccess 才能访问此变量。
-
+**注意：** 
+- 此变量需要在第二阶段及其之后的规则使用，否则其值为空。
+- 当`SecParseXmlIntoArgs`为`On`或者`OnlyArgs`时，其还包含application/xml类型的请求体。
 
 **示例:**
-
 
 ```apache
 # 检查 POST 表单参数中的 XSS

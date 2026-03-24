@@ -5,15 +5,11 @@ weight = 20
 
 **描述:** 完整的请求行
 
-
 **语法:** `REQUEST_LINE`
-
 
 REQUEST_LINE 包含完整的 HTTP 请求行，格式为 "METHOD URI PROTOCOL"，例如 "GET /index.html HTTP/1.1"。可用于全面检查请求行中的异常内容。
 
-
 **示例:**
-
 
 ```apache
 # 检测请求行中的控制字符

@@ -5,15 +5,11 @@ weight = 73
 
 **描述:** XML 数据
 
-
 **语法:** `XML:/xpath/expression`
-
 
 XML 变量用于通过 XPath 表达式访问 XML 请求体中的特定节点。需要先通过 ctl:requestBodyProcessor=XML 启用 XML 解析器。支持完整的 XPath 语法，包括属性访问、文本节点提取等。
 
-
 **示例:**
-
 
 ```apache
 # 启用 XML 解析
