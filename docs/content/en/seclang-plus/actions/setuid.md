@@ -3,20 +3,26 @@ title = "setuid"
 weight = 28
 +++
 
-**Description:** Set user ID
+**Description:** Initialize the `USER` collection using the provided parameter
 
-**Syntax:** `setuid:identifier`
+**Syntax:** `setuid:('string' | %{variable})`
 
-The setuid action sets a user identifier for the current transaction. This identifier is used to initialize and track USER collection variables, enabling per-user rate limiting, behavior analysis, and session tracking.
+**Case Sensitive:** Yes
+
+**Implementation Status:** Not yet implemented
+
+This action supports execution on non-match and unconditional execution.
+
+WGE can parse this directive correctly, but the feature is not implemented yet.
 
 **Example:**
 
 ```apache
-SecRule REQUEST_COOKIES:user_id "@rx ^[a-z0-9]+$" "id:1001,pass,setuid:%{REQUEST_COOKIES.user_id}"
+SecRule ARGS:username ".*" "phase:2,id:137,t:none,pass,capture,setuid:%{TX.0}"
+
+# Execute on non-match
+SecRule ARGS:username ".*" "phase:2,id:138,t:none,pass,capture,!setuid:%{TX.0}"
+
+# Always execute
+SecRule ARGS:username ".*" "phase:2,id:139,t:none,pass,capture,*setuid:%{TX.0}"
 ```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
-
-**Case Sensitive:** Yes

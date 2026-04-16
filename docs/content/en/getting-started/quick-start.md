@@ -3,7 +3,7 @@ title = "Quick Start"
 weight = 1
 +++
 
-This section explains how to build WGE from source code and integrate it into existing projects. We assume you are an experienced C++ developer with a properly configured C++ development environment. If you are a beginner, don't worry - we provide detailed instructions in the [Building](building.md) chapter that cover development environment configuration and dependency installation. So it's not as complex as you might think. Follow our steps and you'll be able to successfully build WGE, integrate it into your project, and even start contributing code to WGE!
+This section explains how to build WGE from source code and integrate it into existing projects. We assume you are an experienced C++ developer with a properly configured C++ development environment. If you are a beginner, don't worry - we provide detailed instructions in the [Building](building/_index.md) chapter that cover development environment configuration and dependency installation. So it's not as complex as you might think. Follow our steps and you'll be able to successfully build WGE, integrate it into your project, and even start contributing code to WGE!
 
 ### Dependencies
 

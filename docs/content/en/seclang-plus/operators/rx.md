@@ -3,11 +3,15 @@ title = "@rx"
 weight = 1
 +++
 
-**Description:** Matches variable values using Perl Compatible Regular Expressions (PCRE)
+**Description:** Regular expression matching using RE2
 
-**Syntax:** `"@rx pattern"`
+**Syntax:** `@rx pattern`
 
-@rx is the most powerful and commonly used operator in SecLang. It uses PCRE syntax and supports all standard regular expression features. If no operator is specified, @rx is used as the default operator.
+**Input Data Type:** `string`
+
+`@rx` is the most commonly used operator in SecLang. By default, WGE uses RE2 for regex matching. If RE2 compilation fails, WGE attempts to use PCRE2 as fallback.
+
+If no operator keyword is explicitly provided in a rule, regex matching is used by default.
 
 **Example:**
 
@@ -16,9 +20,10 @@ weight = 1
 SecRule ARGS "@rx (?i:select|union|insert|update|delete|drop)" \
     "id:1001,phase:2,deny,msg:'SQL Injection detected'"
 
-# Detect XSS attack patterns
-SecRule ARGS "@rx <script[^>]*>.*?</script>" \
+# Detect XSS attack pattern
+SecRule ARGS "@rx ]*>.*?" \
     "id:1002,phase:2,deny,msg:'XSS Attack detected'"
-```
 
-**Parameter Type:** `string (regular expression)`
+# Use regex when operator keyword is omitted
+SecRule ARGS "admin" "id:1003,phase:2,deny,msg:'test'"
+```

@@ -7,7 +7,7 @@ weight = 31
 
 **Syntax:** `initcol:collection=key`
 
-The initcol action initializes persistent collections (IP, SESSION, USER, RESOURCE, GLOBAL). Persistent collections allow saving and sharing data across multiple requests, forming the foundation for implementing IP rate limiting, session tracking, user behavior analysis, and similar features.
+The `initcol` action initializes persistent collections (`IP`, `SESSION`, `USER`, `RESOURCE`, `GLOBAL`). These collections are commonly used for IP rate limiting, session tracking, and user behavior analysis.
 
 **Available Collections:**
 
@@ -17,7 +17,11 @@ The initcol action initializes persistent collections (IP, SESSION, USER, RESOUR
 - **RESOURCE** - Persistent storage based on resource identifier
 - **GLOBAL** - Global persistent storage
 
-Collection data is automatically loaded from storage during rule execution and automatically persisted after modification.
+At the moment, WGE can parse this action but does not implement real persistence. In practice, it behaves similarly to using `setvar` variables within the transaction lifecycle.
+
+**Case Sensitive:** Yes
+
+**Note:** This action supports execution control prefixes. You can force execution when a rule does not match (`!initcol`) or always execute regardless of match result (`*initcol`).
 
 **Example:**
 
@@ -25,21 +29,9 @@ Collection data is automatically loaded from storage during rule execution and a
 # Initialize IP collection for rate limiting
 SecAction "id:1,phase:1,pass,nolog,initcol:IP=%{REMOTE_ADDR}"
 
-# IP rate limiting implementation
-SecRule IP:request_count "@gt 100" \
-    "id:2,phase:1,deny,msg:'IP request rate exceeded'"
-SecRule REQUEST_URI "@unconditionalMatch" \
-    "id:3,phase:1,pass,nolog,setvar:IP.request_count=+1,\
-    expirevar:IP.request_count=60"
+# Execute initcol when the rule does not match
+SecRule ARGS "@rx admin" "id:2,phase:1,pass,nolog,!initcol:IP=%{REMOTE_ADDR}"
 
-# Initialize session collection
-SecRule REQUEST_COOKIES:session_id "@rx ^[a-f0-9]{32}$" \
-    "id:4,phase:1,pass,nolog,initcol:SESSION=%{REQUEST_COOKIES.session_id}"
-
-# Initialize global collection
-SecAction "id:5,phase:1,pass,nolog,initcol:GLOBAL=global"
+# Always execute initcol regardless of match result
+SecRule ARGS "@rx admin" "id:3,phase:1,pass,nolog,*initcol:IP=%{REMOTE_ADDR}"
 ```
-
-**Parameter Type:** `string`
-
-**Case Sensitive:** Yes

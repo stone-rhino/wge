@@ -3,20 +3,26 @@ title = "setsid"
 weight = 29
 +++
 
-**Description:** Set session ID
+**Description:** Initialize the `SESSION` collection using the provided parameter
 
-**Syntax:** `setsid:identifier`
+**Syntax:** `setsid:('string' | %{variable})`
 
-The setsid action sets a session identifier for the current transaction. This identifier is used to initialize and track SESSION collection variables, enabling session-based tracking and per-session rate limiting.
+**Case Sensitive:** Yes
+
+**Implementation Status:** Not yet implemented
+
+This action supports execution on non-match and unconditional execution.
+
+WGE can parse this directive correctly, but the feature is not implemented yet.
 
 **Example:**
 
 ```apache
-SecRule REQUEST_COOKIES:session_id "@rx ^[a-f0-9]{32}$" "id:1001,pass,setsid:%{REQUEST_COOKIES.session_id}"
+SecRule ARGS "@rx test" "id:1001,phase:2,setsid:%{REQUEST_COOKIES.PHPSESSID},status:403"
+
+# Execute on non-match
+SecRule ARGS "@rx test" "id:1002,phase:2,!setsid:%{REQUEST_COOKIES.PHPSESSID},status:403"
+
+# Always execute
+SecRule ARGS "@rx test" "id:1003,phase:2,*setsid:%{REQUEST_COOKIES.PHPSESSID},status:403"
 ```
-
-**Parameter Type:** `string`
-
-**Implementation Status:** Not yet implemented
-
-**Case Sensitive:** Yes
