@@ -7,5 +7,5 @@ In this chapter, you will learn how to quickly get started with WGE, including i
 
 - [Quick Start](./quick-start.md)
 - [Building](./building/)
-- [Integrating](./intergrating/)
+- [Integrating](./integrating/)
 - [Debugging](./debugging/)
