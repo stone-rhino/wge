@@ -22,7 +22,7 @@ SecRule ARGS "!@beginswith admin|@endswith user|@streq passwd" "id:1001,phase:2,
 
 另外几乎所有的操作符都支持**宏扩展**功能，即传入操作符的参数不是固定的，而是根据变量动态获取的，如：
 ```apache
-SecRule REQUEST_HEADERS:Referer "@rx REQUEST_HEADERS:Host" "id:1001,phase:2,deny,t:none"
+SecRule REQUEST_HEADERS:Referer "@rx %{REQUEST_HEADERS:Host}" "id:1001,phase:2,deny,t:none"
 ```
 **注意：** 当 variable 中没有任何数据时，action 任何情况下都不会执行，即使使用了控制符如`!setvar`或者`*setvar`，noMatch 和 unconditionalMatch 也无效，任何情况下都会返回匹配失败。
 

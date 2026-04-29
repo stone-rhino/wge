@@ -23,7 +23,7 @@ SecRule ARGS "!@beginswith admin|@endswith user|@streq passwd" "id:1001,phase:2,
 Most operators support macro expansion, so operator parameters can be dynamically resolved from variables:
 
 ```apache
-SecRule REQUEST_HEADERS:Referer "@rx REQUEST_HEADERS:Host" "id:1001,phase:2,deny,t:none"
+SecRule REQUEST_HEADERS:Referer "@rx %{REQUEST_HEADERS:Host}" "id:1001,phase:2,deny,t:none"
 ```
 
 **Note:** When a variable has no data, actions are not executed in any case. This remains true even with control prefixes such as `!setvar` or `*setvar`. `@noMatch` and `@unconditionalMatch` are also ineffective in this scenario and still return no match.
