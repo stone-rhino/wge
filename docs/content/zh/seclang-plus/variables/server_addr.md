@@ -1,0 +1,18 @@
++++
+title = "SERVER_ADDR"
+weight = 35
++++
+
+**描述:** 服务器 IP 地址
+
+**语法:** `SERVER_ADDR`
+
+**是否实现:** 否
+
+此指令WGE可以正常解析，但是暂未实现该功能。
+
+**示例:**
+
+```apache
+SecRule SERVER_ADDR "@rx value" "id:1001,deny,msg:'Test'"
+```

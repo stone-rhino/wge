@@ -1,0 +1,18 @@
++++
+title = "MULTIPART_INVALID_PART"
+weight = 54
++++
+
+**描述:** Multipart 无效部分
+
+**语法:** `MULTIPART_INVALID_PART`
+
+**是否实现:** 否
+
+此指令WGE可以正常解析，但是暂未实现该功能。
+
+**示例:**
+
+```apache
+SecRule MULTIPART_INVALID_PART "@rx value" "id:1001,deny,msg:'Test'"
+```

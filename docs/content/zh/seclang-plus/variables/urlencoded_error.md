@@ -1,0 +1,18 @@
++++
+title = "URLENCODED_ERROR"
+weight = 63
++++
+
+**描述:** URL 编码错误
+
+**语法:** `URLENCODED_ERROR`
+
+**是否实现:** 否
+
+此指令WGE可以正常解析，但是暂未实现该功能。
+
+**示例:**
+
+```apache
+SecRule URLENCODED_ERROR "@rx value" "id:1001,deny,msg:'Test'"
+```
