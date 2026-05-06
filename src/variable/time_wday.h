@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -20,23 +20,22 @@
  */
 #pragma once
 
-#include "variable_base.h"
-
-#include "../macro/variable_macro.h"
+#include "time.h"
 
 namespace Wge {
 namespace Variable {
-class TimeWDay final : public VariableBase {
+class TimeWDay final : public TimeBase {
   DECLARE_VIRABLE_NAME(TIME_WDAY);
 
 public:
   TimeWDay(std::string&& sub_name, bool is_not, bool is_counter,
            std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : TimeBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
+                 TimeBase::TimeType::TimeWDay) {}
 
   TimeWDay(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
            std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
+      : TimeBase("", is_not, is_counter, curr_rule_file_path, TimeBase::TimeType::TimeWDay) {
     // Does not support sub_name macro
     UNREACHABLE();
   }

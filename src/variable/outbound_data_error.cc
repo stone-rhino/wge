@@ -18,28 +18,17 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "outbound_data_error.h"
 
-#include "multipart_strict_error.h"
+#include "../engine.h"
 
 namespace Wge {
 namespace Variable {
-class MultipartInvalidPart final : public MultipartErrorBase {
-  DECLARE_VIRABLE_NAME(MULTIPART_INVALID_PART);
 
-public:
-  MultipartInvalidPart(std::string&& sub_name, bool is_not, bool is_counter,
-                       std::string_view curr_rule_file_path)
-      : MultipartErrorBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
-                           Wge::MultipartStrictError::ErrorType::InvalidPart) {}
+void OutboundDataError::evaluateCollection(Transaction& t, Common::EvaluateResults& result) const {
+  const auto& engine_config = t.getEngine().config();
+  result.emplace_back(t.getResponseBody().size() > engine_config.response_body_limit_);
+}
 
-  MultipartInvalidPart(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
-                       bool is_counter, std::string_view curr_rule_file_path)
-      : MultipartErrorBase("", is_not, is_counter, curr_rule_file_path,
-                           Wge::MultipartStrictError::ErrorType::InvalidPart) {
-    // Does not support sub_name macro
-    UNREACHABLE();
-  }
-};
 } // namespace Variable
 } // namespace Wge

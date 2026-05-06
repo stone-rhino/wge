@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -26,7 +26,7 @@
 namespace Wge {
 namespace Variable {
 class FilesTmpNames final : public CollectionBase {
-  DECLARE_VIRABLE_NAME(FILES_TMP_CONTENT);
+  DECLARE_VIRABLE_NAME(FILES_TMPNAMES);
 
 public:
   FilesTmpNames(std::string&& sub_name, bool is_not, bool is_counter,

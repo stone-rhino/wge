@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -39,6 +39,27 @@ public:
       : VariableBase("", is_not, is_counter) {
     // Does not support sub_name macro
     UNREACHABLE();
+  }
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    result.emplace_back(static_cast<int64_t>(t.getBodyMultiPart().getFilesSizes().size()));
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    auto& files_sizes = t.getBodyMultiPart().getFilesSizes();
+    auto main_name = mainName();
+    for (auto& size : files_sizes) {
+      result.emplace_back(size);
+    }
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
   }
 };
 } // namespace Variable

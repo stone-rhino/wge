@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -30,6 +30,7 @@
 #include "common/string.h"
 #include "common/try.h"
 #include "engine.h"
+#include "transformation/base64_decode.h"
 #include "variable/variables_include.h"
 
 namespace Wge {
@@ -642,6 +643,103 @@ void Transaction::initUniqueId() const {
       time_point_cast<std::chrono::milliseconds>(system_clock::now()).time_since_epoch().count();
   int random = ::rand() % 100000 + 100000;
   unique_id_ = std::format("{}.{}", timestamp, random);
+}
+
+int64_t Transaction::getArgsCombinedSize() const {
+  if (!args_combined_size_.has_value()) {
+    args_combined_size_.emplace();
+    const auto& line_query_params = request_line_info_.query_params_.getLinked();
+
+    for (const auto& param : line_query_params) {
+      *args_combined_size_ += param.first.size() + param.second.size();
+    }
+    const auto& body_query_params = *request_body_processor_ == BodyProcessorType::Json
+                                        ? body_json_.getKeyValuesLinked()
+                                        : body_query_param_.getLinked();
+    for (const auto& param : body_query_params) {
+      *args_combined_size_ += param.first.size() + param.second.size();
+    }
+  }
+  return args_combined_size_.value();
+}
+
+const boost::unordered_flat_map<std::string_view, std::string_view>& Transaction::getEnviron() {
+  initEnviron();
+  return environ_.value();
+}
+
+void Transaction::initEnviron() {
+  environ_.emplace();
+  for (char** current = environ; *current; current++) {
+
+    std::string_view env_view = *current;
+    size_t pos = env_view.find_first_of('=');
+    if (pos == std::string_view::npos) {
+      continue;
+    }
+
+    std::string key_lower = std::string(env_view.substr(0, pos));
+    std::transform(key_lower.begin(), key_lower.end(), key_lower.begin(), ::tolower);
+    std::string_view key = internString(std::move(key_lower));
+    std::string_view value = internString(std::string(env_view.substr(pos + 1)));
+
+    environ_->emplace(key, value);
+  }
+}
+
+std::string_view Transaction::getFullRequest() {
+  if (!full_request_.has_value()) {
+    full_request_ = EMPTY_STRING_VIEW;
+    initFullRequest();
+  }
+  return full_request_.value();
+}
+
+void Transaction::initFullRequest() {
+  std::string full_reqeust_buffer;
+  full_reqeust_buffer.reserve(extractor_.request_header_count_ * 30 + request_body_.size());
+  extractor_.request_header_traversal_([&](std::string_view key, std::string_view value) {
+    full_reqeust_buffer += key;
+    full_reqeust_buffer += ": ";
+    full_reqeust_buffer += value;
+    full_reqeust_buffer += "\n";
+    return true;
+  });
+
+  full_reqeust_buffer += "\n\n";
+  full_reqeust_buffer += request_body_;
+  full_request_ = internString(std::move(full_reqeust_buffer));
+}
+
+std::string_view Transaction::getRemoteUser() {
+  if (!remote_user_.has_value()) {
+    remote_user_ = EMPTY_STRING_VIEW;
+    auto authorization_headers = extractor_.request_header_find_("authorization");
+    if (!authorization_headers.empty()) {
+      std::string_view authorization = authorization_headers.front();
+      if (authorization.starts_with("Basic ")) {
+        std::string_view encoded = authorization.substr(6);
+        std::string decoded;
+        const static Transformation::Base64Decode base64_decoder{};
+        base64_decoder.evaluate(encoded, decoded);
+        if (size_t pos = decoded.find(':'); pos != std::string_view::npos) {
+          remote_user_ = internString(decoded.substr(0, pos));
+        }
+      }
+    }
+  }
+  return remote_user_.value();
+}
+
+std::tm& Transaction::getTm() const {
+  if (!tm_.has_value()) {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+    std::time_t tt = system_clock::to_time_t(now);
+    tm_.emplace();
+    localtime_r(&tt, &tm_.value());
+  }
+  return tm_.value();
 }
 
 inline bool Transaction::process(RulePhaseType phase) {

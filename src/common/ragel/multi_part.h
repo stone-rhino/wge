@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -62,6 +62,12 @@ public:
     return headers_linked_;
   }
 
+  const std::vector<int64_t>& getFilesSizes() const { return files_sizes_; }
+
+  int64_t getFileCombinedSize() const { return file_combined_size_; }
+
+  int64_t getNoFilesSize() const { return no_files_size_; }
+
   const MultipartStrictError& getError() const { return multipart_strict_error_; }
 
 private:
@@ -71,6 +77,9 @@ private:
   std::vector<std::pair<std::string_view, std::string_view>> name_filename_linked_;
   std::unordered_multimap<std::string_view, std::string_view> headers_map_;
   std::vector<std::pair<std::string_view, std::string_view>> headers_linked_;
+  std::vector<int64_t> files_sizes_;
+  int64_t file_combined_size_{0};
+  int64_t no_files_size_{0};
   MultipartStrictError multipart_strict_error_;
 };
 } // namespace Ragel

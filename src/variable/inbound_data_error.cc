@@ -18,45 +18,26 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "inbound_data_error.h"
 
-#include "variable_base.h"
-
-#include "../macro/variable_macro.h"
+#include "../engine.h"
 
 namespace Wge {
 namespace Variable {
-class FullRequestLength final : public VariableBase {
-  DECLARE_VIRABLE_NAME(FULL_REQUEST_LENGTH);
 
-public:
-  FullRequestLength(std::string&& sub_name, bool is_not, bool is_counter,
-                    std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+void InboundDataError::evaluateCollection(Transaction& t, Common::EvaluateResults& result) const {
+  const auto& engine_config = t.getEngine().config();
 
-  FullRequestLength(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
-                    bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
-    // Does not support sub_name macro
-    UNREACHABLE();
+  auto request_body_processor = t.getRequestBodyProcessor();
+  if (request_body_processor == BodyProcessorType::Json ||
+      request_body_processor == BodyProcessorType::UrlEncoded ||
+      request_body_processor == BodyProcessorType::Xml) {
+    result.emplace_back(t.getRequestBody().size() > engine_config.request_body_limit_);
+  } else if (request_body_processor == BodyProcessorType::MultiPart) {
+    result.emplace_back(t.getBodyMultiPart().getNoFilesSize() >
+                        engine_config.request_body_no_files_limit_);
   }
+}
 
-protected:
-  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(t.getFullRequest().empty() ? 0 : 1);
-  }
-
-  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollectionCounter(t, result);
-  }
-
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(static_cast<int64_t>(t.getFullRequest().size()));
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollection(t, result);
-  }
-};
 } // namespace Variable
 } // namespace Wge
