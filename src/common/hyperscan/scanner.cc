@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -25,37 +25,26 @@
 namespace Wge {
 namespace Common {
 namespace Hyperscan {
-thread_local std::unique_ptr<Scratch> Scanner::worker_scratch_;
+ScratchPool Scanner::scratch_pool_;
+thread_local Scratch* Scanner::worker_scratch_ = scratch_pool_.getScratch();
 
 Scanner::Scanner(const std::shared_ptr<HsDataBase> hs_db) : hs_db_(hs_db) {
   pcre_ = std::make_unique<Pcre::Scanner>(&hs_db_->getPcrePatternList());
 }
 
 void Scanner::registMatchCallback(Scratch::MatchCallback cb, void* user_data) const {
-  // Clone the main scratch space
-  if (!worker_scratch_)
-    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
-
   worker_scratch_->match_cb_ = cb;
   worker_scratch_->match_cb_user_data_ = user_data;
 }
 
 void Scanner::registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCallbak cb,
                                                 void* user_data) const {
-  // Clone the main scratch space
-  if (!worker_scratch_)
-    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
-
   worker_scratch_->pcre_remove_duplicate_cb_ = cb;
   worker_scratch_->pcre_remove_duplicate_cb_user_data_ = user_data;
 }
 
 void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCallback cb,
                         void* user_data) const {
-  // Clone the main scratch space
-  if (!worker_scratch_)
-    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
-
   // Overwrite the match callback and user data
   if (cb) {
     std::swap(worker_scratch_->match_cb_, cb);
@@ -118,10 +107,6 @@ void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCall
 }
 
 void Scanner::streamScanStart() const {
-  // clone the main scratch space
-  if (!worker_scratch_)
-    [[unlikely]] { worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch()); }
-
   assert(worker_scratch_->stream_id_ == nullptr);
   ::hs_open_stream(hs_db_->streamNative(), 0, &worker_scratch_->stream_id_);
 }

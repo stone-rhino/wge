@@ -161,9 +161,9 @@ bool Rule::evaluate(Transaction& t) const {
       return evaluateWithMultiMatch(t);
     }
 
-  static thread_local Common::EvaluateElement transformed_value;
-  static thread_local std::list<const Transformation::TransformBase*> transform_list;
-  static thread_local Operator::OperatorBase::Results op_results;
+  Common::EvaluateElement transformed_value;
+  std::list<const Transformation::TransformBase*> transform_list;
+  Operator::OperatorBase::Results op_results;
 
   // Evaluate the variables
   bool rule_matched = false;
@@ -569,9 +569,9 @@ bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     transforms.emplace_back(transform.get());
   }
 
-  static thread_local Common::EvaluateElement transformed_value;
-  static thread_local std::list<const Transformation::TransformBase*> transform_list;
-  static thread_local Operator::OperatorBase::Results op_results;
+  Common::EvaluateElement transformed_value;
+  std::list<const Transformation::TransformBase*> transform_list;
+  Operator::OperatorBase::Results op_results;
 
   // Evaluate the variables
   bool rule_matched = false;
