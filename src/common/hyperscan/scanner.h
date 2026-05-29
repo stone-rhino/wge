@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -25,6 +25,7 @@
 #include <string_view>
 
 #include "hs_database.h"
+#include "scratch_pool.h"
 
 #include "../pcre/scanner.h"
 
@@ -70,7 +71,16 @@ private:
                                  unsigned int flags, void* user_data);
 
 private:
-  static thread_local std::unique_ptr<Scratch> worker_scratch_;
+  // The scratch pool and per thread scratch space for hyperscan.
+  // We must ensure that the variable type is trivially destructible when using thread_local,
+  // otherwise it will delay the unloading of the shared library (until the thread exits). And
+  // worker_scratch_ is a pointer, which satisfies the requirement of being trivially destructible,
+  // so we can safely use thread_local to store it. At the same time, to ensure that the relevant
+  // resources are also properly released after unloading the shared library, we use scratch_pool_
+  // to manage the scratch space.
+  static ScratchPool scratch_pool_;
+  static thread_local Scratch* worker_scratch_;
+
   const std::shared_ptr<HsDataBase> hs_db_;
   std::unique_ptr<Pcre::Scanner> pcre_;
   unsigned long long max_pcre_scan_front_len_{std::numeric_limits<unsigned int>::max()};

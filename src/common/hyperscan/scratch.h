@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -21,6 +21,7 @@
 #pragma once
 
 #include <mutex>
+#include <string_view>
 
 #include <hs/hs.h>
 

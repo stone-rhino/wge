@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -27,6 +27,7 @@ class Scratch {
 public:
   Scratch(int matched_count);
   ~Scratch();
+  Scratch(const Scratch&) = delete;
 
 public:
   void* handle() const { return scratch_; }
