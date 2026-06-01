@@ -1,3 +1,10 @@
+# Set visibility to hidden by default for all targets
+# set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+# set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+
+# Avoid GNU unique symbols to ensure that the shared library can be unloaded properly
+add_compile_options(-fno-gnu-unique)
+
 file(GLOB local_source
   *.h
   *.cc
@@ -43,6 +50,7 @@ add_library(wge_shared SHARED
   $<TARGET_OBJECTS:transformation>
   ${local_source}
 )
+target_link_options(wge_shared PRIVATE "LINKER:--exclude-libs,ALL")
 
 target_link_libraries(wge_shared PUBLIC spdlog::spdlog_header_only)
 
