@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -26,18 +26,19 @@
 
 namespace Wge {
 namespace Variable {
-class MultipartStrictError final : public VariableBase {
-  DECLARE_VIRABLE_NAME(MULTIPART_STRICT_ERROR);
+class MultipartErrorBase : public VariableBase {
 
 public:
-  MultipartStrictError(std::string&& sub_name, bool is_not, bool is_counter,
-                       std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+  MultipartErrorBase(std::string&& sub_name, bool is_not, bool is_counter,
+                     std::string_view curr_rule_file_path,
+                     Wge::MultipartStrictError::ErrorType error_type)
+      : VariableBase(std::move(sub_name), is_not, is_counter), error_type_(error_type) {}
 
-  MultipartStrictError(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
-                       bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
-    // Does not support sub_name macro
+  MultipartErrorBase(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                     bool is_counter, std::string_view curr_rule_file_path,
+                     Wge::MultipartStrictError::ErrorType error_type)
+      : VariableBase("", is_not, is_counter),
+        error_type_(error_type) { // Does not support sub_name macro
     UNREACHABLE();
   }
 
@@ -51,14 +52,32 @@ protected:
   }
 
   void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(t.getBodyMultiPart().getError().get(
-                            Wge::MultipartStrictError::ErrorType::MultipartStrictError)
-                            ? 1
-                            : 0);
+    result.emplace_back(t.getBodyMultiPart().getError().get(error_type_));
   }
 
   void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
     evaluateCollection(t, result);
+  }
+
+private:
+  Wge::MultipartStrictError::ErrorType error_type_;
+};
+
+class MultipartStrictError final : public MultipartErrorBase {
+  DECLARE_VIRABLE_NAME(MULTIPART_STRICT_ERROR);
+
+public:
+  MultipartStrictError(std::string&& sub_name, bool is_not, bool is_counter,
+                       std::string_view curr_rule_file_path)
+      : MultipartErrorBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
+                           Wge::MultipartStrictError::ErrorType::MultipartStrictError) {}
+
+  MultipartStrictError(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
+                       bool is_counter, std::string_view curr_rule_file_path)
+      : MultipartErrorBase("", is_not, is_counter, curr_rule_file_path,
+                           Wge::MultipartStrictError::ErrorType::MultipartStrictError) {
+    // Does not support sub_name macro
+    UNREACHABLE();
   }
 };
 } // namespace Variable

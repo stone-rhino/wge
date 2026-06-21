@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -306,11 +306,14 @@ static std::string_view parseContentType(std::string_view input,
             MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
             auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
             name_value_linked.emplace_back(name, std::string_view(p_value_start, value_len));
+            no_files_size += value_len;
           }
         }else{
           MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
           auto result = name_filename_map.insert({name, filename});
           name_filename_linked.emplace_back(name, filename);
+          files_sizes.emplace_back(value_len);
+          file_combined_size += value_len;
         }
 
         name = {};
@@ -372,13 +375,18 @@ static std::string_view parseContentType(std::string_view input,
                    std::vector<std::pair<std::string_view, std::string_view>>& name_filename_linked,
                    std::unordered_multimap<std::string_view, std::string_view>& headers_map,
                    std::vector<std::pair<std::string_view, std::string_view>>& headers_linked,
-                   Wge::MultipartStrictError& error_code, uint32_t max_file_count) {
+                   Wge::MultipartStrictError& error_code, uint32_t max_file_count,
+                   std::vector<int64_t>& files_sizes, int64_t& file_combined_size,
+                   int64_t& no_files_size) {
       using namespace Wge;
 
       name_value_map.clear();
       name_value_linked.clear();
       name_filename_map.clear();
       name_filename_linked.clear();
+      files_sizes.clear();
+      file_combined_size = 0;
+      no_files_size = 0;
 
       const char* p = input.data();
       const char* pe = p + input.size();

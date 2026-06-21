@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -33,6 +33,7 @@
 #include <boost/unordered/unordered_flat_map.hpp>
 #include <boost/unordered/unordered_flat_set.hpp>
 
+#include "common/duration.h"
 #include "common/evaluate_result.h"
 #include "common/property_store.h"
 #include "common/property_tree.h"
@@ -659,6 +660,15 @@ public:
 
 public:
   std::string_view getUniqueId() const;
+  int64_t getArgsCombinedSize() const;
+  Common::Duration& getDuration() const { return duration_; }
+  const boost::unordered_flat_map<std::string_view, std::string_view>& getEnviron();
+  std::string_view getFullRequest();
+  int64_t getHighestSeverity() const { return highest_severity_.value_or(255); }
+  void setHighestSeverity(int64_t severity) { highest_severity_ = severity; }
+  std::string_view getRemoteUser();
+  std::tm& getTm() const;
+
   AdditionalCondCallback getAdditionalCond() const { return additional_cond_; }
   void* getAdditionalCondUserdata() const { return additional_cond_user_data_; }
 
@@ -681,12 +691,17 @@ public:
 
 private:
   void initUniqueId() const;
+  void initEnviron();
+  void initFullRequest();
   inline bool process(RulePhaseType phase);
   inline std::optional<size_t> getLocalVariableIndex(const std::string& ns,
                                                      const std::string& key) const;
   inline size_t getOrCreateLocalVariableIndex(const std::string& ns, const std::string& key);
   void initCookies() const;
   inline std::optional<bool> doDisruptive(const Rule& rule, const Rule* default_action);
+
+private:
+  mutable Common::Duration duration_;
 
   // Http transaction data
 private:
@@ -762,6 +777,12 @@ private:
 
 private:
   mutable std::optional<std::string> unique_id_;
+  mutable std::optional<int64_t> args_combined_size_;
+  mutable std::optional<boost::unordered_flat_map<std::string_view, std::string_view>> environ_;
+  mutable std::optional<std::string_view> full_request_;
+  mutable std::optional<int64_t> highest_severity_;
+  mutable std::optional<std::string_view> remote_user_;
+  mutable std::optional<std::tm> tm_;
   LogCallback log_callback_;
   void* log_user_data_;
   AdditionalCondCallback additional_cond_;

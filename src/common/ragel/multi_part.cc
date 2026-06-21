@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -35,9 +35,10 @@ void MultiPart::init(std::string_view content_type, std::string_view multi_part,
   name_value_linked_.reserve(5);
   name_filename_map_.reserve(5);
   name_filename_linked_.reserve(5);
+  files_sizes_.reserve(5);
   ::parseMultiPart(multi_part, boundary, name_value_map_, name_value_linked_, name_filename_map_,
                    name_filename_linked_, headers_map_, headers_linked_, multipart_strict_error_,
-                   max_file_count);
+                   max_file_count, files_sizes_, file_combined_size_, no_files_size_);
 }
 
 } // namespace Ragel

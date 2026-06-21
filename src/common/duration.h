@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -33,6 +33,7 @@ public:
 public:
   uint64_t milliseconds() const { return end() - start_clock_; }
   uint64_t seconds() const { return (end() - start_clock_) / 1000; }
+  uint64_t start() const { return start_clock_; }
   void stop() { end_clock_ = now(); }
 
 private:

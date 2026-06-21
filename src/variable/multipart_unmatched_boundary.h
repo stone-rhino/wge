@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -20,45 +20,25 @@
  */
 #pragma once
 
-#include "variable_base.h"
-
-#include "../macro/variable_macro.h"
+#include "multipart_strict_error.h"
 
 namespace Wge {
 namespace Variable {
-class MultipartUnmatchedBoundary final : public VariableBase {
+class MultipartUnmatchedBoundary final : public MultipartErrorBase {
   DECLARE_VIRABLE_NAME(MULTIPART_UNMATCHED_BOUNDARY);
 
 public:
   MultipartUnmatchedBoundary(std::string&& sub_name, bool is_not, bool is_counter,
                              std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : MultipartErrorBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path,
+                           Wge::MultipartStrictError::ErrorType::UnmatchedBoundary) {}
 
   MultipartUnmatchedBoundary(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
                              bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
+      : MultipartErrorBase("", is_not, is_counter, curr_rule_file_path,
+                           Wge::MultipartStrictError::ErrorType::UnmatchedBoundary) {
     // Does not support sub_name macro
     UNREACHABLE();
-  }
-
-protected:
-  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollection(t, result);
-  }
-
-  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollection(t, result);
-  }
-
-  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
-    result.emplace_back(
-        t.getBodyMultiPart().getError().get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary)
-            ? 1
-            : 0);
-  }
-
-  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
-    evaluateCollection(t, result);
   }
 };
 } // namespace Variable

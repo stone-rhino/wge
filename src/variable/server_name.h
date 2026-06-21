@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include "response_headers.h"
 #include "variable_base.h"
 
 #include "../macro/variable_macro.h"
@@ -32,14 +33,36 @@ class ServerName final : public VariableBase {
 public:
   ServerName(std::string&& sub_name, bool is_not, bool is_counter,
              std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : VariableBase(std::move(sub_name), is_not, is_counter),
+        request_host_("host", is_not, is_counter, curr_rule_file_path) {}
 
   ServerName(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not, bool is_counter,
              std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
+      : VariableBase("", is_not, is_counter),
+        request_host_("host", is_not, is_counter, curr_rule_file_path) {
     // Does not support sub_name macro
     UNREACHABLE();
   }
+
+protected:
+  void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    request_host_.evaluate(t, result);
+  }
+
+  void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollectionCounter(t, result);
+  }
+
+  void evaluateCollection(Transaction& t, Common::EvaluateResults& result) const override {
+    request_host_.evaluate(t, result);
+  }
+
+  void evaluateSpecify(Transaction& t, Common::EvaluateResults& result) const override {
+    evaluateCollection(t, result);
+  }
+
+private:
+  RequestHeaders request_host_;
 };
 } // namespace Variable
 } // namespace Wge

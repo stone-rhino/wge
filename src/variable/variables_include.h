@@ -37,7 +37,7 @@
 #include "files_names.h"
 #include "files_sizes.h"
 #include "files_tmp_content.h"
-#include "files_tmpnames.h"
+#include "files_tmp_names.h"
 #include "full_request.h"
 #include "full_request_length.h"
 #include "geo.h"

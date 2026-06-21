@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -20,25 +20,29 @@
  */
 #pragma once
 
-#include "variable_base.h"
-
-#include "../macro/variable_macro.h"
+#include "files.h"
 
 namespace Wge {
 namespace Variable {
-class MultipartName final : public VariableBase {
+class MultipartName final : public FilesBase {
   DECLARE_VIRABLE_NAME(MULTIPART_NAME);
 
 public:
   MultipartName(std::string&& sub_name, bool is_not, bool is_counter,
                 std::string_view curr_rule_file_path)
-      : VariableBase(std::move(sub_name), is_not, is_counter) {}
+      : FilesBase(std::move(sub_name), is_not, is_counter, curr_rule_file_path) {}
 
   MultipartName(std::unique_ptr<Macro::VariableMacro>&& sub_name_macro, bool is_not,
                 bool is_counter, std::string_view curr_rule_file_path)
-      : VariableBase("", is_not, is_counter) {
+      : FilesBase("", is_not, is_counter, curr_rule_file_path) {
     // Does not support sub_name macro
     UNREACHABLE();
+  }
+
+protected:
+  void addResultItem(Common::EvaluateResults& result, std::string_view key,
+                     std::string_view value) const override {
+    result.emplace_back(key, key);
   }
 };
 } // namespace Variable

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -46,9 +46,7 @@ public:
 
 protected:
   void evaluateCollectionCounter(Transaction& t, Common::EvaluateResults& result) const override {
-    Common::EvaluateResults temp_result;
-    response_content_type_.evaluate(t, temp_result);
-    result.emplace_back(static_cast<int64_t>(temp_result.size()));
+    response_content_type_.evaluate(t, result);
   }
 
   void evaluateSpecifyCounter(Transaction& t, Common::EvaluateResults& result) const override {
